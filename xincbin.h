@@ -1,6 +1,19 @@
 #ifndef INCBIN_H
 #define INCBIN_H
 
+/* Stringize */
+#define INCBIN_STR(X) \
+    #X
+#define INCBIN_STRINGIZE(X) \
+    INCBIN_STR(X)
+/* Concatenate */
+#define INCBIN_CAT(X, Y) \
+    X ## Y
+#define INCBIN_CONCATENATE(X, Y) \
+    INCBIN_CAT(X, Y)
+
+#define INCBIN_PREFIX xincbin_
+
 #ifndef RC_INVOKED
 // Copied from INCBIN
 /**
@@ -56,16 +69,6 @@
         INCBIN_CONCATENATE(INCBIN_ALIGN_SHIFT, _), \
         INCBIN_ALIGNMENT_INDEX)
 
-/* Stringize */
-#define INCBIN_STR(X) \
-    #X
-#define INCBIN_STRINGIZE(X) \
-    INCBIN_STR(X)
-/* Concatenate */
-#define INCBIN_CAT(X, Y) \
-    X ## Y
-#define INCBIN_CONCATENATE(X, Y) \
-    INCBIN_CAT(X, Y)
 /* Deferred macro expansion */
 #define INCBIN_EVAL(X) \
     X
@@ -207,8 +210,6 @@
 #define INCBIN_STYLE_CAMEL 0
 #define INCBIN_STYLE_SNAKE 1
 
-#define INCBIN_PREFIX xincbin_
-
 /**
  * @brief Specify the style used for symbol names.
  *
@@ -307,6 +308,8 @@
     );
 
 #ifdef _MSC_VER
+#	define XINCBIN_GET(NAME) xincbin_get(INCBIN_STRINGIZE(INCBIN_CONCATENATE(INCBIN_PREFIX, NAME)))
+	INCBIN_EXTERNAL xincbin_data_t xincbin_get(const char* name);
 #else
 #	ifdef XINCBIN_IMPLEMENTATION
 #		define XINCBIN(NAME, FILENAME) INCBIN_COMMON(unsigned char, NAME, FILENAME,)
@@ -326,6 +329,34 @@ typedef struct xincbin_data_s {
 
 #else // RC_INVOKED
 
+#define XINCBIN(NAME, FILENAME) INCBIN_CONCATENATE(INCBIN_PREFIX, NAME) RCDATA FILENAME
+
 #endif
 
 #endif // Include guard
+
+#ifdef XINCBIN_IMPLEMENTATION
+
+#ifdef _MSC_VER
+
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
+
+xincbin_data_t xincbin_get(const char* name) {
+	HRSRC res = FindResourceA(NULL, name, RT_RCDATA);
+	if (res == NULL) { return (xincbin_data_t){ 0 }; }
+
+	HGLOBAL glob = LoadResource(NULL, res);
+	if (glob == NULL) { return (xincbin_data_t){ 0 }; }
+
+	return (xincbin_data_t){
+		.size = (unsigned int)SizeofResource(glob),
+		.data = LockResource(glob),
+	};
+}
+
+#endif
+
+#endif
