@@ -9,6 +9,7 @@ int main(int argc, const char* argv[]) {
 		itr != REGLIST_END(number_list);
 		++itr
 	) {
+		// Skip padding
 		if (*itr == NULL) { continue; }
 
 		const reglist_entry_t* entry = *itr;
