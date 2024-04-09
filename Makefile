@@ -1,8 +1,8 @@
 .PHONY: all
 
-all: bin/reglist bin/xincbin
+all: bin/autolist bin/xincbin
 
-bin/reglist: tests/reglist/a.c tests/reglist/b.c tests/reglist/main.c
+bin/autolist: tests/autolist/a.c tests/autolist/b.c tests/autolist/main.c
 	mkdir -p bin
 	$(CC) $^ -o $@
 
