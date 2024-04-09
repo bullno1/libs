@@ -4,11 +4,20 @@ local function make_project(name)
     language "C"
     targetdir "bin/%{cfg.buildcfg}"
 
+    includedirs {
+      "tests/"..name,
+    }
+
     files {
       "tests/"..name.."/*.h",
       "tests/"..name.."/*.c",
-      "tests/"..name.."/*.rc",
     }
+
+    -- Only include rc as a compilable file in Windows
+    filter { "system:windows" }
+       files {
+         "tests/"..name.."/*.rc",
+       }
 
     filter "configurations:Debug"
       defines { "DEBUG" }
@@ -43,5 +52,5 @@ workspace "libs"
 
   debugdir "bin/%{cfg.buildcfg}"
 
-make_project "reglist"
+make_project "autolist"
 make_project "xincbin"
