@@ -313,14 +313,18 @@ typedef struct xincbin_data_s {
 } xincbin_data_t;
 
 #ifdef _MSC_VER
-#   define XINCBIN(NAME, FILENAME)
-#	define XINCBIN_GET(NAME) xincbin_get(INCBIN_STRINGIZE(INCBIN_CONCATENATE(INCBIN_PREFIX, NAME)))
+#	ifdef XINCBIN_IMPLEMENTATION
+#		define XINCBIN(NAME, FILENAME) const char* INCBIN_CONCATENATE(INCBIN_PREFIX, NAME) = INCBIN_STRINGIZE(INCBIN_CONCATENATE(INCBIN_PREFIX, NAME));
+#	else
+#		define XINCBIN(NAME, FILENAME) INCBIN_EXTERNAL const char* INCBIN_CONCATENATE(INCBIN_PREFIX, NAME);
+#	endif
+#	define XINCBIN_GET(NAME) xincbin_get(INCBIN_CONCATENATE(INCBIN_PREFIX, NAME))
 	INCBIN_EXTERNAL xincbin_data_t xincbin_get(const char* name);
 #else
 #	ifdef XINCBIN_IMPLEMENTATION
-#		define XINCBIN(NAME, FILENAME) INCBIN_COMMON(unsigned char, NAME, FILENAME,)
+#		define XINCBIN(NAME, FILENAME) INCBIN_COMMON(unsigned char, NAME, FILENAME,);
 #	else
-#		define XINCBIN(NAME, FILENAME) INCBIN_EXTERN(unsigned char, NAME)
+#		define XINCBIN(NAME, FILENAME) INCBIN_EXTERN(unsigned char, NAME);
 #	endif
 #	define XINCBIN_GET(NAME) (xincbin_data_t){ \
 		.size = INCBIN_CONCATENATE(INCBIN_CONCATENATE(INCBIN_PREFIX, NAME), INCBIN_STYLE_IDENT(SIZE)), \
@@ -346,14 +350,23 @@ typedef struct xincbin_data_s {
 #include <windows.h>
 
 xincbin_data_t xincbin_get(const char* name) {
-	HRSRC res = FindResourceA(NULL, name, (LPCSTR)RT_RCDATA);
+	HMODULE module = NULL;
+	GetModuleHandleExA(
+		GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS
+		| GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+		name,
+		&module
+	);
+	if (module == NULL) { return (xincbin_data_t) { 0 }; }
+
+	HRSRC res = FindResourceA(module, name, (LPCSTR)RT_RCDATA);
 	if (res == NULL) { return (xincbin_data_t){ 0 }; }
 
-	HGLOBAL glob = LoadResource(NULL, res);
+	HGLOBAL glob = LoadResource(module, res);
 	if (glob == NULL) { return (xincbin_data_t){ 0 }; }
 
 	return (xincbin_data_t){
-		.size = (unsigned int)SizeofResource(NULL, glob),
+		.size = (unsigned int)SizeofResource(module, glob),
 		.data = LockResource(glob),
 	};
 }
