@@ -17,10 +17,14 @@
 	ITEM_TYPE ITEM_NAME
 
 #if defined(_MSC_VER)
+#	define REGLIST__CONCAT2(A, B) A##B
+#	define REGLIST__CONCAT(A, B) REGLIST__CONCAT2(A, B)
+#	define REGLIST__STR2(X) #X
+#	define REGLIST__STR(X) REGLIST__STR2(X)
 #	define REGLIST__SECTION_BEGIN(NAME) \
 	__pragma(data_seg(push)); \
-	__pragma(section(#NAME "$data"), read); \
-	__declspec(allocate(#NAME "$data"))
+	__pragma(section(REGLIST__STR(REGLIST__CONCAT(NAME, $data)), read)); \
+	__declspec(allocate(REGLIST__STR(REGLIST__CONCAT(NAME, $data))))
 #elif defined(__APPLE__)
 #	define REGLIST__SECTION_BEGIN(NAME) __attribute__((used, section("__DATA,reglist_" #NAME)))
 #elif defined(__unix__)
@@ -46,11 +50,11 @@ typedef struct {
 
 #if defined(_MSC_VER)
 #	define REGLIST_DECLARE(NAME) \
-	__pragma(section(#NAME "$begin", read)); \
-	__pragma(section(#NAME "$data", read)); \
-	__pragma(section(#NAME "$end", read)); \
-	__declspec(allocate(#NAME "$begin")) extern const reglist_entry_t* const reglist_##NAME##_begin = NULL; \
-	__declspec(allocate(#NAME "$end")) extern const reglist_entry_t* const reglist_##NAME##_end = NULL;
+	__pragma(section(REGLIST__STR(REGLIST__CONCAT(NAME, $begin)), read)); \
+	__pragma(section(REGLIST__STR(REGLIST__CONCAT(NAME, $data)), read)); \
+	__pragma(section(REGLIST__STR(REGLIST__CONCAT(NAME, $end)), read)); \
+	__declspec(allocate(REGLIST__STR(REGLIST__CONCAT(NAME, $begin)))) extern const reglist_entry_t* const reglist_##NAME##_begin = NULL; \
+	__declspec(allocate(REGLIST__STR(REGLIST__CONCAT(NAME, $end)))) extern const reglist_entry_t* const reglist_##NAME##_end = NULL;
 #elif defined(__APPLE__)
 #	define REGLIST_DECLARE(NAME) \
 	extern const reglist_entry_t* const __start_##NAME __asm("section$start$__DATA$reglist_" #NAME); \
