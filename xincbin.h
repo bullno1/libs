@@ -307,7 +307,13 @@
             ".text\n" \
     );
 
+typedef struct xincbin_data_s {
+    unsigned int size;
+    const unsigned char* data;
+} xincbin_data_t;
+
 #ifdef _MSC_VER
+#   define XINCBIN(NAME, FILENAME)
 #	define XINCBIN_GET(NAME) xincbin_get(INCBIN_STRINGIZE(INCBIN_CONCATENATE(INCBIN_PREFIX, NAME)))
 	INCBIN_EXTERNAL xincbin_data_t xincbin_get(const char* name);
 #else
@@ -321,11 +327,6 @@
 		.data = INCBIN_CONCATENATE(INCBIN_CONCATENATE(INCBIN_PREFIX, NAME), INCBIN_STYLE_IDENT(DATA)), \
 	}
 #endif
-
-typedef struct xincbin_data_s {
-	unsigned int size;
-	const unsigned char* data;
-} xincbin_data_t;
 
 #else // RC_INVOKED
 
@@ -345,14 +346,14 @@ typedef struct xincbin_data_s {
 #include <windows.h>
 
 xincbin_data_t xincbin_get(const char* name) {
-	HRSRC res = FindResourceA(NULL, name, RT_RCDATA);
+	HRSRC res = FindResourceA(NULL, name, (LPCSTR)RT_RCDATA);
 	if (res == NULL) { return (xincbin_data_t){ 0 }; }
 
 	HGLOBAL glob = LoadResource(NULL, res);
 	if (glob == NULL) { return (xincbin_data_t){ 0 }; }
 
 	return (xincbin_data_t){
-		.size = (unsigned int)SizeofResource(glob),
+		.size = (unsigned int)SizeofResource(NULL, glob),
 		.data = LockResource(glob),
 	};
 }

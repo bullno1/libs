@@ -1,12 +1,13 @@
 local function make_project(name)
-  project "reglist"
+  project(name)
     kind "ConsoleApp"
     language "C"
     targetdir "bin/%{cfg.buildcfg}"
 
     files {
-      "tests/reglist/*.h",
-      "tests/reglist/*.c",
+      "tests/"..name.."/*.h",
+      "tests/"..name.."/*.c",
+      "tests/"..name.."/*.rc",
     }
 
     filter "configurations:Debug"
@@ -43,3 +44,4 @@ workspace "libs"
   debugdir "bin/%{cfg.buildcfg}"
 
 make_project "reglist"
+make_project "xincbin"

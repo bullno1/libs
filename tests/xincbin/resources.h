@@ -1,3 +1,6 @@
-#include "../../xincbin.h"
+#ifndef XINCBIN_RESOURCES_H
+#define XINCBIN_RESOURCES_H
 
-XINCBIN(embedded, "test.txt");
+#include "resources.rc"
+
+#endif

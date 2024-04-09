@@ -1,1 +1,3 @@
-#include "resources.h"
+#include "../../xincbin.h"
+
+XINCBIN(embedded, "test.txt")
