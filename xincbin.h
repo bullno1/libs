@@ -132,7 +132,7 @@
 /**
  * @brief Optionally override the linker section into which size and data is
  * emitted.
- * 
+ *
  * @warning If you use this facility, you might have to deal with
  * platform-specific linker output section naming on your own.
  */
@@ -159,7 +159,7 @@
  *
  * @warning If you use this facility, you might have to deal with
  * platform-specific linker output section naming on your own.
- * 
+ *
  * @note This is useful for Harvard architectures where program memory cannot
  * be directly read from the program without special instructions. With this you
  * can chose to put the size variable in RAM rather than ROM.
@@ -305,7 +305,7 @@
                            INCBIN_MANGLE INCBIN_STRINGIZE(INCBIN_PREFIX) #NAME INCBIN_STYLE_STRING(DATA) "\n" \
             INCBIN_ALIGN_HOST \
             ".text\n" \
-    );
+    )
 
 typedef struct xincbin_data_s {
     unsigned int size;
