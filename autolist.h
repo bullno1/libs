@@ -8,7 +8,7 @@
 	const autolist_entry_t autolist__##ITEM_NAME##_entry = { \
 		.name = #ITEM_NAME, \
 		.name_length = sizeof(#ITEM_NAME) - 1, \
-		.value_addr = &ITEM_NAME, \
+		.value_addr = (void*)&ITEM_NAME, \
 		.value_size = sizeof(ITEM_NAME), \
 	}; \
 	AUTOLIST__SECTION_BEGIN(LIST_NAME) \
