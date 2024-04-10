@@ -16,6 +16,14 @@
 	AUTOLIST__SECTION_END \
 	ITEM_TYPE ITEM_NAME
 
+#define AUTOLIST_FOREACH(ITR, LIST_NAME) \
+	for ( \
+		const autolist_entry_t* const* ITR = AUTOLIST_BEGIN(LIST_NAME); \
+		ITR != AUTOLIST_END(LIST_NAME); \
+		++ITR \
+	) \
+		if (*ITR != NULL)
+
 #if defined(_MSC_VER)
 #	define AUTOLIST__CONCAT2(A, B) A##B
 #	define AUTOLIST__CONCAT(A, B) AUTOLIST__CONCAT2(A, B)
