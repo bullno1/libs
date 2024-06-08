@@ -55,4 +55,6 @@ int main(int argc, const char* argv[]) {
 	printf("\n");
 
 	free(buffer);
+
+	return 0;
 }
