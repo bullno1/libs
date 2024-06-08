@@ -54,3 +54,4 @@ workspace "libs"
 
 make_project "autolist"
 make_project "xincbin"
+make_project "mem_layout"
