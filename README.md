@@ -6,6 +6,7 @@ Collection of miscellaneous single-header libraries.
 |[xincbin.h](tests/xincbin)|A cross-platform way to include binary data in your executable|
 |[mem_layout.h](tests/mem_layout)|Combine multiple mallocs of a nested struct into one|
 |[barena.h](tests/barena)|Arena allocator|
+|[tlsf.h](tests/tlsf)|Adaptation of [jserv/tlsf-bsd](https://github.com/jserv/tlsf-bsd)|
 
 Each one has example and documentation in the corresponding tests directory.
 
