@@ -4,6 +4,11 @@ If:
 CompileFlags:
   Add: [-DBARENA_IMPLEMENTATION]
 ---
+If:
+  PathMatch: tlsf\.h
+CompileFlags:
+  Add: [-DTLSF_IMPLEMENTATION]
+---
 CompileFlags:
   Add: [-xc, -Wall, -Werror, -pedantic, -std=c11]
 

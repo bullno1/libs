@@ -1,6 +1,6 @@
 .PHONY: all
 
-all: bin/autolist bin/xincbin bin/mem_layout bin/barena
+all: bin/autolist bin/xincbin bin/mem_layout bin/barena bin/tlsf
 
 bin/autolist: tests/autolist/a.c tests/autolist/b.c tests/autolist/main.c
 	mkdir -p bin
@@ -17,3 +17,7 @@ bin/mem_layout: tests/mem_layout/main.c
 bin/barena: tests/barena/main.c
 	mkdir -p bin
 	$(CC) -Itests/barena $^ -o $@
+
+bin/tlsf: tests/tlsf/main.c
+	mkdir -p bin
+	$(CC) -Itests/tlsf $^ -o $@
