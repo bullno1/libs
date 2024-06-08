@@ -1,0 +1,9 @@
+---
+If:
+  PathMatch: barena\.h
+CompileFlags:
+  Add: [-DBARENA_IMPLEMENTATION]
+---
+CompileFlags:
+  Add: [-xc, -Wall, -Werror, -pedantic, -std=c11]
+
