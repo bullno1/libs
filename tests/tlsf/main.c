@@ -10,9 +10,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/mman.h>
 #include <time.h>
+
+#ifdef __linux__
 #include <unistd.h>
+#else
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#endif
 
 #define TLSF_IMPLEMENTATION
 #define TLSF_ENABLE_CHECK
@@ -39,7 +44,7 @@ static void random_test(tlsf_t *t, size_t spacelen, const size_t cap)
         if (rand() % 2 == 0) {
             p[i] = tlsf_malloc(t, len);
         } else {
-            size_t align = 1U << (rand() % 20);
+            size_t align = 1ull << (rand() % 20);
             if (cap < align)
                 align = 0;
             else
@@ -78,6 +83,7 @@ static void random_test(tlsf_t *t, size_t spacelen, const size_t cap)
         if (p[target] == NULL)
             continue;
         uint8_t *data = (uint8_t *) p[target];
+        (void)data;
         assert(data[0] == 0xa5);
         tlsf_free(t, p[target]);
         p[target] = NULL;
@@ -143,7 +149,14 @@ static void large_size_test(tlsf_t *t)
 
 int main(void)
 {
+#ifdef __linux__
     PAGE = (size_t) sysconf(_SC_PAGESIZE);
+#else
+    SYSTEM_INFO sys_info;
+    GetSystemInfo(&sys_info);
+    PAGE = sys_info.dwPageSize;
+#endif
+
     MAX_PAGES = 20 * TLSF_MAX_SIZE / PAGE;
     tlsf_t t = TLSF_INIT;
 

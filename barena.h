@@ -238,7 +238,9 @@ barena_os_release(void* ptr, size_t size) {
 
 void
 barena_os_commit(void* ptr, size_t size) {
-	VirtualAlloc(ptr, size, MEM_COMMIT, PAGE_READWRITE);
+	void* result = VirtualAlloc(ptr, size, MEM_COMMIT, PAGE_READWRITE);
+	(void)result;
+	assert(result != NULL);
 }
 
 void

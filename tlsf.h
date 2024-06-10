@@ -36,7 +36,18 @@ extern "C" {
 #endif
 
 #define _TLSF_SL_COUNT 16
-#if __SIZE_WIDTH__ == 64
+
+#if defined(__SIZE_WIDTH__)
+#   define TLSF_SIZE_WIDTH __SIZE_WIDTH__
+#elif defined(_WIN64)
+#   define TLSF_SIZE_WIDTH 64
+#elif defined(_WIN32)
+#   define TLSF_SIZE_WIDTH 32
+#else
+#   error "Unsupported platform"
+#endif
+
+#if TLSF_SIZE_WIDTH == 64
 #define _TLSF_FL_COUNT 32
 #define _TLSF_FL_MAX 38
 #else
@@ -112,13 +123,19 @@ tlsf_barena_resize(tlsf_t* tlsf, size_t size) {
 #include <stdbool.h>
 #include <string.h>
 
-#ifndef UNLIKELY
+#ifdef _MSC_VER
+#include <intrin.h>
+#endif
+
+#ifdef _MSC_VER
+#define UNLIKELY(x) (x)
+#else
 #define UNLIKELY(x) __builtin_expect(!!(x), false)
 #endif
 
 /* All allocation sizes and addresses are aligned. */
 #define ALIGN_SIZE ((size_t) 1 << ALIGN_SHIFT)
-#if __SIZE_WIDTH__ == 64
+#if TLSF_SIZE_WIDTH == 64
 #define ALIGN_SHIFT 3
 #else
 #define ALIGN_SHIFT 2
@@ -155,7 +172,9 @@ tlsf_barena_resize(tlsf_t* tlsf, size_t size) {
 #endif
 #endif
 
-#ifndef INLINE
+#ifdef _MSC_VER
+#define INLINE static inline __forceinline
+#else
 #define INLINE static inline __attribute__((always_inline))
 #endif
 
@@ -190,6 +209,32 @@ _Static_assert(SL_COUNT <= 32, "index too large");
 _Static_assert(FL_COUNT == _TLSF_FL_COUNT, "invalid level configuration");
 _Static_assert(SL_COUNT == _TLSF_SL_COUNT, "invalid level configuration");
 
+#ifdef _MSC_VER
+
+INLINE uint32_t bitmap_ffs(uint32_t x)
+{
+    unsigned long i;
+    _BitScanForward(&i, x);
+    ASSERT(i, "no set bit found");
+    return i;
+}
+
+INLINE uint32_t log2floor(size_t x)
+{
+    ASSERT(x > 0, "log2 of zero");
+
+    unsigned long index;
+#if TLSF_SIZE_WIDTH == 64
+    _BitScanReverse64(&index, x);
+#else
+    _BitScanReverse(&index, x);
+#endif
+
+    return index;
+}
+
+#else
+
 INLINE uint32_t bitmap_ffs(uint32_t x)
 {
     uint32_t i = (uint32_t) __builtin_ffs((int32_t) x);
@@ -200,12 +245,14 @@ INLINE uint32_t bitmap_ffs(uint32_t x)
 INLINE uint32_t log2floor(size_t x)
 {
     ASSERT(x > 0, "log2 of zero");
-#if __SIZE_WIDTH__ == 64
+#if TLSF_SIZE_WIDTH == 64
     return (uint32_t) (63 - (uint32_t) __builtin_clzll((unsigned long long) x));
 #else
     return (uint32_t) (31 - (uint32_t) __builtin_clzl((unsigned long) x));
 #endif
 }
+
+#endif
 
 INLINE size_t block_size(const tlsf_block_t *block)
 {
@@ -683,18 +730,18 @@ void *tlsf_realloc(tlsf_t *t, void *mem, size_t size)
 #include <stdio.h>
 #include <stdlib.h>
 #define CHECK(cond, msg)                                          \
-    ({                                                            \
+    do {                                                            \
         if (!(cond)) {                                            \
             fprintf(stderr, "TLSF CHECK: %s - %s\n", msg, #cond); \
             abort();                                              \
         }                                                         \
-    })
+    } while (0)
 void tlsf_check(tlsf_t *t)
 {
     for (uint32_t i = 0; i < FL_COUNT; ++i) {
         for (uint32_t j = 0; j < SL_COUNT; ++j) {
-            size_t fl_map = t->fl & (1U << i), sl_list = t->sl[i],
-                   sl_map = sl_list & (1U << j);
+            size_t fl_map = t->fl & (1ull << i), sl_list = t->sl[i],
+                   sl_map = sl_list & (1ull << j);
             tlsf_block_t *block = t->block[i][j];
 
             /* Check that first- and second-level lists agree. */
