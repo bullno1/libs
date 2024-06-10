@@ -9,6 +9,10 @@
 extern "C" {
 #endif /* __cplusplus */
 
+#if defined(__linux__) && !defined(_DEFAULT_SOURCE)
+#	define _DEFAULT_SOURCE 1
+#endif
+
 #include <stddef.h>
 #include <stdint.h>
 
@@ -94,6 +98,9 @@ static inline void tlsf_check(tlsf_t *t)
 
 #ifdef TLSF_IMPLEMENTATION
 
+#include <stdbool.h>
+#include <assert.h>
+
 static inline size_t tlsf_os_page_size(void);
 static inline void* tlsf_os_reserve(size_t size);
 static inline void tlsf_os_release(void* ptr, size_t size);
@@ -150,10 +157,33 @@ tlsf_resize(tlsf_t* tlsf, size_t size) {
 
 #if defined (__linux__)
 
-static inline size_t tlsf_os_page_size(void);
-static inline size_t tlsf_os_reserve(size_t size);
-static inline bool tlsf_os_commit(void* ptr, size_t size);
-static inline void tlsf_os_offer(void* ptr, size_t size);
+#include <unistd.h>
+#include <sys/mman.h>
+
+static inline size_t
+tlsf_os_page_size(void) {
+	return (size_t)sysconf(_SC_PAGESIZE);
+}
+
+static inline void*
+tlsf_os_reserve(size_t size) {
+	return mmap(NULL, size, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0);
+}
+
+static inline void
+tlsf_os_release(void* ptr, size_t size) {
+	munmap(ptr, size);
+}
+
+static inline bool
+tlsf_os_commit(void* ptr, size_t size) {
+	return mprotect(ptr, size, PROT_READ | PROT_WRITE) == 0;
+}
+
+static inline void
+tlsf_os_offer(void* ptr, size_t size) {
+	madvise(ptr, size, MADV_FREE);
+}
 
 #elif defined (_WIN32)
 
