@@ -19,13 +19,20 @@
 #include <Windows.h>
 #endif
 
+// MSVC's rand does not seem to be able to finish the random test
+#define RND_IMPLEMENTATION
+#include "rnd.h"
+
 #define TLSF_IMPLEMENTATION
 #define TLSF_ENABLE_CHECK
 #define BARENA_IMPLEMENTATION
 #include "../../tlsf.h"
 
+#define rand() rnd_well_next(&rnd_state)
+
 static size_t PAGE;
 static size_t MAX_PAGES;
+static rnd_well_t rnd_state;
 
 static void random_test(tlsf_t *t, size_t spacelen, const size_t cap)
 {
@@ -67,7 +74,7 @@ static void random_test(tlsf_t *t, size_t spacelen, const size_t cap)
 
         /* Fill with magic (only when testing up to 1MB). */
         uint8_t *data = (uint8_t *) p[i];
-        if (spacelen <= 1024 * 1024)
+        if (spacelen <= 1024ull * 1024)
             memset(data, 0, len);
         data[0] = 0xa5;
 
@@ -165,7 +172,13 @@ int main(void)
     t.userdata = &arena;
 
     srand((unsigned int) time(0));
+    // Windows does not do overcommit/lazy commit so a test with the entire
+    // address space cannot work.
+#ifdef __linux__
     large_size_test(&t);
+#endif
+
+    rnd_well_seed(&rnd_state, rand());
     random_sizes_test(&t);
     puts("OK!");
 
