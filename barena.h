@@ -182,6 +182,7 @@ barena_align_ptr(void* ptr, size_t alignment) {
 
 #include <unistd.h>
 #include <sys/mman.h>
+#include <assert.h>
 
 size_t
 barena_os_page_size(void) {
@@ -200,8 +201,9 @@ barena_os_release(void* ptr, size_t size) {
 
 void
 barena_os_commit(void* ptr, size_t size) {
-	mprotect(ptr, size, PROT_READ | PROT_WRITE);
-	madvise(ptr, size, MADV_WILLNEED);
+	int ret = mprotect(ptr, size, PROT_READ | PROT_WRITE);
+	(void)ret;
+	assert(ret == 0);
 }
 
 void

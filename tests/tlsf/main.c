@@ -71,7 +71,7 @@ static void random_test(tlsf_t *t, size_t spacelen, const size_t cap)
             memset(data, 0, len);
         data[0] = 0xa5;
 
-        if (i++ == maxitems)
+        if (++i == maxitems)
             break;
     }
 
