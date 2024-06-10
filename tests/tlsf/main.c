@@ -171,14 +171,13 @@ int main(void)
     barena_init(&arena, MAX_PAGES * PAGE, PAGE);
     t.userdata = &arena;
 
-    srand((unsigned int) time(0));
     // Windows does not do overcommit/lazy commit so a test with the entire
     // address space cannot work.
 #ifdef __linux__
     large_size_test(&t);
 #endif
 
-    rnd_well_seed(&rnd_state, rand());
+    rnd_well_seed(&rnd_state, (unsigned int)time(0));
     random_sizes_test(&t);
     puts("OK!");
 

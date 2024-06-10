@@ -102,7 +102,9 @@ static inline void tlsf_check(tlsf_t *t)
 static inline void*
 tlsf_barena_resize(tlsf_t* tlsf, size_t size) {
     barena_t* arena = tlsf->userdata;
-    if (size <= (size_t)(arena->end - arena->begin)) {
+    if (size == 0) {
+        return arena->begin;
+    } else if (size <= (size_t)(arena->end - arena->begin)) {
         barena_resize(arena, size);
         return arena->begin;
     } else {
