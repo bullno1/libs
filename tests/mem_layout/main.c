@@ -38,7 +38,7 @@ int main(int argc, const char* argv[]) {
 		vs->ints[i] = i;
 	}
 	for (int i = 0; i < num_floats; ++i) {
-		vs->floats[i] = i;
+		vs->floats[i] = (float)i;
 	}
 
 	printf("Size = %zu\n", mem_required);

@@ -72,6 +72,12 @@ barena_resize(barena_t* arena, size_t size);
 #include <stdint.h>
 #include <assert.h>
 
+#ifdef _MSC_VER
+#	define MAX_ALIGN_TYPE double
+#else
+#	define MAX_ALIGN_TYPE max_align_t
+#endif
+
 static inline size_t
 barena_os_page_size(void);
 
@@ -114,7 +120,7 @@ barena_cleanup(barena_t* arena) {
 
 void*
 barena_malloc(barena_t* arena, size_t size) {
-	return barena_memalign(arena, _Alignof(max_align_t), size);
+	return barena_memalign(arena, _Alignof(MAX_ALIGN_TYPE), size);
 }
 
 void*
