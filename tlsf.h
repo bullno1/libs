@@ -30,11 +30,6 @@ extern "C" {
 #    define TLSF_API
 #endif
 
-#ifndef TLSF_RESIZE
-#define TLSF_USE_BARENA
-#define TLSF_RESIZE tlsf_barena_resize
-#endif
-
 #define _TLSF_SL_COUNT 16
 
 #if defined(__SIZE_WIDTH__)
@@ -55,16 +50,21 @@ extern "C" {
 #define _TLSF_FL_MAX 30
 #endif
 #define TLSF_MAX_SIZE (((size_t) 1 << (_TLSF_FL_MAX - 1)) - sizeof(size_t))
-#define TLSF_INIT ((tlsf_t){.size = 0})
 
 typedef struct {
     uint32_t fl, sl[_TLSF_FL_COUNT];
     struct tlsf_block *block[_TLSF_FL_COUNT][_TLSF_SL_COUNT];
     size_t size;
-    void* userdata;
+
+    void* base;
+    size_t committed_size;
+    size_t page_size;
+    size_t resident_size;
+    size_t max_size;
 } tlsf_t;
 
-TLSF_API void *tlsf_resize(tlsf_t *, size_t);
+TLSF_API void tlsf_init(tlsf_t*, size_t max_size);
+TLSF_API void tlsf_cleanup(tlsf_t*);
 TLSF_API void *tlsf_aalloc(tlsf_t *, size_t, size_t);
 
 /**
@@ -94,24 +94,104 @@ static inline void tlsf_check(tlsf_t *t)
 
 #ifdef TLSF_IMPLEMENTATION
 
-// barena integration
-#ifdef TLSF_USE_BARENA
+static inline size_t tlsf_os_page_size(void);
+static inline void* tlsf_os_reserve(size_t size);
+static inline void tlsf_os_release(void* ptr, size_t size);
+static inline bool tlsf_os_commit(void* ptr, size_t size);
+static inline void tlsf_os_offer(void* ptr, size_t size);
 
-#include "barena.h"
+void
+tlsf_init(tlsf_t* tlsf, size_t max_size) {
+    size_t page_size = tlsf_os_page_size();
+    max_size = max_size / page_size * page_size;
+    void* base = tlsf_os_reserve(max_size);
+    assert(base != NULL);
+
+    *tlsf = (tlsf_t){
+        .base = base,
+        .max_size = max_size,
+        .page_size = page_size,
+    };
+}
+
+void tlsf_cleanup(tlsf_t* tlsf) {
+    tlsf_os_release(tlsf->base, tlsf->max_size);
+}
 
 static inline void*
-tlsf_barena_resize(tlsf_t* tlsf, size_t size) {
-    barena_t* arena = tlsf->userdata;
-    if (size == 0) {
-        return arena->begin;
-    } else if (size <= (size_t)(arena->end - arena->begin)) {
-        barena_resize(arena, size);
-        return arena->begin;
+tlsf_resize(tlsf_t* tlsf, size_t size) {
+    size_t page_size = tlsf->page_size;
+    size = (size + page_size - 1) / page_size * page_size;
+
+    if (size < tlsf->max_size) {
+        char* base = tlsf->base;
+        size_t committed_size = tlsf->committed_size;
+        if (size > committed_size) {
+            if (tlsf_os_commit(base + committed_size, size - committed_size)) {
+                tlsf->committed_size = size;
+                tlsf->resident_size = size;
+                return base;
+            } else {
+                return NULL;
+            }
+        } else {
+            size_t resident_size = tlsf->resident_size;
+            if (size < resident_size && size != 0) {
+                tlsf_os_offer(base + size, resident_size - size);
+            }
+
+            tlsf->resident_size = size;
+            return base;
+        }
     } else {
         return NULL;
     }
 }
 
+#if defined (__linux__)
+
+static inline size_t tlsf_os_page_size(void);
+static inline size_t tlsf_os_reserve(size_t size);
+static inline bool tlsf_os_commit(void* ptr, size_t size);
+static inline void tlsf_os_offer(void* ptr, size_t size);
+
+#elif defined (_WIN32)
+
+#ifndef WIN32_LEAN_AND_MEAN
+#   define WIN32_LEAN_AND_MEAN
+#endif
+#include <Windows.h>
+
+static inline size_t
+tlsf_os_page_size(void) {
+    SYSTEM_INFO si;
+    GetSystemInfo(&si);
+    return si.dwPageSize;
+}
+
+static inline void*
+tlsf_os_reserve(size_t size) {
+    return VirtualAlloc(NULL, size, MEM_RESERVE, PAGE_NOACCESS);
+}
+
+static inline void
+tlsf_os_release(void* ptr, size_t size) {
+    (void)size;
+    VirtualFree(ptr, 0, MEM_RELEASE);
+}
+
+static inline bool
+tlsf_os_commit(void* ptr, size_t size) {
+    return VirtualAlloc(ptr, size, MEM_COMMIT, PAGE_READWRITE) != NULL;
+}
+
+static inline void
+tlsf_os_offer(void* ptr, size_t size) {
+    DiscardVirtualMemory(ptr, size);
+}
+
+#else
+#error "Unsupported platform"
 #endif
 
 // Original tlsf-bsd implementation
@@ -579,7 +659,7 @@ static bool arena_grow(tlsf_t *t, size_t size)
 {
     size_t req_size =
         (t->size ? t->size + BLOCK_OVERHEAD : 2 * BLOCK_OVERHEAD) + size;
-    void *addr = TLSF_RESIZE(t, req_size);
+    void *addr = tlsf_resize(t, req_size);
     if (!addr)
         return false;
     ASSERT((size_t) addr % ALIGN_SIZE == 0, "wrong heap alignment address");
@@ -607,7 +687,7 @@ static void arena_shrink(tlsf_t *t, tlsf_block_t *block)
     t->size = t->size - size - BLOCK_OVERHEAD;
     if (t->size == BLOCK_OVERHEAD)
         t->size = 0;
-    TLSF_RESIZE(t, t->size);
+    tlsf_resize(t, t->size);
     if (t->size) {
         block->header = 0;
         check_sentinel(block);
