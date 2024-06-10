@@ -25,7 +25,6 @@
 
 #define TLSF_IMPLEMENTATION
 #define TLSF_ENABLE_CHECK
-#define BARENA_IMPLEMENTATION
 #include "../../tlsf.h"
 
 #define rand() rnd_well_next(&rnd_state)
@@ -165,14 +164,10 @@ int main(void)
 #endif
 
     MAX_PAGES = 20 * TLSF_MAX_SIZE / PAGE;
-    tlsf_t t = TLSF_INIT;
 
-    barena_t arena;
-    barena_init(&arena, MAX_PAGES * PAGE, PAGE);
-    t.userdata = &arena;
+    tlsf_t t;
+    tlsf_init(&t, MAX_PAGES * PAGE);
 
-    // Windows does not do overcommit/lazy commit so a test with the entire
-    // address space cannot work.
 #ifdef __linux__
     large_size_test(&t);
 #endif
@@ -181,6 +176,6 @@ int main(void)
     random_sizes_test(&t);
     puts("OK!");
 
-    barena_cleanup(&arena);
+    tlsf_cleanup(&t);
     return 0;
 }

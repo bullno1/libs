@@ -58,9 +58,6 @@ barena_snapshot(barena_t* arena);
 BARENA_API void
 barena_restore(barena_t* arena, barena_snapshot_t snapshot);
 
-BARENA_API void
-barena_resize(barena_t* arena, size_t size);
-
 #ifdef __cplusplus
 }
 #endif
@@ -158,21 +155,6 @@ barena_restore(barena_t* arena, barena_snapshot_t snapshot) {
 	arena->bump_ptr = snapshot;
 }
 
-void
-barena_resize(barena_t* arena, size_t size) {
-	char* new_bump_ptr_end = barena_align_ptr(arena->begin + size, arena->chunk_size);
-	assert(new_bump_ptr_end <= arena->end && "New size exceeds limit");
-	assert(arena->bump_ptr <= new_bump_ptr_end && "New size is less than allocated memory");
-
-	char* bump_ptr_end = arena->bump_ptr_end;
-	if (new_bump_ptr_end < bump_ptr_end) {
-		barena_os_decommit(new_bump_ptr_end, bump_ptr_end - new_bump_ptr_end);
-	} else if (new_bump_ptr_end > bump_ptr_end) {
-		barena_os_commit(bump_ptr_end, new_bump_ptr_end - bump_ptr_end);
-	}
-	arena->bump_ptr_end = new_bump_ptr_end;
-}
-
 void*
 barena_align_ptr(void* ptr, size_t alignment) {
 	return (void*)(((intptr_t)ptr + (intptr_t)alignment - 1) & -(intptr_t)alignment);
@@ -206,12 +188,6 @@ barena_os_commit(void* ptr, size_t size) {
 	assert(ret == 0);
 }
 
-void
-barena_os_decommit(void* ptr, size_t size) {
-	mprotect(ptr, size, PROT_NONE);
-	madvise(ptr, size, MADV_FREE);
-}
-
 #elif defined(_WIN32)
 
 #ifndef WIN32_LEAN_AND_MEAN
@@ -243,11 +219,6 @@ barena_os_commit(void* ptr, size_t size) {
 	void* result = VirtualAlloc(ptr, size, MEM_COMMIT, PAGE_READWRITE);
 	(void)result;
 	assert(result != NULL);
-}
-
-void
-barena_os_decommit(void* ptr, size_t size) {
-	VirtualFree(ptr, size, MEM_DECOMMIT);
 }
 
 #else
