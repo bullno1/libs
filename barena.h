@@ -87,9 +87,6 @@ barena_os_release(void* ptr, size_t size);
 static inline void
 barena_os_commit(void* ptr, size_t size);
 
-static inline void
-barena_os_decommit(void* ptr, size_t size);
-
 static inline void*
 barena_align_ptr(void* ptr, size_t alignment);
 
