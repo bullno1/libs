@@ -9,6 +9,10 @@ If:
 CompileFlags:
   Add: [-DTLSF_IMPLEMENTATION]
 ---
+If:
+  PathMatch: bresmon\.h
+CompileFlags:
+  Add: [-DBRESMON_IMPLEMENTATION]
+---
 CompileFlags:
   Add: [-xc, -Wall, -Werror, -pedantic, -std=c11]
-
