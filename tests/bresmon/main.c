@@ -24,8 +24,12 @@ int main(int argc, const char* argv[]) {
 
     signal(SIGINT, int_handler);
 	while (should_run) {
-		int num_reloads = bresmon_check(mon, true);
-		printf("Reloaded %d resources\n", num_reloads);
+		int num_events = bresmon_should_reload(mon, true);
+		if (num_events > 0) {
+			printf("Received %d event(s)\n", num_events);
+			int num_reloads = bresmon_reload(mon);
+			printf("Reloaded %d resources\n", num_reloads);
+		}
 	}
 
 	bresmon_destroy(mon);
