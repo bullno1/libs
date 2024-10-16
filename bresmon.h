@@ -128,6 +128,7 @@ struct bresmon_watch_s {
 #if defined(__linux__)
 	char filename[];
 #elif defined(_WIN32)
+	DWORD filename_len;
 	wchar_t filename[];
 #endif
 };
@@ -214,11 +215,11 @@ bresmon_destroy(bresmon_t* mon) {
 bresmon_watch_t*
 bresmon_watch(
 	bresmon_t* mon,
-	const char* orignal_path,
+	const char* original_path,
 	bresmon_callback_t callback,
 	void* userdata
 ) {
-	size_t orignal_path_len = strlen(orignal_path);
+	size_t orignal_path_len = strlen(original_path);
 
 #if defined(__linux__)
 	// This will always allocate with libc
@@ -284,11 +285,11 @@ bresmon_watch(
 	size_t path_buf_size = GetFullPathNameA(original_path, 0, NULL, NULL);
 	char* filename;
 	char* full_path = bresmon_malloc(path_buf_size, mon->memctx);
-	GetFullPathNameA(orignal_path, path_buf_size, full_path, &filename);
+	GetFullPathNameA(original_path, (int)path_buf_size, full_path, &filename);
 	size_t dir_name_len = filename - full_path;
 
 	size_t filename_len = path_buf_size - 1 - dir_name_len;
-	size_t wfilename_buf_len = MultiByteToWideChar(CP_UTF8, 0, filename, filename_len + 1, NULL, 0);
+	size_t wfilename_buf_len = MultiByteToWideChar(CP_UTF8, 0, filename, (int)(filename_len + 1), NULL, 0);
 	bresmon_watch_t* watch = bresmon_malloc(
 		sizeof(bresmon_watch_t)
 		+ orignal_path_len + 1
@@ -296,9 +297,10 @@ bresmon_watch(
 		mon->memctx
 	);
 	*watch = (bresmon_watch_t){ 0 };
-	MultiByteToWideChar(CP_UTF8, 0, filename, filename_len + 1, watch->filename, wfilename_buf_len);
+	MultiByteToWideChar(CP_UTF8, 0, filename, (int)(filename_len + 1), watch->filename, (int)wfilename_buf_len);
+	watch->filename_len = (int)(wfilename_buf_len - 1);
 	watch->orignal_path = (char*)watch->filename + wfilename_buf_len * sizeof(wchar_t);
-	memcpy(watch->orignal_path, orignal_path, orignal_path_len + 1);
+	memcpy(watch->orignal_path, original_path, orignal_path_len + 1);
 
 	const char* dir_name = full_path;
 	*filename = '\0';
@@ -346,8 +348,7 @@ bresmon_watch(
 			sizeof(dirmon->notification_buf),
 			FALSE,
 			FILE_NOTIFY_CHANGE_FILE_NAME
-			| FILE_NOTIFY_CHANGE_LAST_WRITE
-			| FILE_NOTIFY_CHANGE_CREATION,
+			| FILE_NOTIFY_CHANGE_LAST_WRITE,
 			NULL,
 			&dirmon->overlapped,
 			NULL
@@ -355,7 +356,6 @@ bresmon_watch(
 	}
 
 	bresmon_free(full_path, mon->memctx);
-#error Not implemented
 #endif
 
 	watch->link.next = &dirmon->watches;
@@ -430,7 +430,6 @@ bresmon_should_reload(bresmon_t* mon, bool wait) {
 		) {
 			struct inotify_event* event = (struct inotify_event*)event_itr;
 			event_itr += sizeof(struct inotify_event) + event->len;
-			++num_events;
 
 			for (
 				bresmon_dirmon_link_t* itr = mon->dirmons.next;
@@ -448,6 +447,7 @@ bresmon_should_reload(bresmon_t* mon, bool wait) {
 						bresmon_watch_t* watch = (bresmon_watch_t*)((char*)watch_itr - offsetof(bresmon_watch_t, link));
 						if (strcmp(watch->filename, event->name) == 0) {
 							++watch->latest_version;
+							++num_events;
 						}
 					}
 
@@ -461,7 +461,7 @@ bresmon_should_reload(bresmon_t* mon, bool wait) {
 	ULONG_PTR key;
 	OVERLAPPED* overlapped;
 
-	while (GetQueuedCompletionStatus(remodule_dirmon_root.iocp, &num_bytes, &key, &overlapped, wait ? INFINITE : 0)) {
+	while (GetQueuedCompletionStatus(mon->iocp, &num_bytes, &key, &overlapped, wait ? INFINITE : 0)) {
 		wait = false;  // Only wait for the initial event
 		for (
 			bresmon_dirmon_link_t* itr = mon->dirmons.next;
@@ -470,47 +470,46 @@ bresmon_should_reload(bresmon_t* mon, bool wait) {
 		) {
 			bresmon_dirmon_t* dirmon = (bresmon_dirmon_t*)((char*)itr - offsetof(bresmon_dirmon_t, link));
 
-			if (&dirmon->overlapped == overlapped) {
+			if (&dirmon->overlapped != overlapped) { continue; }
+
+			for (
 				FILE_NOTIFY_INFORMATION* notification_itr = (FILE_NOTIFY_INFORMATION*)dirmon->notification_buf;
+				notification_itr != NULL;
+				notification_itr = notification_itr->NextEntryOffset != 0
+					? (FILE_NOTIFY_INFORMATION*)((char*)notification_itr + notification_itr->NextEntryOffset)
+					: NULL
+			) {
+				if (notification_itr->Action == FILE_ACTION_RENAMED_OLD_NAME) { continue; }
 
-				while (true) {
-					++num_events;
-
-					for (
-						bresmon_watch_link_t* watch_itr = dirmon->watches.next;
-						watch_itr != &dirmon->watches;
-						watch_itr = watch_itr->next
+				for (
+					bresmon_watch_link_t* watch_itr = dirmon->watches.next;
+					watch_itr != &dirmon->watches;
+					watch_itr = watch_itr->next
+				) {
+					bresmon_watch_t* watch = (bresmon_watch_t*)((char*)watch_itr - offsetof(bresmon_watch_t, link));
+					if (
+						watch->filename_len == (notification_itr->FileNameLength / sizeof(wchar_t))
+						&& wcsncmp(watch->filename, notification_itr->FileName, watch->filename_len) == 0
 					) {
-						bresmon_watch_t* watch = (bresmon_watch_t*)((char*)watch_itr - offsetof(bresmon_watch_t, link));
-						if (wcsncmp(watch->name, notification_itr->FileName, notification_itr->FileNameLength / sizeof(wchar_t)) == 0) {
-							++watch->latest_version;
-						}
-					}
-
-					if (notification_itr->NextEntryOffset == 0) {
-						break;
-					} else {
-						notification_itr = (FILE_NOTIFY_INFORMATION*)(
-							(char*)notification_itr + notification_itr->NextEntryOffset
-						);
+						++watch->latest_version;
+						++num_events;
 					}
 				}
-
-				// Queue another read
-				ReadDirectoryChangesW(
-					dirmon->dir_handle,
-					dirmon->notification_buf,
-					sizeof(dirmon->notification_buf),
-					FALSE,
-					FILE_NOTIFY_CHANGE_FILE_NAME
-					| FILE_NOTIFY_CHANGE_LAST_WRITE
-					| FILE_NOTIFY_CHANGE_CREATION,
-					NULL,
-					&dirmon->overlapped,
-					NULL
-				);
-				break;
 			}
+
+			// Queue another read
+			ReadDirectoryChangesW(
+				dirmon->dir_handle,
+				dirmon->notification_buf,
+				sizeof(dirmon->notification_buf),
+				FALSE,
+				FILE_NOTIFY_CHANGE_FILE_NAME
+				| FILE_NOTIFY_CHANGE_LAST_WRITE,
+				NULL,
+				&dirmon->overlapped,
+				NULL
+			);
+			break;
 		}
 	}
 #endif
