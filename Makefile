@@ -1,6 +1,6 @@
 .PHONY: all clean
 
-all: bin/autolist bin/xincbin bin/mem_layout bin/barena bin/tlsf
+all: bin/autolist bin/xincbin bin/mem_layout bin/barena bin/tlsf bin/bresmon
 
 clean:
 	rm -rf bin
@@ -24,3 +24,7 @@ bin/barena: tests/barena/main.c
 bin/tlsf: tests/tlsf/main.c
 	mkdir -p bin
 	$(CC) $(CFLAGS) -Itests/tlsf $^ -o $@
+
+bin/bresmon: tests/bresmon/main.c
+	mkdir -p bin
+	$(CC) $(CFLAGS) -Itests/bresmon $^ -o $@
