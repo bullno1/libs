@@ -223,7 +223,7 @@ bresmon_watch(
 
 #if defined(__linux__)
 	// This will always allocate with libc
-	char* real_path = realpath(orignal_path, NULL);
+	char* real_path = realpath(original_path, NULL);
 	char* real_path2 = bresmon_strdup(real_path, mon->memctx);
 
 	char* dir_name = dirname(real_path);
@@ -277,7 +277,7 @@ bresmon_watch(
 	*watch = (bresmon_watch_t){ 0 };
 	memcpy(watch->filename, filename, filename_len + 1);
 	watch->orignal_path = watch->filename + filename_len + 1;
-	memcpy(watch->orignal_path, orignal_path, orignal_path_len + 1);
+	memcpy(watch->orignal_path, original_path, orignal_path_len + 1);
 
 	bresmon_free(real_path2, mon->memctx);
 	free(real_path);
