@@ -252,7 +252,7 @@ bresmon_watch(
 			IN_CLOSE_WRITE | IN_MOVED_TO
 		);
 
-		dirmon = malloc(sizeof(bresmon_dirmon_t) + dir_name_len + 1);
+		dirmon = bresmon_malloc(sizeof(bresmon_dirmon_t) + dir_name_len + 1, mon->memctx);
 		*dirmon = (bresmon_dirmon_t){
 			.watchd = watchd,
 			.watches = {
@@ -318,7 +318,7 @@ bresmon_watch(
 	}
 
 	if (dirmon == NULL) {
-		dirmon = malloc(sizeof(bresmon_dirmon_t) + dir_name_len + 1);
+		dirmon = bresmon_malloc(sizeof(bresmon_dirmon_t) + dir_name_len + 1, mon->memctx);
 		*dirmon = (bresmon_dirmon_t){
 			.watches = {
 				.next = &dirmon->watches,
