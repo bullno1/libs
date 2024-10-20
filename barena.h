@@ -7,50 +7,39 @@
 
 #include <stddef.h>
 
-#ifndef BARENA_SHARED
-#	if defined(_WIN32) && !defined(__MINGW32__)
-#		ifdef BARENA_IMPLEMENTATION
-#			define BARENA_API __declspec(dllexport)
-#		else
-#			define BARENA_API __declspec(dllimport)
-#		endif
-#	else
-#		ifdef BARENA_IMPLEMENTATION
-#			define BARENA_API __attribute__((visibility("default")))
-#		else
-#			define BARENA_API
-#		endif
-#	endif
-#else
-#	define BARENA_API
+#ifndef BARENA_API
+#define BARENA_API
 #endif
+
+typedef struct barena_chunk_s barena_chunk_t;
+
+typedef struct barena_pool_s {
+	size_t chunk_size;
+	size_t os_page_size;
+	barena_chunk_t* free_chunks;
+} barena_pool_t;
 
 typedef struct barena_s {
-	char* begin;
-	char* end;
-	char* bump_ptr;
-	char* bump_ptr_end;
-	char* high_water_mark;
-	size_t chunk_size;
+	barena_chunk_t* current_chunk;
+	barena_pool_t* pool;
 } barena_t;
 
-typedef void* barena_snapshot_t;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+typedef char* barena_snapshot_t;
 
 BARENA_API void
-barena_init(barena_t* arena, size_t max_size, size_t chunk_size);
+barena_pool_init(barena_pool_t* pool, size_t chunk_size);
 
 BARENA_API void
-barena_cleanup(barena_t* arena);
+barena_pool_cleanup(barena_pool_t* pool);
+
+BARENA_API void
+barena_init(barena_t* arena, barena_pool_t* pool);
 
 BARENA_API void*
 barena_malloc(barena_t* arena, size_t size);
 
 BARENA_API void*
-barena_memalign(barena_t* arena, size_t alignment, size_t size);
+barena_memalign(barena_t* arena, size_t size, size_t alignment);
 
 BARENA_API barena_snapshot_t
 barena_snapshot(barena_t* arena);
@@ -58,16 +47,14 @@ barena_snapshot(barena_t* arena);
 BARENA_API void
 barena_restore(barena_t* arena, barena_snapshot_t snapshot);
 
-#ifdef __cplusplus
-}
-#endif
+BARENA_API void
+barena_reset(barena_t* arena);
 
 #endif
 
 #ifdef BARENA_IMPLEMENTATION
 
 #include <stdint.h>
-#include <assert.h>
 
 #ifdef _MSC_VER
 #	define MAX_ALIGN_TYPE double
@@ -79,116 +66,166 @@ static inline size_t
 barena_os_page_size(void);
 
 static inline void*
-barena_os_reserve(size_t size);
+barena_os_page_alloc(size_t size);
 
 static inline void
-barena_os_release(void* ptr, size_t size);
+barena_os_page_free(void* ptr, size_t size);
 
-static inline void
-barena_os_commit(void* ptr, size_t size);
+static inline intptr_t
+barena_align_ptr(intptr_t ptr, size_t alignment) {
+	return (((intptr_t)ptr + (intptr_t)alignment - 1) & -(intptr_t)alignment);
+}
 
-static inline void*
-barena_align_ptr(void* ptr, size_t alignment);
+struct barena_chunk_s {
+	barena_chunk_t* next;
+	char* bump_ptr;
+	char* end;
+	char begin[];
+};
 
 void
-barena_init(barena_t* arena, size_t max_size, size_t chunk_size) {
+barena_pool_init(barena_pool_t* pool, size_t chunk_size) {
 	size_t page_size = barena_os_page_size();
-	max_size = (max_size / page_size) * page_size;
-	chunk_size = (chunk_size / page_size) * page_size;
-
-	char* base = barena_os_reserve(max_size);
-	assert(base != NULL && "Could not reserve memory");
-
-	arena->begin = base;
-	arena->end = base + max_size;
-	arena->high_water_mark = base;
-	arena->chunk_size = chunk_size;
-	arena->bump_ptr = base;
-	arena->bump_ptr_end = base;
+	chunk_size = (size_t)barena_align_ptr((intptr_t)chunk_size, page_size);
+	*pool = (barena_pool_t){
+		.os_page_size = page_size,
+		.chunk_size = chunk_size,
+	};
 }
 
 void
-barena_cleanup(barena_t* arena) {
-	barena_os_release(arena->begin, arena->end - arena->begin);
+barena_pool_cleanup(barena_pool_t* pool) {
+	for (
+		barena_chunk_t* chunk_itr = pool->free_chunks;
+		chunk_itr != NULL;
+	) {
+		barena_chunk_t* next = chunk_itr->next;
+		barena_os_page_free(chunk_itr, chunk_itr->end - (char*)chunk_itr);
+		chunk_itr = next;
+	}
+
+	pool->free_chunks = NULL;
+}
+
+void
+barena_init(barena_t* arena, barena_pool_t* pool) {
+	*arena = (barena_t){
+		.pool = pool,
+	};
 }
 
 void*
 barena_malloc(barena_t* arena, size_t size) {
-	return barena_memalign(arena, _Alignof(MAX_ALIGN_TYPE), size);
+	return barena_memalign(arena, size, _Alignof(MAX_ALIGN_TYPE));
+}
+
+static inline void*
+barena_alloc_from_chunk(barena_chunk_t* chunk, size_t size, size_t alignment) {
+	size_t space_available = chunk != NULL ? chunk->end - chunk->begin : 0;
+	if (space_available < size) { return NULL; }
+
+	intptr_t result = barena_align_ptr((intptr_t)chunk->bump_ptr, alignment);
+	intptr_t new_bump_ptr = result + (ptrdiff_t)size;
+	if (new_bump_ptr > (intptr_t)chunk->end) { return NULL; }
+
+	chunk->bump_ptr = (char*)new_bump_ptr;
+	return (void*)result;
 }
 
 void*
-barena_memalign(barena_t* arena, size_t alignment, size_t size) {
-	char* result = barena_align_ptr(arena->bump_ptr, alignment);
-	char* next_bump_ptr = result + size;
+barena_memalign(barena_t* arena, size_t size, size_t alignment) {
+	if (size == 0) { return NULL; }
 
-	if (next_bump_ptr <= arena->end) {
-		arena->bump_ptr = next_bump_ptr;
-		char* high_water_mark = arena->high_water_mark;
-		arena->high_water_mark = next_bump_ptr > high_water_mark ? next_bump_ptr : high_water_mark;
+	barena_chunk_t* current_chunk = arena->current_chunk;
+	void* result = barena_alloc_from_chunk(current_chunk, size, alignment);
+	if (result != NULL) { return result; }
 
-		char* bump_ptr_end = arena->bump_ptr_end;
-		if (next_bump_ptr <= bump_ptr_end) {
-			return result;
-		} else {
-			char* next_bump_ptr_end = barena_align_ptr(next_bump_ptr, arena->chunk_size);
-			arena->bump_ptr_end = next_bump_ptr_end;
-			barena_os_commit(bump_ptr_end, next_bump_ptr_end - bump_ptr_end);
+	// New chunk needed
+	barena_pool_t* pool = arena->pool;
+	size_t chunk_size = pool->chunk_size;
+	size_t required_size = (size_t)barena_align_ptr(
+		(intptr_t)(sizeof(barena_chunk_t) + size),
+		pool->os_page_size
+	);
+	size_t alloc_size = chunk_size >= required_size ? chunk_size : required_size;
 
-			return result;
-		}
+	barena_chunk_t* new_chunk;
+	if (
+		pool->free_chunks != NULL
+		&& (pool->free_chunks->end - (char*)pool->free_chunks) >= alloc_size
+	) {
+		new_chunk = pool->free_chunks;
+		pool->free_chunks = new_chunk->next;
 	} else {
-		return NULL;
+		new_chunk = barena_os_page_alloc(alloc_size);
+		new_chunk->end = (char*)new_chunk + alloc_size;
 	}
+
+	new_chunk->bump_ptr = new_chunk->begin;
+	new_chunk->next = arena->current_chunk;
+	arena->current_chunk = new_chunk;
+
+	return barena_alloc_from_chunk(new_chunk, size, alignment);
 }
 
 barena_snapshot_t
 barena_snapshot(barena_t* arena) {
-	return arena->bump_ptr;
+	return arena->current_chunk != NULL
+		? arena->current_chunk->bump_ptr
+		: NULL;
 }
 
 void
 barena_restore(barena_t* arena, barena_snapshot_t snapshot) {
-	arena->bump_ptr = snapshot;
+	barena_pool_t* pool = arena->pool;
+	barena_chunk_t* itr = arena->current_chunk;
+	while (
+		itr != NULL
+		&& !(itr->begin <= snapshot && snapshot <= itr->end)
+	) {
+		barena_chunk_t* next = itr->next;
+
+		itr->next = pool->free_chunks;
+		pool->free_chunks = itr;
+
+		itr = next;
+	}
+
+	if (snapshot != NULL) {
+		itr->bump_ptr = snapshot;
+	}
+	arena->current_chunk = itr;
 }
 
-void*
-barena_align_ptr(void* ptr, size_t alignment) {
-	return (void*)(((intptr_t)ptr + (intptr_t)alignment - 1) & -(intptr_t)alignment);
+void
+barena_reset(barena_t* arena) {
+	barena_restore(arena, NULL);
 }
 
 #if defined(__linux__)
 
 #include <unistd.h>
 #include <sys/mman.h>
-#include <assert.h>
 
 size_t
 barena_os_page_size(void) {
-	return (size_t)sysconf(_SC_PAGESIZE);
+	return (size_t)sysconf(_SC_PAGE_SIZE);
 }
 
 void*
-barena_os_reserve(size_t size) {
-	return mmap(NULL, size, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0);
+barena_os_page_alloc(size_t size) {
+	return mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 }
 
 void
-barena_os_release(void* ptr, size_t size) {
+barena_os_page_free(void* ptr, size_t size) {
 	munmap(ptr, size);
-}
-
-void
-barena_os_commit(void* ptr, size_t size) {
-	int ret = mprotect(ptr, size, PROT_READ | PROT_WRITE);
-	(void)ret;
-	assert(ret == 0);
 }
 
 #elif defined(_WIN32)
 
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
+#ifndef WIN32_LEAND_AND_MEAN
+#define WIN32_LEAND_AND_MEAN
 #endif
 
 #include <Windows.h>
@@ -201,21 +238,14 @@ barena_os_page_size(void) {
 }
 
 void*
-barena_os_reserve(size_t size) {
-	return VirtualAlloc(NULL, size, MEM_RESERVE, PAGE_NOACCESS);
+barena_os_page_alloc(size_t size) {
+	return VirtualAlloc(NULL, size, MEM_COMMIT, PAGE_READWRITE);
 }
 
 void
-barena_os_release(void* ptr, size_t size) {
+barena_os_page_free(void* ptr, size_t size) {
 	(void)size;
 	VirtualFree(ptr, 0, MEM_RELEASE);
-}
-
-void
-barena_os_commit(void* ptr, size_t size) {
-	void* result = VirtualAlloc(ptr, size, MEM_COMMIT, PAGE_READWRITE);
-	(void)result;
-	assert(result != NULL);
 }
 
 #else
