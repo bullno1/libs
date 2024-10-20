@@ -36,7 +36,10 @@ bresmon_watch(
 );
 
 BRESMON_API void
-bresmon_unwatch(bresmon_t* mon, bresmon_watch_t* watch);
+bresmon_set_watch_callback(bresmon_watch_t* watch, bresmon_callback_t callback, void* userdata);
+
+BRESMON_API void
+bresmon_unwatch(bresmon_watch_t* watch);
 
 BRESMON_API int
 bresmon_check(bresmon_t* mon, bool wait);
@@ -46,6 +49,29 @@ bresmon_should_reload(bresmon_t* mon, bool wait);
 
 BRESMON_API int
 bresmon_reload(bresmon_t* mon);
+
+static inline void
+bresmon_init_watch(
+	bresmon_t* mon,
+	bresmon_watch_t** watch_ptr,
+	const char* file,
+	bresmon_callback_t callback,
+	void* userdata
+) {
+	if (*watch_ptr == NULL) {
+		*watch_ptr = bresmon_watch(mon, file, callback, userdata);
+	} else {
+		bresmon_set_watch_callback(*watch_ptr, callback, userdata);
+	}
+}
+
+static inline void
+bresmon_cleanup_watch(bresmon_watch_t** watch_ptr) {
+	if (watch_ptr != NULL) {
+		bresmon_unwatch(*watch_ptr);
+		*watch_ptr = NULL;
+	}
+}
 
 #ifdef __cplusplus
 }
@@ -88,6 +114,7 @@ typedef struct bresmon_watch_link_s {
 
 typedef struct bresmon_dirmon_s {
 	bresmon_dirmon_link_t link;
+	bresmon_t* root;
 	bresmon_watch_link_t watches;
 
 #if defined(__linux__)
@@ -199,7 +226,7 @@ bresmon_destroy(bresmon_t* mon) {
 		bresmon_dirmon_t* dirmon = (bresmon_dirmon_t*)((char*)mon->dirmons.next - offsetof(bresmon_dirmon_t, link));
 		if (dirmon->watches.next != &dirmon->watches) {
 			bresmon_watch_t* watch = (bresmon_watch_t*)((char*)dirmon->watches.next - offsetof(bresmon_watch_t, link));
-			bresmon_unwatch(mon, watch);
+			bresmon_unwatch(watch);
 		}
 	}
 
@@ -254,6 +281,7 @@ bresmon_watch(
 
 		dirmon = bresmon_malloc(sizeof(bresmon_dirmon_t) + dir_name_len + 1, mon->memctx);
 		*dirmon = (bresmon_dirmon_t){
+			.root = mon,
 			.watchd = watchd,
 			.watches = {
 				.next = &dirmon->watches,
@@ -320,6 +348,7 @@ bresmon_watch(
 	if (dirmon == NULL) {
 		dirmon = bresmon_malloc(sizeof(bresmon_dirmon_t) + dir_name_len + 1, mon->memctx);
 		*dirmon = (bresmon_dirmon_t){
+			.root = mon,
 			.watches = {
 				.next = &dirmon->watches,
 				.prev = &dirmon->watches,
@@ -365,14 +394,20 @@ bresmon_watch(
 	dirmon->watches.prev = &watch->link;
 
 	watch->dirmon = dirmon;
-	watch->callback = callback;
-	watch->userdata = userdata;
+	bresmon_set_watch_callback(watch, callback, userdata);
 
 	return watch;
 }
 
 void
-bresmon_unwatch(bresmon_t* mon, bresmon_watch_t* watch) {
+bresmon_set_watch_callback(bresmon_watch_t* watch, bresmon_callback_t callback, void* userdata) {
+	watch->callback = callback;
+	watch->userdata = userdata;
+}
+
+void
+bresmon_unwatch(bresmon_watch_t* watch) {
+	bresmon_t* mon = watch->dirmon->root;
 	watch->link.prev->next = watch->link.next;
 	watch->link.next->prev = watch->link.prev;
 
@@ -548,7 +583,9 @@ bresmon_reload(bresmon_t* mon) {
 			if (watch->current_version != watch->latest_version) {
 				++num_reloads;
 				watch->current_version = watch->latest_version;
-				watch->callback(watch->orignal_path, watch->userdata);
+				if (watch->callback != NULL) {
+					watch->callback(watch->orignal_path, watch->userdata);
+				}
 			}
 		}
 	}
