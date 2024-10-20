@@ -1,6 +1,16 @@
 #ifndef BRESMON_H
 #define BRESMON_H
 
+/**
+ * @file
+ * @brief A single header library for resource monitoring and reloading.
+ *
+ * In **exactly one** source file, define `BRESMON_IMPLEMENTATION` before including bresmon.h.
+ *
+ * Optionally, define BRESMON_REALLOC(ptr, size, ctx) to override the allocator.
+ * By default, libc will be used.
+ */
+
 #if defined(__linux__) && !defined(_DEFAULT_SOURCE)
 #	define _DEFAULT_SOURCE 1
 #endif
@@ -15,18 +25,45 @@
 typedef struct bresmon_s bresmon_t;
 typedef struct bresmon_watch_s bresmon_watch_t;
 typedef struct bresmon_itr_s bresmon_itr_t;
+/**
+ * @brief The reload callback attached to a resource.
+ *
+ * @param file The same filename passed to the @ref bresmon_watch call.
+ * @param userdata Arbitrary userdata.
+ *
+ * @ref bresmon_watch
+ */
 typedef void (*bresmon_callback_t)(const char* file, void* userdata);
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+/**
+ * @brief Create a new monitor context.
+ *
+ * @param memctx Memory context.
+ *   This will be passed to `BRESMON_REALLOC`.
+ *
+ * @return The monitor context.
+ */
 BRESMON_API bresmon_t*
 bresmon_create(void* memctx);
 
+/**
+ * @brief Destroy the monitor context.
+ */
 BRESMON_API void
 bresmon_destroy(bresmon_t* mon);
 
+/**
+ * @brief Watch a file for changes.
+ *
+ * @param mon The monitor context.
+ * @param file The path to the file.
+ * @param callback The callback to be invoked when the file changes.
+ * @param userdata Passed verbatim to the callback.
+ */
 BRESMON_API bresmon_watch_t*
 bresmon_watch(
 	bresmon_t* mon,
@@ -35,21 +72,83 @@ bresmon_watch(
 	void* userdata
 );
 
+/**
+ * @brief Replace the callback of an existing watch.
+ *
+ * @ref bresmon_watch
+ */
 BRESMON_API void
 bresmon_set_watch_callback(bresmon_watch_t* watch, bresmon_callback_t callback, void* userdata);
 
+/**
+ * @brief Destroy a previously setup watch.
+ *
+ * @ref bresmon_watch
+ */
 BRESMON_API void
 bresmon_unwatch(bresmon_watch_t* watch);
 
-BRESMON_API int
-bresmon_check(bresmon_t* mon, bool wait);
-
+/**
+ * @brief Check all watched files.
+ *
+ * @param mon The monitor context.
+ * @param wait Whether the function should block until a change happens.
+ *   Typically, this should be `false` when called in the main loop of an
+ *   interactive application.
+ *
+ * @return The number of change events received since the last call.
+ *
+ * @remarks
+ *   The callbacks will not be invoked until @ref bresmon_reload is called.
+ *
+ * @ref bresmon_check
+ * @ref bresmon_watch
+ */
 BRESMON_API int
 bresmon_should_reload(bresmon_t* mon, bool wait);
 
+/**
+ * @brief Call the necessary reload callbacks.
+ *
+ * @param mon The monitor context.
+ *
+ * @return The number of reloaded resources.
+ *
+ * @ref bresmon_should_reload
+ * @ref bresmon_watch
+ */
 BRESMON_API int
 bresmon_reload(bresmon_t* mon);
 
+/**
+ * @brief Check all watched files for changes and invoke callback if needed.
+ *
+ * This is a convenient function that calls both @ref bresmon_should_reload
+ * and @ref bresmon_reload.
+ *
+ * @param mon The monitor context.
+ * @param wait Whether the function should block until a change happens.
+ *
+ * @return The number of reloaded resources.
+ *
+ * @ref bresmon_watch
+ */
+static inline int
+bresmon_check(bresmon_t* mon, bool wait) {
+	if (bresmon_should_reload(mon, wait) > 0) {
+		return bresmon_reload(mon);
+	} else {
+		return 0;
+	}
+}
+
+/**
+ * @brief Initialize a watch if it is not already initialized.
+ *
+ * This is a convenient function for hot reloadable modules.
+ *
+ * @ref bresmon_cleanup_watch
+ */
 static inline void
 bresmon_init_watch(
 	bresmon_t* mon,
@@ -65,6 +164,13 @@ bresmon_init_watch(
 	}
 }
 
+/**
+ * @brief Cleanup a watch if it is initialized.
+ *
+ * This is a convenient function for hot reloadable modules.
+ *
+ * @ref bresmon_init_watch
+ */
 static inline void
 bresmon_cleanup_watch(bresmon_watch_t** watch_ptr) {
 	if (watch_ptr != NULL) {
@@ -428,15 +534,6 @@ bresmon_unwatch(bresmon_watch_t* watch) {
 	}
 
 	bresmon_free(watch, mon->memctx);
-}
-
-int
-bresmon_check(bresmon_t* mon, bool wait) {
-	if (bresmon_should_reload(mon, wait) > 0) {
-		return bresmon_reload(mon);
-	} else {
-		return 0;
-	}
 }
 
 int
