@@ -211,7 +211,7 @@ bresmon_destroy(bresmon_t* mon) {
 
 	bresmon_free(mon, mon->memctx);
 }
-#include <stdio.h>
+
 bresmon_watch_t*
 bresmon_watch(
 	bresmon_t* mon,
@@ -341,7 +341,8 @@ bresmon_watch(
 			FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED,
 			NULL
 		);
-		CreateIoCompletionPort(dirmon->dir_handle, mon->iocp, 0, 1);
+		CreateIoCompletionPort(dirmon->dir_handle, mon->iocp, (ULONG_PTR)dirmon, 1);
+		dirmon->overlapped = (OVERLAPPED){ 0 };
 		ReadDirectoryChangesW(
 			dirmon->dir_handle,
 			dirmon->notification_buf,
@@ -385,6 +386,7 @@ bresmon_unwatch(bresmon_t* mon, bresmon_watch_t* watch) {
 #elif defined(_WIN32)
 		CancelIo(dirmon->dir_handle);
 		CloseHandle(dirmon->dir_handle);
+		bresmon_should_reload(mon, true);
 #endif
 
 		bresmon_free(dirmon, mon->memctx);
@@ -457,60 +459,70 @@ bresmon_should_reload(bresmon_t* mon, bool wait) {
 		}
 	}
 #elif defined(_WIN32)
-	DWORD num_bytes;
-	ULONG_PTR key;
-	OVERLAPPED* overlapped;
+	OVERLAPPED_ENTRY overlapped_entry;
+	ULONG num_entries = 0;
 
-	while (GetQueuedCompletionStatus(mon->iocp, &num_bytes, &key, &overlapped, wait ? INFINITE : 0)) {
+	while (true) {
+		BOOL dequeued = GetQueuedCompletionStatusEx(
+			mon->iocp,
+			&overlapped_entry, 1,
+			&num_entries,
+			wait ? INFINITE : 0,
+			TRUE
+		);
 		wait = false;  // Only wait for the initial event
-		for (
-			bresmon_dirmon_link_t* itr = mon->dirmons.next;
-			itr != &mon->dirmons;
-			itr = itr->next
-		) {
-			bresmon_dirmon_t* dirmon = (bresmon_dirmon_t*)((char*)itr - offsetof(bresmon_dirmon_t, link));
 
-			if (&dirmon->overlapped != overlapped) { continue; }
+		if (!dequeued || num_entries == 0) {
+			// No event
+			break;
+		} else if (
+			overlapped_entry.lpOverlapped == NULL
+			|| overlapped_entry.dwNumberOfBytesTransferred == 0
+		) {
+			// Failed
+			continue;
+		}
+
+		bresmon_dirmon_t* dirmon = (bresmon_dirmon_t *)overlapped_entry.lpCompletionKey;
+
+		for (
+			FILE_NOTIFY_INFORMATION* notification_itr = (FILE_NOTIFY_INFORMATION*)dirmon->notification_buf;
+			notification_itr != NULL;
+			notification_itr = notification_itr->NextEntryOffset != 0
+				? (FILE_NOTIFY_INFORMATION*)((char*)notification_itr + notification_itr->NextEntryOffset)
+				: NULL
+		) {			
+			if (notification_itr->Action == FILE_ACTION_RENAMED_OLD_NAME) { continue; }
 
 			for (
-				FILE_NOTIFY_INFORMATION* notification_itr = (FILE_NOTIFY_INFORMATION*)dirmon->notification_buf;
-				notification_itr != NULL;
-				notification_itr = notification_itr->NextEntryOffset != 0
-					? (FILE_NOTIFY_INFORMATION*)((char*)notification_itr + notification_itr->NextEntryOffset)
-					: NULL
+				bresmon_watch_link_t* watch_itr = dirmon->watches.next;
+				watch_itr != &dirmon->watches;
+				watch_itr = watch_itr->next
 			) {
-				if (notification_itr->Action == FILE_ACTION_RENAMED_OLD_NAME) { continue; }
-
-				for (
-					bresmon_watch_link_t* watch_itr = dirmon->watches.next;
-					watch_itr != &dirmon->watches;
-					watch_itr = watch_itr->next
+				bresmon_watch_t* watch = (bresmon_watch_t*)((char*)watch_itr - offsetof(bresmon_watch_t, link));
+				if (
+					watch->filename_len == (notification_itr->FileNameLength / sizeof(wchar_t))
+					&& wcsncmp(watch->filename, notification_itr->FileName, watch->filename_len) == 0
 				) {
-					bresmon_watch_t* watch = (bresmon_watch_t*)((char*)watch_itr - offsetof(bresmon_watch_t, link));
-					if (
-						watch->filename_len == (notification_itr->FileNameLength / sizeof(wchar_t))
-						&& wcsncmp(watch->filename, notification_itr->FileName, watch->filename_len) == 0
-					) {
-						++watch->latest_version;
-						++num_events;
-					}
+					++watch->latest_version;
+					++num_events;
 				}
 			}
-
-			// Queue another read
-			ReadDirectoryChangesW(
-				dirmon->dir_handle,
-				dirmon->notification_buf,
-				sizeof(dirmon->notification_buf),
-				FALSE,
-				FILE_NOTIFY_CHANGE_FILE_NAME
-				| FILE_NOTIFY_CHANGE_LAST_WRITE,
-				NULL,
-				&dirmon->overlapped,
-				NULL
-			);
-			break;
 		}
+
+		// Queue another read
+		dirmon->overlapped = (OVERLAPPED){ 0 };
+		ReadDirectoryChangesW(
+			dirmon->dir_handle,
+			dirmon->notification_buf,
+			sizeof(dirmon->notification_buf),
+			FALSE,
+			FILE_NOTIFY_CHANGE_FILE_NAME
+			| FILE_NOTIFY_CHANGE_LAST_WRITE,
+			NULL,
+			&dirmon->overlapped,
+			NULL
+		);
 	}
 #endif
 
