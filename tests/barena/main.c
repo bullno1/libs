@@ -13,8 +13,11 @@ int main(int argc, const char* argv[]) {
 	(void)argc;
 	(void)argv;
 
+	barena_pool_t pool;
+	barena_pool_init(&pool, 4096ull * 2);
+
 	barena_t arena;
-	barena_init(&arena, 4096ull * 1024 * 1024, 4096ull * 2);
+	barena_init(&arena, &pool);
 
 	barena_snapshot_t snapshot = barena_snapshot(&arena);
 	prompt("Allocating 1MiB");
@@ -30,8 +33,8 @@ int main(int argc, const char* argv[]) {
 	prompt("Restoring snapshot");
 	barena_restore(&arena, snapshot);
 
-	prompt("Allocating 2MiB");
-	mem = barena_malloc(&arena, 2048ull * 1024);
+	prompt("Allocating 1MiB");
+	mem = barena_malloc(&arena, 1024ull * 1024);
 	printf("mem = %p\n", mem);
 
 	prompt("Allocating 2MiB");
@@ -43,7 +46,9 @@ int main(int argc, const char* argv[]) {
 	printf("mem = %p\n", mem);
 
 	prompt("Cleaning up");
-	barena_cleanup(&arena);
+	barena_reset(&arena);
+
+	barena_pool_cleanup(&pool);
 
 	prompt("Exiting");
 	return 0;
