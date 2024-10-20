@@ -5,9 +5,43 @@
 
 static volatile sig_atomic_t should_run = 1;
 
-void int_handler(int dummy) {
+#if defined(__linux__)
+
+static void int_handler(int dummy) {
     should_run = 0;
 }
+
+static void setup_ctrlc_handler(void) {
+	signal(SIGINT, int_handler);
+}
+
+#elif defined(_WIN32)
+
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+
+#include <Windows.h>
+
+static HANDLE main_thread = INVALID_HANDLE_VALUE;
+
+static void WINAPI dummy_apc(ULONG_PTR ctx) {
+	(void)ctx;
+}
+
+static BOOL WINAPI ctrl_handler(DWORD fdwCtrlType) {
+	should_run = 0;
+	QueueUserAPC(dummy_apc, main_thread, (ULONG_PTR)NULL);
+	CloseHandle(main_thread);
+	return TRUE;
+}
+
+static void setup_ctrlc_handler(void) {
+	main_thread = OpenThread(THREAD_ALL_ACCESS, FALSE, GetCurrentThreadId());
+	SetConsoleCtrlHandler(ctrl_handler, TRUE);
+}
+
+#endif
 
 static inline void
 reload(const char* file, void* type) {
@@ -22,7 +56,7 @@ int main(int argc, const char* argv[]) {
 	bresmon_watch(mon, "mem_layout.h", reload, "header");
 	bresmon_watch(mon, "premake5.lua", reload, "script");
 
-    signal(SIGINT, int_handler);
+	setup_ctrlc_handler();
 	while (should_run) {
 		int num_events = bresmon_should_reload(mon, true);
 		if (num_events > 0) {
@@ -32,6 +66,7 @@ int main(int argc, const char* argv[]) {
 		}
 	}
 
+	printf("Cleaning up\n");
 	bresmon_destroy(mon);
 
 	return 0;
