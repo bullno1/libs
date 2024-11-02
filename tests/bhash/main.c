@@ -61,6 +61,8 @@ int main(int argc, const char* argv[]) {
 
 			if (bhash_is_valid(index)) {
 				BHASH_ASSERT(len_after == len_before - 1, "%s: %d -> %d", len_before, len_after);
+				BHASH_ASSERT(bhash_keys(tbl)[index] == key, "%s: %d -> %d", bhash_keys(tbl)[index], key);
+				BHASH_ASSERT(bhash_values(tbl)[index] == key * 2, "%s: %d -> %d", bhash_values(tbl)[index], key * 2);
 			} else {
 				BHASH_ASSERT(len_after == len_before, "%s: %d -> %d", len_before, len_after);
 			}
@@ -75,6 +77,8 @@ int main(int argc, const char* argv[]) {
 			bhash_index_t len_after = bhash_len(tbl);
 			assert(bhash_is_valid(index));
 			BHASH_ASSERT(len_after == len_before - 1, "%s: %d -> %d", len_before, len_after);
+			BHASH_ASSERT(bhash_keys(tbl)[index] == key, "%s: %d -> %d", bhash_keys(tbl)[index], key);
+			BHASH_ASSERT(bhash_values(tbl)[index] == key * 2, "%s: %d -> %d", bhash_values(tbl)[index], key * 2);
 
 			bhash_find(index, tbl, key, config);
 			assert(!bhash_is_valid(index));
