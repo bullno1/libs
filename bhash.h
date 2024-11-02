@@ -170,6 +170,7 @@ typedef struct bhash_base_s {
 			table->base.indices[bhash__tail_r_index] = bhash__index + 1; \
 			table->base.indices[bhash__r_index] = BHASH_TOMBSTONE; \
 			table->base.r_indices[bhash__index] = bhash__tail_r_index; \
+			/* Rotate key and values then point user code to the temp position at the end */ \
 			table->keys[bhash__end_index] = table->keys[bhash__index]; \
 			table->keys[bhash__index] = table->keys[bhash__tail_index]; \
 			if (config.has_values) { \
