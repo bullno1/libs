@@ -23,9 +23,11 @@ int main(int argc, const char* argv[]) {
 	};
 	table_t* tbl = NULL;
 
+	// A simple boolean table to track membership of each number in [0, 10)
+	bool memberships[10] = { 0 };
+
 	for (int i = 0; i < 99999; ++i) {
 		printf("i = %d, len = %d\n", i, bhash_len(tbl));
-		bhash_validate(tbl, config);
 
 		int action = rand() % BHASH_TEST_COUNT;
 		int key = rand() % 10;
@@ -40,6 +42,7 @@ int main(int argc, const char* argv[]) {
 
 			printf("Add %d -> %d\n", key, key * 2);
 			bhash_put(tbl, key, key * 2, config);
+			memberships[key] = true;
 
 			bhash_index_t len_after = bhash_len(tbl);
 			if (existed) {
@@ -58,6 +61,7 @@ int main(int argc, const char* argv[]) {
 			bhash_index_t len_before = bhash_len(tbl);
 			bhash_remove(index, tbl, key, config);
 			bhash_index_t len_after = bhash_len(tbl);
+			memberships[key] = false;
 
 			if (bhash_is_valid(index)) {
 				BHASH_ASSERT(len_after == len_before - 1, "%s: %d -> %d", len_before, len_after);
@@ -74,7 +78,9 @@ int main(int argc, const char* argv[]) {
 			int key = bhash_keys(tbl)[0];
 			printf("Remove %d\n", key);
 			bhash_remove(index, tbl, key, config);
+			memberships[key] = false;
 			bhash_index_t len_after = bhash_len(tbl);
+
 			assert(bhash_is_valid(index));
 			BHASH_ASSERT(len_after == len_before - 1, "%s: %d -> %d", len_before, len_after);
 			BHASH_ASSERT(bhash_keys(tbl)[index] == key, "%s: %d -> %d", bhash_keys(tbl)[index], key);
@@ -85,6 +91,21 @@ int main(int argc, const char* argv[]) {
 		}
 
 		bhash_validate(tbl, config);
+
+		int size = 0;
+		for (int i = 0; i < 10; ++i) {
+			bhash_index_t index;
+			bhash_find(index, tbl, i, config);
+			BHASH_ASSERT(
+				bhash_is_valid(index) == memberships[i],
+				"%s: Membership mismatch for %d",
+				i
+			);
+
+			if (memberships[i]) { size += 1; }
+		}
+
+		BHASH_ASSERT(size == bhash_len(tbl), "%s: Size mismatch: %d vs %d", size, bhash_len(tbl));
 	}
 
 	bhash_destroy(tbl, config);
