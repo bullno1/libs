@@ -278,6 +278,12 @@ typedef struct bhash_base_s {
 					"%s: Invalid positive index %d", \
 					bhash__index \
 				); \
+				bhash_index_t bhash__r_index = bhash__r_indices[bhash__index - 1]; \
+				BHASH_ASSERT( \
+					bhash__i == bhash__r_index,\
+					"%s: Index mismatch at %d", \
+					bhash__i \
+				); \
 			} \
 		} \
 	}
