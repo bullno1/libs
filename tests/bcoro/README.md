@@ -12,6 +12,7 @@ Features:
 * Premature termination: `coroutin_stop`.
 * Cleanup code for each coroutine.
   Guaranteed to be run on both normal and premature termination.
+* (Experimental) Forking a coroutine just like the fork() syscall.
 
 A coroutine can be declared as follow:
 
@@ -45,6 +46,14 @@ BCORO(my_coro, args) {
 
     // Or terminate execution early
     if (condition) { BCORO_EXIT(); }
+
+    // The coroutine can also be forked
+    BCORO_FORK(new_coro, stack_size) {
+        // This code block executes immediately under the clone's context.
+        // It can make deep copies of shared resources here.
+        // Then, it must return control to the parent.
+        BCORO_YIELD();
+    }
 
     // This section is always run when the coroutine is terminated.
     BCORO_SECTION_CLEANUP
