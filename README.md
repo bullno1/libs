@@ -8,6 +8,8 @@ Collection of miscellaneous single-header libraries.
 |[mem_layout.h](tests/mem_layout)|Combine multiple mallocs of a nested struct into one|
 |[barena.h](tests/barena)|Arena allocator|
 |[tlsf.h](tests/tlsf)|Adaptation of [jserv/tlsf-bsd](https://github.com/jserv/tlsf-bsd)|
+|[bhash.h](tests/bhash)|Hashtable|
+|[bcoro.h](tests/bcoro)|Coroutine|
 
 Each one has example and documentation in the corresponding tests directory.
 
