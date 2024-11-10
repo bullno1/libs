@@ -12,7 +12,7 @@ typedef struct {
 
 BCORO(bar, args) {
 	BCORO_SECTION_VARS
-	BCORO_VAR(int, i)
+	BCORO_VAR(int, i);
 
 	BCORO_SECTION_BODY
 	printf("bar started\n");
@@ -28,7 +28,7 @@ BCORO(bar, args) {
 
 BCORO(foo, args) {
 	BCORO_SECTION_VARS
-	BCORO_VAR(int, i)
+	BCORO_VAR(int, i);
 
 	BCORO_SECTION_BODY
 	printf("foo started\n");
@@ -46,7 +46,7 @@ BCORO(foo, args) {
 
 BCORO(early_exit, args) {
 	BCORO_SECTION_VARS
-	BCORO_VAR(int, i)
+	BCORO_VAR(int, i);
 
 	BCORO_SECTION_BODY
 	printf("early_exit started\n");
@@ -75,8 +75,8 @@ typedef struct {
 
 BCORO(coro_fork, fork_args) {
 	BCORO_SECTION_VARS
-	BCORO_VAR(int, i)
-	BCORO_VAR(bool, is_parent)
+	BCORO_VAR(int, i);
+	BCORO_VAR(bool, is_parent);
 
 	BCORO_SECTION_BODY
 	printf("coro_fork(%p) started\n", (void*)BCORO_SELF);

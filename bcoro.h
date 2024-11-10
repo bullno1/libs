@@ -58,15 +58,17 @@
 #define BCORO_VAR(TYPE, NAME) \
 	TYPE NAME; bcoro__init_var(&NAME); \
 	TYPE* bcoro__var_##NAME = bcoro__alloc(bcoro__sp, sizeof(TYPE), _Alignof(TYPE)); \
-	bcoro__sp = (char*)bcoro__var_##NAME + sizeof(NAME); \
-	if (bcoro__yielding || bcoro__cloning) { \
-		*bcoro__var_##NAME = NAME; \
-	} else if (bcoro__self->resume_point != 0) { \
-		NAME = *bcoro__var_##NAME; \
-	}
+	do { \
+		bcoro__sp = (char*)bcoro__var_##NAME + sizeof(NAME); \
+		if (bcoro__yielding || bcoro__cloning) { \
+			*bcoro__var_##NAME = NAME; \
+		} else if (bcoro__self->resume_point != 0) { \
+			NAME = *bcoro__var_##NAME; \
+		} \
+	} while (0)
 
 #define BCORO_SECTION_BODY \
-	BCORO_VAR(bcoro_t*, bcoro__clone) \
+	BCORO_VAR(bcoro_t*, bcoro__clone); \
 	if (bcoro__yielding) { bcoro__self->status = BCORO_SUSPENDED; return; } \
 	bcoro_t* bcoro__subcoro = bcoro__alloc(bcoro__sp, sizeof(bcoro_t), _Alignof(bcoro_t)); \
 	(void)bcoro__subcoro; \
