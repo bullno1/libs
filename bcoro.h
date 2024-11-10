@@ -45,6 +45,7 @@
 
 #define BCORO_SECTION_VARS \
 	bool bcoro__yielding = false; \
+	bool bcoro__cloning = false; \
 	char* bcoro__sp; \
 	bcoro__vars: \
 	bcoro__sp = bcoro__self->vars;
@@ -58,13 +59,14 @@
 	TYPE NAME; bcoro__init_var(&NAME); \
 	TYPE* bcoro__var_##NAME = bcoro__alloc(bcoro__sp, sizeof(TYPE), _Alignof(TYPE)); \
 	bcoro__sp = (char*)bcoro__var_##NAME + sizeof(NAME); \
-	if (bcoro__yielding) { \
+	if (bcoro__yielding || bcoro__cloning) { \
 		*bcoro__var_##NAME = NAME; \
-	} else { \
+	} else if (bcoro__self->resume_point != 0) { \
 		NAME = *bcoro__var_##NAME; \
 	}
 
 #define BCORO_SECTION_BODY \
+	BCORO_VAR(bcoro_t*, bcoro__clone) \
 	if (bcoro__yielding) { bcoro__self->status = BCORO_SUSPENDED; return; } \
 	bcoro_t* bcoro__subcoro = bcoro__alloc(bcoro__sp, sizeof(bcoro_t), _Alignof(bcoro_t)); \
 	(void)bcoro__subcoro; \
@@ -116,6 +118,48 @@
  * @brief The argument of this coroutine.
  */
 #define BCORO_ARG bcoro__arg
+
+/**
+ * @brief The currently running coroutine.
+ *
+ * This should only be used as a form of identification.
+ * The structure should never be modified directly.
+ */
+#define BCORO_SELF bcoro__self
+
+/**
+ * @brief Fork the coroutine (experimental).
+ *
+ * The fork will have a copy of the parent's states up to this point.
+ * States are naively memcpy-ed.
+ *
+ * @param DEST The coroutine storage to copy to.
+ *   This expression will only be evaluated once.
+ * @param STACK_SIZE The stack size.
+ *   This must be the same as the current stack size.
+ *
+ * @remarks
+ *   This will transfer control to the clone.
+ *   The code block that directly follows after a call to @ref BCORO_FORK will be
+ *   executed under the context of the clone.
+ *   This gives the clone an opportunity to create deep copies of shared resources
+ *   with its parent.
+ *   The clone must then call @ref BCORO_YIELD to transfer control back to its parent.
+ */
+#define BCORO_FORK(DEST, STACK_SIZE) \
+	do { \
+		bcoro__clone = (DEST); \
+		bcoro__self->resume_point = __LINE__; \
+		bcoro__cloning = true; \
+		goto bcoro__vars; \
+		case __LINE__: \
+		bcoro__cloning = false; \
+	} while (0); \
+	if (bcoro__clone != bcoro__self) { \
+		bcoro__copy(bcoro__clone, bcoro__self, STACK_SIZE); \
+		bcoro__clone->status = BCORO_SUSPENDED; \
+		bcoro_resume(bcoro__clone); \
+	} else
 
 /**
  * @brief The coroutine type.
@@ -192,6 +236,18 @@ bcoro_resume(bcoro_t* coro);
 BCORO_API bcoro_status_t
 bcoro_status(bcoro_t* coro);
 
+/**
+ * @brief Initialize a noop coroutine.
+ *
+ * Rather than leaving a @ref bcoro_t uninitialized, this makes the coroutine
+ * safe to resume.
+ * It will immediately terminate upon being resumed.
+ *
+ * @param coro The coroutine to initialize.
+ */
+BCORO_API void
+bcoro_noop(bcoro_t* coro);
+
 #ifndef DOXYGEN
 
 // Private functions, should not be called directly.
@@ -204,6 +260,9 @@ bcoro__start(
 	size_t args_size,
 	size_t args_alignment
 );
+
+BCORO_API void
+bcoro__copy(bcoro_t* dest, const bcoro_t* src, size_t stack_size);
 
 static inline void*
 bcoro__alloc(char* sp, size_t size, size_t alignment) {
@@ -271,6 +330,37 @@ bcoro_resume(bcoro_t* coro) {
 bcoro_status_t
 bcoro_status(bcoro_t* coro) {
 	return coro->status;
+}
+
+static void
+bcoro__noop_fn(bcoro_t* self, void* arg) {
+	(void)arg;
+	self->resume_point = -1;
+	self->status = BCORO_TERMINATED;
+}
+
+void
+bcoro_noop(bcoro_t* coro) {
+	coro->resume_point = 0;
+	coro->args = coro->stack;
+	coro->vars = coro->stack;
+	coro->fn = bcoro__noop_fn;
+	coro->subcoro = NULL;
+	coro->status = BCORO_SUSPENDED;
+}
+
+void
+bcoro__copy(bcoro_t* dest, const bcoro_t* src, size_t stack_size) {
+	ptrdiff_t args_offset = (intptr_t)src->args - (intptr_t)src->stack;
+	ptrdiff_t vars_offset = (intptr_t)src->vars - (intptr_t)src->stack;
+	dest->args = dest->stack + args_offset;
+	dest->vars = dest->stack + vars_offset;
+	dest->resume_point = src->resume_point;
+	dest->subcoro = NULL;
+	dest->fn = src->fn;
+	dest->status = src->status;
+
+	memcpy(dest->stack, src->stack, stack_size);
 }
 
 #endif
