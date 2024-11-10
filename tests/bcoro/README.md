@@ -43,6 +43,9 @@ BCORO(my_coro, args) {
     // You can also call another coroutine
     BCORO_YIELD_FROM(another_coro_fn, ((another_args){ 0 }));
 
+    // Or terminate execution early
+    if (condition) { BCORO_EXIT(); }
+
     // This section is always run when the coroutine is terminated.
     BCORO_SECTION_CLEANUP
     printf("Coroutine stopped\n");
