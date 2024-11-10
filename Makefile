@@ -1,6 +1,6 @@
 .PHONY: all clean
 
-all: bin/autolist bin/xincbin bin/mem_layout bin/barena bin/tlsf bin/bresmon bin/bhash
+all: bin/autolist bin/xincbin bin/mem_layout bin/barena bin/tlsf bin/bresmon bin/bhash bin/bcoro
 
 clean:
 	rm -rf bin
@@ -32,3 +32,7 @@ bin/bresmon: tests/bresmon/main.c
 bin/bhash: tests/bhash/main.c
 	mkdir -p bin
 	$(CC) $(CFLAGS) -Itests/bhash $^ -o $@
+
+bin/bcoro: tests/bcoro/main.c
+	mkdir -p bin
+	$(CC) $(CFLAGS) -Itests/bcoro $^ -o $@

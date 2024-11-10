@@ -14,5 +14,10 @@ If:
 CompileFlags:
   Add: [-DBRESMON_IMPLEMENTATION]
 ---
+If:
+  PathMatch: bcoro\.h
+CompileFlags:
+  Add: [-DBCORO_IMPLEMENTATION]
+---
 CompileFlags:
   Add: [-xc, -Wall, -Werror, -pedantic, -std=c11]
