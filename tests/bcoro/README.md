@@ -9,7 +9,7 @@ Features:
 * Support spawning multiple coroutines from the same function.
 * No hidden memory allocation.
 * Calling into and yielding from a subroutine.
-* Premature termination: `coroutin_stop`.
+* Premature termination: `bcoro_stop`.
 * Cleanup code for each coroutine.
   Guaranteed to be run on both normal and premature termination.
 * (Experimental) Forking a coroutine just like the fork() syscall.

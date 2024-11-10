@@ -84,15 +84,21 @@
  *
  * The called function can use @ref BCORO_YIELD to return control to the caller of this coroutine.
  */
-#define BCORO_YIELD_FROM(FN, ARG) \
+#define BCORO_YIELD_FROM(FN, ...) \
 	do { \
-		FN(bcoro__subcoro, ARG); \
+		FN(bcoro__subcoro, __VA_ARGS__); \
 		bcoro__self->subcoro = bcoro__subcoro; \
-		while (bcoro_resume(bcoro__subcoro) != BCORO_TERMINATED) { \
-			BCORO_YIELD(); \
-		} \
+		BCORO_JOIN(bcoro__subcoro); \
 		bcoro__self->subcoro = NULL; \
 	} while (0)
+
+/**
+ * @brief Wait for the other coroutine to finish.
+ */
+#define BCORO_JOIN(CORO) \
+	while (bcoro_resume(CORO) != BCORO_TERMINATED) { \
+		BCORO_YIELD(); \
+	} \
 
 /**
  * @brief Return control to the caller of this coroutine.
