@@ -19,18 +19,18 @@ A coroutine can be declared as follow:
 // Only a single argument is allowed so a struct is needed if you have multiple
 // arguments.
 typedef struct {
-	int input;
-	int* output;
+    int input;
+    int* output;
 } args;
 
 BCORO(my_coro, args) {
     // The first section must be for variable declaration and all variables
     // must be declared here with the following syntax.
-	BCORO_SECTION_VARS
-	BCORO_VAR(int, i);
+    BCORO_SECTION_VARS
+    BCORO_VAR(int, i);
 
     // The next section is the code.
-	BCORO_SECTION_BODY
+    BCORO_SECTION_BODY
     printf("Coroutine started\n");
 
     // Access the argument through BCORO_ARG
@@ -44,7 +44,7 @@ BCORO(my_coro, args) {
     BCORO_YIELD_FROM(another_coro_fn, ((another_args){ 0 }));
 
     // This section is always run when the coroutine is terminated.
-	BCORO_SECTION_CLEANUP
+    BCORO_SECTION_CLEANUP
     printf("Coroutine stopped\n");
 }
 ```
