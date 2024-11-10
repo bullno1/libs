@@ -42,6 +42,29 @@ BCORO(foo, args) {
 	printf("foo terminated\n");
 }
 
+BCORO(early_exit, args) {
+	BCORO_SECTION_VARS
+	BCORO_VAR(int, i)
+
+	BCORO_SECTION_BODY
+	printf("early_exit started\n");
+
+	for (i = 0; i < BCORO_ARG.input; ++i) {
+		if (i == 2) {
+			printf("Early exit\n");
+			BCORO_EXIT();
+		}
+
+		BCORO_YIELD_FROM(bar, ((args){
+			.input = i,
+			.output = BCORO_ARG.output,
+		}));
+	}
+
+	BCORO_SECTION_CLEANUP
+	printf("early_exit terminated\n");
+}
+
 
 int main(int argc, const char* argv[]) {
 	(void)argc;
@@ -62,14 +85,21 @@ int main(int argc, const char* argv[]) {
 	while (bcoro_resume(coro) != BCORO_TERMINATED) {
 		printf("%d\n", out);
 
-		if (should_terminate && out == 3) {
+		if (should_terminate && out == 2) {
 			printf("Terminating coro\n");
 			bcoro_stop(coro);
 		}
 
-		if (out == 3) {
+		if (out == 2) {
 			should_terminate = true;
 		}
+	}
+
+	// Self termination
+	printf("----\n");
+	early_exit(coro, (args){.input = 5, .output = &out });
+	while (bcoro_resume(coro) != BCORO_TERMINATED) {
+		printf("%d\n", out);
 	}
 
 	free(coro);

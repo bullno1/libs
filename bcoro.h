@@ -44,7 +44,7 @@
 	static inline void bcoro__impl_##NAME(struct bcoro_s* bcoro__self, ARG_TYPE bcoro__arg)
 
 #define BCORO_SECTION_VARS \
-	bool bcoro__exiting = false; \
+	bool bcoro__yielding = false; \
 	char* bcoro__sp; \
 	bcoro__vars: \
 	bcoro__sp = bcoro__self->vars;
@@ -58,20 +58,24 @@
 	TYPE NAME; (void)&NAME; \
 	TYPE* bcoro__var_##NAME = bcoro__alloc(bcoro__sp, sizeof(TYPE), _Alignof(TYPE)); \
 	bcoro__sp = (char*)bcoro__var_##NAME + sizeof(NAME); \
-	if (bcoro__exiting) { \
+	if (bcoro__yielding) { \
 		*bcoro__var_##NAME = NAME; \
 	} else { \
 		NAME = *bcoro__var_##NAME; \
 	}
 
 #define BCORO_SECTION_BODY \
-	if (bcoro__exiting) { bcoro__self->status = BCORO_SUSPENDED; return; } \
+	if (bcoro__yielding) { bcoro__self->status = BCORO_SUSPENDED; return; } \
 	bcoro_t* bcoro__subcoro = bcoro__alloc(bcoro__sp, sizeof(bcoro_t), _Alignof(bcoro_t)); \
 	(void)bcoro__subcoro; \
 	switch (bcoro__self->resume_point) { case 0:
 
 #define BCORO_SECTION_CLEANUP \
-	default: bcoro__self->resume_point = -1; bcoro__self->status = BCORO_TERMINATED; }
+	default: goto bcoro__terminate; } \
+	bcoro__terminate: do { \
+		bcoro__self->resume_point = -1; \
+		bcoro__self->status = BCORO_TERMINATED; \
+	} while (0);
 
 /**
  * @brief Call another coroutine function.
@@ -94,10 +98,19 @@
 #define BCORO_YIELD() \
 	do { \
 		bcoro__self->resume_point = __LINE__; \
-		bcoro__exiting = true; \
+		bcoro__yielding = true; \
 		goto bcoro__vars; \
 		case __LINE__:; \
 	} while (0)
+
+/**
+ * @brief Terminate the currently running coroutine.
+ *
+ * @remarks
+ *   The clean up code of this coroutine and all its descendants will be executed.
+ *   @see bcoro_stop
+ */
+#define BCORO_EXIT() do { goto bcoro__terminate; } while (0)
 
 /**
  * @brief The argument of this coroutine.
@@ -180,6 +193,8 @@ BCORO_API bcoro_status_t
 bcoro_status(bcoro_t* coro);
 
 #ifndef DOXYGEN
+
+// Private functions, should not be called directly.
 
 BCORO_API void
 bcoro__start(
