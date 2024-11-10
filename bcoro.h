@@ -55,7 +55,7 @@
  * Its value will be persisted between invocations.
  */
 #define BCORO_VAR(TYPE, NAME) \
-	TYPE NAME; (void)&NAME; \
+	TYPE NAME; bcoro__init_var(&NAME); \
 	TYPE* bcoro__var_##NAME = bcoro__alloc(bcoro__sp, sizeof(TYPE), _Alignof(TYPE)); \
 	bcoro__sp = (char*)bcoro__var_##NAME + sizeof(NAME); \
 	if (bcoro__yielding) { \
@@ -208,6 +208,11 @@ bcoro__start(
 static inline void*
 bcoro__alloc(char* sp, size_t size, size_t alignment) {
 	return (void*)(((intptr_t)sp + (intptr_t)alignment - 1) & -(intptr_t)alignment);
+}
+
+static inline void
+bcoro__init_var(void* var) {
+	(void)var;
 }
 
 #endif
