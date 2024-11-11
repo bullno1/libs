@@ -1,6 +1,17 @@
 #ifndef BHASH_H
 #define BHASH_H
 
+/**
+ * @file
+ * @brief Type-safe hashtable
+ *
+ * Based on: https://nullprogram.com/blog/2022/08/08/
+ *
+ * Several functions in this library return an index.
+ * If it is -1, it indicates a "not found" result.
+ * Otherwise, it is an index into the @ref bhash_sample_t.keys and ref bhash_sample_t.values arrays.
+ */
+
 #ifndef BHASH_INDEX_TYPE
 #include <stdint.h>
 #define BHASH_INDEX_TYPE int32_t
@@ -20,16 +31,47 @@ typedef BHASH_HASH_TYPE bhash_hash_t;
 typedef bhash_hash_t (*bhash_hash_fn_t)(const void* key, size_t size);
 typedef bool (*bhash_eq_fn_t)(const void* lhs, const void* rhs, size_t size);
 
+/*! Configuration for a hash table */
 typedef struct bhash_config_s {
+	/*! Hash function */
 	bhash_hash_fn_t hash;
+
+	/*! @brief Comparison function */
 	bhash_eq_fn_t eq;
+
+	/**
+	 * @brief Load percentage of the hashtable.
+	 *
+	 * Must be the range [0, 100).
+	 *
+	 * When the table has more than this percentage of data, a rehash will be triggered.
+	 */
 	bhash_index_t load_percent;
+
+	/**
+	 * @brief Percentage of tombstones in the hashtable
+	 *
+	 * Must be the range [0, 100).
+	 *
+	 * When the table has more than this percentage of tombstone, a rehash will be triggered.
+	 */
 	bhash_index_t tombstone_percent;
+
+	/*! Initial exponential */
 	bhash_index_t initial_exp;
+
+	/*! Whether the hashtable supports removal */
 	bool removable;
+
+	/*! Context passed to allocator */
 	void* memctx;
 } bhash_config_t;
 
+/**
+ * @brief The hashtable implementation details.
+ *
+ * Should be treated as opaque.
+ */
 typedef struct bhash_base_s {
 	void* memctx;
 	bhash_hash_fn_t hash;
@@ -46,11 +88,25 @@ typedef struct bhash_base_s {
 	bhash_index_t exp;
 } bhash_base_t;
 
+/*! Result of @ref bhash_alloc */
 typedef struct {
+	/**
+	 * @brief The index that is allocated for this entry
+	 *
+	 * This can be used to index into @ref bhash_sample_t.keys and @ref bhash_sample_t.values.
+	 */
 	bhash_index_t index;
+
+	/*! Whether the entry is new */
 	bool is_new;
 } bhash_alloc_result_t;
 
+/**
+ * @brief Helper macro to define a hashtable type
+ * @param K key type
+ * @param V value type
+ * @see bhash_sample_t
+ */
 #define BHASH_TABLE(K, V) \
 	struct { \
 		bhash_base_t base; \
@@ -58,12 +114,38 @@ typedef struct {
 		V* values; \
 	}
 
-#define BHASH_SET(K, V) \
+/**
+ * @brief Helper macro to define a hashset type
+ * @param K key type
+ * @see bhash_sample_t
+ */
+#define BHASH_SET(K) \
 	struct { \
 		bhash_base_t base; \
 		K* keys; \
 	}
 
+#ifdef DOXYGEN
+
+/*! A sample hashtable */
+typedef struct {
+	bhash_base_t base;
+	/*! All keys of the table as a contiguouos array */
+	K* keys;
+	/*! All values of the table as a contiguouos array */
+	V* values;
+} bhash_sample_t;
+
+#endif
+
+/**
+ * @brief Initialize a hashtable.
+ *
+ * @param table Address of the hashtable (defined with @ref BHASH_TABLE).
+ * @param config The configuration (@ref bhash_config_t).
+ *
+ * @see bhash_sample_t
+ */
 #define bhash_init(table, config) \
 	bhash__do_init( \
 		&((table)->base), \
@@ -72,6 +154,16 @@ typedef struct {
 		config \
 	)
 
+/**
+ * @brief Initialize a hashtable.
+ *
+ * Same as a hashtable but without values.
+ *
+ * @param table Address of the hashtable (defined with @ref BHASH_SET).
+ * @param config The configuration (@ref bhash_config_t).
+ *
+ * @see bhash_sample_t
+ */
 #define bhash_init_set(table, config) \
 	bhash__do_init( \
 		&((table)->base), \
@@ -80,12 +172,25 @@ typedef struct {
 		config \
 	)
 
+/*! Clear a table */
 #define bhash_clear(table) bhash__do_clear(&((table)->base))
 
+/**
+ * @brief Free up all resources used by a hashtable.
+ *
+ * @see bhash_init
+ */
 #define bhash_cleanup(table) bhash__do_cleanup(&((table)->base))
 
-#define bhash_alloc(table, key) bhash__do_alloc(&((table)->base), &(key))
+/**
+ * @brief Allocate an entry in the hashtable.
+ *
+ * @return @ref bhash_alloc_result_t
+ */
+#define bhash_alloc(table, key) \
+	((void)sizeof((table)->keys[0] = key), bhash__do_alloc(&((table)->base), &(key)))
 
+/*! Add a new entry to the table */
 #define bhash_put(table, key, value) \
 	do { \
 		bhash_index_t bhash__put_index = bhash_alloc(table, key).index; \
@@ -93,22 +198,40 @@ typedef struct {
 		(table)->values[bhash__put_index] = value; \
 	} while (0)
 
+/*! Add a new key to the table */
 #define bhash_put_key(table, key) \
 	do { \
 		bhash_index_t bhash__put_index = bhash_alloc(table, key).index; \
 		(table)->keys[bhash__put_index] = key; \
 	} while (0)
 
+/**
+ * @brief Find an entry given its key.
+ *
+ * @return Index of the entry.
+ */
 #define bhash_find(table, key) \
 	((void)sizeof((table)->keys[0] = key), bhash__do_find(&((table)->base), &(key)))
 
+/**
+ * @brief Remove an entry.
+ *
+ * @return Index of the entry.
+ * @remarks
+ *   If the returned index is positive, the entry is found.
+ *   Its data is still accessible until overwritten.
+ *   User code can refer to it to free up other resources.
+ */
 #define bhash_remove(table, key) \
 	((void)sizeof((table)->keys[0] = key), bhash__do_remove(&((table)->base), &(key)))
 
+/*! Check whether an index is valid */
 #define bhash_is_valid(index) ((index) >= 0)
 
+/*! Retrieve the length of the table */
 #define bhash_len(table) ((table)->base.len)
 
+/*! Validate and assert when the table violates some invariants */
 #define bhash_validate(table) bhash__do_validate(&((table)->base))
 
 // MurmurOAAT64
@@ -128,6 +251,7 @@ bhash_eq(const void* lhs, const void* rhs, size_t size) {
 	return memcmp(lhs, rhs, size) == 0;
 }
 
+/*! Default configuration */
 static inline bhash_config_t
 bhash_config_default(void) {
 	return (bhash_config_t){
@@ -141,6 +265,8 @@ bhash_config_default(void) {
 }
 
 // Private
+
+#ifndef DOXYGEN
 
 BHASH_API void
 bhash__do_init(bhash_base_t* bhash, size_t key_size, size_t value_size, bhash_config_t config);
@@ -162,6 +288,8 @@ bhash__do_cleanup(bhash_base_t* bhash);
 
 BHASH_API void
 bhash__do_clear(bhash_base_t* bhash);
+
+#endif
 
 #endif
 
@@ -403,6 +531,8 @@ bhash__do_find(bhash_base_t* bhash, const void* key) {
 
 bhash_index_t
 bhash__do_remove(bhash_base_t* bhash, const void* key) {
+	if (bhash->r_indices == NULL) { return -1; }
+
 	bhash_index_t remove_index, remove_r_index;
 	bhash_index_t end_index = bhash->len;
 	bhash_index_t tail_index = end_index - 1;
