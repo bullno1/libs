@@ -7,9 +7,9 @@
 
 #define barray_push(array, element, ctx) \
 	do { \
-		size_t new_len; \
-		array = barray__prepare_push(array, &new_len, sizeof(element), ctx); \
-		array[new_len - 1] = element; \
+		size_t barray__new_len; \
+		array = barray__prepare_push(array, &barray__new_len, sizeof(element), ctx); \
+		array[barray__new_len - 1] = element; \
 	} while (0)
 
 #define barray_reserve(array, new_capacity, ctx) \
@@ -24,32 +24,57 @@
 
 #define barray_pop(array) array[barray_len(array) - 1], barray__do_pop(array)
 
-typedef struct barray_header_s {
-	size_t capacity;
-	size_t len;
-	_Alignas(max_align_t) char elems[];
-} barray_header_t;
+size_t
+barray_len(void* array);
 
-static inline barray_header_t*
-barray__header_of(void* array);
+size_t
+barray_capacity(void* array);
 
-static inline size_t
-barray_len(void* array) {
-	barray_header_t* header = barray__header_of(array);
-	return header != NULL ? header->len : 0;
-}
-
-static inline size_t
-barray_capacity(void* array) {
-	barray_header_t* header = barray__header_of(array);
-	return header != NULL ? header->capacity : 0;
-}
+void
+barray_free(void* ctx, void* array);
 
 // Private
 
+void*
+barray__prepare_push(void* array, size_t* new_len, size_t elem_size, void* ctx);
+
+void*
+barray__do_reserve(void* array, size_t new_capacity, size_t elem_size, void* ctx);
+
+void*
+barray__do_resize(void* array, size_t new_len, size_t elem_size, void* ctx) ;
+
+void
+barray__do_pop(void* array);
+
+#endif
+
+#if defined(BLIB_IMPLEMENTATION) && !defined(BARRAY_IMPLEMENTATION)
+#define BARRAY_IMPLEMENTATION
+#endif
+
+#ifdef BARRAY_IMPLEMENTATION
+
+#ifndef BARRAY_ALIGN_TYPE
+#	ifdef _MSC_VER
+#		define BARRAY_ALIGN_TYPE long double
+#	else
+#		define BARRAY_ALIGN_TYPE max_align_t
+#	endif
+#endif
+
 #ifndef BARRAY_REALLOC
+#	ifdef BLIB_REALLOC
+#		define BARRAY_REALLOC BLIB_REALLOC
+#	else
+#		define BARRAY_REALLOC(ptr, size, ctx) barray__libc_realloc(ptr, size, ctx)
+#		define BARRAY_USE_LIBC
+#	endif
+#endif
+
+#ifdef BARRAY_USE_LIBC
+
 #include <stdlib.h>
-#define BARRAY_REALLOC(ptr, size, ctx) barray__libc_realloc(ptr, size, ctx)
 
 static inline void*
 barray__libc_realloc(void* ptr, size_t size, void* ctx) {
@@ -64,6 +89,12 @@ barray__libc_realloc(void* ptr, size_t size, void* ctx) {
 
 #endif
 
+typedef struct {
+	size_t capacity;
+	size_t len;
+	_Alignas(BARRAY_ALIGN_TYPE) char elems[];
+} barray_header_t;
+
 static inline barray_header_t*
 barray__header_of(void* array) {
 	if (array != NULL) {
@@ -73,7 +104,27 @@ barray__header_of(void* array) {
 	}
 }
 
-static inline void*
+size_t
+barray_len(void* array) {
+	barray_header_t* header = barray__header_of(array);
+	return header != NULL ? header->len : 0;
+}
+
+size_t
+barray_capacity(void* array) {
+	barray_header_t* header = barray__header_of(array);
+	return header != NULL ? header->capacity : 0;
+}
+
+void
+barray_free(void* ctx, void* array) {
+	barray_header_t* header = barray__header_of(array);
+	if (header != NULL) {
+		BARRAY_REALLOC(header, 0, ctx);
+	}
+}
+
+void*
 barray__prepare_push(void* array, size_t* new_len, size_t elem_size, void* ctx) {
 	barray_header_t* header = barray__header_of(array);
 	size_t len = header != NULL ? header->len : 0;
@@ -93,7 +144,7 @@ barray__prepare_push(void* array, size_t* new_len, size_t elem_size, void* ctx) 
 	}
 }
 
-static inline void*
+void*
 barray__do_reserve(void* array, size_t new_capacity, size_t elem_size, void* ctx) {
 	barray_header_t* header = barray__header_of(array);
 	size_t current_capacity = header != NULL ? header->capacity : 0;
@@ -108,7 +159,7 @@ barray__do_reserve(void* array, size_t new_capacity, size_t elem_size, void* ctx
 	return new_header->elems;
 }
 
-static inline void*
+void*
 barray__do_resize(void* array, size_t new_len, size_t elem_size, void* ctx) {
 	barray_header_t* header = barray__header_of(array);
 	size_t current_capacity = header != NULL ? header->capacity : 0;
@@ -126,7 +177,7 @@ barray__do_resize(void* array, size_t new_len, size_t elem_size, void* ctx) {
 	}
 }
 
-static inline void
+void
 barray__do_pop(void* array) {
 	barray_header_t* header = barray__header_of(array);
 	header->len -= 1;

@@ -1,23 +1,3 @@
 ---
-If:
-  PathMatch: barena\.h
 CompileFlags:
-  Add: [-DBARENA_IMPLEMENTATION]
----
-If:
-  PathMatch: tlsf\.h
-CompileFlags:
-  Add: [-DTLSF_IMPLEMENTATION]
----
-If:
-  PathMatch: bresmon\.h
-CompileFlags:
-  Add: [-DBRESMON_IMPLEMENTATION]
----
-If:
-  PathMatch: bcoro\.h
-CompileFlags:
-  Add: [-DBCORO_IMPLEMENTATION]
----
-CompileFlags:
-  Add: [-xc, -Wall, -Werror, -pedantic, -std=c11]
+  Add: [-xc, -Wall, -Werror, -pedantic, -std=c11, -DBLIB_IMPLEMENTATION]

@@ -96,6 +96,10 @@ static inline void tlsf_check(tlsf_t *t)
 }
 #endif
 
+#if defined(BLIB_IMPLEMENTATION) && !defined(TLSF_IMPLEMENTATION)
+#define TLSF_IMPLEMENTATION
+#endif
+
 #ifdef TLSF_IMPLEMENTATION
 
 #include <stdbool.h>
