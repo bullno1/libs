@@ -367,7 +367,7 @@ bhash_value_at(bhash_base_t* bhash, bhash_index_t index) {
 static inline bhash_index_t
 bhash_lookup_index(bhash_hash_t hash, bhash_index_t exp, bhash_index_t idx) {
 	uint32_t mask = ((uint32_t)1 << exp) - 1;
-	uint32_t step = (hash >> (64 - exp)) | 1;
+	uint32_t step = (uint32_t)((hash >> (64 - exp)) | 1);
 	return (idx + step) & mask;
 }
 
