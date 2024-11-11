@@ -43,6 +43,7 @@
 	} \
 	static inline void bcoro__impl_##NAME(struct bcoro_s* bcoro__self, ARG_TYPE bcoro__arg)
 
+/*! Mark the beginning of the variable section */
 #define BCORO_SECTION_VARS \
 	bool bcoro__yielding = false; \
 	bool bcoro__cloning = false; \
@@ -67,6 +68,7 @@
 		} \
 	} while (0)
 
+/*! Mark the beginning of the body section */
 #define BCORO_SECTION_BODY \
 	BCORO_VAR(bcoro_t*, bcoro__clone); \
 	if (bcoro__yielding) { bcoro__self->status = BCORO_SUSPENDED; return; } \
@@ -74,6 +76,7 @@
 	(void)bcoro__subcoro; \
 	switch (bcoro__self->resume_point) { case 0:
 
+/*! Mark the beginning of the cleanup section */
 #define BCORO_SECTION_CLEANUP \
 	default: goto bcoro__terminate; } \
 	bcoro__terminate: do { \

@@ -22,16 +22,18 @@
 #define BRESMON_API
 #endif
 
+/** A monitor context */
 typedef struct bresmon_s bresmon_t;
+/** A watch context */
 typedef struct bresmon_watch_s bresmon_watch_t;
-typedef struct bresmon_itr_s bresmon_itr_t;
+
 /**
  * @brief The reload callback attached to a resource.
  *
  * @param file The same filename passed to the @ref bresmon_watch call.
  * @param userdata Arbitrary userdata.
  *
- * @ref bresmon_watch
+ * @see bresmon_watch
  */
 typedef void (*bresmon_callback_t)(const char* file, void* userdata);
 
@@ -52,6 +54,8 @@ bresmon_create(void* memctx);
 
 /**
  * @brief Destroy the monitor context.
+ *
+ * @see bresmon_create
  */
 BRESMON_API void
 bresmon_destroy(bresmon_t* mon);
@@ -63,6 +67,9 @@ bresmon_destroy(bresmon_t* mon);
  * @param file The path to the file.
  * @param callback The callback to be invoked when the file changes.
  * @param userdata Passed verbatim to the callback.
+ *
+ * @return A watch context.
+ * @see bresmon_unwatch
  */
 BRESMON_API bresmon_watch_t*
 bresmon_watch(
@@ -75,7 +82,7 @@ bresmon_watch(
 /**
  * @brief Replace the callback of an existing watch.
  *
- * @ref bresmon_watch
+ * @see bresmon_watch
  */
 BRESMON_API void
 bresmon_set_watch_callback(bresmon_watch_t* watch, bresmon_callback_t callback, void* userdata);
@@ -83,7 +90,7 @@ bresmon_set_watch_callback(bresmon_watch_t* watch, bresmon_callback_t callback, 
 /**
  * @brief Destroy a previously setup watch.
  *
- * @ref bresmon_watch
+ * @see bresmon_watch
  */
 BRESMON_API void
 bresmon_unwatch(bresmon_watch_t* watch);
@@ -101,8 +108,8 @@ bresmon_unwatch(bresmon_watch_t* watch);
  * @remarks
  *   The callbacks will not be invoked until @ref bresmon_reload is called.
  *
- * @ref bresmon_check
- * @ref bresmon_watch
+ * @see bresmon_check
+ * @see bresmon_watch
  */
 BRESMON_API int
 bresmon_should_reload(bresmon_t* mon, bool wait);
@@ -114,8 +121,8 @@ bresmon_should_reload(bresmon_t* mon, bool wait);
  *
  * @return The number of reloaded resources.
  *
- * @ref bresmon_should_reload
- * @ref bresmon_watch
+ * @see bresmon_should_reload
+ * @see bresmon_watch
  */
 BRESMON_API int
 bresmon_reload(bresmon_t* mon);
@@ -131,7 +138,7 @@ bresmon_reload(bresmon_t* mon);
  *
  * @return The number of reloaded resources.
  *
- * @ref bresmon_watch
+ * @see bresmon_watch
  */
 static inline int
 bresmon_check(bresmon_t* mon, bool wait) {
@@ -147,7 +154,7 @@ bresmon_check(bresmon_t* mon, bool wait) {
  *
  * This is a convenient function for hot reloadable modules.
  *
- * @ref bresmon_cleanup_watch
+ * @see bresmon_cleanup_watch
  */
 static inline void
 bresmon_init_watch(
@@ -169,7 +176,7 @@ bresmon_init_watch(
  *
  * This is a convenient function for hot reloadable modules.
  *
- * @ref bresmon_init_watch
+ * @see bresmon_init_watch
  */
 static inline void
 bresmon_cleanup_watch(bresmon_watch_t** watch_ptr) {

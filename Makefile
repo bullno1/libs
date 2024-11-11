@@ -1,9 +1,13 @@
 .PHONY: all clean
 
-all: bin/autolist bin/xincbin bin/mem_layout bin/barena bin/tlsf bin/bresmon bin/bhash bin/bcoro
+all: doc/index.html bin/autolist bin/xincbin bin/mem_layout bin/barena bin/tlsf bin/bresmon bin/bhash bin/bcoro
 
 clean:
 	rm -rf bin
+	rm -rf doc
+
+doc/index.html: Doxyfile
+	doxygen
 
 bin/autolist: tests/autolist/a.c tests/autolist/b.c tests/autolist/main.c
 	mkdir -p bin

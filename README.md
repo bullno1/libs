@@ -1,3 +1,5 @@
+# blibs
+
 Collection of miscellaneous single-header libraries.
 
 |Library|Description|
@@ -17,3 +19,11 @@ Tested on:
 
 * Linux (GCC+Clang)
 * Windows (MSVC)
+
+## On allocator
+
+Whenever a library needs to allocate memory a `memctx` argument can be passed to it.
+By default it uses libc for memory and `memctx` is ignored.
+
+The macro `<NAME>_REALLOC` can be used to override the allocator.
+`BLIB_REALLOC` is also recognized as a catch-all allocator.
