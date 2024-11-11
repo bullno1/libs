@@ -156,7 +156,7 @@ barena_memalign(barena_t* arena, size_t size, size_t alignment) {
 	barena_chunk_t* new_chunk;
 	if (
 		pool->free_chunks != NULL
-		&& (pool->free_chunks->end - (char*)pool->free_chunks) >= alloc_size
+		&& (size_t)(pool->free_chunks->end - (char*)pool->free_chunks) >= alloc_size
 	) {
 		new_chunk = pool->free_chunks;
 		pool->free_chunks = new_chunk->next;

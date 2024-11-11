@@ -38,7 +38,7 @@ int main(int argc, const char* argv[]) {
 			bool existed = bhash_is_valid(index);
 
 			printf("Add %d -> %d\n", key, key * 2);
-			bhash_put(&tbl, key, (int){ key * 2 });
+			bhash_put(&tbl, key, (char){ (char)key * 2 });
 			memberships[key] = true;
 
 			bhash_index_t len_after = bhash_len(&tbl);
@@ -72,37 +72,36 @@ int main(int argc, const char* argv[]) {
 			assert(!bhash_is_valid(index));
 		} else if (action == BHASH_TEST_POP && bhash_len(&tbl) > 0) {
 			bhash_index_t len_before = bhash_len(&tbl);
-			int key = tbl.keys[0];
-			printf("Remove %d\n", key);
-			index = bhash_remove(&tbl, key);
-			memberships[key] = false;
+			int key_to_remove = tbl.keys[0];
+			printf("Remove %d\n", key_to_remove);
+			index = bhash_remove(&tbl, key_to_remove);
+			memberships[key_to_remove] = false;
 			bhash_index_t len_after = bhash_len(&tbl);
 
 			assert(bhash_is_valid(index));
 			BHASH_ASSERT(len_after == len_before - 1, "%s: %d -> %d", len_before, len_after);
-			BHASH_ASSERT(tbl.keys[index] == key, "%s: %d -> %d", tbl.keys[index], key);
-			BHASH_ASSERT(tbl.values[index] == key * 2, "%s: %d -> %d", tbl.values[index], key * 2);
+			BHASH_ASSERT(tbl.keys[index] == key_to_remove, "%s: %d -> %d", tbl.keys[index], key_to_remove);
+			BHASH_ASSERT(tbl.values[index] == key_to_remove * 2, "%s: %d -> %d", tbl.values[index], key_to_remove * 2);
 
-			index = bhash_find(&tbl, key);
+			index = bhash_find(&tbl, key_to_remove);
 			assert(!bhash_is_valid(index));
 		}
 
 		bhash_validate(&tbl);
 
 		int size = 0;
-		for (int i = 0; i < 10; ++i) {
-			bhash_index_t index;
-			index = bhash_find(&tbl, i);
+		for (int j = 0; j < 10; ++j) {
+			index = bhash_find(&tbl, j);
 			BHASH_ASSERT(
-				bhash_is_valid(index) == memberships[i],
+				bhash_is_valid(index) == memberships[j],
 				"%s: Membership mismatch for %d",
-				i
+				j
 			);
 
-			if (memberships[i]) { size += 1; }
+			if (memberships[j]) { size += 1; }
 			if (bhash_is_valid(index) > 0) {
-				BHASH_ASSERT(tbl.keys[index] == i, "%s: Key mismatch: %d vs %d", tbl.keys[index], i);
-				BHASH_ASSERT(tbl.values[index] == i * 2, "%s: Value mismatch: %d vs %d", tbl.values[index], i * 2);
+				BHASH_ASSERT(tbl.keys[index] == j, "%s: Key mismatch: %d vs %d", tbl.keys[index], j);
+				BHASH_ASSERT(tbl.values[index] == j * 2, "%s: Value mismatch: %d vs %d", tbl.values[index], j * 2);
 			}
 		}
 
