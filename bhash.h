@@ -7,8 +7,8 @@
 #define BHASH_HASH_TYPE uint64_t
 #endif
 
-#ifndef BHASH_INITIAL_EXP
-#define BHASH_INITIAL_EXP 3
+#ifndef BHASH_API
+#define BHASH_API
 #endif
 
 #include <stddef.h>
@@ -23,12 +23,21 @@ typedef bool (*bhash_eq_fn_t)(const void* lhs, const void* rhs, size_t size);
 typedef struct bhash_config_s {
 	bhash_hash_fn_t hash;
 	bhash_eq_fn_t eq;
+	bhash_index_t load_percent;
+	bhash_index_t tombstone_percent;
+	bhash_index_t initial_exp;
 	bool removable;
-	bool has_values;
 	void* memctx;
 } bhash_config_t;
 
 typedef struct bhash_base_s {
+	void* memctx;
+	bhash_hash_fn_t hash;
+	bhash_eq_fn_t eq;
+	bhash_index_t load_percent;
+	bhash_index_t tombstone_percent;
+	size_t key_size;
+	size_t value_size;
 	bhash_index_t* indices;
 	bhash_index_t* r_indices;
 	bhash_hash_t* hashes;
@@ -37,8 +46,10 @@ typedef struct bhash_base_s {
 	bhash_index_t exp;
 } bhash_base_t;
 
-#define BHASH_EMPTY ((bhash_index_t)0)
-#define BHASH_TOMBSTONE ((bhash_index_t)-1)
+typedef struct {
+	bhash_index_t index;
+	bool is_new;
+} bhash_alloc_result_t;
 
 #define BHASH_TABLE(K, V) \
 	struct { \
@@ -47,246 +58,58 @@ typedef struct bhash_base_s {
 		V* values; \
 	}
 
-#define bhash_clear(result, table, key, config) \
-	if (table != NULL) { \
-		memset(table->base.indices, 0, sizeof(bhash_index_t) * (1 << table->base.exp)); \
-		table->base.len = 0; \
+#define BHASH_SET(K, V) \
+	struct { \
+		bhash_base_t base; \
+		K* keys; \
 	}
 
-#define bhash_destroy(table, config) \
-	if (table != NULL) { \
-		BHASH_REALLOC(table->keys, 0, config.memctx); \
-		BHASH_REALLOC(table->values, 0, config.memctx); \
-		BHASH_REALLOC(table->base.indices, 0, config.memctx); \
-		BHASH_REALLOC(table->base.r_indices, 0, config.memctx); \
-		BHASH_REALLOC(table->base.hashes, 0, config.memctx); \
-		BHASH_REALLOC(table, 0, config.memctx); \
-		table = NULL; \
-	}
+#define bhash_init(table, config) \
+	bhash__do_init( \
+		&((table)->base), \
+		sizeof((table)->keys[0]), \
+		sizeof((table)->values[0]), \
+		config \
+	)
 
-#define bhash_alloc(result, is_new, table, key, config) \
+#define bhash_init_set(table, config) \
+	bhash__do_init( \
+		&((table)->base), \
+		sizeof((table)->keys[0]), \
+		0, \
+		config \
+	)
+
+#define bhash_clear(table) bhash__do_clear(&((table)->base))
+
+#define bhash_cleanup(table) bhash__do_cleanup(&((table)->base))
+
+#define bhash_alloc(table, key) bhash__do_alloc(&((table)->base), &(key))
+
+#define bhash_put(table, key, value) \
 	do { \
-		bhash__maybe_grow(table, config); \
-		bhash_hash_t bhash__hash = config.hash(&key, sizeof(key)); \
-		bhash_index_t bhash__dest_slot = -1; \
-		bhash_index_t bhash__exp = table->base.exp; \
-		bhash_index_t* bhash__indices = table->base.indices; \
-		bhash_index_t* bhash__r_indices = table->base.r_indices; \
-		for (bhash_index_t bhash__i = (bhash_index_t)bhash__hash;;) { \
-			bhash__i = bhash_lookup_index(bhash__hash, bhash__exp, bhash__i); \
-			bhash_index_t bhash__index = bhash__indices[bhash__i]; \
-			if (bhash__index == BHASH_EMPTY) { \
-				table->base.free_space -= (bhash__dest_slot == -1); /* New empty slot allocated */ \
-				bhash__dest_slot = bhash__dest_slot == -1 ? bhash__i : bhash__dest_slot; \
-				result = table->base.len++; \
-				bhash__indices[bhash__dest_slot] = result + 1; \
-				if (config.removable) { bhash__r_indices[result] = bhash__dest_slot; } \
-				table->base.hashes[result] = bhash__hash; \
-				is_new = true; \
-				break; \
-			} else if (bhash__index == BHASH_TOMBSTONE) { \
-				bhash__dest_slot = bhash__dest_slot == -1 ? bhash__i : bhash__dest_slot; \
-			} else if (config.eq(&key, &table->keys[bhash__index - 1], sizeof(key))) { \
-				result = bhash__index - 1; \
-				is_new = false; \
-				break; \
-			} \
-		} \
+		bhash_index_t bhash__put_index = bhash_alloc(table, key).index; \
+		(table)->keys[bhash__put_index] = key; \
+		(table)->values[bhash__put_index] = value; \
 	} while (0)
 
-#define bhash_put(table, key, value, config) \
+#define bhash_put_key(table, key) \
 	do { \
-		bhash_index_t bhash__put_index; \
-		bool bhash__put_is_new; \
-		(void)bhash__put_is_new; \
-		bhash_alloc(bhash__put_index, bhash__put_is_new, table, key, config); \
-		table->keys[bhash__put_index] = key; \
-		if (config.has_values) { table->values[bhash__put_index] = value; } \
+		bhash_index_t bhash__put_index = bhash_alloc(table, key).index; \
+		(table)->keys[bhash__put_index] = key; \
 	} while (0)
+
+#define bhash_find(table, key) \
+	((void)sizeof((table)->keys[0] = key), bhash__do_find(&((table)->base), &(key)))
+
+#define bhash_remove(table, key) \
+	((void)sizeof((table)->keys[0] = key), bhash__do_remove(&((table)->base), &(key)))
 
 #define bhash_is_valid(index) ((index) >= 0)
 
-#define bhash_remove(index, table, key, config) \
-	if (table != NULL && config.removable) { \
-		bhash_index_t bhash__remove_index, bhash__remove_r_index; \
-		bhash_index_t bhash__end_index = table->base.len; \
-		bhash_index_t bhash__tail_index = bhash__end_index - 1; \
-		bhash__find_impl(bhash__remove_index, bhash__remove_r_index, table, key, config); \
-		if (bhash_is_valid(bhash__remove_index)) { \
-			/* Move the last element into the deleted slot and delete the last element */ \
-			bhash_index_t bhash__tail_r_index = table->base.r_indices[bhash__tail_index]; \
-			table->base.indices[bhash__tail_r_index] = bhash__remove_index + 1; \
-			table->base.indices[bhash__remove_r_index] = BHASH_TOMBSTONE; \
-			table->base.r_indices[bhash__remove_index] = bhash__tail_r_index; \
-			table->base.hashes[bhash__remove_index] = table->base.hashes[bhash__tail_index]; \
-			/* Rotate key and values then point user code to the temp position at the end */ \
-			table->keys[bhash__end_index] = table->keys[bhash__remove_index]; \
-			table->keys[bhash__remove_index] = table->keys[bhash__tail_index]; \
-			if (config.has_values) { \
-				table->values[bhash__end_index] = table->values[bhash__remove_index]; \
-				table->values[bhash__remove_index] = table->values[bhash__tail_index]; \
-			} \
-			table->base.len -= 1; \
-			index = bhash__end_index; \
-		} else { \
-			index = -1; \
-		} \
-	} else { \
-		index = -1; \
-	}
+#define bhash_len(table) ((table)->base.len)
 
-#define bhash_find(index, table, key, config) \
-	do { \
-		bhash_index_t bhash__find_r_index; \
-		(void)bhash__find_r_index; \
-		bhash__find_impl(index, bhash__find_r_index, table, key, config); \
-	} while (0)
-
-#define bhash_len(table) (table != NULL ? (table)->base.len : 0)
-
-#define bhash_keys(table) (table != NULL ? (table)->keys : NULL)
-
-#define bhash_values(table) (table != NULL ? (table)->values : NULL)
-
-#define bhash__find_impl(index, r_index, table, key, config) \
-	if (table != NULL) { \
-		bhash_hash_t bhash__hash = config.hash(&key, sizeof(key)); \
-		bhash_index_t* bhash__indices = table->base.indices; \
-		bhash_index_t bhash__exp = table->base.exp; \
-		for (bhash_index_t bhash__i = (bhash_index_t)bhash__hash;;) { \
-			bhash__i = bhash_lookup_index(bhash__hash, bhash__exp, bhash__i); \
-			bhash_index_t bhash__index = bhash__indices[bhash__i]; \
-			if (bhash__index == BHASH_EMPTY) { \
-				index = r_index = -1; \
-				break; \
-			} else if (bhash__index == BHASH_TOMBSTONE) { \
-				continue; \
-			} else if (config.eq(&key, &table->keys[bhash__index - 1], sizeof(key))) { \
-				index = bhash__index - 1; \
-				r_index = bhash__i; \
-				break; \
-			} \
-		} \
-	} else { \
-		index = r_index = -1; \
-	}
-
-#define bhash__maybe_grow(table, config) \
-	do { \
-		bhash_index_t bhash__len = table != NULL ? table->base.len : 0; \
-		bhash_index_t bhash__exp = table != NULL ? table->base.exp : 0; \
-		bhash_index_t bhash__capacity; \
-		bhash_index_t bhash__free_space = table != NULL ? table->base.free_space : 0; \
-		bhash_index_t bhash__extra_space = config.removable ? 1 : 0; /* Extra temp space for swapping */ \
-		/* Grow */ \
-		if (bhash__free_space == 0) { \
-			if (table == NULL) { \
-				/* Init */ \
-				bhash__exp = BHASH_INITIAL_EXP; \
-				bhash__capacity = 1 << (bhash__exp - 1); \
-				table = BHASH_REALLOC(NULL, sizeof(*table), config.memctx); \
-				table->keys = BHASH_REALLOC(NULL, sizeof(table->keys[0]) * (bhash__capacity + bhash__extra_space), config.memctx); \
-				if (config.has_values) { \
-					table->values = BHASH_REALLOC(NULL, sizeof(table->values[0]) * (bhash__capacity + bhash__extra_space), config.memctx); \
-				} else { \
-					table->values = NULL; \
-				} \
-				table->base.hashes = BHASH_REALLOC(NULL, sizeof(bhash_hash_t) * bhash__capacity, config.memctx); \
-				if (config.removable) { \
-					table->base.r_indices = BHASH_REALLOC(NULL, sizeof(bhash_index_t) * bhash__capacity, config.memctx); \
-				} else { \
-					table->base.r_indices = NULL; \
-				} \
-				table->base.indices = BHASH_REALLOC(NULL, sizeof(bhash_index_t) * bhash__capacity * 2, config.memctx); \
-				memset(table->base.indices, 0, sizeof(bhash_index_t) * bhash__capacity * 2); \
-				table->base.len = 0; \
-			} else { \
-				/* Grow storage */ \
-				bhash__exp += 1; \
-				bhash__capacity = 1 << (bhash__exp - 1); \
-				table->keys = BHASH_REALLOC(table->keys, sizeof(table->keys[0]) * (bhash__capacity + bhash__extra_space), config.memctx); \
-				if (config.has_values) { \
-					table->values = BHASH_REALLOC(table->values, sizeof(table->values[0]) * (bhash__capacity + bhash__extra_space), config.memctx); \
-				} \
-				bhash_hash_t* bhash__hashes = table->base.hashes = BHASH_REALLOC(table->base.hashes, sizeof(bhash_hash_t) * bhash__capacity, config.memctx); \
-				bhash_index_t* bhash__indices = table->base.indices = BHASH_REALLOC(table->base.indices, sizeof(bhash_index_t) * bhash__capacity * 2, config.memctx); \
-				memset(bhash__indices, 0, sizeof(bhash_index_t) * bhash__capacity * 2); \
-				bhash_index_t* bhash__r_indices = NULL; \
-				if (config.removable) { \
-					bhash__r_indices = table->base.r_indices = BHASH_REALLOC(table->base.r_indices, sizeof(bhash_index_t) * bhash__capacity, config.memctx); \
-				} \
-				/* Rehash everything */ \
-				for (bhash_index_t bhash__i = 0; bhash__i < bhash__len; ++bhash__i) { \
-					bhash_hash_t bhash__hash = bhash__hashes[bhash__i]; \
-					for (bhash_index_t bhash__j = (bhash_index_t)bhash__hash;;) { \
-						bhash__j = bhash_lookup_index(bhash__hash, bhash__exp, bhash__j); \
-						if (bhash__indices[bhash__j] == BHASH_EMPTY) { \
-							bhash__indices[bhash__j] = bhash__i + 1; /* Offset by 1 since 0 means empty */ \
-							if (config.removable) { bhash__r_indices[bhash__i] = bhash__j; } \
-							break; \
-						} \
-					} \
-				} \
-			} \
-			table->base.exp = bhash__exp; \
-			table->base.free_space = bhash__capacity - bhash__len; \
-			/* printf("Grow -> %d\n", bhash__capacity); */ \
-		} \
-	} while (0)
-
-#ifndef BHASH_ASSERT
-#include <stdio.h>
-#include <stdlib.h>
-
-#define BHASH_ASSERT(COND, MSG, ...) \
-	if (!(COND)) { \
-		fprintf(stderr, __FILE__ "(" BHASH_STRINGIFY(__LINE__) "): " MSG "\n", #COND, __VA_ARGS__); \
-		abort(); \
-	}
-#define BHASH_STRINGIFY(X) BHASH_STRINGIFY2(X)
-#define BHASH_STRINGIFY2(X) #X
-
-#endif
-
-#define bhash_validate(table, config) \
-	if (table != NULL) { \
-		bhash_index_t bhash__len = table->base.len; \
-		bhash_hash_t* bhash__hashes = table->base.hashes; \
-		bhash_index_t* bhash__indices = table->base.indices; \
-		bhash_index_t* bhash__r_indices = table->base.r_indices; \
-		for (bhash_index_t bhash__i = 0; bhash__i < bhash__len; ++bhash__i) { \
-			bhash_hash_t stored_hash = bhash__hashes[bhash__i]; \
-			bhash_hash_t computed_hash = config.hash(&table->keys[bhash__i], sizeof(table->keys[bhash__i])); \
-			BHASH_ASSERT(stored_hash == computed_hash, "%s: Hash mismatch at %d", bhash__i); \
-			bhash_index_t bhash__r_index = bhash__r_indices[bhash__i]; \
-			bhash_index_t bhash__index = bhash__indices[bhash__r_index]; \
-			BHASH_ASSERT(bhash__index == bhash__i + 1, "%s: Index mismatch at %d", bhash__i); \
-		} \
-		bhash_index_t bhash__capacity = (bhash_index_t)1 << (table->base.exp - 1); \
-		BHASH_ASSERT(bhash__len <= bhash__capacity, "%s: Invalid length %d (max: %d)", bhash__len, bhash__capacity); \
-		for (bhash_index_t bhash__i = 0; bhash__i < bhash__capacity * 2; ++bhash__i) { \
-			bhash_index_t bhash__index = bhash__indices[bhash__i]; \
-			if (bhash__index <= 0) { \
-				BHASH_ASSERT( \
-					bhash__index == BHASH_EMPTY || bhash__index == BHASH_TOMBSTONE, \
-					"%s: Invalid negative index %d", \
-					bhash__index \
-				); \
-			} else { \
-				BHASH_ASSERT( \
-					(bhash__index - 1) <= bhash__len, \
-					"%s: Invalid positive index %d", \
-					bhash__index \
-				); \
-				bhash_index_t bhash__r_index = bhash__r_indices[bhash__index - 1]; \
-				BHASH_ASSERT( \
-					bhash__i == bhash__r_index,\
-					"%s: Index mismatch at %d", \
-					bhash__i \
-				); \
-			} \
-		} \
-	}
+#define bhash_validate(table) bhash__do_validate(&((table)->base))
 
 // MurmurOAAT64
 static inline bhash_hash_t
@@ -305,30 +128,63 @@ bhash_eq(const void* lhs, const void* rhs, size_t size) {
 	return memcmp(lhs, rhs, size) == 0;
 }
 
-static inline bhash_hash_t
-bhash_str_hash(const void* key, size_t size) {
-	(void)size;
-	return bhash_hash(key, strlen(key));
+static inline bhash_config_t
+bhash_config_default(void) {
+	return (bhash_config_t){
+		.hash = bhash_hash,
+		.eq = bhash_eq,
+		.load_percent = 50,
+		.tombstone_percent = 75,
+		.initial_exp = 3,
+		.removable = true,
+	};
 }
 
-static inline bool
-bhash_str_eq(const void* lhs, const void* rhs, size_t size) {
-	(void)size;
-	return strcmp(lhs, rhs);
-}
+// Private
 
-// https://nullprogram.com/blog/2022/08/08/
-static inline bhash_index_t
-bhash_lookup_index(bhash_hash_t hash, bhash_index_t exp, bhash_index_t idx) {
-	uint32_t mask = ((uint32_t)1 << exp) - 1;
-	uint32_t step = (hash >> (64 - exp)) | 1;
-	return (idx + step) & mask;
-}
+BHASH_API void
+bhash__do_init(bhash_base_t* bhash, size_t key_size, size_t value_size, bhash_config_t config);
+
+BHASH_API bhash_alloc_result_t
+bhash__do_alloc(bhash_base_t* bhash, const void* key);
+
+BHASH_API bhash_index_t
+bhash__do_find(bhash_base_t* bhash, const void* key);
+
+BHASH_API bhash_index_t
+bhash__do_remove(bhash_base_t* bhash, const void* key);
+
+BHASH_API void
+bhash__do_validate(bhash_base_t* bhash);
+
+BHASH_API void
+bhash__do_cleanup(bhash_base_t* bhash);
+
+BHASH_API void
+bhash__do_clear(bhash_base_t* bhash);
+
+#endif
+
+#if defined(BLIB_IMPLEMENTATION) && !defined(BHASH_IMPLEMENTATION)
+#define BHASH_IMPLEMENTATION
+#endif
+
+#ifdef BHASH_IMPLEMENTATION
+
+#define BHASH_EMPTY ((bhash_index_t)0)
+#define BHASH_TOMBSTONE ((bhash_index_t)-1)
 
 #ifndef BHASH_REALLOC
-#include <stdlib.h>
+#	ifdef BLIB_REALLOC
+#		define BHASH_REALLOC BLIB_REALLOC
+#	else
+#		define BHASH_REALLOC(ptr, size, ctx) bhash__libc_realloc(ptr, size, ctx)
+#		define BHASH_USE_LIBC_REALLOC
+#	endif
+#endif
 
-#define BHASH_REALLOC(ptr, size, ctx) bhash__libc_realloc(ptr, size, ctx)
+#ifdef BHASH_USE_LIBC_REALLOC
+#include <stdlib.h>
 
 static inline void*
 bhash__libc_realloc(void* ptr, size_t size, void* ctx) {
@@ -342,5 +198,294 @@ bhash__libc_realloc(void* ptr, size_t size, void* ctx) {
 }
 
 #endif
+
+#ifndef BHASH_ASSERT
+#include <stdio.h>
+#include <stdlib.h>
+
+#define BHASH_ASSERT(COND, MSG, ...) \
+	if (!(COND)) { \
+		fprintf(stderr, __FILE__ "(" BHASH_STRINGIFY(__LINE__) "): " MSG "\n", #COND, __VA_ARGS__); \
+		abort(); \
+	}
+#define BHASH_STRINGIFY(X) BHASH_STRINGIFY2(X)
+#define BHASH_STRINGIFY2(X) #X
+
+#endif
+
+typedef BHASH_TABLE(char, char) bhash_dummy_t;
+
+static inline void**
+bhash_keys_ptr(bhash_base_t* bhash) {
+	return (void**)((char*)bhash + offsetof(bhash_dummy_t, keys) - offsetof(bhash_dummy_t, base));
+}
+
+static inline void**
+bhash_values_ptr(bhash_base_t* bhash) {
+	return (void**)((char*)bhash + offsetof(bhash_dummy_t, values) - offsetof(bhash_dummy_t, base));
+}
+
+static inline void*
+bhash_key_at(bhash_base_t* bhash, bhash_index_t index) {
+	return *(char**)bhash_keys_ptr(bhash) + index * bhash->key_size;
+}
+
+static inline void*
+bhash_value_at(bhash_base_t* bhash, bhash_index_t index) {
+	return *(char**)bhash_values_ptr(bhash) + index * bhash->value_size;
+}
+
+// https://nullprogram.com/blog/2022/08/08/
+static inline bhash_index_t
+bhash_lookup_index(bhash_hash_t hash, bhash_index_t exp, bhash_index_t idx) {
+	uint32_t mask = ((uint32_t)1 << exp) - 1;
+	uint32_t step = (hash >> (64 - exp)) | 1;
+	return (idx + step) & mask;
+}
+
+static inline void
+bhash_maybe_grow(bhash_base_t* bhash) {
+	if (bhash->free_space > 0) { return; }
+
+	bhash_index_t exp = bhash->exp;
+	bhash_index_t hash_capacity = 1 << exp;
+	bhash_index_t data_capacity = hash_capacity * bhash->load_percent / 100;
+	bhash_index_t num_tombstones = data_capacity - bhash->len;
+	// Grow if there are not too many tombstone. Otherwise, do in-place rehash
+	if (num_tombstones < data_capacity * bhash->tombstone_percent / 100) {
+		bhash->exp = exp += 1;
+		hash_capacity = 1 << exp;
+		data_capacity = hash_capacity * bhash->load_percent / 100;
+		bhash->indices = BHASH_REALLOC(bhash->indices, sizeof(bhash_index_t) * hash_capacity, bhash->memctx);
+		bhash->hashes = BHASH_REALLOC(bhash->hashes, sizeof(bhash_hash_t) * data_capacity, bhash->memctx);
+		if (bhash->r_indices) {
+			bhash->r_indices = BHASH_REALLOC(bhash->r_indices, sizeof(bhash_index_t) * data_capacity, bhash->memctx);
+		}
+
+		bhash_index_t extra_space = bhash->r_indices != NULL ? 1 : 0;
+		*bhash_keys_ptr(bhash) = BHASH_REALLOC(*bhash_keys_ptr(bhash), bhash->key_size * (data_capacity + extra_space), bhash->memctx);
+		if (bhash->value_size > 0) {
+			*bhash_values_ptr(bhash) = BHASH_REALLOC(*bhash_values_ptr(bhash), bhash->value_size * (data_capacity + extra_space), bhash->memctx);
+		}
+	}
+
+	bhash_index_t len = bhash->len;
+	bhash_index_t* indices = bhash->indices;
+	bhash_index_t* r_indices = bhash->r_indices;
+	bhash_hash_t* hashes = bhash->hashes;
+	memset(bhash->indices, 0, sizeof(bhash_index_t) * hash_capacity);
+	for (bhash_index_t i = 0; i < len; ++i) {
+		bhash_hash_t hash = hashes[i];
+		for (bhash_index_t hash_index = (bhash_index_t)hash;;) {
+			hash_index = bhash_lookup_index(hash, exp, hash_index);
+			bhash_index_t data_index = indices[hash_index];
+			if (data_index == BHASH_EMPTY) {
+				indices[hash_index] = i + 1;
+				if (r_indices != NULL) { r_indices[i] = hash_index; }
+				break;
+			}
+		}
+	}
+	bhash->free_space = data_capacity - bhash->len;
+}
+
+static inline void
+bhash_find_impl(
+	bhash_base_t* bhash,
+	bhash_index_t* out_data_index,
+	bhash_index_t* out_hash_index,
+	const void* key
+) {
+	bhash_hash_t hash = bhash->hash(key, bhash->key_size);
+	bhash_index_t* indices = bhash->indices;
+	bhash_index_t exp = bhash->exp;
+	bhash_hash_t* hashes = bhash->hashes;
+	for (bhash_index_t hash_index = (bhash_index_t)hash;;) {
+		hash_index = bhash_lookup_index(hash, exp, hash_index);
+		bhash_index_t data_index = indices[hash_index];
+		if (data_index == BHASH_EMPTY) {
+			*out_data_index = *out_hash_index = -1;
+			return;
+		} else if (data_index == BHASH_TOMBSTONE) {
+			continue;
+		} else if (
+			hashes[data_index - 1] == hash
+			&& bhash->eq(key, bhash_key_at(bhash, data_index - 1), bhash->key_size)
+		) {
+			*out_data_index = data_index - 1;
+			*out_hash_index = hash_index;
+			return;
+		}
+	}
+}
+
+void
+bhash__do_init(
+	bhash_base_t* bhash,
+	size_t key_size,
+	size_t value_size,
+	bhash_config_t config
+) {
+	bhash_index_t hash_capacity = 1 << config.initial_exp;
+	bhash_index_t data_capacity = hash_capacity * config.load_percent / 100;
+	bhash_index_t extra_space = config.removable ? 1 : 0; // Extra temp space for swapping
+	(*bhash) = (bhash_base_t){
+		.memctx = config.memctx,
+		.hash = config.hash,
+		.eq = config.eq,
+		.load_percent = config.load_percent,
+		.tombstone_percent = config.tombstone_percent,
+		.key_size = key_size,
+		.value_size = value_size,
+		.indices = BHASH_REALLOC(NULL, sizeof(bhash_index_t) * hash_capacity, config.memctx),
+		.hashes = BHASH_REALLOC(NULL, sizeof(bhash_hash_t) * data_capacity, config.memctx),
+		.len = 0,
+		.exp = config.initial_exp,
+		.free_space = data_capacity,
+	};
+	memset(bhash->indices, 0, sizeof(bhash_index_t) * hash_capacity);
+
+	if (config.removable) {
+		bhash->r_indices = BHASH_REALLOC(NULL, sizeof(bhash_index_t) * data_capacity, config.memctx);
+	}
+
+	*bhash_keys_ptr(bhash) = BHASH_REALLOC(NULL, key_size * (data_capacity + extra_space), config.memctx);
+	if (value_size > 0) {
+		*bhash_values_ptr(bhash) = BHASH_REALLOC(NULL, value_size * (data_capacity + extra_space), config.memctx);
+	} else {
+		*bhash_values_ptr(bhash) = NULL;
+	}
+}
+
+bhash_alloc_result_t
+bhash__do_alloc(bhash_base_t* bhash, const void* key) {
+	bhash_maybe_grow(bhash);
+	bhash_hash_t hash = bhash->hash(key, bhash->key_size);
+	bhash_index_t dest_slot = -1;
+	bhash_index_t exp = bhash->exp;
+	bhash_index_t* indices = bhash->indices;
+	bhash_hash_t* hashes = bhash->hashes;
+	for (bhash_index_t hash_index = (bhash_index_t)hash;;) {
+		hash_index = bhash_lookup_index(hash, exp, hash_index);
+		bhash_index_t data_index = indices[hash_index];
+		if (data_index == BHASH_EMPTY) {
+			bhash->free_space -= (dest_slot == -1); // New empty slot allocated
+			dest_slot = dest_slot == -1 ? hash_index : dest_slot;
+			data_index = bhash->len++;
+			indices[dest_slot] = data_index + 1;
+			if (bhash->r_indices) { bhash->r_indices[data_index] = dest_slot; }
+			hashes[data_index] = hash;
+			return (bhash_alloc_result_t){
+				.index = data_index,
+				.is_new = true,
+			};
+		} else if (data_index == BHASH_TOMBSTONE) {
+			dest_slot = dest_slot == -1 ? hash_index : dest_slot;
+		} else if (
+			hashes[data_index - 1] == hash
+			&& bhash->eq(key, bhash_key_at(bhash, data_index - 1), bhash->key_size)
+		) {
+			return (bhash_alloc_result_t){
+				.index = data_index - 1,
+				.is_new = false,
+			};
+		}
+	}
+}
+
+bhash_index_t
+bhash__do_find(bhash_base_t* bhash, const void* key) {
+	bhash_index_t data_index;
+	bhash_index_t hash_index;
+	bhash_find_impl(bhash, &data_index, &hash_index, key);
+	return data_index;
+}
+
+bhash_index_t
+bhash__do_remove(bhash_base_t* bhash, const void* key) {
+	bhash_index_t remove_index, remove_r_index;
+	bhash_index_t end_index = bhash->len;
+	bhash_index_t tail_index = end_index - 1;
+	bhash_find_impl(bhash, &remove_index, &remove_r_index, key);
+	if (remove_index == -1) { return remove_index; }
+
+	// Move the last element into the deleted slot and delete the last element
+	bhash_index_t tail_r_index = bhash->r_indices[tail_index];
+	bhash->indices[tail_r_index] = remove_index + 1;
+	bhash->indices[remove_r_index] = BHASH_TOMBSTONE;
+	bhash->r_indices[remove_index] = tail_r_index;
+	bhash->hashes[remove_index] = bhash->hashes[tail_index];
+
+	// Rotate key and values then point user code to the temp position at the end
+	memcpy(bhash_key_at(bhash, end_index), bhash_key_at(bhash, remove_index), bhash->key_size);
+	memcpy(bhash_key_at(bhash, remove_index), bhash_key_at(bhash, tail_index), bhash->key_size);
+	if (bhash->value_size > 0) {
+		memcpy(bhash_value_at(bhash, end_index), bhash_value_at(bhash, remove_index), bhash->value_size);
+		memcpy(bhash_value_at(bhash, remove_index), bhash_value_at(bhash, tail_index), bhash->value_size);
+	}
+
+	bhash->len -= 1;
+	return end_index;
+}
+
+void
+bhash__do_validate(bhash_base_t* bhash) {
+	bhash_index_t len = bhash->len;
+	bhash_hash_t* hashes = bhash->hashes;
+	bhash_index_t* indices = bhash->indices;
+	bhash_index_t* r_indices = bhash->r_indices;
+	for (bhash_index_t i = 0; i < len; ++i) {
+		bhash_hash_t stored_hash = hashes[i];
+		bhash_hash_t computed_hash = bhash->hash(bhash_key_at(bhash, i), bhash->key_size);
+		BHASH_ASSERT(stored_hash == computed_hash, "%s: Hash mismatch at %d", i);
+		bhash_index_t r_index = r_indices[i];
+		bhash_index_t index = indices[r_index];
+		BHASH_ASSERT(index == i + 1, "%s: Index mismatch at %d", i);
+	}
+	bhash_index_t hash_capacity = (bhash_index_t)1 << bhash->exp;
+	bhash_index_t data_capacity = hash_capacity * bhash->load_percent / 100;
+	BHASH_ASSERT(len <= data_capacity, "%s: Invalid length %d (max: %d)", len, data_capacity);
+	for (bhash_index_t i = 0; i < hash_capacity; ++i) {
+		bhash_index_t index = indices[i];
+		if (index <= 0) {
+			BHASH_ASSERT(
+				index == BHASH_EMPTY || index == BHASH_TOMBSTONE,
+				"%s: Invalid negative index %d",
+				index
+			);
+		} else {
+			BHASH_ASSERT(
+				(index - 1) <= len,
+				"%s: Invalid positive index %d",
+				index
+			);
+			bhash_index_t r_index = r_indices[index - 1];
+			BHASH_ASSERT(
+				i == r_index,
+				"%s: Index mismatch at %d",
+				i
+			);
+		}
+	}
+}
+
+void
+bhash__do_cleanup(bhash_base_t* bhash) {
+	BHASH_REALLOC(*bhash_keys_ptr(bhash), 0, bhash->memctx);
+	if (bhash->value_size > 0) {
+		BHASH_REALLOC(*bhash_values_ptr(bhash), 0, bhash->memctx);
+	}
+	BHASH_REALLOC(bhash->indices, 0, bhash->memctx);
+	BHASH_REALLOC(bhash->r_indices, 0, bhash->memctx);
+	BHASH_REALLOC(bhash->hashes, 0, bhash->memctx);
+}
+
+void
+bhash__do_clear(bhash_base_t* bhash) {
+	bhash->len = 0;
+	bhash_index_t hash_capacity = 1 << bhash->exp;
+	memset(bhash->indices, 0, sizeof(bhash_index_t) * hash_capacity);
+	bhash->free_space = hash_capacity * bhash->load_percent / 100;
+}
 
 #endif
