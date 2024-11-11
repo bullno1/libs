@@ -290,6 +290,10 @@ bcoro__init_var(void* var) {
 
 #endif
 
+#if defined(BLIB_IMPLEMENTATION) && !defined(BCORO_IMPLEMENTATION)
+#define BCORO_IMPLEMENTATION
+#endif
+
 #ifdef BCORO_IMPLEMENTATION
 
 #include <string.h>

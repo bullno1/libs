@@ -185,6 +185,10 @@ bresmon_cleanup_watch(bresmon_watch_t** watch_ptr) {
 
 #endif
 
+#if defined(BLIB_IMPLEMENTATION) && !defined(BRESMON_IMPLEMENTATION)
+#define BRESMON_IMPLEMENTATION
+#endif
+
 #ifdef BRESMON_IMPLEMENTATION
 
 #if defined(__linux__)
@@ -267,7 +271,15 @@ struct bresmon_watch_s {
 };
 
 #ifndef BRESMON_REALLOC
-#define BRESMON_REALLOC(ptr, size, ctx) bresmon_libc_realloc(ptr, size, ctx)
+#	ifdef BLIB_REALLOC
+#		define BRESMON_REALLOC BLIB_REALLOC
+#	else
+#		define BRESMON_REALLOC(ptr, size, ctx) bresmon_libc_realloc(ptr, size, ctx)
+#		define BRESMON_USE_LIBC_REALLOC
+#	endif
+#endif
+
+#ifdef BRESMON_USE_LIBC_REALLOC
 
 #include <stdlib.h>
 

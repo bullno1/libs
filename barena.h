@@ -52,6 +52,10 @@ barena_reset(barena_t* arena);
 
 #endif
 
+#if defined(BLIB_IMPLEMENTATION) && !defined(BARENA_IMPLEMENTATION)
+#define BARENA_IMPLEMENTATION
+#endif
+
 #ifdef BARENA_IMPLEMENTATION
 
 #include <stdint.h>
