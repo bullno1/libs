@@ -7,6 +7,7 @@ Collection of miscellaneous single-header libraries.
 |@ref bresmon.h|File watcher|
 |@ref bhash.h|Type-safe hashtable|
 |@ref bcoro.h|Coroutine|
+|@ref bserial.h|Serialization|
 
 ## On allocator
 
