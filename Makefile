@@ -1,6 +1,16 @@
 .PHONY: all clean
 
-all: doc/index.html bin/autolist bin/xincbin bin/mem_layout bin/barena bin/tlsf bin/bresmon bin/bhash bin/bcoro
+all: \
+	doc/index.html \
+	bin/autolist \
+	bin/xincbin \
+	bin/mem_layout \
+	bin/barena \
+	bin/tlsf \
+	bin/bresmon \
+	bin/bhash \
+	bin/bcoro \
+	bin/bserial
 
 clean:
 	rm -rf bin
@@ -40,3 +50,11 @@ bin/bhash: tests/bhash/main.c
 bin/bcoro: tests/bcoro/main.c
 	mkdir -p bin
 	$(CC) $(CFLAGS) -Itests/bcoro $^ -o $@
+
+bin/bserial: \
+		tests/bserial/unstructured.c \
+		tests/bserial/structured.c \
+		tests/bserial/common.c \
+		tests/bserial/main.c
+	mkdir -p bin
+	$(CC) $(CFLAGS) $^ -o $@
