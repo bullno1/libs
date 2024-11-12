@@ -28,11 +28,11 @@ jobs:
       - name: Build
         run: |
           cd vs2022
-          msbuild libs.sln /property:Configuration=Release /property:Platform=x64
+          msbuild libs.sln /property:Configuration=Debug /property:Platform=x64
       - name: Test
         run: |
-          bin/Release/bhash.exe
-          bin/Release/bserial.exe
+          bin/Debug/bhash.exe
+          bin/Debug/bserial.exe
   build-linux:
     runs-on: ubuntu-latest
     steps:
@@ -49,8 +49,8 @@ jobs:
       - name: Build
         run: |
           cd gmake
-          make
+          make config=debug
       - name: Test
         run: |
-          bin/bhash
-          bin/bserial
+          bin/Debug/bhash
+          bin/Debug/bserial
