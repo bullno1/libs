@@ -4,6 +4,7 @@
 #define BSERIAL_MEM
 #include "../../autolist.h"
 #include "../../bserial.h"
+#include "../../barena.h"
 
 typedef struct {
 	const char* name;
@@ -32,6 +33,7 @@ typedef struct {
 	bserial_ctx_config_t ctx_config;
 	bserial_ctx_t* out_ctx;
 	bserial_ctx_t* in_ctx;
+	barena_t arena;
 } common_fixture_t;
 
 extern common_fixture_t common_fixture;
@@ -44,5 +46,8 @@ common_fixture_cleanup(void);
 
 bserial_ctx_t*
 common_fixture_make_in_ctx(void);
+
+void
+hex_dump(const void* data, size_t size);
 
 #endif

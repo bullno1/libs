@@ -1,7 +1,8 @@
 #include "common.h"
 #include <stdio.h>
-#define BSERIAL_IMPLEMENTATION
+#define BLIB_IMPLEMENTATION
 #include "../../bserial.h"
+#include "../../barena.h"
 
 AUTOLIST_DECLARE(bserial_test)
 

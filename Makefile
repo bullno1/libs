@@ -54,7 +54,7 @@ bin/bcoro: tests/bcoro/main.c bcoro.h
 bin/bserial: \
 		bserial.h \
 		tests/bserial/unstructured.c \
-		tests/bserial/structured.c \
+		tests/bserial/array.c \
 		tests/bserial/common.c \
 		tests/bserial/main.c
 	mkdir -p bin
