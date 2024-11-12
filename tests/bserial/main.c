@@ -12,11 +12,10 @@ int main(int argc, const char* argv[]) {
 
 		const test_t* test = entry->value_addr;
 		printf("--- %s/%s ---\n", test->suite->name, test->name);
-		void* fixture = NULL;
 		if (test->suite->init != NULL) {
 			test->suite->init();
 		}
-		test->run(fixture);
+		test->run();
 		if (test->suite->cleanup != NULL) {
 			test->suite->cleanup();
 		}

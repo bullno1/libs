@@ -77,3 +77,12 @@ hex_dump(const void* data, size_t size) {
 		}
 	}
 }
+
+void
+trace_bserial_ctx(int depth, const char* fmt, va_list args, void* userdata) {
+	(void)userdata;
+
+	printf("%d - ", depth);
+	vprintf(fmt, args);
+	printf("\n");
+}

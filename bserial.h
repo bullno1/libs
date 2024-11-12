@@ -987,7 +987,7 @@ bserial_sint(bserial_ctx_t* ctx, int64_t* value) {
 
 	if (bserial_mode(ctx) == BSERIAL_MODE_READ) {
 		uint8_t marker;
-		BSERIAL_CHECK_STATUS(ctx->status = bserial_read(ctx->in, &marker, sizeof(marker)));
+		BSERIAL_CHECK_STATUS(bserial_read_marker(ctx, &marker));
 		if (marker != BSERIAL_SINT) { return bserial_malformed(ctx); }
 
 		BSERIAL_CHECK_STATUS(ctx->status = bserial_read_sint(value, ctx->in));
@@ -1084,7 +1084,7 @@ bserial_f32(bserial_ctx_t* ctx, float* value) {
 
 	if (bserial_mode(ctx) == BSERIAL_MODE_READ) {
 		uint8_t marker;
-		BSERIAL_CHECK_STATUS(ctx->status = bserial_read(ctx->in, &marker, sizeof(marker)));
+		BSERIAL_CHECK_STATUS(bserial_read_marker(ctx, &marker));
 		if (marker != BSERIAL_F32) { return bserial_malformed(ctx); }
 
 		BSERIAL_CHECK_STATUS(ctx->status = bserial_read_f32(value, ctx->in));
@@ -1103,7 +1103,7 @@ bserial_f64(bserial_ctx_t* ctx, double* value) {
 
 	if (bserial_mode(ctx) == BSERIAL_MODE_READ) {
 		uint8_t marker;
-		BSERIAL_CHECK_STATUS(ctx->status = bserial_read(ctx->in, &marker, sizeof(marker)));
+		BSERIAL_CHECK_STATUS(bserial_read_marker(ctx, &marker));
 		if (marker != BSERIAL_F64) { return bserial_malformed(ctx); }
 
 		BSERIAL_CHECK_STATUS(ctx->status = bserial_read_f64(value, ctx->in));
@@ -1198,7 +1198,7 @@ bserial_lookup_index(uint64_t hash, int32_t exp, int32_t idx) {
 static inline bserial_status_t
 bserial_skip_next(bserial_ctx_t* ctx, uint32_t depth) {
 	uint8_t marker;
-	BSERIAL_CHECK_STATUS(ctx->status = bserial_peek_marker(ctx, &marker));
+	BSERIAL_CHECK_STATUS(bserial_peek_marker(ctx, &marker));
 
 	switch ((bserial_marker_t)marker) {
 		case BSERIAL_UINT:
@@ -1227,10 +1227,10 @@ bserial_skip_next(bserial_ctx_t* ctx, uint32_t depth) {
 			break;
 		case BSERIAL_BLOB:
 			{
+				bserial_discard_marker(ctx);
 				uint64_t len;
-				BSERIAL_CHECK_STATUS(bserial_blob_header(ctx, &len));
+				BSERIAL_CHECK_STATUS(bserial_read_uint(&len, ctx->in));
 				BSERIAL_CHECK_STATUS(ctx->status = bserial_skip(ctx->in, len));
-				BSERIAL_CHECK_STATUS(bserial_end_op(ctx, BSERIAL_OP_BLOB));
 			}
 			break;
 		case BSERIAL_SYM_DEF:
@@ -1246,7 +1246,7 @@ bserial_skip_next(bserial_ctx_t* ctx, uint32_t depth) {
 				bserial_discard_marker(ctx);
 
 				uint64_t len;
-				BSERIAL_CHECK_STATUS(bserial_uint(ctx, &len));
+				BSERIAL_CHECK_STATUS(bserial_read_uint(&len, ctx->in));
 				if (len > 0 && depth == 0) { return bserial_malformed(ctx); }
 
 				for (uint64_t i = 0; i < len; ++i) {
@@ -1259,11 +1259,11 @@ bserial_skip_next(bserial_ctx_t* ctx, uint32_t depth) {
 				bserial_discard_marker(ctx);
 
 				uint64_t num_rows;
-				BSERIAL_CHECK_STATUS(bserial_uint(ctx, &num_rows));
+				BSERIAL_CHECK_STATUS(bserial_read_uint(&num_rows, ctx->in));
 				if (num_rows > 0 && depth == 0) { return bserial_malformed(ctx); }
 
 				uint64_t num_cols;
-				BSERIAL_CHECK_STATUS(bserial_uint(ctx, &num_cols));
+				BSERIAL_CHECK_STATUS(bserial_read_uint(&num_cols, ctx->in));
 
 				for (uint64_t i = 0; i < num_cols; ++i) {
 					const char* sym;
@@ -1283,7 +1283,7 @@ bserial_skip_next(bserial_ctx_t* ctx, uint32_t depth) {
 				bserial_discard_marker(ctx);
 
 				uint64_t num_cols;
-				BSERIAL_CHECK_STATUS(bserial_uint(ctx, &num_cols));
+				BSERIAL_CHECK_STATUS(bserial_read_uint(&num_cols, ctx->in));
 
 				for (uint64_t i = 0; i < num_cols; ++i) {
 					const char* sym;
@@ -1332,7 +1332,7 @@ bserial_symbol(bserial_ctx_t* ctx, const char** buf, uint64_t* len) {
 
 	if (bserial_mode(ctx) == BSERIAL_MODE_READ) {
 		uint8_t marker;
-		BSERIAL_CHECK_STATUS(ctx->status = bserial_read(ctx->in, &marker, sizeof(marker)));
+		BSERIAL_CHECK_STATUS(bserial_read_marker(ctx, &marker));
 
 		if (marker == BSERIAL_SYM_DEF) {
 			if (ctx->num_symbols >= ctx->config.max_num_symbols) { return bserial_malformed(ctx); }
@@ -1468,7 +1468,7 @@ bserial_record(bserial_ctx_t* ctx) {
 
 			if (parent_scope->type != BSERIAL_SCOPE_TABLE) {
 				uint8_t marker;
-				if ((ctx->status = bserial_read(ctx->in, &marker, sizeof(marker))) != BSERIAL_OK) {
+				if ((bserial_read_marker(ctx, &marker)) != BSERIAL_OK) {
 					return false;
 				}
 				if (marker != BSERIAL_RECORD) {
