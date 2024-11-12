@@ -120,4 +120,17 @@ TEST(unstructured, symbol) {
 	ctx = common_fixture_make_in_ctx();
 	const char* a;
 	assert(read_symbol(ctx, &a) == BSERIAL_OK);
+	const char* b;
+	assert(read_symbol(ctx, &b) == BSERIAL_OK);
+	const char* c;
+	assert(read_symbol(ctx, &c) == BSERIAL_OK);
+	const char* d;
+	assert(read_symbol(ctx, &d) == BSERIAL_OK);
+	const char* e;
+	assert(read_symbol(ctx, &e) == BSERIAL_OK);
+
+	assert(a == e);
+	assert(b == c);
+	const char* literal = "again";
+	assert(strcmp(d, literal) == 0);
 }
