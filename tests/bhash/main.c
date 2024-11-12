@@ -1,7 +1,6 @@
 #define BLIB_IMPLEMENTATION
 #include "../../bhash.h"
 #include <stdlib.h>
-#include <stdio.h>
 #include <assert.h>
 
 typedef BHASH_TABLE(int, char) table_t;
@@ -24,7 +23,7 @@ int main(int argc, const char* argv[]) {
 	bool memberships[10] = { 0 };
 
 	for (int i = 0; i < 99999; ++i) {
-		printf("i = %d, len = %d\n", i, bhash_len(&tbl));
+		/*printf("i = %d, len = %d\n", i, bhash_len(&tbl));*/
 
 		int action = rand() % BHASH_TEST_COUNT;
 		int key = rand() % 10;
@@ -37,7 +36,7 @@ int main(int argc, const char* argv[]) {
 			bhash_index_t len_before = bhash_len(&tbl);
 			bool existed = bhash_is_valid(index);
 
-			printf("Add %d -> %d\n", key, key * 2);
+			/*printf("Add %d -> %d\n", key, key * 2);*/
 			bhash_put(&tbl, key, (char){ (char)key * 2 });
 			memberships[key] = true;
 
@@ -54,7 +53,7 @@ int main(int argc, const char* argv[]) {
 			BHASH_ASSERT(tbl.keys[index] == key, "%s: %d vs %d", tbl.keys[index], key);
 			BHASH_ASSERT(tbl.values[index] == key * 2, "%s: %d vs %d", tbl.values[index], key * 2);
 		} else if (action == BHASH_TEST_REMOVE) {
-			printf("Remove %d\n", key);
+			/*printf("Remove %d\n", key);*/
 			bhash_index_t len_before = bhash_len(&tbl);
 			index = bhash_remove(&tbl, key);
 			bhash_index_t len_after = bhash_len(&tbl);
@@ -73,7 +72,7 @@ int main(int argc, const char* argv[]) {
 		} else if (action == BHASH_TEST_POP && bhash_len(&tbl) > 0) {
 			bhash_index_t len_before = bhash_len(&tbl);
 			int key_to_remove = tbl.keys[0];
-			printf("Remove %d\n", key_to_remove);
+			/*printf("Remove %d\n", key_to_remove);*/
 			index = bhash_remove(&tbl, key_to_remove);
 			memberships[key_to_remove] = false;
 			bhash_index_t len_after = bhash_len(&tbl);
