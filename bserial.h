@@ -523,6 +523,7 @@ bserial_mem_init_out(bserial_mem_out_t* bserial_mem, void* memctx);
 #ifdef BSERIAL_IMPLEMENTATION
 
 #include <string.h>
+#include <inttypes.h>
 #include "mem_layout.h"
 
 bserial_status_t
@@ -532,7 +533,7 @@ bserial_write_uint(uint64_t x, bserial_out_t* out) {
 
 	for (int i = 0; i < 10; ++i) {
 		n += x >= 0x80;
-		buf[i] = x | 0x80;
+		buf[i] = (char)(x | 0x80);
 		x >>= 7;
 	}
 
@@ -591,7 +592,7 @@ bserial_write_f32(float f32, bserial_out_t* out) {
 
 	uint8_t buf[sizeof(ivalue)];
 	for (size_t i = 0; i < sizeof(ivalue); ++i) {
-		buf[i] = ivalue >> (i * 8);
+		buf[i] = (uint8_t)(ivalue >> (i * 8));
 	}
 
 	return bserial_write(out, buf, sizeof(buf));
@@ -618,7 +619,7 @@ bserial_write_f64(double f64, bserial_out_t* out) {
 
 	uint8_t buf[sizeof(ivalue)];
 	for (size_t i = 0; i < sizeof(ivalue); ++i) {
-		buf[i] = ivalue >> (i * 8);
+		buf[i] = (uint8_t)(ivalue >> (i * 8));
 	}
 
 	return bserial_write(out, buf, sizeof(buf));
@@ -1190,7 +1191,7 @@ bserial_hash(const void* key, size_t size) {
 static inline int32_t
 bserial_lookup_index(uint64_t hash, int32_t exp, int32_t idx) {
 	uint32_t mask = ((uint32_t)1 << exp) - 1;
-	uint32_t step = (hash >> (64 - exp)) | 1;
+	uint32_t step = (uint32_t)((hash >> (64 - exp)) | 1);
 	return (idx + step) & mask;
 }
 
@@ -1618,6 +1619,9 @@ bserial_key(bserial_ctx_t* ctx, const char* name, uint64_t len) {
 	}
 }
 
+#if defined(__GNUC__) || defined(__clang__)
+__attribute__((format(printf, 4, 5)))
+#endif
 static inline void
 bserial_tracef(bserial_tracer_t tracer, void* userdata, int depth, const char* fmt, ...) {
 	va_list args;
@@ -1629,48 +1633,32 @@ bserial_tracef(bserial_tracer_t tracer, void* userdata, int depth, const char* f
 void
 bserial_trace(bserial_ctx_t* ctx, bserial_tracer_t tracer, void* userdata) {
 	for (bserial_scope_t* scope = ctx->scope_first; scope <= ctx->scope; ++scope) {
+		int depth = (int)(scope - ctx->scope_first);
 		switch (scope->type) {
 			case BSERIAL_SCOPE_ROOT:
-				bserial_tracef(
-					tracer, userdata,
-					scope - ctx->scope_first,
-					"Root"
-				);
+				bserial_tracef(tracer, userdata, depth, "Root");
 				break;
 			case BSERIAL_SCOPE_ARRAY:
 				bserial_tracef(
-					tracer, userdata,
-					scope - ctx->scope_first,
-					"Array(%d/%d)",
-					scope->iterator,
-					scope->len
+					tracer, userdata, depth,
+					"Array(%" PRIu64 "/%" PRIu64 ")", scope->iterator, scope->len
 				);
 				break;
 			case BSERIAL_SCOPE_TABLE:
 				bserial_tracef(
-					tracer, userdata,
-					scope - ctx->scope_first,
-					"Table(%d/%d)",
-					scope->iterator,
-					scope->len
+					tracer, userdata, depth,
+					"Table(%" PRIu64 "/%" PRIu64 ")", scope->iterator, scope->len
 				);
 				break;
 			case BSERIAL_SCOPE_RECORD:
 				bserial_tracef(
-					tracer, userdata,
-					scope - ctx->scope_first,
-					"Record(%d/%d) (Phase %d)",
-					scope->iterator,
-					scope->len,
-					scope->record_mode
+					tracer, userdata, depth,
+					"Record(%" PRIu64 "/%" PRIu64 ") (Phase %d)",
+					scope->iterator, scope->len, scope->record_mode
 				);
 				break;
 			case BSERIAL_SCOPE_BLOB:
-				bserial_tracef(
-					tracer, userdata,
-					scope - ctx->scope_first,
-					"Blob"
-				);
+				bserial_tracef(tracer, userdata, depth, "Blob(%" PRIu64 ")", scope->len);
 				break;
 		}
 	}

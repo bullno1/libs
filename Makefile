@@ -19,7 +19,7 @@ clean:
 doc/index.html: Doxyfile
 	doxygen
 
-bin/autolist: tests/autolist/a.c tests/autolist/b.c tests/autolist/main.c
+bin/autolist: tests/autolist/a.c tests/autolist/b.c tests/autolist/main.c autolist.h
 	mkdir -p bin
 	$(CC) $(CFLAGS) $^ -o $@
 
@@ -27,31 +27,32 @@ bin/xincbin: tests/xincbin/main.c tests/xincbin/resources.c
 	mkdir -p bin
 	$(CC) $(CFLAGS) -Itests/xincbin $^ -o $@
 
-bin/mem_layout: tests/mem_layout/main.c
+bin/mem_layout: tests/mem_layout/main.c mem_layout.h
 	mkdir -p bin
 	$(CC) $(CFLAGS) -Itests/mem_layout $^ -o $@
 
-bin/barena: tests/barena/main.c
+bin/barena: tests/barena/main.c barena.h
 	mkdir -p bin
 	$(CC) $(CFLAGS) -Itests/barena $^ -o $@
 
-bin/tlsf: tests/tlsf/main.c
+bin/tlsf: tests/tlsf/main.c tlsf.h
 	mkdir -p bin
 	$(CC) $(CFLAGS) -Itests/tlsf $^ -o $@
 
-bin/bresmon: tests/bresmon/main.c
+bin/bresmon: tests/bresmon/main.c bresmon.h
 	mkdir -p bin
 	$(CC) $(CFLAGS) -Itests/bresmon $^ -o $@
 
-bin/bhash: tests/bhash/main.c
+bin/bhash: tests/bhash/main.c bhash.h
 	mkdir -p bin
 	$(CC) $(CFLAGS) -Itests/bhash $^ -o $@
 
-bin/bcoro: tests/bcoro/main.c
+bin/bcoro: tests/bcoro/main.c bcoro.h
 	mkdir -p bin
 	$(CC) $(CFLAGS) -Itests/bcoro $^ -o $@
 
 bin/bserial: \
+		bserial.h \
 		tests/bserial/unstructured.c \
 		tests/bserial/structured.c \
 		tests/bserial/common.c \
