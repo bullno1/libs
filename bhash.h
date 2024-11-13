@@ -281,7 +281,7 @@ bhash_config_default(void) {
 // When typeof is available we can make a direct type comparison.
 #	define BHASH__TYPECHECK_STMT(LHS, RHS) \
 	_Static_assert( \
-		_Generic(RHS, BHASH__TYPEOF(LHS): 1, default: 0), \
+		_Generic(LHS, BHASH__TYPEOF(RHS): 1, default: 0), \
 		"Type mismatch: `" #LHS "` and `" #RHS "` have different types" \
 	)
 // _Static_assert is actually quite hard to use in an expression.
