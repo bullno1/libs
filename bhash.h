@@ -188,12 +188,14 @@ typedef struct {
  * @return @ref bhash_alloc_result_t
  */
 #define bhash_alloc(table, key) \
-	((void)sizeof((table)->keys[0] = key), bhash__do_alloc(&((table)->base), &(key)))
+	(BHASH__TYPECHECK_EXP((table)->keys[0], key), bhash__do_alloc(&((table)->base), &(key)))
 
 /*! Add a new entry to the table */
 #define bhash_put(table, key, value) \
 	do { \
 		bhash_index_t bhash__put_index = bhash_alloc(table, key).index; \
+		BHASH__TYPECHECK_STMT((table)->keys[0], key); \
+		BHASH__TYPECHECK_STMT((table)->values[0], value); \
 		(table)->keys[bhash__put_index] = key; \
 		(table)->values[bhash__put_index] = value; \
 	} while (0)
@@ -202,6 +204,7 @@ typedef struct {
 #define bhash_put_key(table, key) \
 	do { \
 		bhash_index_t bhash__put_index = bhash_alloc(table, key).index; \
+		BHASH__TYPECHECK_STMT((table)->keys[0], key); \
 		(table)->keys[bhash__put_index] = key; \
 	} while (0)
 
@@ -211,7 +214,7 @@ typedef struct {
  * @return Index of the entry.
  */
 #define bhash_find(table, key) \
-	((void)sizeof((table)->keys[0] = key), bhash__do_find(&((table)->base), &(key)))
+	(BHASH__TYPECHECK_EXP((table)->keys[0], key), bhash__do_find(&((table)->base), &(key)))
 
 /**
  * @brief Remove an entry.
@@ -223,7 +226,7 @@ typedef struct {
  *   User code can refer to it to free up other resources.
  */
 #define bhash_remove(table, key) \
-	((void)sizeof((table)->keys[0] = key), bhash__do_remove(&((table)->base), &(key)))
+	(BHASH__TYPECHECK_EXP((table)->keys[0], key), bhash__do_remove(&((table)->base), &(key)))
 
 /*! Check whether an index is valid */
 #define bhash_is_valid(index) ((index) >= 0)
@@ -267,6 +270,43 @@ bhash_config_default(void) {
 // Private
 
 #ifndef DOXYGEN
+
+#if __STDC_VERSION__ >= 202311L
+#	define BHASH__TYPEOF(EXP) typeof(EXP)
+#elif defined(__clang__) || defined(__GNUC__) || defined(_MSC_VER)
+#	define BHASH__TYPEOF(EXP) __typeof__(EXP)
+#endif
+
+#ifdef BHASH__TYPEOF
+// When typeof is available we can make a direct type comparison.
+#	define BHASH__TYPECHECK_STMT(LHS, RHS) \
+	_Static_assert( \
+		_Generic(RHS, BHASH__TYPEOF(LHS): 1, default: 0), \
+		"Type mismatch: `" #LHS "` and `" #RHS "` have different types" \
+	)
+// _Static_assert is actually quite hard to use in an expression.
+// Jamming it into a struct: `sizeof(struct{_Static_assert(...);})` doesn't work
+// quite well.
+// Clang requires the RHS of BHASH__TYPECHECK_EXP to be a constant expression
+// which is not always the case in typical user code.
+// The good old negative size array works in all compilers but the error message
+// is somewhat cryptic.
+#	define BHASH__TYPECHECK_EXP(LHS, RHS) \
+	(void)sizeof(char[_Generic(RHS, BHASH__TYPEOF(LHS): 1, default: -1)]) /* If you get an error here, you have the wrong type */
+#else
+// When it isn't we have to rely on size and assignability.
+// Only check for size as this macro is only used when assignment is already made.
+#	define BHASH__TYPECHECK_STMT(LHS, RHS) \
+	_Static_assert( \
+		sizeof(LHS) == sizeof(RHS), \
+		"Type mismatch: `" #LHS "` and `" #RHS "` have different types" \
+	)
+// Check both size and assignability as integer types of different sizes are
+// assignable (with warnings).
+// We can't count on user having warnings enabled.
+#	define BHASH__TYPECHECK_EXP(LHS, RHS) \
+	((void)sizeof(LHS = RHS), (void)sizeof(char[sizeof(LHS) == sizeof(RHS) ? 1 : -1]))  /* If you get an error here, you have the wrong type */
+#endif
 
 BHASH_API void
 bhash__do_init(bhash_base_t* bhash, size_t key_size, size_t value_size, bhash_config_t config);
