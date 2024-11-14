@@ -21,35 +21,35 @@ doc/index.html: Doxyfile
 
 bin/autolist: tests/autolist/a.c tests/autolist/b.c tests/autolist/main.c autolist.h
 	mkdir -p bin
-	$(CC) $(CFLAGS) $^ -o $@
+	$(CC) $(CFLAGS) $(filter-out %.h, $^) -o $@
 
 bin/xincbin: tests/xincbin/main.c tests/xincbin/resources.c
 	mkdir -p bin
-	$(CC) $(CFLAGS) -Itests/xincbin $^ -o $@
+	$(CC) $(CFLAGS) -Itests/xincbin $(filter-out %.h, $^) -o $@
 
 bin/mem_layout: tests/mem_layout/main.c mem_layout.h
 	mkdir -p bin
-	$(CC) $(CFLAGS) -Itests/mem_layout $^ -o $@
+	$(CC) $(CFLAGS) -Itests/mem_layout $(filter-out %.h, $^) -o $@
 
 bin/barena: tests/barena/main.c barena.h
 	mkdir -p bin
-	$(CC) $(CFLAGS) -Itests/barena $^ -o $@
+	$(CC) $(CFLAGS) -Itests/barena $(filter-out %.h, $^) -o $@
 
 bin/tlsf: tests/tlsf/main.c tlsf.h
 	mkdir -p bin
-	$(CC) $(CFLAGS) -Itests/tlsf $^ -o $@
+	$(CC) $(CFLAGS) -Itests/tlsf $(filter-out %.h, $^) -o $@
 
 bin/bresmon: tests/bresmon/main.c bresmon.h
 	mkdir -p bin
-	$(CC) $(CFLAGS) -Itests/bresmon $^ -o $@
+	$(CC) $(CFLAGS) -Itests/bresmon $(filter-out %.h, $^) -o $@
 
 bin/bhash: tests/bhash/main.c bhash.h
 	mkdir -p bin
-	$(CC) $(CFLAGS) -Itests/bhash $^ -o $@
+	$(CC) $(CFLAGS) -Itests/bhash $(filter-out %.h, $^) -o $@
 
 bin/bcoro: tests/bcoro/main.c bcoro.h
 	mkdir -p bin
-	$(CC) $(CFLAGS) -Itests/bcoro $^ -o $@
+	$(CC) $(CFLAGS) -Itests/bcoro $(filter-out %.h, $^) -o $@
 
 bin/bserial: \
 		bserial.h \
@@ -60,4 +60,4 @@ bin/bserial: \
 		tests/bserial/common.c \
 		tests/bserial/main.c
 	mkdir -p bin
-	$(CC) $(CFLAGS) $^ -o $@
+	$(CC) $(CFLAGS) $(filter-out %.h, $^) -o $@

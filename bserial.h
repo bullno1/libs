@@ -877,6 +877,12 @@ bserial_push_scope(bserial_ctx_t* ctx, bserial_scope_type_t type) {
 		.type = type,
 		.prev_schema_pool = ctx->schema_pool,
 	};
+
+	if (type == BSERIAL_SCOPE_RECORD || type == BSERIAL_SCOPE_TABLE) {
+		ctx->scope->record_schema = ctx->schema_pool;
+		ctx->schema_pool += ctx->config.max_record_fields;
+	}
+
 	return BSERIAL_OK;
 }
 
@@ -1329,7 +1335,7 @@ bserial_skip_next(bserial_ctx_t* ctx, uint32_t depth) {
 }
 
 static inline bool
-bserial_fetch_next_field(bserial_ctx_t* ctx) {
+bserial_probe_next_record_field(bserial_ctx_t* ctx) {
 	bserial_scope_t* scope = ctx->scope;
 
 	while (scope->iterator < scope->len) {
@@ -1348,6 +1354,7 @@ bserial_fetch_next_field(bserial_ctx_t* ctx) {
 		}
 	}
 
+	bserial_end_op(ctx, BSERIAL_OP_RECORD);
 	return false;
 }
 
@@ -1472,13 +1479,13 @@ bserial_record(bserial_ctx_t* ctx, void* record) {
 				case BSERIAL_RECORD_KEY_IO:
 					scope->record_mode = BSERIAL_RECORD_VALUE_IO;
 					scope->iterator = 0;
-					return bserial_fetch_next_field(ctx);
+					return bserial_probe_next_record_field(ctx);
 				case BSERIAL_RECORD_VALUE_IO:
 					if (scope->iterator == scope->len) {
 						bserial_end_op(ctx, BSERIAL_OP_RECORD);
 						return false;
 					} else {
-						return bserial_fetch_next_field(ctx);
+						return bserial_probe_next_record_field(ctx);
 					}
 				default:
 					bserial_malformed(ctx);
@@ -1503,11 +1510,13 @@ bserial_record(bserial_ctx_t* ctx, void* record) {
 				}
 			}
 
+			// In case of a table, allocate schema at the table's scope.
 			bserial_scope_t* schema_scope =
 				parent_scope->type == BSERIAL_SCOPE_TABLE
 					? parent_scope
 					: scope;
 
+			// Schema discovery only happens for the first row of a table
 			if (parent_scope->type != BSERIAL_SCOPE_TABLE || parent_scope->iterator == 1) {
 				scope->record_mode = BSERIAL_RECORD_KEY_IO;
 
@@ -1520,8 +1529,6 @@ bserial_record(bserial_ctx_t* ctx, void* record) {
 					return false;
 				}
 
-				schema_scope->record_schema = ctx->schema_pool;
-				ctx->schema_pool += num_fields;
 				for (uint64_t i = 0; i < num_fields; ++i) {
 					schema_scope->record_schema[i].field_name = NULL;
 				}
@@ -1546,7 +1553,11 @@ bserial_record(bserial_ctx_t* ctx, void* record) {
 			scope->record_schema = schema_scope->record_schema;
 			scope->len = schema_scope->record_width;
 
-			return true;
+			if (scope->record_mode == BSERIAL_RECORD_VALUE_IO) {
+				return bserial_probe_next_record_field(ctx);
+			} else {
+				return true;
+			}
 		}
 	} else {
 		if (scope->type == BSERIAL_SCOPE_RECORD && scope->record_addr == record) {
