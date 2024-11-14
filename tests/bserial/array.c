@@ -69,7 +69,7 @@ serialize_nested_array(bserial_ctx_t* ctx, nested_array_t* nested_array) {
 }
 
 TEST(array, nested) {
-	nested_array_t array = {
+	nested_array_t src_array = {
 		.len = 2,
 		.values = {
 			[0] = {
@@ -84,12 +84,12 @@ TEST(array, nested) {
 	};
 
 	bserial_ctx_t* ctx = common_fixture.out_ctx;
-	assert(serialize_nested_array(ctx, &array) == BSERIAL_OK);
+	assert(serialize_nested_array(ctx, &src_array) == BSERIAL_OK);
 
 	hex_dump(common_fixture.mem_out.mem, common_fixture.mem_out.len);
 	ctx = common_fixture_make_in_ctx();
 
 	nested_array_t array2 = { 0 };
 	assert(serialize_nested_array(ctx, &array2) == BSERIAL_OK);
-	assert(memcmp(&array, &array2, sizeof(nested_array_t)) == 0);
+	assert(memcmp(&src_array, &array2, sizeof(nested_array_t)) == 0);
 }
