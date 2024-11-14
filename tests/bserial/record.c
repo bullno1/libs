@@ -9,16 +9,38 @@ static suite_t record = {
 };
 
 typedef struct {
+	float x;
+	float y;
+} vec2f_t;
+
+typedef struct {
 	int num;
 	char str[256];
 
 	int array_len;
 	int array[8];
+
+	vec2f_t vec2f;
 } original_t;
 
 static bserial_status_t
+serialize_vec2f(bserial_ctx_t* ctx, vec2f_t* record) {
+	BSERIAL_RECORD(ctx, record) {
+		BSERIAL_KEY(ctx, x) {
+			BSERIAL_CHECK_STATUS(bserial_f32(ctx, &record->x));
+		}
+
+		BSERIAL_KEY(ctx, y) {
+			BSERIAL_CHECK_STATUS(bserial_f32(ctx, &record->y));
+		}
+	}
+
+	return bserial_status(ctx);
+}
+
+static bserial_status_t
 serialize_original(bserial_ctx_t* ctx, original_t* record) {
-	BSERIAL_RECORD(ctx) {
+	BSERIAL_RECORD(ctx, record) {
 		BSERIAL_KEY(ctx, num) {
 			BSERIAL_CHECK_STATUS(bserial_any_int(ctx, &record->num));
 		}
@@ -42,6 +64,10 @@ serialize_original(bserial_ctx_t* ctx, original_t* record) {
 				BSERIAL_CHECK_STATUS(bserial_any_int(ctx, &record->array[i]));
 			}
 		}
+
+		BSERIAL_KEY(ctx, vec2f) {
+			BSERIAL_CHECK_STATUS(serialize_vec2f(ctx, &record->vec2f));
+		}
 	}
 
 	return bserial_status(ctx);
@@ -50,13 +76,17 @@ serialize_original(bserial_ctx_t* ctx, original_t* record) {
 static bserial_status_t
 serialize_original_flipped(bserial_ctx_t* ctx, original_t* record) {
 	// Order of keys does not matter
-	BSERIAL_RECORD(ctx) {
+	BSERIAL_RECORD(ctx, record) {
 		BSERIAL_KEY(ctx, str) {
 			uint64_t len = strlen(record->str);
 			BSERIAL_CHECK_STATUS(bserial_blob_header(ctx, &len));
 			if (len >= sizeof(record->str)) { return BSERIAL_MALFORMED; }
 			BSERIAL_CHECK_STATUS(bserial_blob_body(ctx, record->str));
 			record->str[len] = '\0';
+		}
+
+		BSERIAL_KEY(ctx, vec2f) {
+			BSERIAL_CHECK_STATUS(serialize_vec2f(ctx, &record->vec2f));
 		}
 
 		BSERIAL_KEY(ctx, array) {
@@ -109,8 +139,8 @@ TEST(record, round_trip) {
 
 static bserial_status_t
 serialize_original_skip(bserial_ctx_t* ctx, original_t* record, int selector) {
-	// Depending on the selector, only 1 of the 3 fields will be deserialized.
-	BSERIAL_RECORD(ctx) {
+	// Depending on the selector, only 1 of the 4 fields will be deserialized.
+	BSERIAL_RECORD(ctx, record) {
 		if (selector == 0) {
 			BSERIAL_KEY(ctx, str) {
 				uint64_t len = strlen(record->str);
@@ -140,6 +170,12 @@ serialize_original_skip(bserial_ctx_t* ctx, original_t* record, int selector) {
 				BSERIAL_CHECK_STATUS(bserial_any_int(ctx, &record->num));
 			}
 		}
+
+		if (selector == 3) {
+			BSERIAL_KEY(ctx, vec2f) {
+				BSERIAL_CHECK_STATUS(serialize_vec2f(ctx, &record->vec2f));
+			}
+		}
 	}
 
 	return bserial_status(ctx);
@@ -150,9 +186,11 @@ TEST(record, missing_fields) {
 		.num = 42069,
 		.str = "Hello",
 		.array_len = 3,
-		.array = { 1, 2, 3 }
+		.array = { 1, 2, 3 },
+		.vec2f = { 4.f, -3.5f },
 	};
 	bserial_ctx_t* ctx = common_fixture.out_ctx;
+	assert(serialize_original(ctx, &rec) == BSERIAL_OK);
 	assert(serialize_original(ctx, &rec) == BSERIAL_OK);
 	assert(serialize_original(ctx, &rec) == BSERIAL_OK);
 	assert(serialize_original(ctx, &rec) == BSERIAL_OK);
@@ -161,8 +199,19 @@ TEST(record, missing_fields) {
 
 	original_t rec_with_str = { 0 };
 	assert(serialize_original_skip(ctx, &rec_with_str, 0) == BSERIAL_OK);
+	assert(strcmp(rec_with_str.str, rec.str) == 0);
+
 	original_t rec_with_array = { 0 };
 	assert(serialize_original_skip(ctx, &rec_with_array, 1) == BSERIAL_OK);
+	assert(rec_with_array.array_len == rec.array_len);
+	assert(memcmp(rec_with_array.array, rec.array, sizeof(rec.array[0]) * rec.array_len) == 0);
+
 	original_t rec_with_num = { 0 };
 	assert(serialize_original_skip(ctx, &rec_with_num, 2) == BSERIAL_OK);
+	assert(rec_with_num.num == rec.num);
+
+	original_t rec_with_vec2 = { 0 };
+	assert(serialize_original_skip(ctx, &rec_with_vec2, 3) == BSERIAL_OK);
+	assert(rec_with_vec2.vec2f.x == rec.vec2f.x);
+	assert(rec_with_vec2.vec2f.y == rec.vec2f.y);
 }

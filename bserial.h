@@ -407,12 +407,18 @@ bserial_table(bserial_ctx_t* ctx, uint64_t* len);
  * A record is a collection of key/value pairs.
  *
  * The library needs to make several passes over the structure of the record.
+ * This should always be called as the condition of a while loop:
+ * `while (bserial_record(ctx, record)) {`.
  * Therefore, the macro @ref BSERIAL_RECORD should be used.
+ *
+ * @param ctx The serialization context.
+ * @param record Address of the record being serialized.
+ *   This is needed to differentiate between nested records.
  *
  * @see bserial_key
  */
 BSERIAL_API bool
-bserial_record(bserial_ctx_t* ctx);
+bserial_record(bserial_ctx_t* ctx, void* record);
 
 /**
  * @brief Read/write a key.
@@ -420,18 +426,35 @@ bserial_record(bserial_ctx_t* ctx);
  * This can only be called within a @ref BSERIAL_RECORD block.
  *
  * The input data may have extra keys, missing keys or out of order keys.
- * Therefore, the value code should only be run if this returns true.
+ * Therefore, the value serialization code should only be run if this returns true.
+ * This function should always be used in a condition: `if (bserial_key(ctx, name, len) {`.
  *
- * Moreover, the name should be constant.
+ * Moreover, @a name should be a constant.
+ *
  * Therefore, the @ref BSERIAL_KEY macro should be used.
+ *
+ * @param name Name of the field being serialized.
+ * @param len Length of the field name being serialized.
  */
 BSERIAL_API bool
 bserial_key(bserial_ctx_t* ctx, const char* name, uint64_t len);
 
-/*! Read/write a record */
-#define BSERIAL_RECORD(ctx) while (bserial_record(ctx))
+/**
+ * @brief Read/write a record>
+ *
+ * @param ctx The serialization context.
+ * @param record Address of the record being serialized.
+ *   This is needed to differentiate between nested records.
+ */
+#define BSERIAL_RECORD(ctx, record) while (bserial_record(ctx, record))
 
-/*! Read/write a key in a record */
+/**
+ * Read/write a key in a record
+ *
+ * @param ctx The serialization context.
+ * @param name Literal name of a record field, without any quote.
+ *   e.g: `foo` and **not** `"foo"`.
+ */
 #define BSERIAL_KEY(ctx, name) if (bserial_key(ctx, #name, sizeof(#name) - 1))
 
 /*! Trace the error context during serialization */
@@ -719,6 +742,7 @@ typedef struct {
 	bserial_record_mode_t record_mode;
 	bserial_record_mapping_t* record_schema;
 	bserial_record_mapping_t* prev_schema_pool;
+	void* record_addr;
 	uint64_t record_width;
 } bserial_scope_t;
 
@@ -1436,13 +1460,13 @@ bserial_table(bserial_ctx_t* ctx, uint64_t* len) {
 }
 
 bool
-bserial_record(bserial_ctx_t* ctx) {
+bserial_record(bserial_ctx_t* ctx, void* record) {
 	if (ctx->status != BSERIAL_OK) { return false; }
 
 	bserial_scope_t* scope = ctx->scope;
 
 	if (bserial_mode(ctx) == BSERIAL_MODE_READ) {
-		if (scope->type == BSERIAL_SCOPE_RECORD) {
+		if (scope->type == BSERIAL_SCOPE_RECORD && record == scope->record_addr) {
 			switch (scope->record_mode) {
 				case BSERIAL_RECORD_KEY_IO:
 					scope->record_mode = BSERIAL_RECORD_VALUE_IO;
@@ -1465,6 +1489,7 @@ bserial_record(bserial_ctx_t* ctx) {
 				return false;
 			}
 			scope = ctx->scope;
+			scope->record_addr = record;
 
 			if (parent_scope->type != BSERIAL_SCOPE_TABLE) {
 				uint8_t marker;
@@ -1523,7 +1548,7 @@ bserial_record(bserial_ctx_t* ctx) {
 			return true;
 		}
 	} else {
-		if (scope->type == BSERIAL_SCOPE_RECORD) {
+		if (scope->type == BSERIAL_SCOPE_RECORD && scope->record_addr == record) {
 			switch (scope->record_mode) {
 				case BSERIAL_RECORD_MEASURE_WIDTH:
 					scope->record_mode = BSERIAL_RECORD_KEY_IO;
@@ -1546,6 +1571,7 @@ bserial_record(bserial_ctx_t* ctx) {
 				return false;
 			}
 			scope = ctx->scope;
+			scope->record_addr = record;
 
 			if (parent_scope->type != BSERIAL_SCOPE_TABLE || parent_scope->iterator == 1) {
 				scope->record_mode = BSERIAL_RECORD_MEASURE_WIDTH;
