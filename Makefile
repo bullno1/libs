@@ -56,6 +56,7 @@ bin/bserial: \
 		tests/bserial/unstructured.c \
 		tests/bserial/array.c \
 		tests/bserial/record.c \
+		tests/bserial/table.c \
 		tests/bserial/common.c \
 		tests/bserial/main.c
 	mkdir -p bin
