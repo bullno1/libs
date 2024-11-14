@@ -949,8 +949,9 @@ bserial_end_op(bserial_ctx_t* ctx, bserial_op_type_t op) {
 	// Array and table do not have an "end" function call and the number of
 	// elements are automatically tracked through bserial_end_op.
 	while (
-		ctx->scope->type == BSERIAL_SCOPE_ARRAY
-		|| ctx->scope->type == BSERIAL_SCOPE_TABLE
+		(ctx->scope->type == BSERIAL_SCOPE_ARRAY
+		 || ctx->scope->type == BSERIAL_SCOPE_TABLE)
+		&& ctx->scope->iterator == ctx->scope->len
 	) {
 		BSERIAL_CHECK_STATUS(bserial_pop_scope(ctx));
 	}
