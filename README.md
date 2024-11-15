@@ -12,6 +12,7 @@ Collection of miscellaneous single-header libraries.
 |[tlsf.h](tests/tlsf)|Adaptation of [jserv/tlsf-bsd](https://github.com/jserv/tlsf-bsd)|
 |[bhash.h](tests/bhash)|Hashtable|
 |[bcoro.h](tests/bcoro)|Coroutine|
+|[bserial.h](tests/bserial)|Binary serialization|
 
 Each one has example and documentation in the corresponding tests directory.
 
