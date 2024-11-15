@@ -10,12 +10,12 @@ I need a serialization library with the following criteria:
 * No separate schema file: The serialization code is the schema.
   There is only a single function for both reading and writing.
 * No separate object tree: There is only one phase: read/write data from the program's object directly to the input/output stream.
-  This is different from many other libraries where it create a separate object tree (e.g: JSON).
+  This is different from many other libraries where a separate object tree (e.g: JSON) is created.
   Then, there is another phase to convert from that tree to internal representation.
 * Schema evolution: The structure of objects can change.
   New keys can be added/removed/reordered.
   Existing keys can have their type changed.
-  Old serialization files must still be compatible with newer version.
+  Old serialization files must still be compatible with newer versions.
 * Fixed allocation: It should allocate a fixed amount of memory upfront.
   The memory complexity only depends on how deep the object tree can be, not how wide it is.
   There is always a bound check and invalid data is rejected.
@@ -34,7 +34,7 @@ There are several layers:
 * Structured serialization: The meat of the library.
   Functions generally have the signature: `bserial_<type>(bserial_ctx_t* ctx, <type>* value)`.
   `ctx` is the current serialization context.
-  Depending on how it was constructed, it will either read or write `value` to it stream.
+  Depending on how it was constructed, it will either read or write `value` to its stream.
   Thus, the same code can be used for both serialization and deserialization, forming a "schema".
 
   `bserial_ctx_mem_size` is used to retrieve the fixed memory size needed for serialization/deserialization.
@@ -57,8 +57,9 @@ The supported data types are:
   The library does not do any encoding validation.
 * Symbol: Similar to strings but unique values are only written once.
   Subsequent occurences are referred to by id.
-  For example, if the symbol `foo` has been written once, if it is written again, `[SYMBOL_REF][0]` will be written to the stream instead.
-  This helps to save space when certain sets of symbols are used repeatedly e.g: field name of a struct.
+  For example, if the symbol `foo` has been written once as `[SYMBOL_DEF][foo]`, and then written again.
+  `[SYMBOL_REF][0]` will be written to the stream instead.
+  This helps to save space when certain sets of symbols are used repeatedly e.g: field names of a struct.
 * Record: A collection of key-value pairs.
   The keys are always symbols.
   The values can have any types.
@@ -138,12 +139,12 @@ Considering that it has to support the following:
 * New fields may be added.
 * Existing fields may be removed.
 * Existing fields may be reordered.
-* Existing fields may have their type changed.
+* Existing fields may have their types changed.
 
 The serialization code cannot be naively executed in order.
 
 The outer `while` loop allows the library to run mulitple passes through the structure.
-This allows it to, for example, store the keys separately from the value.
+This allows it to, for example, store the keys separately from the values.
 
 The inner `if` conditions allow the library to conditionally execute the value serialization code.
 This allows it to reorder and toggle the execution of each field.
@@ -161,7 +162,7 @@ e.g: "foo" is always executed and "bar" is always skipped.
 The above structure allows us to deal with compatible structural changes:
 
 * Field reordering: The outer `while` loop allows field listing in any arbitrary order.
-* Addition of new fields: The inner `if` condition allows new fields in code but not in data to be toggled off.
+* Addition of new fields: The inner `if` conditions allow new fields in code but not in data to be toggled off.
 * Removal of existing fields: Due to the way data is written, unrecogized fields will be automatically skipped over and not read.
   Internally, the call to `bserial_record` will skip to the closest recognized field in the data stream.
   As an optimization, after a field is read, the same skipping is done again.
@@ -178,7 +179,7 @@ The above structure allows us to deal with compatible structural changes:
   In the case of a table, the schema discovery step only happens once at the beginning.
   For every row in the table, only a single iteration through the `while` loop is needed.
 
-  The loop would only have to run multiple times when the program has to read serialized data from a previous version where fields have a different order.
+  The loop would only have to run more than twice when the program has to read serialized data from a previous version where fields have a different order.
   This can be somewhat mitigated by only adding code for new fields at the end of the serialization function.
 
 #### Incompatible type change
@@ -274,7 +275,7 @@ The only requirement for `bserial_table` is that all subsequent elements must be
 The storage optimization is done automatically.
 
 Internally, the keys are only written once at the beginning of the table.
-Then, all rows are stored packed without separators.
+Then, all values of all rows are stored packed without separators.
 
 ### String encoding validation
 
@@ -321,7 +322,7 @@ serialize_variant(bserial_ctx_t* ctx, my_variant_t* variant) {
         case MY_VARIANT_TYPE_2:
             return serialize_variant_type_2(ctx, &variant->payload.type2);
         // ...
-        default: // Always have a default case
+        default: // Always have a default case to guard against invalid data
             return BSERIAL_MALFORMED;
     }
 }
@@ -388,4 +389,4 @@ serialize_hashmap_entry(bserial_ctx_t* ctx, my_hashmap_entry_t* entry) {
 
 The nature of hashmap is such that the write path and the read path have totally different code due to hashing.
 We cannot quite use the same code for both reading and writing.
-However, the record serialization can still be reused.
+However, the entry serialization code can still be shared.
