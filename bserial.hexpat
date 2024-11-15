@@ -41,9 +41,9 @@ struct SymbolRef {
 struct Symbol {
   Type type;
   if (type == Type::SYM_DEF) {
-    SymbolDef value;
+    SymbolDef value [[inline]];
   } else {
-    SymbolRef value;
+    SymbolRef value [[inline]];
   }
 };
 
@@ -59,7 +59,7 @@ struct Blob {
 };
 
 struct Row<auto num_columns> {
-  Element cells[num_columns];
+  Element cells[num_columns] [[inline]];
 };
 
 struct Table {
@@ -81,17 +81,17 @@ struct Element {
   } else if (type == Type::F64) {
     double value;
   } else if (type == Type::BLOB) {
-    Blob value;
+    Blob value [[inline]];
   } else if (type == Type::SYM_DEF) {
-    SymbolDef value;
+    SymbolDef value [[inline]];
   } else if (type == Type::SYM_REF) {
-    SymbolRef value;
+    SymbolRef value [[inline]];
   } else if (type == Type::RECORD) {
-    Record value;
+    Record value [[inline]];
   } else if (type == Type::ARRAY) {
-    Array value;
+    Array value [[inline]];
   } else if (type == Type::TABLE) {
-    Table value;
+    Table value [[inline]];
   }
 };
 
