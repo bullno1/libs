@@ -132,7 +132,7 @@ serialize_original_flipped(bserial_ctx_t* ctx, original_t* rec) {
 	return bserial_status(ctx);
 }
 
-static bserial_status_t
+static inline bserial_status_t
 serialize_original_skip(bserial_ctx_t* ctx, original_t* rec, int selector) {
 	// Depending on the selector, only 1 of the 5 fields will be deserialized.
 	BSERIAL_RECORD(ctx, rec) {

@@ -2,6 +2,7 @@
 #define BSERIAL_TEST_COMMON_H
 
 #define BSERIAL_MEM
+#define BSERIAL_STDIO
 #include "../../autolist.h"
 #include "../../bserial.h"
 #include "../../barena.h"
