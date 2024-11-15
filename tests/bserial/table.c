@@ -13,7 +13,13 @@ TEST(table, round_trip) {
 		.num = 42069,
 		.str = "Hello",
 		.array_len = 3,
-		.array = { 1, 2, 3 }
+		.array = { 1, 2, 3 },
+
+		.table_len = 2,
+		.table = {
+			{ 1.2f, 1.3f },
+			{ 3.4f, -4.5f },
+		},
 	};
 
 	bserial_ctx_t* ctx = common_fixture.out_ctx;
@@ -51,11 +57,18 @@ TEST(table, missing_fields) {
 		.array_len = 3,
 		.array = { 1, 2, 3 },
 		.vec2f = { 4.f, -3.5f },
+
+		.table_len = 2,
+		.table = {
+			{ 1.2f, 1.3f },
+			{ 3.4f, -4.5f },
+		},
 	};
 	bserial_ctx_t* ctx = common_fixture.out_ctx;
 
 	uint64_t len = 4;
 	assert(bserial_table(ctx, &len) == BSERIAL_OK);
+	assert(serialize_original(ctx, &rec) == BSERIAL_OK);
 	assert(serialize_original(ctx, &rec) == BSERIAL_OK);
 	assert(serialize_original(ctx, &rec) == BSERIAL_OK);
 	assert(serialize_original(ctx, &rec) == BSERIAL_OK);
@@ -132,6 +145,24 @@ TEST(table, missing_fields) {
 			assert(serialize_original_skip(ctx, &rec_with_vec2, 3) == BSERIAL_OK);
 			assert(rec_with_vec2.vec2f.x == rec.vec2f.x);
 			assert(rec_with_vec2.vec2f.y == rec.vec2f.y);
+		}
+
+		barena_restore(&common_fixture.arena, snapshot);
+	}
+
+	{
+		barena_snapshot_t snapshot = barena_snapshot(&common_fixture.arena);
+		ctx = common_fixture_make_in_ctx();
+
+		uint64_t read_len;
+		assert(bserial_table(ctx, &read_len) == BSERIAL_OK);
+		assert(len == read_len);
+
+		for (uint64_t i = 0; i < read_len; ++i) {
+			original_t rec_with_table = { 0 };
+			assert(serialize_original_skip(ctx, &rec_with_table, 4) == BSERIAL_OK);
+			assert(rec_with_table.table_len == rec.table_len);
+			assert(memcmp(rec_with_table.table, rec.table, sizeof(rec.table[0]) * rec.table_len) == 0);
 		}
 
 		barena_restore(&common_fixture.arena, snapshot);

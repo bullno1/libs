@@ -1293,18 +1293,20 @@ bserial_skip_next(bserial_ctx_t* ctx, uint32_t depth) {
 				BSERIAL_CHECK_STATUS(bserial_read_uint(&num_rows, ctx->in));
 				if (num_rows > 0 && depth == 0) { return bserial_malformed(ctx); }
 
-				uint64_t num_cols;
-				BSERIAL_CHECK_STATUS(bserial_read_uint(&num_cols, ctx->in));
+				if (num_rows > 0) {
+					uint64_t num_cols;
+					BSERIAL_CHECK_STATUS(bserial_read_uint(&num_cols, ctx->in));
 
-				for (uint64_t i = 0; i < num_cols; ++i) {
-					const char* sym;
-					uint64_t sym_len;
-					BSERIAL_CHECK_STATUS(bserial_symbol(ctx, &sym, &sym_len));
-				}
+					for (uint64_t i = 0; i < num_cols; ++i) {
+						const char* sym;
+						uint64_t sym_len;
+						BSERIAL_CHECK_STATUS(bserial_symbol(ctx, &sym, &sym_len));
+					}
 
-				for (uint64_t i = 0; i < num_rows; ++i) {
-					for (uint64_t j = 0; j < num_cols; ++j) {
-						BSERIAL_CHECK_STATUS(bserial_skip_next(ctx, depth - 1));
+					for (uint64_t i = 0; i < num_rows; ++i) {
+						for (uint64_t j = 0; j < num_cols; ++j) {
+							BSERIAL_CHECK_STATUS(bserial_skip_next(ctx, depth - 1));
+						}
 					}
 				}
 			}
