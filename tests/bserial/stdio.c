@@ -10,7 +10,7 @@ suite_t stdio = {
 
 TEST(stdio, round_trip) {
 	original_t rec = {
-		.num = 42069,
+		.num = -69420,
 		.str = "Hello",
 		.array_len = 3,
 		.array = { 1, 2, 3 },
