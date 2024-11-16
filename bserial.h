@@ -1713,7 +1713,7 @@ bserial_stdio_read(bserial_in_t* in, void* buf, size_t size) {
 
 static inline bool
 bserial_stdio_skip(bserial_in_t* in, size_t size) {
-	return fseek(((bserial_stdio_in_t*)in)->file, size, SEEK_CUR) == 0;
+	return fseek(((bserial_stdio_in_t*)in)->file, (long)size, SEEK_CUR) == 0;
 }
 
 static inline size_t
