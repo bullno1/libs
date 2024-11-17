@@ -34,9 +34,9 @@
 	__pragma(section(AUTOLIST__STR(AUTOLIST__CONCAT(NAME, $data)), read)); \
 	__declspec(allocate(AUTOLIST__STR(AUTOLIST__CONCAT(NAME, $data))))
 #elif defined(__APPLE__)
-#	define AUTOLIST__SECTION_BEGIN(NAME) __attribute__((used, section("__DATA,autolist_" #NAME)))
+#	define AUTOLIST__SECTION_BEGIN(NAME) __attribute__((retain, used, section("__DATA,autolist_" #NAME)))
 #elif defined(__unix__)
-#	define AUTOLIST__SECTION_BEGIN(NAME) __attribute__((used, section("autolist_" #NAME)))
+#	define AUTOLIST__SECTION_BEGIN(NAME) __attribute__((retain, used, section("autolist_" #NAME)))
 #else
 #	error Unsupported compiler
 #endif
@@ -67,12 +67,12 @@ typedef struct {
 #	define AUTOLIST_DECLARE(NAME) \
 	extern const autolist_entry_t* const __start_##NAME __asm("section$start$__DATA$autolist_" #NAME); \
 	extern const autolist_entry_t* const __stop_##NAME __asm("section$end$__DATA$autolist_" #NAME); \
-	__attribute__((used, section("__DATA,autolist_" #NAME))) const autolist_entry_t* const autolist_##NAME##__dummy = NULL;
+	__attribute__((retain, used, section("__DATA,autolist_" #NAME))) const autolist_entry_t* const autolist_##NAME##__dummy = NULL;
 #elif defined(__unix__)
 #	define AUTOLIST_DECLARE(NAME) \
 	extern const autolist_entry_t* const __start_autolist_##NAME; \
 	extern const autolist_entry_t* const __stop_autolist_##NAME; \
-	__attribute__((used, section(#NAME))) const autolist_entry_t* const autolist_##NAME##__dummy = NULL;
+	__attribute__((retain, used, section("autolist_" #NAME))) const autolist_entry_t* const autolist_##NAME##__dummy = NULL;
 #endif
 
 #if defined(_MSC_VER)
