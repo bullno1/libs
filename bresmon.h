@@ -372,10 +372,12 @@ bresmon_watch(
 	void* userdata
 ) {
 	size_t orignal_path_len = strlen(original_path);
+	bresmon_watch_t* watch = NULL;
 
 #if defined(__linux__)
 	// This will always allocate with libc
 	char* real_path = realpath(original_path, NULL);
+	if (real_path == NULL) { return NULL; }
 	char* real_path2 = bresmon_strdup(real_path, mon->memctx);
 
 	char* dir_name = dirname(real_path);
@@ -404,33 +406,37 @@ bresmon_watch(
 			IN_CLOSE_WRITE | IN_MOVED_TO
 		);
 
-		dirmon = bresmon_malloc(sizeof(bresmon_dirmon_t) + dir_name_len + 1, mon->memctx);
-		*dirmon = (bresmon_dirmon_t){
-			.root = mon,
-			.watchd = watchd,
-			.watches = {
-				.next = &dirmon->watches,
-				.prev = &dirmon->watches,
-			},
-		};
-		memcpy(dirmon->path, dir_name, dir_name_len + 1);
+		if (watchd >= 0) {
+			dirmon = bresmon_malloc(sizeof(bresmon_dirmon_t) + dir_name_len + 1, mon->memctx);
+			*dirmon = (bresmon_dirmon_t){
+				.root = mon,
+				.watchd = watchd,
+				.watches = {
+					.next = &dirmon->watches,
+					.prev = &dirmon->watches,
+				},
+			};
+			memcpy(dirmon->path, dir_name, dir_name_len + 1);
 
-		dirmon->link.next = mon->dirmons.next;
-		mon->dirmons.next->prev = &dirmon->link;
-		dirmon->link.prev = &mon->dirmons;
-		mon->dirmons.next = &dirmon->link;
+			dirmon->link.next = mon->dirmons.next;
+			mon->dirmons.next->prev = &dirmon->link;
+			dirmon->link.prev = &mon->dirmons;
+			mon->dirmons.next = &dirmon->link;
+		}
 	}
 
-	bresmon_watch_t* watch = bresmon_malloc(
-		sizeof(bresmon_watch_t)
-		+ orignal_path_len + 1
-		+ filename_len + 1,
-		mon->memctx
-	);
-	*watch = (bresmon_watch_t){ 0 };
-	memcpy(watch->filename, filename, filename_len + 1);
-	watch->orignal_path = watch->filename + filename_len + 1;
-	memcpy(watch->orignal_path, original_path, orignal_path_len + 1);
+	if (dirmon != NULL) {
+		watch = bresmon_malloc(
+			sizeof(bresmon_watch_t)
+			+ orignal_path_len + 1
+			+ filename_len + 1,
+			mon->memctx
+		);
+		*watch = (bresmon_watch_t){ 0 };
+		memcpy(watch->filename, filename, filename_len + 1);
+		watch->orignal_path = watch->filename + filename_len + 1;
+		memcpy(watch->orignal_path, original_path, orignal_path_len + 1);
+	}
 
 	bresmon_free(real_path2, mon->memctx);
 	free(real_path);
@@ -440,20 +446,6 @@ bresmon_watch(
 	char* full_path = bresmon_malloc(path_buf_size, mon->memctx);
 	GetFullPathNameA(original_path, (int)path_buf_size, full_path, &filename);
 	size_t dir_name_len = filename - full_path;
-
-	size_t filename_len = path_buf_size - 1 - dir_name_len;
-	size_t wfilename_buf_len = MultiByteToWideChar(CP_UTF8, 0, filename, (int)(filename_len + 1), NULL, 0);
-	bresmon_watch_t* watch = bresmon_malloc(
-		sizeof(bresmon_watch_t)
-		+ orignal_path_len + 1
-		+ wfilename_buf_len * sizeof(wchar_t),
-		mon->memctx
-	);
-	*watch = (bresmon_watch_t){ 0 };
-	MultiByteToWideChar(CP_UTF8, 0, filename, (int)(filename_len + 1), watch->filename, (int)wfilename_buf_len);
-	watch->filename_len = (int)(wfilename_buf_len - 1);
-	watch->orignal_path = (char*)watch->filename + wfilename_buf_len * sizeof(wchar_t);
-	memcpy(watch->orignal_path, original_path, orignal_path_len + 1);
 
 	const char* dir_name = full_path;
 	*filename = '\0';
@@ -471,22 +463,7 @@ bresmon_watch(
 	}
 
 	if (dirmon == NULL) {
-		dirmon = bresmon_malloc(sizeof(bresmon_dirmon_t) + dir_name_len + 1, mon->memctx);
-		*dirmon = (bresmon_dirmon_t){
-			.root = mon,
-			.watches = {
-				.next = &dirmon->watches,
-				.prev = &dirmon->watches,
-			},
-		};
-		memcpy(dirmon->path, dir_name, dir_name_len + 1);
-
-		dirmon->link.next = mon->dirmons.next;
-		mon->dirmons.next->prev = &dirmon->link;
-		dirmon->link.prev = &mon->dirmons;
-		mon->dirmons.next = &dirmon->link;
-
-		dirmon->dir_handle = CreateFileA(
+		HANDLE dir_handle = CreateFileA(
 			dir_name,
 			FILE_LIST_DIRECTORY,
 			FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE,
@@ -495,43 +472,85 @@ bresmon_watch(
 			FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED,
 			NULL
 		);
-		CreateIoCompletionPort(dirmon->dir_handle, mon->iocp, (ULONG_PTR)dirmon, 1);
-		dirmon->overlapped = (OVERLAPPED){ 0 };
-		ReadDirectoryChangesW(
-			dirmon->dir_handle,
-			dirmon->notification_buf,
-			sizeof(dirmon->notification_buf),
-			FALSE,
-			FILE_NOTIFY_CHANGE_FILE_NAME
-			| FILE_NOTIFY_CHANGE_LAST_WRITE,
-			NULL,
-			&dirmon->overlapped,
-			NULL
+		if (dir_handle != INVALID_HANDLE_VALUE) {
+			dirmon = bresmon_malloc(sizeof(bresmon_dirmon_t) + dir_name_len + 1, mon->memctx);
+			*dirmon = (bresmon_dirmon_t){
+				.root = mon,
+				.watches = {
+					.next = &dirmon->watches,
+					.prev = &dirmon->watches,
+				},
+			};
+			memcpy(dirmon->path, dir_name, dir_name_len + 1);
+
+			dirmon->link.next = mon->dirmons.next;
+			mon->dirmons.next->prev = &dirmon->link;
+			dirmon->link.prev = &mon->dirmons;
+			mon->dirmons.next = &dirmon->link;
+
+			dirmon->dir_handle = dir_handle;
+			CreateIoCompletionPort(dirmon->dir_handle, mon->iocp, (ULONG_PTR)dirmon, 1);
+			dirmon->overlapped = (OVERLAPPED){ 0 };
+			ReadDirectoryChangesW(
+				dirmon->dir_handle,
+				dirmon->notification_buf,
+				sizeof(dirmon->notification_buf),
+				FALSE,
+				FILE_NOTIFY_CHANGE_FILE_NAME
+				| FILE_NOTIFY_CHANGE_LAST_WRITE,
+				NULL,
+				&dirmon->overlapped,
+				NULL
+			);
+		}
+	}
+
+	if (dirmon != NULL) {
+		size_t filename_len = path_buf_size - 1 - dir_name_len;
+		size_t wfilename_buf_len = MultiByteToWideChar(CP_UTF8, 0, filename, (int)(filename_len + 1), NULL, 0);
+		watch = bresmon_malloc(
+			sizeof(bresmon_watch_t)
+			+ orignal_path_len + 1
+			+ wfilename_buf_len * sizeof(wchar_t),
+			mon->memctx
 		);
+		*watch = (bresmon_watch_t){ 0 };
+		MultiByteToWideChar(CP_UTF8, 0, filename, (int)(filename_len + 1), watch->filename, (int)wfilename_buf_len);
+		watch->filename_len = (int)(wfilename_buf_len - 1);
+		watch->orignal_path = (char*)watch->filename + wfilename_buf_len * sizeof(wchar_t);
+		memcpy(watch->orignal_path, original_path, orignal_path_len + 1);
 	}
 
 	bresmon_free(full_path, mon->memctx);
 #endif
 
-	watch->link.next = &dirmon->watches;
-	watch->link.prev = dirmon->watches.prev;
-	dirmon->watches.prev->next = &watch->link;
-	dirmon->watches.prev = &watch->link;
+	if (watch != NULL) {
+		watch->link.next = &dirmon->watches;
+		watch->link.prev = dirmon->watches.prev;
+		dirmon->watches.prev->next = &watch->link;
+		dirmon->watches.prev = &watch->link;
 
-	watch->dirmon = dirmon;
-	bresmon_set_watch_callback(watch, callback, userdata);
+		watch->dirmon = dirmon;
+		bresmon_set_watch_callback(watch, callback, userdata);
 
-	return watch;
+		return watch;
+	} else {
+		return NULL;
+	}
 }
 
 void
 bresmon_set_watch_callback(bresmon_watch_t* watch, bresmon_callback_t callback, void* userdata) {
+	if (watch == NULL) { return; }
+
 	watch->callback = callback;
 	watch->userdata = userdata;
 }
 
 void
 bresmon_unwatch(bresmon_watch_t* watch) {
+	if (watch == NULL) { return; }
+
 	bresmon_t* mon = watch->dirmon->root;
 	watch->link.prev->next = watch->link.next;
 	watch->link.next->prev = watch->link.prev;
