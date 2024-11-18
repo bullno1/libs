@@ -155,6 +155,17 @@ typedef struct {
 	)
 
 /**
+ * @brief Reload-friendly initialization.
+ */
+#define bhash_reinit(table, config) \
+	bhash__do_reinit( \
+		&((table)->base), \
+		sizeof((table)->keys[0]), \
+		sizeof((table)->values[0]), \
+		config \
+	)
+
+/**
  * @brief Initialize a hashtable.
  *
  * Same as a hashtable but without values.
@@ -166,6 +177,17 @@ typedef struct {
  */
 #define bhash_init_set(table, config) \
 	bhash__do_init( \
+		&((table)->base), \
+		sizeof((table)->keys[0]), \
+		0, \
+		config \
+	)
+
+/**
+ * @brief Reload-friendly initialization.
+ */
+#define bhash_reinit_set(table, config) \
+	bhash__do_reinit( \
 		&((table)->base), \
 		sizeof((table)->keys[0]), \
 		0, \
@@ -369,6 +391,9 @@ bhash_config_default(void) {
 
 BHASH_API void
 bhash__do_init(bhash_base_t* bhash, size_t key_size, size_t value_size, bhash_config_t config);
+
+BHASH_API void
+bhash__do_reinit(bhash_base_t* bhash, size_t key_size, size_t value_size, bhash_config_t config);
 
 BHASH_API bhash_alloc_result_t
 bhash__do_alloc(bhash_base_t* bhash, const void* key);
@@ -581,6 +606,17 @@ bhash__do_init(
 		*bhash_values_ptr(bhash) = BHASH_REALLOC(NULL, value_size * (data_capacity + extra_space), config.memctx);
 	} else {
 		*bhash_values_ptr(bhash) = NULL;
+	}
+}
+
+void
+bhash__do_reinit(bhash_base_t* bhash, size_t key_size, size_t value_size, bhash_config_t config) {
+	if (bhash->eq != NULL) {
+		bhash->eq = config.eq;
+		bhash->hash = config.hash;
+		bhash->memctx = config.memctx;
+	} else {
+		bhash__do_init(bhash, key_size, value_size, config);
 	}
 }
 
