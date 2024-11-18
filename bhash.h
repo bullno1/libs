@@ -303,7 +303,6 @@ bhash__chibihash64(const void *keyIn, ptrdiff_t len, uint64_t seed) {
 	return x;
 }
 
-// MurmurOAAT64
 static inline bhash_hash_t
 bhash_hash(const void* key, size_t size) {
 	return (bhash_hash_t)bhash__chibihash64(key, size, 0);
