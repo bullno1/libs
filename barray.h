@@ -22,7 +22,7 @@
 		array = barray__do_resize(array, new_len, sizeof(*array), ctx); \
 	} while (0)
 
-#define barray_pop(array) (barray__do_pop(array), array[barray_len(array) - 1])
+#define barray_pop(array) (barray__do_pop(array), array[barray_len(array)])
 
 size_t
 barray_len(void* array);
