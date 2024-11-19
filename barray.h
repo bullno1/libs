@@ -22,7 +22,7 @@
 		array = barray__do_resize(array, new_len, sizeof(*array), ctx); \
 	} while (0)
 
-#define barray_pop(array) array[barray_len(array) - 1], barray__do_pop(array)
+#define barray_pop(array) (barray__do_pop(array), array[barray_len(array) - 1])
 
 size_t
 barray_len(void* array);
@@ -32,6 +32,9 @@ barray_capacity(void* array);
 
 void
 barray_free(void* ctx, void* array);
+
+void
+barray_clear(void* array);
 
 // Private
 
@@ -121,6 +124,14 @@ barray_free(void* ctx, void* array) {
 	barray_header_t* header = barray__header_of(array);
 	if (header != NULL) {
 		BARRAY_REALLOC(header, 0, ctx);
+	}
+}
+
+void
+barray_clear(void* array) {
+	barray_header_t* header = barray__header_of(array);
+	if (header != NULL) {
+		header->len = 0;
 	}
 }
 
