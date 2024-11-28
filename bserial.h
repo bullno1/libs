@@ -321,6 +321,9 @@ bserial_u16(bserial_ctx_t* ctx, uint16_t* u16);
 BSERIAL_API bserial_status_t
 bserial_u32(bserial_ctx_t* ctx, uint32_t* u32);
 
+BSERIAL_API bserial_status_t
+bserial_bool(bserial_ctx_t* ctx, bool* boolean);
+
 /**
  * @brief Automatically select the right integer serialization function
  *
@@ -1103,6 +1106,19 @@ bserial_u32(bserial_ctx_t* ctx, uint32_t* u32) {
 
 	if (u64 <= (uint64_t)UINT32_MAX) {
 		*u32 = (uint32_t)u64;
+		return BSERIAL_OK;
+	} else {
+		return bserial_malformed(ctx);
+	}
+}
+
+bserial_status_t
+bserial_bool(bserial_ctx_t* ctx, bool* boolean) {
+	uint64_t u64 = *boolean;
+
+	BSERIAL_CHECK_STATUS(bserial_uint(ctx, &u64));
+	if (u64 <= 1) {
+		*boolean = (bool)u64;
 		return BSERIAL_OK;
 	} else {
 		return bserial_malformed(ctx);
