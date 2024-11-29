@@ -34,8 +34,8 @@
 /*! Helper macro to check for IO status and return on error */
 #define BSERIAL_CHECK_STATUS(OP) \
 	do { \
-		bserial_status_t status = OP; \
-		if (status != BSERIAL_OK) { return status; } \
+		bserial_status_t bserial__status = OP; \
+		if (bserial__status != BSERIAL_OK) { return bserial__status; } \
 	} while(0)
 
 /*! IO status */
