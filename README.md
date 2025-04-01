@@ -13,6 +13,7 @@ Collection of miscellaneous single-header libraries.
 |[bhash.h](tests/bhash)|Hashtable|
 |[bcoro.h](tests/bcoro)|Coroutine|
 |[bserial.h](tests/bserial)|Binary serialization|
+|[bspsc.h](tests/bspsc)|Single producer single consumer queue|
 
 Each one has example and documentation in the corresponding tests directory.
 
