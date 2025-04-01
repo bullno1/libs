@@ -41,7 +41,7 @@ typedef struct {
 typedef struct bspscq_s {
 	bspscq_signal_t can_produce;
 	bspscq_signal_t can_consume;
-	atomic_uint count;
+	atomic_int count;
 	atomic_uint head;
 	atomic_uint tail;
 	void** values;
@@ -171,11 +171,11 @@ bspscq_cleanup(bspscq_t* queue) {
 
 bool
 bspscq_produce(bspscq_t* queue, void* item, bool wait) {
-	if (atomic_load(&queue->count) == queue->size) {
+	if (atomic_load(&queue->count) == (int)queue->size) {
 		if (!wait) { return false; }
 
 		mtx_lock(&queue->can_produce.mtx);
-		while (queue->count == queue->size) {
+		while (queue->count == (int)queue->size) {
 			cnd_wait(&queue->can_produce.cnd, &queue->can_produce.mtx);
 		}
 		mtx_unlock(&queue->can_produce.mtx);
@@ -204,7 +204,7 @@ bspscq_consume(bspscq_t* queue, bool wait) {
 
 	unsigned int head = atomic_fetch_add(&queue->head, 1);
 	void* item = queue->values[head & (queue->size - 1)];
-	if (atomic_fetch_add(&queue->count, -1) == queue->size) {
+	if (atomic_fetch_add(&queue->count, -1) == (int)queue->size) {
 		bspscq_signal_raise(&queue->can_produce);
 	}
 
