@@ -43,6 +43,7 @@ workspace "libs"
   filter { "action:vs*" }
     buildoptions {
       "/std:c11",
+      "/experimental:c11atomics",
     }
     disablewarnings {
       "4100",
@@ -61,3 +62,4 @@ make_project "bresmon"
 make_project "bhash"
 make_project "bcoro"
 make_project "bserial"
+make_project "bspscq"

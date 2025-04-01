@@ -10,7 +10,8 @@ all: \
 	bin/bresmon \
 	bin/bhash \
 	bin/bcoro \
-	bin/bserial
+	bin/bserial \
+	bin/bspscq
 
 clean:
 	rm -rf bin
@@ -62,3 +63,7 @@ bin/bserial: \
 		tests/bserial/main.c
 	mkdir -p bin
 	$(CC) $(CFLAGS) $(filter-out %.h, $^) -o $@
+
+bin/bspscq: tests/bspscq/main.c bspscq.h
+	mkdir -p bin
+	$(CC) $(CFLAGS) -Itests/bspscq $(filter-out %.h, $^) -o $@

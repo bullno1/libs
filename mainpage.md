@@ -8,6 +8,7 @@ Collection of miscellaneous single-header libraries.
 |@ref bhash.h|Type-safe hashtable|
 |@ref bcoro.h|Coroutine|
 |@ref bserial.h|Serialization|
+|@ref bspscq.h|Single producer single consumer queue|
 
 ## On allocator
 
