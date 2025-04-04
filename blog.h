@@ -230,6 +230,7 @@ blog_write(
 	const char* fmt,
 	...
 ) {
+	filename = filename != NULL ? filename : "<unknown>";
 	int filename_len = strlen(filename);
 	blog_str_t filename_str = {
 		.len = filename_len,
