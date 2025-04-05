@@ -76,6 +76,10 @@ typedef struct {
 	bool with_colors;
 } blog_file_logger_options_t;
 
+typedef struct {
+	const char* tag;
+} blog_android_logger_options_t;
+
 BLOG_API void
 blog_init(const blog_options_t* options);
 
@@ -84,6 +88,9 @@ blog_add_logger(blog_level_t min_level, blog_log_fn_t fn, void* userdata);
 
 BLOG_API blog_logger_id_t
 blog_add_file_logger(blog_level_t min_level, const blog_file_logger_options_t* options);
+
+BLOG_API blog_logger_id_t
+blog_add_android_logger(blog_level_t min_level, const blog_android_logger_options_t* options);
 
 BLOG_API void
 blog_set_min_log_level(blog_logger_id_t logger, blog_level_t min_level);
@@ -281,6 +288,48 @@ blog_write(
 			logger->fn(&ctx, msg, logger->userdata);
 		}
 	}
+}
+
+#ifdef __ANDROID__
+#include <android/log.h>
+
+static void
+blog_android_write(
+	const blog_ctx_t* ctx,
+	blog_str_t msg,
+	void* userdata
+) {
+	int prio;
+	switch (ctx->level) {
+		case BLOG_LEVEL_TRACE: prio = ANDROID_LOG_VERBOSE; break;
+		case BLOG_LEVEL_DEBUG: prio = ANDROID_LOG_DEBUG; break;
+		case BLOG_LEVEL_INFO: prio = ANDROID_LOG_INFO; break;
+		case BLOG_LEVEL_WARN: prio = ANDROID_LOG_WARN; break;
+		case BLOG_LEVEL_ERROR: prio = ANDROID_LOG_ERROR; break;
+		case BLOG_LEVEL_FATAL: prio = ANDROID_LOG_FATAL;  break;
+		default: prio = ANDROID_LOG_DEFAULT; break;
+	}
+
+	const blog_android_logger_options_t* options = userdata;
+	__android_log_print(
+		prio, options->tag,
+		"[" BLOG_STR_FMT ":%d]: " BLOG_STR_FMT,
+		BLOG_STR_FMT_ARGS(ctx->file), ctx->line,
+		BLOG_STR_FMT_ARGS(msg)
+	);
+}
+
+#endif
+
+blog_logger_id_t
+blog_add_android_logger(blog_level_t min_level, const blog_android_logger_options_t* options) {
+#ifdef __ANDROID__
+	return blog_add_logger(min_level, blog_android_write, (void*)options);
+#else
+	(void)min_level;
+	(void)options;
+	return -1;
+#endif
 }
 
 #endif
