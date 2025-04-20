@@ -18,10 +18,10 @@
 
 #if defined(__GNUC__) || defined(__clang__)
 #	define BLOG_FORMAT_ATTRIBUTE(FMT, VA) __attribute__((format(printf, FMT, VA)))
-#	define BLOG_FORMAT_CHECK(...) (sizeof(0))
+#	define BLOG_FORMAT_CHECK(...) (void)(sizeof(0))
 #else
 #	define BLOG_FORMAT_ATTRIBUTE(FMT, VA)
-#	define BLOG_FORMAT_CHECK(...) (sizeof(printf(__VA_ARGS__)))
+#	define BLOG_FORMAT_CHECK(...) (void)(sizeof(printf(__VA_ARGS__)))
 #endif
 
 #define BLOG_WRITE(LEVEL, ...) \
