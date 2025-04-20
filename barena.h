@@ -206,7 +206,7 @@ barena_reset(barena_t* arena) {
 	barena_restore(arena, NULL);
 }
 
-#if defined(__linux__)
+#if defined(__linux__) || defined(__COSMOPOLITAN__)
 
 #include <unistd.h>
 #include <sys/mman.h>
