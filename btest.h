@@ -36,19 +36,23 @@ typedef struct {
 		for (const autolist_entry_t* btest__entry = *btest__itr; btest__entry != NULL; btest__entry = NULL) \
 			for (btest_case_t* VAR = btest__entry->value_addr; VAR != NULL; VAR = NULL)
 
-#define BTEST_ASSERT(COND) \
+#define BTEST_CHECK(COND, FMT, ABORT) \
 	do { \
 		if (!(COND)) { \
-			BTEST_LOG_ERROR("Assertion failed: %s", #COND); \
-			btest_fail(); \
+			BTEST_LOG_ERROR(FMT, #COND); \
+			btest_fail(ABORT); \
 		} \
 	} while (0)
+
+#define BTEST_ASSERT(COND) BTEST_CHECK(COND, "Assertion failed: %s", true)
+
+#define BTEST_EXPECT(COND) BTEST_CHECK(COND, "Expectation failed: %s", false)
 
 bool
 btest_run(btest_case_t* test);
 
 void
-btest_fail(void);
+btest_fail(bool abort);
 
 #endif
 
@@ -84,9 +88,11 @@ btest_run(btest_case_t* test) {
 }
 
 void
-btest_fail(void) {
+btest_fail(bool abort) {
 	btest__ctx.success = false;
-	longjmp(btest__ctx.return_buf, 1);
+	if (abort) {
+		longjmp(btest__ctx.return_buf, 1);
+	}
 }
 
 #endif
