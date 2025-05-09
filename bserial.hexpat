@@ -83,9 +83,9 @@ namespace impl {
     } else if (type == Type::BLOB) {
       return std::format("BLOB({})", element.value.len);
     } else if (type == Type::SYM_DEF) {
-      return std::format("SYMBOL({})", format_SymbolDef(element.value));
+      return std::format("SYMBOL({})", impl::format_SymbolDef(element.value));
     } else if (type == Type::SYM_REF) {
-      return std::format("SYMBOL({})", format_SymbolRef(element.value));
+      return std::format("SYMBOL({})", impl::format_SymbolRef(element.value));
     } else if (type == Type::RECORD) {
       return std::format("RECORD({})", element.value.width);
     } else if (type == Type::ARRAY) {
