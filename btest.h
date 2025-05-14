@@ -39,17 +39,25 @@ typedef struct {
 		AUTOLIST_FOREACH(btest__itr, btest__tests) \
 			for (const btest_case_t* VAR = btest__itr->value_addr; VAR != NULL; VAR = NULL)
 
-#define BTEST_CHECK(COND, FMT, ABORT) \
+#define BTEST_CHECK(ABORT, COND, ...) \
 	do { \
 		if (!(COND)) { \
-			BTEST_LOG_ERROR(FMT, #COND); \
+			BTEST_LOG_ERROR(__VA_ARGS__); \
 			btest_fail(ABORT); \
 		} \
 	} while (0)
 
-#define BTEST_ASSERT(COND) BTEST_CHECK(COND, "Assertion failed: %s", true)
+#define BTEST_ASSERT_EX(COND, MSG, ...) \
+	BTEST_CHECK(true, COND, "Assertion failed: %s (" MSG ")", #COND, __VA_ARGS__)
 
-#define BTEST_EXPECT(COND) BTEST_CHECK(COND, "Expectation failed: %s", false)
+#define BTEST_ASSERT(COND) \
+	BTEST_CHECK(true, COND, "Assertion failed: %s", #COND)
+
+#define BTEST_EXPECT_EX(COND, MSG, ...) \
+	BTEST_CHECK(false, COND, "Expectation failed: %s (" MSG ")", #COND, __VA_ARGS__)
+
+#define BTEST_EXPECT(COND) \
+	BTEST_CHECK(false, COND, "Expectation failed: %s", #COND)
 
 AUTOLIST_DECLARE(btest__tests)
 
