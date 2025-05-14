@@ -58,22 +58,29 @@ typedef struct {
 
 #if defined(_MSC_VER)
 #	define AUTOLIST_DECLARE(NAME) \
-	__pragma(section(AUTOLIST__STR(AUTOLIST__CONCAT(NAME, $begin)), read)); \
-	__pragma(section(AUTOLIST__STR(AUTOLIST__CONCAT(NAME, $data)), read)); \
-	__pragma(section(AUTOLIST__STR(AUTOLIST__CONCAT(NAME, $end)), read)); \
 	__declspec(allocate(AUTOLIST__STR(AUTOLIST__CONCAT(NAME, $begin)))) extern const autolist_entry_t* const autolist_##NAME##_begin = NULL; \
 	__declspec(allocate(AUTOLIST__STR(AUTOLIST__CONCAT(NAME, $end)))) extern const autolist_entry_t* const autolist_##NAME##_end = NULL;
+#	define AUTOLIST_IMPL(NAME) \
+	__pragma(section(AUTOLIST__STR(AUTOLIST__CONCAT(NAME, $begin)), read)); \
+	__pragma(section(AUTOLIST__STR(AUTOLIST__CONCAT(NAME, $data)), read)); \
+	__pragma(section(AUTOLIST__STR(AUTOLIST__CONCAT(NAME, $end)), read));
 #elif defined(__APPLE__)
 #	define AUTOLIST_DECLARE(NAME) \
 	extern const autolist_entry_t* const __start_##NAME __asm("section$start$__DATA$autolist_" #NAME); \
-	extern const autolist_entry_t* const __stop_##NAME __asm("section$end$__DATA$autolist_" #NAME); \
+	extern const autolist_entry_t* const __stop_##NAME __asm("section$end$__DATA$autolist_" #NAME);
+#	define AUTOLIST_IMPL(NAME) \
 	__attribute__((retain, used, section("__DATA,autolist_" #NAME))) const autolist_entry_t* const autolist_##NAME##__dummy = NULL;
 #elif defined(__unix__)
 #	define AUTOLIST_DECLARE(NAME) \
 	extern const autolist_entry_t* const __start_autolist_##NAME; \
-	extern const autolist_entry_t* const __stop_autolist_##NAME; \
+	extern const autolist_entry_t* const __stop_autolist_##NAME;
+#	define AUTOLIST_IMPL(NAME) \
 	__attribute__((retain, used, section("autolist_" #NAME))) const autolist_entry_t* const autolist_##NAME##__dummy = NULL;
 #endif
+
+#define AUTOLIST_DEFINE(NAME) \
+	AUTOLIST_DECLARE(NAME) \
+	AUTOLIST_IMPL(NAME)
 
 #if defined(_MSC_VER)
 #	define AUTOLIST_BEGIN(NAME) (&autolist_##NAME##_begin + 1)
