@@ -18,11 +18,11 @@
 
 #define AUTOLIST_FOREACH(ITR, LIST_NAME) \
 	for ( \
-		const autolist_entry_t* const* ITR = AUTOLIST_BEGIN(LIST_NAME); \
-		ITR != AUTOLIST_END(LIST_NAME); \
-		++ITR \
+		const autolist_entry_t* const* autolist__itr = AUTOLIST_BEGIN(LIST_NAME); \
+		autolist__itr != AUTOLIST_END(LIST_NAME); \
+		++autolist__itr \
 	) \
-		if (*ITR != NULL)
+		for (const autolist_entry_t* ITR = *autolist__itr; ITR != NULL; ITR = NULL)
 
 #if defined(_MSC_VER)
 #	define AUTOLIST__CONCAT2(A, B) A##B

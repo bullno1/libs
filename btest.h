@@ -12,12 +12,15 @@
 
 typedef struct {
 	const char* name;
-	void (*init)(void);
-	void (*cleanup)(void);
+	void (*init_per_suite)(void);
+	void (*cleanup_per_suite)(void);
+
+	void (*init_per_test)(void);
+	void (*cleanup_per_test)(void);
 } btest_suite_t;
 
 typedef struct {
-	btest_suite_t* suite;
+	const btest_suite_t* suite;
 	const char* name;
 	void (*run)(void);
 } btest_case_t;
@@ -32,9 +35,9 @@ typedef struct {
 	static void SUITE##_##NAME(void)
 
 #define BTEST_FOREACH(VAR) \
-	AUTOLIST_FOREACH(btest__itr, btest__tests) \
-		for (const autolist_entry_t* btest__entry = *btest__itr; btest__entry != NULL; btest__entry = NULL) \
-			for (btest_case_t* VAR = btest__entry->value_addr; VAR != NULL; VAR = NULL)
+	for (int btest__init_guard = (btest_init(), 0); btest__init_guard < 1; ++btest__init_guard, btest_cleanup()) \
+		AUTOLIST_FOREACH(btest__itr, btest__tests) \
+			for (const btest_case_t* VAR = btest__itr->value_addr; VAR != NULL; VAR = NULL)
 
 #define BTEST_CHECK(COND, FMT, ABORT) \
 	do { \
@@ -48,11 +51,19 @@ typedef struct {
 
 #define BTEST_EXPECT(COND) BTEST_CHECK(COND, "Expectation failed: %s", false)
 
+AUTOLIST_DECLARE(btest__tests)
+
+void
+btest_init(void);
+
 bool
-btest_run(btest_case_t* test);
+btest_run(const btest_case_t* test);
 
 void
 btest_fail(bool abort);
+
+void
+btest_cleanup(void);
 
 #endif
 
@@ -65,23 +76,40 @@ btest_fail(bool abort);
 #include <setjmp.h>
 
 static struct {
+	const btest_suite_t* current_suite;
 	jmp_buf return_buf;
 	bool success;
-} btest__ctx;
+} btest__ctx = { 0 };
 
-AUTOLIST_DECLARE(btest__tests)
+AUTOLIST_IMPL(btest__tests)
+
+void
+btest_init(void) {
+}
 
 bool
-btest_run(btest_case_t* test) {
-	if (test->suite->init != NULL) {
-		test->suite->init();
+btest_run(const btest_case_t* test) {
+	if (test->suite != btest__ctx.current_suite) {
+		if (btest__ctx.current_suite && btest__ctx.current_suite->cleanup_per_suite) {
+			btest__ctx.current_suite->cleanup_per_suite();
+		}
+
+		btest__ctx.current_suite = test->suite;
+
+		if (btest__ctx.current_suite->init_per_suite) {
+			btest__ctx.current_suite->init_per_suite();
+		}
+	}
+
+	if (test->suite->init_per_test != NULL) {
+		test->suite->init_per_test();
 	}
 
 	btest__ctx.success = true;
 	if (setjmp(btest__ctx.return_buf) == 0) { test->run(); }
 
-	if (test->suite->cleanup != NULL) {
-		test->suite->cleanup();
+	if (test->suite->cleanup_per_test != NULL) {
+		test->suite->cleanup_per_test();
 	}
 
 	return btest__ctx.success;
@@ -93,6 +121,14 @@ btest_fail(bool abort) {
 	if (abort) {
 		longjmp(btest__ctx.return_buf, 1);
 	}
+}
+
+void
+btest_cleanup(void) {
+	if (btest__ctx.current_suite && btest__ctx.current_suite->cleanup_per_suite) {
+		btest__ctx.current_suite->cleanup_per_suite();
+	}
+	btest__ctx.current_suite = NULL;
 }
 
 #endif
