@@ -58,8 +58,8 @@ typedef struct {
 
 #if defined(_MSC_VER)
 #	define AUTOLIST_DECLARE(NAME) \
-	extern const autolist_entry_t* const autolist_##NAME##_begin = NULL; \
-	extern const autolist_entry_t* const autolist_##NAME##_end = NULL;
+	extern const autolist_entry_t* const autolist_##NAME##_begin; \
+	extern const autolist_entry_t* const autolist_##NAME##_end;
 #	define AUTOLIST_IMPL(NAME) \
 	__pragma(section(AUTOLIST__STR(AUTOLIST__CONCAT(NAME, $begin)), read)); \
 	__pragma(section(AUTOLIST__STR(AUTOLIST__CONCAT(NAME, $data)), read)); \
