@@ -4,7 +4,7 @@
 #include "../../bserial.h"
 #include "../../barena.h"
 
-AUTOLIST_DEFINE(bserial_test)
+AUTOLIST_DECLARE(bserial_test)
 
 int main(int argc, const char* argv[]) {
 	AUTOLIST_FOREACH(itr, bserial_test) {
@@ -21,3 +21,5 @@ int main(int argc, const char* argv[]) {
 		}
 	}
 }
+
+AUTOLIST_IMPL(bserial_test)
