@@ -14,3 +14,5 @@ int main(int argc, const char* argv[]) {
 
 	return 0;
 }
+
+AUTOLIST_IMPL(number_list)
