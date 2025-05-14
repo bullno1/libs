@@ -8,9 +8,7 @@ AUTOLIST_DECLARE(bserial_test)
 
 int main(int argc, const char* argv[]) {
 	AUTOLIST_FOREACH(itr, bserial_test) {
-		const autolist_entry_t* entry = *itr;
-
-		const test_t* test = entry->value_addr;
+		const test_t* test = itr->value_addr;
 		printf("--- %s/%s ---\n", test->suite->name, test->name);
 		if (test->suite->init != NULL) {
 			test->suite->init();

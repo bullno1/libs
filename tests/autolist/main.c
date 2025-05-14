@@ -8,8 +8,7 @@ int main(int argc, const char* argv[]) {
 	(void)argv;
 
 	AUTOLIST_FOREACH(itr, number_list) {
-		const autolist_entry_t* entry = *itr;
-		printf("%.*s = %d\n", (int)entry->name_length, entry->name, *(int*)entry->value_addr);
+		printf("%.*s = %d\n", (int)itr->name_length, itr->name, *(int*)itr->value_addr);
 	}
 
 	return 0;
