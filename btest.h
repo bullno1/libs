@@ -25,13 +25,16 @@ typedef struct {
 	void (*run)(void);
 } btest_case_t;
 
-#define BTEST(SUITE, NAME) \
-	static void SUITE##_##NAME(void); \
+#define BTEST_REGISTER(SUITE, NAME, FN) \
+	static void FN(void); \
 	AUTOLIST_ENTRY(btest__tests, btest_case_t, btest__case_##SUITE##_##NAME) = { \
 		.suite = &SUITE, \
 		.name = #NAME, \
-		.run = SUITE##_##NAME, \
-	}; \
+		.run = FN, \
+	};
+
+#define BTEST(SUITE, NAME) \
+	BTEST_REGISTER(SUITE, NAME, SUITE##_##NAME) \
 	static void SUITE##_##NAME(void)
 
 #define BTEST_FOREACH(VAR) \
