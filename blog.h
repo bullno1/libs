@@ -184,16 +184,21 @@ blog_init(const blog_options_t* options) {
 	blog_state.options = *options;
 
 	int depth = options->current_depth_in_project + 1;
-	if (options->current_filename != NULL) {
-		int len = strlen(options->current_filename);
+	const char* current_filename = options->current_filename;
+	if (current_filename != NULL) {
+		int len = strlen(current_filename);
 		int i = len - 1;
 		for (; i >= 0; --i) {
-			char ch = options->current_filename[i];
+			char ch = current_filename[i];
 			if (ch == '/' || ch == '\\') {
 				--depth;
 			}
 
 			if (depth == 0) { break; }
+		}
+
+		if (current_filename[i] == '/' || current_filename[i] == '\\') {
+			i += 1;
 		}
 
 		if (depth == 0 && i >= 0) {
