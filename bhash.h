@@ -604,8 +604,6 @@ bhash__do_init(
 	*bhash_keys_ptr(bhash) = BHASH_REALLOC(NULL, key_size * (data_capacity + extra_space), config.memctx);
 	if (value_size > 0) {
 		*bhash_values_ptr(bhash) = BHASH_REALLOC(NULL, value_size * (data_capacity + extra_space), config.memctx);
-	} else {
-		*bhash_values_ptr(bhash) = NULL;
 	}
 }
 
