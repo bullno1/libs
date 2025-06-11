@@ -8,21 +8,21 @@
 #define barray_push(array, element, ctx) \
 	do { \
 		size_t barray__new_len; \
-		array = barray__prepare_push(array, &barray__new_len, sizeof(element), ctx); \
-		array[barray__new_len - 1] = element; \
+		(array) = barray__prepare_push((array), &barray__new_len, sizeof(element), ctx); \
+		(array)[barray__new_len - 1] = element; \
 	} while (0)
 
 #define barray_reserve(array, new_capacity, ctx) \
 	do { \
-		array = barray__do_reserve(array, new_capacity, sizeof(*array), ctx); \
+		(array) = barray__do_reserve((array), new_capacity, sizeof(*(array)), ctx); \
 	} while (0)
 
 #define barray_resize(array, new_len, ctx) \
 	do { \
-		array = barray__do_resize(array, new_len, sizeof(*array), ctx); \
+		(array) = barray__do_resize((array), new_len, sizeof(*(array)), ctx); \
 	} while (0)
 
-#define barray_pop(array) (barray__do_pop(array), array[barray_len(array)])
+#define barray_pop(array) (barray__do_pop((array)), array[barray_len((array))])
 
 size_t
 barray_len(void* array);
