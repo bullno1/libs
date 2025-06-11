@@ -186,7 +186,7 @@ blog_init(const blog_options_t* options) {
 	int depth = options->current_depth_in_project + 1;
 	const char* current_filename = options->current_filename;
 	if (current_filename != NULL) {
-		int len = strlen(current_filename);
+		int len = (int)strlen(current_filename);
 		int i = len - 1;
 		for (; i >= 0; --i) {
 			char ch = current_filename[i];
@@ -243,7 +243,7 @@ blog_write(
 	...
 ) {
 	filename = filename != NULL ? filename : "<unknown>";
-	int filename_len = strlen(filename);
+	int filename_len = (int)strlen(filename);
 	blog_str_t filename_str = {
 		.len = filename_len,
 		.data = filename,
