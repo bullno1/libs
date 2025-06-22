@@ -366,7 +366,7 @@ xincbin_data_t xincbin_get(const char* name) {
 	if (glob == NULL) { return (xincbin_data_t){ 0 }; }
 
 	return (xincbin_data_t){
-		.size = (unsigned int)SizeofResource(module, glob),
+		.size = (unsigned int)SizeofResource(module, res),
 		.data = LockResource(glob),
 	};
 }
