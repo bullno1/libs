@@ -28,4 +28,10 @@
 #define BENUM_DEFINE__(NAME) NAME,
 #define BENUM_TO_STR__(NAME) case NAME: return BSTRINGIFY(NAME);
 
+#if defined(__GNUC__) || defined(__clang__)
+#	define BFORMAT_ATTRIBUTE(FMT, VA) __attribute__((format(printf, FMT, VA)))
+#else
+#	define BFORMAT_ATTRIBUTE(FMT, VA)
+#endif
+
 #endif

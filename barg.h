@@ -303,6 +303,7 @@ barg_int(int* out) {
 
 static const char*
 barg_parse_boolean(void* userdata, const char* value) {
+	(void)value;
 	*(bool*)(userdata) = true;
 	return NULL;
 }
