@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdarg.h>
 
 #ifndef BLOG_API
 #define BLOG_API
@@ -95,15 +96,29 @@ blog_add_android_logger(blog_level_t min_level, const blog_android_logger_option
 BLOG_API void
 blog_set_min_log_level(blog_logger_id_t logger, blog_level_t min_level);
 
-BLOG_FORMAT_ATTRIBUTE(4, 5)
 BLOG_API void
+blog_vwrite(
+	blog_level_t level,
+	const char* file,
+	int line,
+	const char* fmt,
+	va_list args
+);
+
+BLOG_FORMAT_ATTRIBUTE(4, 5)
+static inline void
 blog_write(
 	blog_level_t level,
 	const char* file,
 	int line,
 	const char* fmt,
 	...
-);
+) {
+	va_list args;
+	va_start(args, fmt);
+	blog_vwrite(level, file, line, fmt, args);
+	va_end(args);
+}
 
 #endif
 
@@ -235,12 +250,12 @@ blog_set_min_log_level(blog_logger_id_t logger, blog_level_t min_level) {
 }
 
 void
-blog_write(
+blog_vwrite(
 	blog_level_t level,
 	const char* filename,
 	int line,
 	const char* fmt,
-	...
+	va_list args
 ) {
 	filename = filename != NULL ? filename : "<unknown>";
 	int filename_len = (int)strlen(filename);
@@ -271,8 +286,6 @@ blog_write(
 		if (level >= logger->min_level) {
 			// Delay formatting until it's actually needed
 			if (msg_len < 0) {
-				va_list args;
-				va_start(args, fmt);
 				msg_len = vsnprintf(
 					blog_state.line_buf, sizeof(blog_state.line_buf),
 					fmt, args
@@ -283,7 +296,6 @@ blog_write(
 					msg_len = sizeof(blog_state.line_buf) - 1;
 				}
 				blog_state.line_buf[msg_len] = '\0';
-				va_end(args);
 			}
 
 			blog_str_t msg = {

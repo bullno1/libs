@@ -30,8 +30,11 @@
 
 #if defined(__GNUC__) || defined(__clang__)
 #	define BFORMAT_ATTRIBUTE(FMT, VA) __attribute__((format(printf, FMT, VA)))
+#	define BFORMAT_CHECK(...) (void)(sizeof(0))
 #else
+#	include <stdio.h>
 #	define BFORMAT_ATTRIBUTE(FMT, VA)
+#	define BFORMAT_CHECK(...) (void)(sizeof(printf(__VA_ARGS__)))
 #endif
 
 #endif
