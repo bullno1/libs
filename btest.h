@@ -56,11 +56,23 @@ typedef struct {
 #define BTEST_ASSERT(COND) \
 	BTEST_CHECK(true, COND, "Assertion failed: %s", #COND)
 
+#define BTEST_ASSERT_RELATION(FMT, EXP, REL, VALUE) \
+	BTEST_ASSERT_EX(EXP REL VALUE, "got "#EXP " == " FMT, EXP)
+
+#define BTEST_ASSERT_EQUAL(FMT, EXP, VALUE) \
+	BTEST_ASSERT_RELATION(FMT, EXP, ==, VALUE)
+
 #define BTEST_EXPECT_EX(COND, MSG, ...) \
 	BTEST_CHECK(false, COND, "Expectation failed: %s (" MSG ")", #COND, __VA_ARGS__)
 
 #define BTEST_EXPECT(COND) \
 	BTEST_CHECK(false, COND, "Expectation failed: %s", #COND)
+
+#define BTEST_EXPECT_RELATION(FMT, EXP, REL, VALUE) \
+	BTEST_EXPECT_EX(EXP REL VALUE, "got "#EXP " == " FMT, EXP)
+
+#define BTEST_EXPECT_EQUAL(FMT, EXP, VALUE) \
+	BTEST_EXPECT_RELATION(FMT, EXP, ==, VALUE)
 
 AUTOLIST_DECLARE(btest__tests)
 
