@@ -36,4 +36,10 @@
 
 #define BFORMAT_CHECK(...) (void)(sizeof(printf(__VA_ARGS__)))
 
+#if __STDC_VERSION__ >= 202311L
+#	define BTYPEOF(EXP) typeof(EXP)
+#elif defined(__clang__) || defined(__GNUC__) || defined(_MSC_VER)
+#	define BTYPEOF(EXP) __typeof__(EXP)
+#endif
+
 #endif

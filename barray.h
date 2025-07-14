@@ -24,6 +24,30 @@
 
 #define barray_pop(array) (barray__do_pop((array)), array[barray_len((array))])
 
+#define BARRAY_FOREACH_REF(REF, ARRAY) \
+	for ( \
+		struct { size_t index; char once; } barray__itr = { 0 }; \
+		barray__itr.index < barray_len(ARRAY); \
+		++barray__itr.index \
+	) \
+		for ( \
+			BARRAY__TYPEOF(ARRAY) REF = (barray__itr.once = 1, &(ARRAY)[barray__itr.index]); \
+			barray__itr.once; \
+			barray__itr.once = 0 \
+		)
+
+#define BARRAY_FOREACH_VALUE(VALUE, ARRAY) \
+	for ( \
+		struct { size_t index; char once; } barray__itr = { 0 }; \
+		barray__itr.index < barray_len(ARRAY); \
+		++barray__itr.index \
+	) \
+		for ( \
+			BARRAY__TYPEOF(*ARRAY) VALUE = (barray__itr.once = 1, (ARRAY)[barray__itr.index]); \
+			barray__itr.once; \
+			barray__itr.once = 0 \
+		)
+
 size_t
 barray_len(void* array);
 
@@ -49,6 +73,12 @@ barray__do_resize(void* array, size_t new_len, size_t elem_size, void* ctx) ;
 
 void
 barray__do_pop(void* array);
+
+#if __STDC_VERSION__ >= 202311L
+#	define BARRAY__TYPEOF(EXP) typeof(EXP)
+#elif defined(__clang__) || defined(__GNUC__) || defined(_MSC_VER)
+#	define BARRAY__TYPEOF(EXP) __typeof__(EXP)
+#endif
 
 #endif
 
