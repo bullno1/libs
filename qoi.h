@@ -180,7 +180,7 @@ int qoiencode(struct qoiencoder *q, void *buf, unsigned c)
             q->run = 0;
             *p++ = 0xc0 | 61;
         }
-        return p - (unsigned char *)buf;
+        return (int)(p - (unsigned char *)buf);
     } else if (q->run) {
         *p++ = 0xc0 | (q->run - 1);
         q->run = 0;
@@ -191,7 +191,7 @@ int qoiencode(struct qoiencoder *q, void *buf, unsigned c)
     if (q->table[i] == c) {
         q->c = c;
         *p++ = i;
-        return p - (unsigned char *)buf;
+        return (int)(p - (unsigned char *)buf);
     }
     q->table[i] = c;
 
@@ -208,7 +208,7 @@ int qoiencode(struct qoiencoder *q, void *buf, unsigned c)
     } else {
         *p++ = 0xff; *p++ = r; *p++ = g; *p++ = b; *p++ = a;
     }
-    return p - (unsigned char *)buf;
+    return (int)(p - (unsigned char *)buf);
 }
 
 // Flush any remaining encoder state and then write the end-of-stream
@@ -222,7 +222,7 @@ int qoifinish(struct qoiencoder *q, void *buf)
     }
     *p++ = 0; *p++ = 0; *p++ = 0; *p++ = 0;
     *p++ = 0; *p++ = 0; *p++ = 0; *p++ = 1;
-    return p - (unsigned char *)buf;
+    return (int)(p - (unsigned char *)buf);
 }
 
 #endif
