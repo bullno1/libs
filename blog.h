@@ -212,7 +212,11 @@ blog_init(const blog_options_t* options) {
 			if (depth == 0) { break; }
 		}
 
-		if (current_filename[i] == '/' || current_filename[i] == '\\') {
+		if (
+			i >= 0
+			&&
+			(current_filename[i] == '/' || current_filename[i] == '\\')
+		) {
 			i += 1;
 		}
 
