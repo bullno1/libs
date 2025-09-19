@@ -21,7 +21,7 @@
 	AUTOLIST__SECTION_BEGIN(LIST_NAME) \
 	const autolist_entry_t* const AUTOLIST__CONCAT4(LIST_NAME, _, ITEM_NAME, _info_ptr) = \
 		&AUTOLIST__CONCAT4(LIST_NAME, _, ITEM_NAME, _entry); \
-	AUTOLIST__SECTION_END
+	AUTOLIST__SECTION_END(AUTOLIST__CONCAT4(LIST_NAME, _, ITEM_NAME, _info_ptr))
 
 #define AUTOLIST_FOREACH(ITR, LIST_NAME) \
 	for ( \
@@ -52,11 +52,13 @@
 #endif
 
 #if defined(_MSC_VER)
-#	define AUTOLIST__SECTION_END __pragma(data_seg(pop));
+#	define AUTOLIST__SECTION_END(INFO_PTR) \
+	__pragma(data_seg(pop)); \
+	__pragma(comment(linker, "/INCLUDE:" AUTOLIST__STRINGIFY(INFO_PTR)));
 #elif defined(__APPLE__)
-#	define AUTOLIST__SECTION_END
+#	define AUTOLIST__SECTION_END(INFO_PTR)
 #elif defined(__unix__)
-#	define AUTOLIST__SECTION_END
+#	define AUTOLIST__SECTION_END(INFO_PTR)
 #endif
 
 typedef struct {
