@@ -20,6 +20,7 @@ jobs:
       - name: Generate project
         run: premake5 vs2022
       - name: Build
+        shell: cmd
         run: |
           for /f "usebackq tokens=*" %%i in (`.github\vswhere -latest -prerelease -property installationPath`) do (
             set VS_DIR=%%i
