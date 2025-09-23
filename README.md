@@ -11,9 +11,16 @@ Collection of miscellaneous single-header libraries.
 |[barena.h](tests/barena)|Arena allocator|
 |[tlsf.h](tests/tlsf)|Adaptation of [jserv/tlsf-bsd](https://github.com/jserv/tlsf-bsd)|
 |[bhash.h](tests/bhash)|Hashtable|
+|[barray.h](barray.h)|Dynamic array|
 |[bcoro.h](tests/bcoro)|Coroutine|
 |[bserial.h](tests/bserial)|Binary serialization|
 |[bspsc.h](tests/bspscq)|Single producer single consumer queue|
+|[barg.h](barg.h)|CLI argument parsing|
+|[bmacro.h](bmacro.h)|Commonly used macros|
+|[bminmax.h](bminmax.h)|Min/Max/Clamp macros using `_Generic`|
+|[btest.h](btest.h)|Unit test framework (based on autolist)|
+|[blog.h](blog.h)|Logging, with short filenames|
+|[qoi.h](qoi.h)|Quite OK image encoding/decoding|
 
 Each one has example and documentation in the corresponding tests directory.
 
