@@ -8,6 +8,7 @@ typedef struct {
 typedef struct {
 	vec2_t position;
 	vec2_t velocity;
+	int health;
 } entity_t;
 
 #define BSV_CUSTOM_TYPES(X) \
@@ -26,10 +27,14 @@ bsv_vec2(bsv_ctx_t* ctx, vec2_t* vec2) {
 
 bsv_status_t
 bsv_entity(bsv_ctx_t* ctx, entity_t* entity) {
-	BSV_BLK(ctx, 0) {
+	BSV_BLK(ctx, 2) {
 		BSV_REV(0) {
 			BSV_ADD(&entity->position);
 			BSV_ADD(&entity->velocity);
+		}
+
+		BSV_REV(1) {
+			BSV_ADD(&entity->health);
 		}
 	}
 
@@ -46,21 +51,21 @@ print_explain(const bsv_explain_t* explain, void* userdata) {
 	switch (explain->type) {
 		case BSV_EXPLAIN_ROOT: {
 		   if (explain->scope == BSV_EXPLAIN_BEGIN_SCOPE) {
-			   printf("%*s{\n", ctx->depth++, "");
+			   printf("%*s{ // %s:%d\n", ctx->depth++, "", explain->file, explain->line);
 		   } else {
 			   printf("%*s}\n", --ctx->depth, "");
 		   }
 		} break;
 		case BSV_EXPLAIN_BLK: {
 		   if (explain->scope == BSV_EXPLAIN_BEGIN_SCOPE) {
-			   printf("%*sblk[v:%d] {\n", ctx->depth++, "", explain->version);
+			   printf("%*sblk[v:%d] { // %s:%d\n", ctx->depth++, "", explain->version, explain->file, explain->line);
 		   } else {
 			   printf("%*s}\n", --ctx->depth, "");
 		   }
 		} break;
 		case BSV_EXPLAIN_REV: {
 		   if (explain->scope == BSV_EXPLAIN_BEGIN_SCOPE) {
-			   printf("%*srev[v:%d] {\n", ctx->depth++, "", explain->version);
+			   printf("%*srev[v:%d] { // %s:%d\n", ctx->depth++, "", explain->version, explain->file, explain->line);
 		   } else {
 			   printf("%*s}\n", --ctx->depth, "");
 		   }
@@ -69,7 +74,7 @@ print_explain(const bsv_explain_t* explain, void* userdata) {
 		} break;
 		case BSV_EXPLAIN_ADD: {
 		   if (explain->scope == BSV_EXPLAIN_BEGIN_SCOPE) {
-			   printf("%*s+%s {\n", ctx->depth++, "", explain->name);
+			   printf("%*s%s { // %s:%d\n", ctx->depth++, "", explain->name, explain->file, explain->line);
 		   } else {
 			   printf("%*s}\n", --ctx->depth, "");
 		   }
