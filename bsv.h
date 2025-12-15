@@ -836,7 +836,7 @@ bsv_begin_block(bsv_ctx_t* ctx, bsv_version_t version) {
 	bsv_trace_begin(ctx, BSV_EXPLAIN_BLK);
 
 	bsv_version_t prev_version = ctx->current_blk_version;
-	ctx->max_revision = version;
+	ctx->current_blk_version = ctx->max_revision = version;
 
 	if (ctx->explain_fn != NULL) {
 		ctx->current_blk_version = version;
