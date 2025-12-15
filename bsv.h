@@ -889,11 +889,11 @@ bsv_begin_array(bsv_ctx_t* ctx, bsv_len_t* length) {
 	bsv_len_t previous_version = ctx->array_version;
 
 	if (ctx->explain_fn != NULL) {
-		ctx->array_len = 1;
+		*length = 1;
 	} else {
-		bsv_auto(ctx, &ctx->array_len);
+		bsv_auto(ctx, length);
 	}
-	*length = ctx->array_len;
+	ctx->array_len = *length;
 
 	ctx->array_version = (bsv_version_t)-1;
 	return (bsv_array_ctx_t){
