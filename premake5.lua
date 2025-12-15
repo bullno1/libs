@@ -36,9 +36,7 @@ workspace "libs"
     systemversion("10.0.22621.0")
 
   warnings "Extra"
-  flags {
-    "FatalWarnings",
-  }
+  fatalwarnings { "All" }
 
   filter { "action:vs*" }
     buildoptions {
@@ -63,3 +61,4 @@ make_project "bhash"
 make_project "bcoro"
 make_project "bserial"
 make_project "bspscq"
+make_project "bsv"
