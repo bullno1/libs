@@ -12,7 +12,8 @@ all: \
 	bin/bcoro \
 	bin/bserial \
 	bin/bspscq \
-	bin/barray
+	bin/barray \
+	bin/bsv
 
 clean:
 	rm -rf bin
@@ -76,8 +77,9 @@ bin/bspscq: tests/bspscq/main.c bspscq.h
 	$(CC) $(CFLAGS) -Itests/bspscq $(filter-out %.h, $^) -o $@
 
 bin/test-all: \
-		tests/main.c \
 		barray.h tests/barray/main.c \
-		bent.h tests/bent/shared.c tests/bent/component.c tests/bent/system.c tests/bent/reload.c
+		bent.h tests/bent/shared.c tests/bent/component.c tests/bent/system.c tests/bent/reload.c \
+		bsv.h tests/bsv/shared.c tests/bsv/basic.c tests/bsv/versioning.c \
+		tests/main.c
 	mkdir -p bin
 	$(CC) $(CFLAGS) $(filter-out %.h, $^) -o $@
