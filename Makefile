@@ -11,7 +11,8 @@ all: \
 	bin/bhash \
 	bin/bcoro \
 	bin/bserial \
-	bin/bspscq
+	bin/bspscq \
+	bin/bsv
 
 clean:
 	rm -rf bin
@@ -67,3 +68,7 @@ bin/bserial: \
 bin/bspscq: tests/bspscq/main.c bspscq.h
 	mkdir -p bin
 	$(CC) $(CFLAGS) -Itests/bspscq $(filter-out %.h, $^) -o $@
+
+bin/bsv: tests/bsv/reflect.c bsv.h
+	mkdir -p bin
+	$(CC) $(CFLAGS) -Itests/bsv $(filter-out %.h, $^) -o $@
