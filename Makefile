@@ -11,11 +11,17 @@ all: \
 	bin/bhash \
 	bin/bcoro \
 	bin/bserial \
-	bin/bspscq
+	bin/bspscq \
+	bin/barray
 
 clean:
 	rm -rf bin
 	rm -rf doc
+
+test: bin/barray bin/bserial bin/bhash bin/bspscq
+	@for p in $^; do \
+		./$$p; \
+	done
 
 doc/index.html: Doxyfile
 	doxygen
@@ -67,3 +73,7 @@ bin/bserial: \
 bin/bspscq: tests/bspscq/main.c bspscq.h
 	mkdir -p bin
 	$(CC) $(CFLAGS) -Itests/bspscq $(filter-out %.h, $^) -o $@
+
+bin/barray: tests/barray/main.c barray.h
+	mkdir -p bin
+	$(CC) $(CFLAGS) $(filter-out %.h, $^) -o $@

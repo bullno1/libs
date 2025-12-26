@@ -3,6 +3,10 @@
 
 #include <stddef.h>
 
+#ifndef BARRAY_API
+#define BARRAY_API
+#endif
+
 #define barray(T) T*
 
 #define barray_push(array, element, ctx) \
@@ -48,30 +52,30 @@
 			barray__itr.once = 0 \
 		)
 
-size_t
+BARRAY_API size_t
 barray_len(void* array);
 
-size_t
+BARRAY_API size_t
 barray_capacity(void* array);
 
-void
+BARRAY_API void
 barray_free(void* ctx, void* array);
 
-void
+BARRAY_API void
 barray_clear(void* array);
 
 // Private
 
-void*
+BARRAY_API void*
 barray__prepare_push(void* array, size_t* new_len, size_t elem_size, void* ctx);
 
-void*
+BARRAY_API void*
 barray__do_reserve(void* array, size_t new_capacity, size_t elem_size, void* ctx);
 
-void*
+BARRAY_API void*
 barray__do_resize(void* array, size_t new_len, size_t elem_size, void* ctx) ;
 
-void
+BARRAY_API void
 barray__do_pop(void* array);
 
 #if __STDC_VERSION__ >= 202311L
@@ -108,6 +112,7 @@ barray__do_pop(void* array);
 #ifdef BARRAY_USE_LIBC
 
 #include <stdlib.h>
+#include <string.h>
 
 static inline void*
 barray__libc_realloc(void* ptr, size_t size, void* ctx) {
@@ -205,17 +210,28 @@ barray__do_resize(void* array, size_t new_len, size_t elem_size, void* ctx) {
 	barray_header_t* header = barray__header_of(array);
 	size_t current_capacity = header != NULL ? header->capacity : 0;
 
+	size_t old_len = header->len;
 	if (new_len <= current_capacity) {
 		header->len = new_len;
-		return array;
 	} else {
 		barray_header_t* new_header = BARRAY_REALLOC(
 			header, sizeof(barray_header_t) + elem_size * new_len, ctx
 		);
 		new_header->capacity = new_len;
 		new_header->len = new_len;
-		return new_header->elems;
+		header = new_header;
 	}
+
+	if (new_len > old_len) {
+		// Zero new elements
+		memset(
+			header->elems + old_len * elem_size,
+			0,
+			(new_len - old_len) * elem_size
+		);
+	}
+
+	return header->elems;
 }
 
 void
