@@ -59,7 +59,7 @@ BARRAY_API size_t
 barray_capacity(void* array);
 
 BARRAY_API void
-barray_free(void* ctx, void* array);
+barray_free(void* array, void* ctx);
 
 BARRAY_API void
 barray_clear(void* array);
@@ -92,6 +92,8 @@ barray__do_pop(void* array);
 
 #ifdef BARRAY_IMPLEMENTATION
 
+#include <string.h>
+
 #ifndef BARRAY_ALIGN_TYPE
 #	ifdef _MSC_VER
 #		define BARRAY_ALIGN_TYPE long double
@@ -112,7 +114,6 @@ barray__do_pop(void* array);
 #ifdef BARRAY_USE_LIBC
 
 #include <stdlib.h>
-#include <string.h>
 
 static inline void*
 barray__libc_realloc(void* ptr, size_t size, void* ctx) {
@@ -155,7 +156,7 @@ barray_capacity(void* array) {
 }
 
 void
-barray_free(void* ctx, void* array) {
+barray_free(void* array, void* ctx) {
 	barray_header_t* header = barray__header_of(array);
 	if (header != NULL) {
 		BARRAY_REALLOC(header, 0, ctx);
