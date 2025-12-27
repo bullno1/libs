@@ -1,9 +1,10 @@
 #include "../bent.h"
 #include <assert.h>
 
-// Note: Ignore the `//! [label]` markers, it's for Doxygen
+// Note: Ignore the `//! [label]` markers, they are for for Doxygen
+// They are pushed out of the way so you don't need to pay attention to them
 
-//! [BENT_DEFINE_COMP]
+//!                                                                             [BENT_DEFINE_COMP]
 // Declare a component data type
 typedef struct {
 	float x, y;
@@ -15,9 +16,9 @@ BENT_DEFINE_COMP(transform) = {  // This is a regular designated initializer
 	.size = sizeof(transform_t),  // The most important property
 	/* .init = ... */ // Optionally with callbacks
 };
-//! [BENT_DEFINE_COMP]
+//!                                                                             [BENT_DEFINE_COMP]
 
-//! [BENT_DEFINE_POD_COMP]
+//!                                                                             [BENT_DEFINE_POD_COMP]
 // Let's define another component
 typedef struct {
 	int hp;
@@ -25,7 +26,7 @@ typedef struct {
 
 // Most components are POD (Plain old data) so there is a shortcut
 BENT_DEFINE_POD_COMP(health, health_t)
-//! [BENT_DEFINE_POD_COMP]
+//!                                                                             [BENT_DEFINE_POD_COMP]
 
 // A component can also be zero-sized, in that case it is just a tag
 
@@ -52,7 +53,7 @@ enum {
 	PHASE_RENDER = 1 << 1,
 };
 
-//! [BENT_DEFINE_SYS]
+//!                                                                             [BENT_DEFINE_SYS]
 // Start with some callbacks
 
 // Called during update
@@ -91,7 +92,7 @@ BENT_DEFINE_SYS(health_bar) = {
 	// And cleaned upp
 	/* .cleanup = health_bar_cleanup */
 };
-//! [BENT_DEFINE_SYS]
+//!                                                                             [BENT_DEFINE_SYS]
 
 // See it in action
 int
@@ -105,12 +106,12 @@ main(int argc, const char* arg[]) {
 	bent_t ent = bent_create(world);
 
 	// Component can be added directly
-	//! [bent_add]
+	//!                                                                         [bent_add]
 	bent_add(world, ent, transform, &(transform_t){
 		.x = 10,
 		.y = 11,
 	});
-	//! [bent_add]
+	//!                                                                         [bent_add]
 
 	// Or using a type-safe helper
 	bent_add_health(world, ent, &(health_t){
