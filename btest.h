@@ -156,6 +156,10 @@ btest_cleanup(void) {
 
 #ifdef BTEST_INCLUDE_DEFAULT_RUNNER
 
+#ifndef BTEST_LOG_DEPTH
+#define BTEST_LOG_DEPTH 2 /* deps/blibs/btest.h */
+#endif
+
 int
 main(int argc, const char* argv[]) {
 	const char* suite_filter = NULL;
@@ -169,7 +173,7 @@ main(int argc, const char* argv[]) {
 
 	blog_init(&(blog_options_t){
 		.current_filename = __FILE__,
-		.current_depth_in_project = 1,
+		.current_depth_in_project = BTEST_LOG_DEPTH,
 	});
 	blog_add_file_logger(BLOG_LEVEL_DEBUG, &(blog_file_logger_options_t){
 		.file = stderr,

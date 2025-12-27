@@ -18,7 +18,7 @@ clean:
 	rm -rf bin
 	rm -rf doc
 
-test: bin/barray bin/bserial bin/bhash bin/bspscq
+test: bin/test-all bin/bserial bin/bhash bin/bspscq
 	@set -e; \
 	for p in $^; do \
 		./$$p; \
@@ -75,6 +75,9 @@ bin/bspscq: tests/bspscq/main.c bspscq.h
 	mkdir -p bin
 	$(CC) $(CFLAGS) -Itests/bspscq $(filter-out %.h, $^) -o $@
 
-bin/barray: tests/barray/main.c barray.h
+bin/test-all: \
+		tests/main.c \
+		barray.h tests/barray/main.c \
+		bent.h tests/bent/shared.c tests/bent/component.c tests/bent/system.c tests/bent/reload.c
 	mkdir -p bin
 	$(CC) $(CFLAGS) $(filter-out %.h, $^) -o $@

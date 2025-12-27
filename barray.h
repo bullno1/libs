@@ -211,7 +211,7 @@ barray__do_resize(void* array, size_t new_len, size_t elem_size, void* ctx) {
 	barray_header_t* header = barray__header_of(array);
 	size_t current_capacity = header != NULL ? header->capacity : 0;
 
-	size_t old_len = header->len;
+	size_t old_len = header != NULL ? header->len : 0;
 	if (new_len <= current_capacity) {
 		header->len = new_len;
 	} else {
