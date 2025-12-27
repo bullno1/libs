@@ -51,7 +51,7 @@
  *
  * @param NAME name of the component type
  */
-#define BENT_COMP_DECLARE(NAME) \
+#define BENT_DECLARE_COMP(NAME) \
 	extern bent_comp_reg_t NAME;
 
 /**
@@ -60,8 +60,8 @@
  * @param NAME name of the component type
  * @param TYPE type of the component's data
  */
-#define BENT_COMP_DEFINE_GETTER(NAME, TYPE) \
-	static inline TYPE* bent_get_##TYPE(bent_world_t* world, bent_id_t entity) { \
+#define BENT_DEFINE_COMP_GETTER(NAME, TYPE) \
+	static inline TYPE* bent_get_##NAME(bent_world_t* world, bent_t entity) { \
 		return bent_get(world, entity, NAME); \
    	}
 
@@ -71,8 +71,8 @@
  * @param NAME name of the component type
  * @param TYPE type of the component's data
  */
-#define BENT_COMP_DEFINE_ADDER(NAME, TYPE) \
-	BENT_COMP_DEFINE_ADDER_EX(NAME, TYPE, TYPE)
+#define BENT_DEFINE_COMP_ADDER(NAME, TYPE) \
+	BENT_DEFINE_COMP_ADDER_EX(NAME, TYPE, TYPE)
 
 /**
  * Define a type-safe helper function to add a component.
@@ -81,32 +81,46 @@
  * @param COM_TYPE type of the component's data
  * @param ARG_TYPE type of the constructor argument
  */
-#define BENT_COMP_DEFINE_ADDER_EX(NAME, COMP_TYPE, ARG_TYPE) \
-	static inline COMP_TYPE* bent_add_##TYPE(bent_world_t* world, bent_id_t entity, const ARG_TYPE* arg) { \
+#define BENT_DEFINE_COMP_ADDER_EX(NAME, COMP_TYPE, ARG_TYPE) \
+	static inline COMP_TYPE* bent_add_##NAME(bent_world_t* world, bent_t entity, ARG_TYPE* arg) { \
 		return bent_add(world, entity, NAME, arg); \
    	}
 
 /**
  * Define a component type
  *
+ * This must be followed with an initializer list for the type @ref bent_comp_def_t.
+ *
  * @param NAME name of the component type
+ *
+ * Example:
+ *
+ * @snippet samples/bent.c BENT_DEFINE_COMP
  *
  * @hideinitializer
  */
-#define BENT_COMP_DEFINE(NAME) \
+#define BENT_DEFINE_COMP(NAME) \
 	extern bent_comp_def_t BENT__COMP_DEF_NAME(NAME); \
 	bent_comp_reg_t NAME = { .def = &BENT__COMP_DEF_NAME(NAME) }; \
 	AUTOLIST_ADD_ENTRY(bent__components, NAME, NAME) \
-	bent_comp_def_t BENT__COMP_DEF_NAME(NAME) =
+	bent_comp_def_t BENT__COMP_DEF_NAME(NAME)
 
 /**
  * Define a component type, whose data is a POD (plain old data)
  *
+ * Also define the add and get helpers.
+ *
  * @param NAME name of the component type
  * @param TYPE type of the component's data
+ *
+ * Example:
+ *
+ * @snippet samples/bent.c BENT_DEFINE_POD_COMP
  */
-#define BENT_COMP_DEFINE_POD(NAME, TYPE) \
-	BENT_COMP_DEFINE(NAME) = { .size = sizeof(TYPE) };
+#define BENT_DEFINE_POD_COMP(NAME, TYPE) \
+	BENT_DEFINE_COMP(NAME) = { .size = sizeof(TYPE) }; \
+	BENT_DEFINE_COMP_ADDER(NAME, TYPE) \
+	BENT_DEFINE_COMP_GETTER(NAME, TYPE) \
 
 /**
  * Forward-declare a system.
@@ -116,7 +130,7 @@
  *
  * @param NAME name of the system
  */
-#define BENT_SYS_DECLARE(NAME) \
+#define BENT_DECLARE_SYS(NAME) \
 	extern bent_sys_reg_t NAME;
 
 /**
@@ -124,21 +138,25 @@
  *
  * This must be followed with an initializer list for the type @ref bent_sys_def_t.
  *
+ * @param NAME name of the system
+ *
+ * Example:
+ * @snippet samples/bent.c BENT_DEFINE_SYS
+ *
  * @hideinitializer
  */
-#define BENT_SYS_DEFINE(NAME) \
+#define BENT_DEFINE_SYS(NAME) \
 	extern bent_sys_def_t BENT__SYS_DEF_NAME(NAME); \
 	bent_sys_reg_t NAME = { .def = &BENT__SYS_DEF_NAME(NAME) }; \
-	REMODULE_PERSIST_VAR(NAME) \
 	AUTOLIST_ADD_ENTRY(bent__systems, NAME, NAME) \
-	bent_sys_def_t BENT__SYS_DEF_NAME(NAME) =
+	bent_sys_def_t BENT__SYS_DEF_NAME(NAME)
 
 /**
  * Helper for a null-terminated component list.
  *
  * To be used inside a @ref bent_sys_def_t.
  */
-#define BENT_COMP_LIST(...) (bent_comp_reg_t[]){ __VA_ARGS__, 0 }
+#define BENT_COMP_LIST(...) (bent_comp_reg_t*[]){ __VA_ARGS__, 0 }
 
 /*! Handle to an entity world */
 typedef struct bent_world_s bent_world_t;
@@ -171,10 +189,12 @@ typedef struct {
 	bent_index_t index;
 	bent_index_t gen;
 #endif
-} bent_id_t;
+} bent_t;
 
 /**
  * Component type definition.
+ *
+ * @see BENT_DEFINE_COMP
  */
 typedef struct {
 	/**
@@ -216,7 +236,7 @@ typedef struct {
  *
  * All members should be considered opaque.
  *
- * @see BENT_COMP_DECLARE
+ * @see BENT_DECLARE_COMP
  */
 typedef struct {
 #ifndef DOXYGEN
@@ -227,6 +247,8 @@ typedef struct {
 
 /**
  * System definition.
+ *
+ * @see BENT_DEFINE_SYS
  */
 typedef struct {
 	/**
@@ -312,7 +334,7 @@ typedef struct {
 	 * @see bent_add
 	 * @see bent_remove
 	 */
-	void (*add)(void* userdata, bent_world_t* world, bent_id_t entity);
+	void (*add)(void* userdata, bent_world_t* world, bent_t entity);
 
 	/**
 	 * Optional addition callback.
@@ -329,7 +351,7 @@ typedef struct {
 	 * @see bent_remove
 	 * @see bent_destroy
 	 */
-	void (*remove)(void* userdataata, bent_world_t* world, bent_id_t entity);
+	void (*remove)(void* userdataata, bent_world_t* world, bent_t entity);
 
 	/**
 	 * Optional update callback.
@@ -348,7 +370,7 @@ typedef struct {
 		void* userdata,
 		bent_world_t* world,
 		bent_mask_t update_mask,
-		bent_id_t* entities,
+		bent_t* entities,
 		bent_index_t num_entities
 	);
 } bent_sys_def_t;
@@ -397,9 +419,9 @@ bent_cleanup(bent_world_t** world_ptr);
  * @param world the world
  * @return a new entity handle
  *
- * @see bent_id_t
+ * @see bent_t
  */
-BENT_API bent_id_t
+BENT_API bent_t
 bent_create(bent_world_t* world);
 
 /**
@@ -414,7 +436,7 @@ bent_create(bent_world_t* world);
  * @see bent_is_active
  */
 BENT_API void
-bent_destroy(bent_world_t* world, bent_id_t entity);
+bent_destroy(bent_world_t* world, bent_t entity);
 
 /**
  * Check whether an entity is flagged for destruction
@@ -426,7 +448,7 @@ bent_destroy(bent_world_t* world, bent_id_t entity);
  * @see bent_destroy
  */
 BENT_API bool
-bent_is_active(bent_world_t* world, bent_id_t entity);
+bent_is_active(bent_world_t* world, bent_t entity);
 
 /**
  * Add a component to an entity
@@ -440,12 +462,16 @@ bent_is_active(bent_world_t* world, bent_id_t entity);
  * @param arg argument to pass to @ref bent_comp_def_t::init
  * @return component data
  *
- * @see BENT_COMP_DEFINE
- * @see BENT_COMP_DECLARE
- * @see BENT_COMP_DEFINE_ADDER
+ * Example:
+ *
+ * @snippet samples/bent.c bent_add
+ *
+ * @see BENT_DEFINE_COMP
+ * @see BENT_DECLARE_COMP
+ * @see BENT_DEFINE_COMP_ADDER
  */
 BENT_API void*
-bent_add(bent_world_t* world, bent_id_t entity, bent_comp_reg_t comp, void* arg);
+bent_add(bent_world_t* world, bent_t entity, bent_comp_reg_t comp, void* arg);
 
 /**
  * Remove a component from an entity
@@ -456,11 +482,11 @@ bent_add(bent_world_t* world, bent_id_t entity, bent_comp_reg_t comp, void* arg)
  * @param entity an entity handle
  * @param comp a component's registration handle
  *
- * @see BENT_COMP_DEFINE
- * @see BENT_COMP_DECLARE
+ * @see BENT_DEFINE_COMP
+ * @see BENT_DECLARE_COMP
  */
 BENT_API void
-bent_remove(bent_world_t* world, bent_id_t entity, bent_comp_reg_t comp);
+bent_remove(bent_world_t* world, bent_t entity, bent_comp_reg_t comp);
 
 /**
  * Retrieve a component's data from an entity
@@ -471,12 +497,12 @@ bent_remove(bent_world_t* world, bent_id_t entity, bent_comp_reg_t comp);
  * @return component's data or `NULL` if the entity does not have this component
  *
  * @remarks If the component has a zero size, this will always return `NULL`.
- *     For "tag" components, use @ref ent_has instead.
+ *     For "tag" components, use @ref bent_has instead.
  *
- * @see BENT_COMP_DEFINE_GETTER
+ * @see BENT_DEFINE_COMP_GETTER
  */
 BENT_API void*
-bent_get(bent_world_t* world, bent_id_t entity, bent_comp_reg_t comp);
+bent_get(bent_world_t* world, bent_t entity, bent_comp_reg_t comp);
 
 /**
  * Check whether an entity has a component
@@ -487,7 +513,7 @@ bent_get(bent_world_t* world, bent_id_t entity, bent_comp_reg_t comp);
  * @return whether the entity has the component
  */
 BENT_API bool
-bent_has(bent_world_t* world, bent_id_t entity, bent_comp_reg_t comp);
+bent_has(bent_world_t* world, bent_t entity, bent_comp_reg_t comp);
 
 /**
  * Retrieve a system's private data
@@ -514,7 +540,7 @@ bent_get_sys_data(bent_world_t* world, bent_sys_reg_t sys);
  * @see bent_sys_def_t::exclude
  */
 BENT_API bool
-bent_match(bent_world_t* world, bent_sys_reg_t sys, bent_id_t entity);
+bent_match(bent_world_t* world, bent_sys_reg_t sys, bent_t entity);
 
 /**
  * Run all systems matching the update mask
@@ -616,7 +642,7 @@ typedef struct {
 	bent_bitset_t require;
 	bent_bitset_t exclude;
 	barray(bent_index_t) sparse;
-	barray(bent_id_t) dense;
+	barray(bent_t) dense;
 	const bent_sys_def_t* def;
 	char* name;
 	void* userdata;
@@ -642,7 +668,7 @@ struct bent_world_s {
 	barray(bent_system_data_t) systems;
 	barray(bent_entity_data_t) entities;
 	barray(bent_index_t) free_indices;
-	barray(bent_id_t) destroy_queue;
+	barray(bent_t) destroy_queue;
 	bent_component_data_t components[BENT_MAX_NUM_COMPONENT_TYPES];
 	bent_index_t num_components;
 };
@@ -786,7 +812,7 @@ bent_sys_match_impl(const bent_system_data_t* sys, const bent_bitset_t* componen
 }
 
 static void
-bent_sys_add_entity(bent_world_t* world, bent_system_data_t* sys, bent_id_t entity) {
+bent_sys_add_entity(bent_world_t* world, bent_system_data_t* sys, bent_t entity) {
 	bent_index_t sparse_size = barray_len(sys->sparse);
 	if (entity.index - 1 >= sparse_size) {
 		bent_index_t new_sparse_size = sparse_size * 2 > entity.index ? sparse_size * 2 : entity.index;
@@ -801,9 +827,9 @@ bent_sys_add_entity(bent_world_t* world, bent_system_data_t* sys, bent_id_t enti
 }
 
 static void
-bent_sys_remove_entity(bent_world_t* world, bent_system_data_t* sys, bent_id_t entity) {
+bent_sys_remove_entity(bent_world_t* world, bent_system_data_t* sys, bent_t entity) {
 	bent_index_t dense_index = sys->sparse[entity.index - 1];
-	bent_id_t last_entity = barray_pop(sys->dense);
+	bent_t last_entity = barray_pop(sys->dense);
 	sys->dense[dense_index] = last_entity;
 	sys->sparse[last_entity.index - 1] = dense_index;
 
@@ -879,14 +905,14 @@ bent_sys_init(
 		const bent_bitset_t* components = &entity->components;
 		if (bent_sys_match_impl(&old_sys, components)) {
 			if (!bent_sys_match_impl(sys, components)) {
-				bent_sys_remove_entity(world, sys, (bent_id_t){
+				bent_sys_remove_entity(world, sys, (bent_t){
 					.index = i + 1,
 					.gen = entity->generation,
 				});
 			}
 		} else {
 			if (bent_sys_match_impl(sys, components)) {
-				bent_sys_add_entity(world, sys, (bent_id_t){
+				bent_sys_add_entity(world, sys, (bent_t){
 					.index = i + 1,
 					.gen = entity->generation,
 				});
@@ -913,7 +939,7 @@ bent_sys_cleanup(bent_world_t* world, bent_system_data_t* sys) {
 static void
 bent_notify_systems(
 	bent_world_t* world,
-	bent_id_t entity,
+	bent_t entity,
 	const bent_bitset_t* old_components,
 	const bent_bitset_t* new_components
 ) {
@@ -935,7 +961,7 @@ bent_notify_systems(
 // }}}
 
 static void
-bent_destroy_immediately(bent_world_t* world, bent_id_t entity_id) {
+bent_destroy_immediately(bent_world_t* world, bent_t entity_id) {
 	const bent_bitset_t* components = &world->entities[entity_id.index - 1].components;
 
 	bent_index_t num_systems = barray_len(world->systems);
@@ -966,7 +992,7 @@ bent_destroy_immediately(bent_world_t* world, bent_id_t entity_id) {
 }
 
 static bent_entity_data_t*
-bent_entity_data(bent_world_t* world, bent_id_t entity_id) {
+bent_entity_data(bent_world_t* world, bent_t entity_id) {
 	if (entity_id.index == 0) { return NULL; }
 
 	bent_entity_data_t* entity_data = &world->entities[entity_id.index - 1];
@@ -1054,7 +1080,7 @@ bent_cleanup(bent_world_t** world_ptr) {
 	bent_index_t num_entities = barray_len(world->entities);
 	for (bent_index_t i = 0; i < num_entities; ++i) {
 		if (!world->entities[i].destroyed) {
-			bent_destroy_immediately(world, (bent_id_t){
+			bent_destroy_immediately(world, (bent_t){
 				.index = i + 1,
 				.gen = world->entities[i].generation,
 			});
@@ -1080,7 +1106,7 @@ bent_cleanup(bent_world_t** world_ptr) {
 	*world_ptr = NULL;
 }
 
-bent_id_t
+bent_t
 bent_create(bent_world_t* world) {
 	bent_index_t index;
 	if (barray_len(world->free_indices) > 0) {
@@ -1091,14 +1117,14 @@ bent_create(bent_world_t* world) {
 		index = barray_len(world->entities);
 		barray_push(world->entities, (bent_entity_data_t){ 0 }, world->memctx);
 	}
-	return (bent_id_t){
+	return (bent_t){
 		.index = index + 1,
 		.gen = world->entities[index].generation,
 	};
 }
 
 void
-bent_destroy(bent_world_t* world, bent_id_t entity_id) {
+bent_destroy(bent_world_t* world, bent_t entity_id) {
 	bent_entity_data_t* entity_data = bent_entity_data(world, entity_id);
 	if (entity_data == NULL) { return; }
 
@@ -1112,12 +1138,12 @@ bent_destroy(bent_world_t* world, bent_id_t entity_id) {
 }
 
 bool
-bent_is_active(bent_world_t* world, bent_id_t entity_id) {
+bent_is_active(bent_world_t* world, bent_t entity_id) {
 	return bent_entity_data(world, entity_id) != NULL;
 }
 
 void*
-bent_add(bent_world_t* world, bent_id_t entity_id, bent_comp_reg_t reg, void* arg) {
+bent_add(bent_world_t* world, bent_t entity_id, bent_comp_reg_t reg, void* arg) {
 	bent_entity_data_t* entity_data = bent_entity_data(world, entity_id);
 	if (entity_data == NULL) { return NULL; }
 
@@ -1156,7 +1182,7 @@ bent_add(bent_world_t* world, bent_id_t entity_id, bent_comp_reg_t reg, void* ar
 }
 
 void
-bent_remove(bent_world_t* world, bent_id_t entity_id, bent_comp_reg_t reg) {
+bent_remove(bent_world_t* world, bent_t entity_id, bent_comp_reg_t reg) {
 	bent_entity_data_t* entity_data = bent_entity_data(world, entity_id);
 	if (entity_data == NULL) { return; }
 
@@ -1176,7 +1202,7 @@ bent_remove(bent_world_t* world, bent_id_t entity_id, bent_comp_reg_t reg) {
 }
 
 void*
-bent_get(bent_world_t* world, bent_id_t entity_id, bent_comp_reg_t reg) {
+bent_get(bent_world_t* world, bent_t entity_id, bent_comp_reg_t reg) {
 	const bent_entity_data_t* entity_data = bent_entity_data(world, entity_id);
 	if (entity_data == NULL) { return NULL; }
 
@@ -1188,7 +1214,7 @@ bent_get(bent_world_t* world, bent_id_t entity_id, bent_comp_reg_t reg) {
 }
 
 bool
-bent_has(bent_world_t* world, bent_id_t entity_id, bent_comp_reg_t reg) {
+bent_has(bent_world_t* world, bent_t entity_id, bent_comp_reg_t reg) {
 	const bent_entity_data_t* entity_data = bent_entity_data(world, entity_id);
 	if (entity_data == NULL) { return NULL; }
 
@@ -1228,7 +1254,7 @@ bent_run(bent_world_t* world, bent_mask_t update_mask) {
 }
 
 bool
-bent_match(bent_world_t* world, bent_sys_reg_t reg, bent_id_t entity_id) {
+bent_match(bent_world_t* world, bent_sys_reg_t reg, bent_t entity_id) {
 	const bent_entity_data_t* entity_data = bent_entity_data(world, entity_id);
 	if (entity_data == NULL) { return false; }
 
