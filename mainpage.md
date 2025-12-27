@@ -10,6 +10,14 @@ Collection of miscellaneous single-header libraries.
 |@ref bserial.h|Serialization|
 |@ref bspscq.h|Single producer single consumer queue|
 
+The following libraries are not self-contained.
+They depend on other libraries in this repository.
+
+|Library|Description|
+|-------|-----------|
+|@ref btest.h|Unit testing framework with automatic test registration|
+|@ref bent.h|Hot reload aware entity component system|
+
 ## On allocator
 
 Whenever a library needs to allocate memory a `memctx` argument can be passed to it.
