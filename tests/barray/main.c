@@ -12,6 +12,8 @@ BTEST(array, order) {
 
 	BTEST_EXPECT_EQUAL("%d", arr[0], 3);
 	BTEST_EXPECT_EQUAL("%d", arr[1], 4);
+
+	barray_free(arr, NULL);
 }
 
 BTEST(array, resize_must_zero) {
@@ -23,6 +25,8 @@ BTEST(array, resize_must_zero) {
 	for (int i = 1; i < 4; ++i) {
 		BTEST_EXPECT_EQUAL("%d", arr[i], 0);
 	}
+
+	barray_free(arr, NULL);
 }
 
 #define BTEST_INCLUDE_DEFAULT_RUNNER

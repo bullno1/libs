@@ -19,7 +19,8 @@ clean:
 	rm -rf doc
 
 test: bin/barray bin/bserial bin/bhash bin/bspscq
-	@for p in $^; do \
+	@set -e; \
+	for p in $^; do \
 		./$$p; \
 	done
 
