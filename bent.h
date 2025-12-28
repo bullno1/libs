@@ -118,9 +118,7 @@
  * @snippet samples/bent.c BENT_DEFINE_POD_COMP
  */
 #define BENT_DEFINE_POD_COMP(NAME, TYPE) \
-	BENT_DEFINE_COMP(NAME) = { .size = sizeof(TYPE) }; \
-	BENT_DEFINE_COMP_ADDER(NAME, TYPE) \
-	BENT_DEFINE_COMP_GETTER(NAME, TYPE) \
+	BENT_DEFINE_COMP(NAME) = { .size = sizeof(TYPE) };
 
 /**
  * Forward-declare a system.
@@ -234,13 +232,13 @@ typedef struct {
 /**
  * A handle to a component's registration.
  *
- * All members should be considered opaque.
- *
  * @see BENT_DECLARE_COMP
  */
 typedef struct {
-#ifndef DOXYGEN
+	/*! Reference to the corresponding component definition */
 	const bent_comp_def_t* def;
+
+#ifndef DOXYGEN
 	bent_index_t id;
 #endif
 } bent_comp_reg_t;
@@ -381,8 +379,10 @@ typedef struct {
  * All members should be considered opaque.
  */
 typedef struct {
-#ifndef DOXYGEN
+	/*! Reference to the corresponding system definition */
 	const bent_sys_def_t* def;
+
+#ifndef DOXYGEN
 	bent_index_t id;
 #endif
 } bent_sys_reg_t;
@@ -462,6 +462,9 @@ bent_is_active(bent_world_t* world, bent_t entity);
  * @param arg argument to pass to @ref bent_comp_def_t::init
  * @return component data
  *
+ * @remarks The returned pointer is temporary.
+ *     Any further interaction with the same world may invalidate it.
+ *
  * Example:
  *
  * @snippet samples/bent.c bent_add
@@ -498,6 +501,8 @@ bent_remove(bent_world_t* world, bent_t entity, bent_comp_reg_t comp);
  *
  * @remarks If the component has a zero size, this will always return `NULL`.
  *     For "tag" components, use @ref bent_has instead.
+ *     The returned pointer is temporary.
+ *     Any further interaction with the world may invalidate it.
  *
  * @see BENT_DEFINE_COMP_GETTER
  */
@@ -712,7 +717,7 @@ bent_dyn_array_ensure_length(
 
 static void
 bent_dyn_array_cleanup(bent_dyn_array_t* array, void* memctx) {
-	BENT_REALLOC(array, 0, memctx);
+	BENT_REALLOC(array->data, 0, memctx);
 }
 
 // }}}
@@ -1003,6 +1008,9 @@ bent_entity_data(bent_world_t* world, bent_t entity_id) {
 
 bool
 bent_init(bent_world_t** world_ptr, void* memctx) {
+	(void)barray__do_reserve;
+	(void)barray_capacity;
+
 	bent_world_t* world = *world_ptr;
 	bool first_init = world == NULL;
 	if (world == NULL) {
@@ -1033,6 +1041,7 @@ bent_init(bent_world_t** world_ptr, void* memctx) {
 			reg->id = ++world->num_components;  // 1-based
 		}
 
+		world->num_components = reg->id > world->num_components ? reg->id : world->num_components;
 		bent_comp_init(
 			world,
 			&world->components[reg->id - 1],
@@ -1069,6 +1078,7 @@ bent_init(bent_world_t** world_ptr, void* memctx) {
 		);
 	}
 
+	*world_ptr = world;
 	return first_init;
 }
 

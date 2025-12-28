@@ -24,9 +24,12 @@ typedef struct {
 	int hp;
 } health_t;
 
-// Most components are POD (Plain old data) so there is a shortcut
+// Most components do not have init or cleanup so there is a shortcut
 BENT_DEFINE_POD_COMP(health, health_t)
 //!                                                                             [BENT_DEFINE_POD_COMP]
+
+BENT_DEFINE_COMP_ADDER(health, health_t)
+BENT_DEFINE_COMP_GETTER(health, health_t)
 
 // A component can also be zero-sized, in that case it is just a tag
 

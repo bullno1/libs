@@ -156,8 +156,6 @@ btest_cleanup(void) {
 
 #ifdef BTEST_INCLUDE_DEFAULT_RUNNER
 
-#include "blog.h"
-
 #ifndef BTEST_LOG_DEPTH
 #define BTEST_LOG_DEPTH 2 /* deps/blibs/btest.h */
 #endif

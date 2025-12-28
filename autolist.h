@@ -1,6 +1,11 @@
 #ifndef AUTOLIST_H
 #define AUTOLIST_H
 
+/**
+ * @file
+ * @brief A list of items collected from all compilation units.
+ */
+
 #include <stddef.h>
 
 #define AUTOLIST_ENTRY(LIST_NAME, ITEM_TYPE, ITEM_NAME) \
