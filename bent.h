@@ -623,7 +623,7 @@ bent__libc_realloc(void* ptr, size_t size, void* ctx) {
 // If it is compiled in the same unit, honor the existing symbol decision>
 
 #ifndef BARRAY_IMPLEMENTATION
-#define BARRAY_API static
+#define BARRAY_API static inline
 #define BARRAY_IMPLEMENTATION
 #include "barray.h"
 #endif
@@ -1008,9 +1008,6 @@ bent_entity_data(bent_world_t* world, bent_t entity_id) {
 
 bool
 bent_init(bent_world_t** world_ptr, void* memctx) {
-	(void)barray__do_reserve;
-	(void)barray_capacity;
-
 	bent_world_t* world = *world_ptr;
 	bool first_init = world == NULL;
 	if (world == NULL) {
