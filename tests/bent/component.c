@@ -1,4 +1,4 @@
-#include "../../bent.h"
+#include "shared.h"
 #include "../../btest.h"
 #include <string.h>
 
@@ -18,20 +18,12 @@ cleanup_per_test(void) {
 }
 
 static btest_suite_t bent = {
-	.name = "bent",
+	.name = "bent/component",
 	.init_per_test = init_per_test,
 	.cleanup_per_test = cleanup_per_test,
 };
 
-BENT_DEFINE_COMP(basic_component) = {
-	.size = sizeof(int),
-};
-
-BENT_DEFINE_COMP(basic_component2) = {
-	.size = sizeof(float),
-};
-
-BTEST(bent, component_basic) {
+BTEST(bent, basic) {
 	bent_world_t* world = fixture.world;
 
 	bent_t ent = bent_create(world);
@@ -50,7 +42,7 @@ BTEST(bent, component_basic) {
 	BTEST_EXPECT(!bent_is_active(world, ent));
 }
 
-BTEST(bent, component_add_remove) {
+BTEST(bent, add_remove) {
 	bent_world_t* world = fixture.world;
 
 	bent_t ent = bent_create(world);
@@ -62,7 +54,7 @@ BTEST(bent, component_add_remove) {
 	BTEST_EXPECT(!bent_has(world, ent, basic_component));
 }
 
-BTEST(bent, component_data_separate_storage) {
+BTEST(bent, data_has_separate_storage) {
 	bent_world_t* world = fixture.world;
 
 	bent_t ent1 = bent_create(world);
@@ -98,7 +90,7 @@ BTEST(bent, component_data_separate_storage) {
 	BTEST_EXPECT_EQUAL("%f", data3, 6.7f);
 }
 
-BTEST(bent, component_data_recycle_storage) {
+BTEST(bent, data_recycle_storage) {
 	bent_world_t* world = fixture.world;
 
 	bent_t ent1 = bent_create(world);
@@ -125,6 +117,3 @@ BTEST(bent, null_handle) {
 
 	bent_destroy(world, null);
 }
-
-#define BLIB_IMPLEMENTATION
-#include "../../bent.h"
