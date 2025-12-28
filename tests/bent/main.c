@@ -114,6 +114,16 @@ BTEST(bent, component_data_recycle_storage) {
 }
 
 BTEST(bent, null_handle) {
+	bent_world_t* world = fixture.world;
+
+	bent_t null = { 0 };
+	BTEST_EXPECT(!bent_is_active(world, null));
+	BTEST_EXPECT(!bent_has(world, null, basic_component));
+	BTEST_EXPECT(!bent_has(world, null, basic_component2));
+	BTEST_EXPECT_EQUAL("%p", bent_add(world, null, basic_component2, NULL), NULL);
+	BTEST_EXPECT_EQUAL("%p", bent_get(world, null, basic_component2), NULL);
+
+	bent_destroy(world, null);
 }
 
 #define BLIB_IMPLEMENTATION
