@@ -76,7 +76,8 @@ bin/bspscq: tests/bspscq/main.c bspscq.h
 	$(CC) $(CFLAGS) -Itests/bspscq $(filter-out %.h, $^) -o $@
 
 bin/test-all: \
-		 barray.h tests/barray/main.c \
-		 bent.h tests/bent/shared.c tests/bent/component.c tests/bent/system.c
+		tests/main.c \
+		barray.h tests/barray/main.c \
+		bent.h tests/bent/shared.c tests/bent/component.c tests/bent/system.c
 	mkdir -p bin
 	$(CC) $(CFLAGS) $(filter-out %.h, $^) -o $@

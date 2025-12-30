@@ -29,8 +29,16 @@ BTEST(array, resize_must_zero) {
 	barray_free(arr, NULL);
 }
 
-#define BTEST_INCLUDE_DEFAULT_RUNNER
+BTEST(array, resize_emtpy_array) {
+	barray(char) arr = NULL;
+	barray_resize(arr, 4, NULL);
+
+	for (int i = 0; i < 4; ++i) {
+		BTEST_EXPECT_EQUAL("%d", arr[i], 0);
+	}
+
+	barray_free(arr, NULL);
+}
+
 #define BLIB_IMPLEMENTATION
 #include "../../barray.h"
-#include "../../btest.h"
-#include "../../blog.h"

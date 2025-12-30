@@ -861,25 +861,21 @@ bent_sys_init(
 #endif
 
 	bent_bitset_clear(&sys->require);
-	if (def->require) {
-		for (
-			bent_comp_reg_t* comp = *def->require;
-			comp != NULL;
-			++comp
-		) {
-			bent_bitset_set(&sys->require, comp->id - 1);
-		}
+	for (
+		bent_comp_reg_t** comp = def->require;
+		comp != NULL && *comp != NULL;
+		++comp
+	) {
+		bent_bitset_set(&sys->require, (*comp)->id - 1);
 	}
 
 	bent_bitset_clear(&sys->exclude);
-	if (def->exclude) {
-		for (
-			bent_comp_reg_t* comp = *def->exclude;
-			comp != NULL;
-			++comp
-		) {
-			bent_bitset_set(&sys->exclude, comp->id - 1);
-		}
+	for (
+		bent_comp_reg_t** comp = def->exclude;
+		comp != NULL && *comp != NULL;
+		++comp
+	) {
+		bent_bitset_set(&sys->exclude, (*comp)->id - 1);
 	}
 
 	bool initialized = sys->initialized;
@@ -931,8 +927,8 @@ static void
 bent_sys_cleanup(bent_world_t* world, bent_system_data_t* sys) {
 	if (sys->def->cleanup) {
 		sys->def->cleanup(sys->userdata, world);
-		BENT_REALLOC(sys->userdata, 0, world->memctx);
 	}
+	BENT_REALLOC(sys->userdata, 0, world->memctx);
 	barray_free(sys->dense, world->memctx);
 	barray_free(sys->sparse, world->memctx);
 
@@ -1046,16 +1042,17 @@ bent_init(bent_world_t** world_ptr, void* memctx) {
 		);
 	}
 
+	// Count the number of systems first
+	bent_index_t num_systems = barray_len(world->systems);
 	AUTOLIST_FOREACH(itr, bent__systems) {
 		bent_sys_reg_t* reg = itr->value_addr;
 #ifndef BENT_NO_RELOAD
 		if (reg->id == 0) {  // Unregistered or we just reloaded
 			// Search existing systems for a match by name
-			bent_index_t num_systems = barray_len(world->systems);
-			for (bent_index_t i = 0; i < num_systems; ++i) {
+			for (bent_index_t i = 0; i < barray_len(world->systems); ++i) {
 				const bent_system_data_t* sys = &world->systems[i];
 				if (strcmp(sys->name, itr->name) == 0) {
-					reg ->id = i + 1;
+					reg->id = i + 1;
 					break;
 				}
 			}
@@ -1064,9 +1061,20 @@ bent_init(bent_world_t** world_ptr, void* memctx) {
 
 		// Still not found, register for the first time
 		if (reg->id == 0) {
-			barray_push(world->systems, (bent_system_data_t){ 0 }, world->memctx);
-			reg->id = barray_len(world->systems);  // 1-based
+			reg->id = ++num_systems;
 		}
+
+		num_systems = num_systems > reg->id ? num_systems : reg->id;
+	}
+
+	// Do a single alloc
+	if (num_systems > (bent_index_t)barray_len(world->systems)) {
+		barray_resize(world->systems, num_systems, NULL);
+	}
+
+	// (Re)initialize systems
+	AUTOLIST_FOREACH(itr, bent__systems) {
+		bent_sys_reg_t* reg = itr->value_addr;
 
 		bent_sys_init(
 			world,
