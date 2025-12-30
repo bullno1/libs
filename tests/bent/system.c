@@ -7,9 +7,15 @@ static btest_suite_t system = {
 	.cleanup_per_test = cleanup_per_test,
 };
 
+enum {
+	UPDATE_PHASE_A = 1 << 0,
+	UPDATE_PHASE_B = 1 << 1,
+};
+
 typedef struct {
 	int num_adds;
 	int num_removes;
+	int num_updates;
 } simple_system_t;
 
 static void
@@ -24,19 +30,37 @@ sys_remove_entity(void* data, bent_world_t* world, bent_t entity) {
 	++sys->num_removes;
 }
 
+static void
+sys_update(
+	void* userdata,
+	bent_world_t* world,
+	bent_mask_t update_mask,
+	bent_t* entities,
+	bent_index_t num_entities
+) {
+	simple_system_t* sys = userdata;
+	++sys->num_updates;
+}
+
 BENT_DEFINE_SYS(single_match_system1) = {
 	.size = sizeof(simple_system_t),
 	.require = BENT_COMP_LIST(&basic_component),
+	.update = sys_update,
+	.update_mask = UPDATE_PHASE_A,
 };
 
 BENT_DEFINE_SYS(single_match_system2) = {
 	.size = sizeof(simple_system_t),
 	.require = BENT_COMP_LIST(&basic_component2),
+	.update = sys_update,
+	.update_mask = UPDATE_PHASE_B,
 };
 
 BENT_DEFINE_SYS(double_match_system) = {
 	.size = sizeof(simple_system_t),
 	.require = BENT_COMP_LIST(&basic_component, &basic_component2),
+	.update = sys_update,
+	.update_mask = UPDATE_PHASE_A | UPDATE_PHASE_B,
 };
 
 BENT_DEFINE_SYS(system_with_exclusion) = {
@@ -45,6 +69,7 @@ BENT_DEFINE_SYS(system_with_exclusion) = {
 	.exclude = BENT_COMP_LIST(&basic_component2),
 	.add = sys_add_entity,
 	.remove = sys_remove_entity,
+	.update = sys_update,
 };
 
 BTEST(system, basic_match) {
@@ -106,4 +131,26 @@ BTEST(system, add_remove_callback) {
 	bent_destroy(world, ent);
 	BTEST_EXPECT_EQUAL("%d", sys->num_adds, 2);
 	BTEST_EXPECT_EQUAL("%d", sys->num_removes, 2);
+}
+
+BTEST(system, update_mask) {
+	bent_world_t* world = fixture.world;
+
+	simple_system_t* a = bent_get_sys_data(world, single_match_system1);
+	simple_system_t* b = bent_get_sys_data(world, single_match_system2);
+	simple_system_t* c = bent_get_sys_data(world, double_match_system);
+
+	BTEST_EXPECT_EQUAL("%d", a->num_updates, 0);
+	BTEST_EXPECT_EQUAL("%d", b->num_updates, 0);
+	BTEST_EXPECT_EQUAL("%d", c->num_updates, 0);
+
+	bent_run(world, UPDATE_PHASE_A);
+	BTEST_EXPECT_EQUAL("%d", a->num_updates, 1);
+	BTEST_EXPECT_EQUAL("%d", b->num_updates, 0);
+	BTEST_EXPECT_EQUAL("%d", c->num_updates, 1);
+
+	bent_run(world, UPDATE_PHASE_B);
+	BTEST_EXPECT_EQUAL("%d", a->num_updates, 1);
+	BTEST_EXPECT_EQUAL("%d", b->num_updates, 1);
+	BTEST_EXPECT_EQUAL("%d", c->num_updates, 2);
 }
