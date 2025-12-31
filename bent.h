@@ -1079,7 +1079,7 @@ bent_init(bent_world_t** world_ptr, void* memctx) {
 
 	// Do a single alloc
 	if (num_systems > (bent_index_t)barray_len(world->systems)) {
-		barray_resize(world->systems, num_systems, NULL);
+		barray_resize(world->systems, num_systems, world->memctx);
 	}
 
 	// (Re)initialize systems
@@ -1170,7 +1170,7 @@ bent_destroy(bent_world_t* world, bent_t entity_id) {
 	entity_data->destroyed = true;
 	++entity_data->generation;  // Prevent futher interaction
 	if (world->defer_destruction) {
-		barray_push(world->destroy_queue, entity_id, NULL);
+		barray_push(world->destroy_queue, entity_id, world->memctx);
 	} else {
 		bent_destroy_immediately(world, entity_id);
 	}
