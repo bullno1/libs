@@ -394,7 +394,7 @@ typedef struct {
  * All callbacks and system's or component's properties will be automatically
  * updated.
  *
- * @param world_ptr pointer to a world handle
+ * @param world_ptr pointer to a world
  * @param memctx memory allocator context
  * @return Whether this is the first initialization.
  *     The application can used the value to load initial data.
@@ -408,10 +408,20 @@ bent_init(bent_world_t** world_ptr, void* memctx);
  * All entities will be destroyed and all memory will be freed.
  * Calling this on a `NULL` pointer is safe.
  *
- * @param world_ptr pointer to a world handle
+ * @param world_ptr pointer to a world
  */
 BENT_API void
 bent_cleanup(bent_world_t** world_ptr);
+
+/**
+ * Retrieves the memory context of a world.
+ *
+ * This allows systems to use the same memory allocator as the world.
+ *
+ * @param world_ptr pointer to a world
+ */
+BENT_API void*
+bent_memctx(bent_world_t* world);
 
 /**
  * Create a new empty entity
@@ -1129,6 +1139,11 @@ bent_cleanup(bent_world_t** world_ptr) {
 	BENT_REALLOC(world, 0, world->memctx);
 
 	*world_ptr = NULL;
+}
+
+void*
+bent_memctx(bent_world_t* world) {
+	return world->memctx;
 }
 
 bent_t
