@@ -68,6 +68,11 @@ BENT_DEFINE_SYS(system_with_exclusion) = {
 	.update = sys_update,
 };
 
+// Empty system to test edge case behavior
+BENT_DEFINE_SYS(dummy) = {
+	.size = 0,
+};
+
 BTEST(system, basic_match) {
 	bent_world_t* world = fixture.world;
 
@@ -77,6 +82,7 @@ BTEST(system, basic_match) {
 	BTEST_EXPECT(!bent_match(world, single_match_system2, ent));
 	BTEST_EXPECT(!bent_match(world, double_match_system, ent));
 	BTEST_EXPECT(!bent_match(world, system_with_exclusion, ent));
+	BTEST_EXPECT(bent_match(world, dummy, ent));
 
 	bent_add(world, ent, basic_component, NULL);
 	BTEST_EXPECT(bent_match(world, single_match_system1, ent));

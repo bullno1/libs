@@ -28,6 +28,27 @@ static btest_suite_t reload = {
 	.cleanup_per_test = cleanup_per_reload_test,
 };
 
+typedef struct {
+	int num_inits;
+} reinit_data_t;
+
+static void
+count_init(void* userdata, bent_world_t* world) {
+	reinit_data_t* sys = userdata;
+	++sys->num_inits;
+}
+
+BENT_DEFINE_SYS(without_reinit) = {
+	.size = sizeof(reinit_data_t),
+	.init = count_init,
+};
+
+BENT_DEFINE_SYS(with_reinit) = {
+	.size = sizeof(reinit_data_t),
+	.init = count_init,
+	.allow_reinit = true,
+};
+
 BTEST(reload, reload_with_new_match) {
 	bent_world_t* world = reload_fixture.world;
 
@@ -54,4 +75,19 @@ BTEST(reload, reload_with_new_match) {
 	sys = bent_get_sys_data(world, double_match_system);
 	BTEST_EXPECT_EQUAL("%d", sys->num_adds, 1);
 	BTEST_EXPECT_EQUAL("%d", sys->num_removes, 1);
+}
+
+BTEST(reload, reinit) {
+	bent_world_t* world = reload_fixture.world;
+
+	reinit_data_t* sys_without_reinit = bent_get_sys_data(world, without_reinit);
+	reinit_data_t* sys_with_reinit = bent_get_sys_data(world, with_reinit);
+	BTEST_EXPECT_EQUAL("%d", sys_without_reinit->num_inits, 1);
+	BTEST_EXPECT_EQUAL("%d", sys_with_reinit->num_inits, 1);
+
+	bent_init(&world, NULL);
+	sys_without_reinit = bent_get_sys_data(world, without_reinit);
+	sys_with_reinit = bent_get_sys_data(world, with_reinit);
+	BTEST_EXPECT_EQUAL("%d", sys_without_reinit->num_inits, 1);
+	BTEST_EXPECT_EQUAL("%d", sys_with_reinit->num_inits, 2);
 }

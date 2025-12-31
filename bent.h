@@ -617,7 +617,7 @@ bent__libc_realloc(void* ptr, size_t size, void* ctx) {
 #endif
 
 #define BARRAY_REALLOC BENT_REALLOC
-#define BENT_BITSET_LEN ((BENT_MAX_NUM_COMPONENT_TYPES + sizeof(bent_mask_t) - 1) / sizeof(bent_mask_t))
+#define BENT_BITSET_LEN ((BENT_MAX_NUM_COMPONENT_TYPES + sizeof(bent_mask_t) * CHAR_BIT - 1) / (sizeof(bent_mask_t) * CHAR_BIT))
 
 // We depend on barray but try to hide its symbols to avoid conflict.
 // If it is compiled in the same unit, honor the existing symbol decision>
@@ -1132,10 +1132,24 @@ bent_create(bent_world_t* world) {
 		index = barray_len(world->entities);
 		barray_push(world->entities, (bent_entity_data_t){ 0 }, world->memctx);
 	}
-	return (bent_t){
+
+	bent_t entity_id = {
 		.index = index + 1,
 		.gen = world->entities[index].generation,
 	};
+
+	// For completeness sake and also for consistent reload behavior, an empty
+	// entity can match some systems if they have no requirement
+	bent_bitset_t empty = { 0 };
+	bent_index_t num_systems = barray_len(world->systems);
+	for (bent_index_t i = 0; i < num_systems; ++i) {
+		bent_system_data_t* sys = &world->systems[i];
+		if (bent_sys_match_impl(sys, &empty)) {
+			bent_sys_add_entity(world, sys, entity_id);
+		}
+	}
+
+	return entity_id;
 }
 
 void
