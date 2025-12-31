@@ -889,7 +889,6 @@ bent_sys_init(
 	if (def->init && (!initialized || def->allow_reinit)) {
 		def->init(sys->userdata, world);
 	}
-	sys->initialized = true;
 
 #ifndef BENT_NO_RELOAD
 	// Update component inclusion based on new filter
@@ -904,12 +903,21 @@ bent_sys_init(
 		if (world->entities[i].destroyed) { continue; }
 
 		const bent_bitset_t* components = &entity->components;
-		if (bent_sys_match_impl(&old_sys, components)) {
-			if (!bent_sys_match_impl(sys, components)) {
-				bent_sys_remove_entity(world, sys, (bent_t){
-					.index = i + 1,
-					.gen = entity->generation,
-				});
+		if (sys->initialized) {
+			if (bent_sys_match_impl(&old_sys, components)) {
+				if (!bent_sys_match_impl(sys, components)) {
+					bent_sys_remove_entity(world, sys, (bent_t){
+						.index = i + 1,
+						.gen = entity->generation,
+					});
+				}
+			} else {
+				if (bent_sys_match_impl(sys, components)) {
+					bent_sys_add_entity(world, sys, (bent_t){
+						.index = i + 1,
+						.gen = entity->generation,
+					});
+				}
 			}
 		} else {
 			if (bent_sys_match_impl(sys, components)) {
@@ -921,6 +929,8 @@ bent_sys_init(
 		}
 	}
 #endif
+
+	sys->initialized = true;
 }
 
 static void
