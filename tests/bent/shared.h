@@ -6,10 +6,17 @@
 
 BENT_DECLARE_COMP(basic_component)
 BENT_DECLARE_COMP(basic_component2)
+BENT_DECLARE_SYS(double_match_system)
 
 static struct {
 	bent_world_t* world;
 } fixture;
+
+typedef struct {
+	int num_adds;
+	int num_removes;
+	int num_updates;
+} simple_system_t;
 
 static inline void
 init_per_test(void) {

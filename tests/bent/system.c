@@ -12,12 +12,6 @@ enum {
 	UPDATE_PHASE_B = 1 << 1,
 };
 
-typedef struct {
-	int num_adds;
-	int num_removes;
-	int num_updates;
-} simple_system_t;
-
 static void
 sys_add_entity(void* data, bent_world_t* world, bent_t entity) {
 	simple_system_t* sys = data;
@@ -61,6 +55,8 @@ BENT_DEFINE_SYS(double_match_system) = {
 	.require = BENT_COMP_LIST(&basic_component, &basic_component2),
 	.update = sys_update,
 	.update_mask = UPDATE_PHASE_A | UPDATE_PHASE_B,
+	.add = sys_add_entity,
+	.remove = sys_remove_entity,
 };
 
 BENT_DEFINE_SYS(system_with_exclusion) = {
