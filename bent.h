@@ -358,6 +358,20 @@ typedef struct {
 	void (*init)(void* userdata, bent_world_t* world);
 
 	/**
+	 * Optional post-initialization callback.
+	 *
+	 * Unlike bent_sys_def_t::init, this will always be called after every system has finished initialization.
+	 * This allows a dependent system to make queries to another system.
+	 * The @ref bent_sys_def_t::allow_reinit flag has no effect.
+	 *
+	 * @param userdata pointer to a data buffer with the size given in @ref bent_sys_def_t::size
+	 * @param world the world this system belongs to
+	 *
+	 * @see bent_init
+	 */
+	void (*post_init)(void* userdata, bent_world_t* world);
+
+	/**
 	 * Optional cleanup callback.
 	 *
 	 * @param userdata pointer to a data buffer with the size given in @ref bent_sys_def_t::size
@@ -605,6 +619,8 @@ bent_has(bent_world_t* world, bent_t entity, bent_comp_reg_t comp);
 /**
  * Retrieve a system's private data
  *
+ * Typically, this should only be called by the same system.
+ *
  * @param world the world
  * @param sys a system's registration handle
  * @return the system's private data
@@ -655,6 +671,11 @@ bent_match(bent_world_t* world, bent_sys_reg_t sys, bent_t entity);
  */
 BENT_API void
 bent_run(bent_world_t* world, bent_mask_t update_mask);
+
+static inline bool
+bent_equal(bent_t lhs, bent_t rhs) {
+	return lhs.index == rhs.index && lhs.gen == rhs.gen;
+}
 
 // Private
 
@@ -1186,6 +1207,16 @@ bent_init(bent_world_t** world_ptr, void* memctx) {
 			&world->systems[reg->id - 1],
 			itr->name, reg->def
 		);
+	}
+
+	// Post initialization
+	AUTOLIST_FOREACH(itr, bent__systems) {
+		bent_sys_reg_t* reg = itr->value_addr;
+
+		bent_system_data_t* sys = &world->systems[reg->id - 1];
+		if (sys->def->post_init) {
+			sys->def->post_init(sys->userdata, world);
+		}
 	}
 
 	*world_ptr = world;
