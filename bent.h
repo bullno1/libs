@@ -1120,9 +1120,10 @@ bent_destroy_immediately(bent_world_t* world, bent_t entity_id) {
 
 static bent_entity_data_t*
 bent_entity_data(bent_world_t* world, bent_t entity_id) {
-	if (entity_id.index == 0) { return NULL; }
+	bent_index_t index = entity_id.index - 1;  // 0 wraps around
+	if (index >= barray_len(world->entities)) { return NULL; }
 
-	bent_entity_data_t* entity_data = &world->entities[entity_id.index - 1];
+	bent_entity_data_t* entity_data = &world->entities[index];
 	if (entity_data->generation != entity_id.gen) { return NULL; }
 
 	return entity_data;
