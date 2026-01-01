@@ -206,7 +206,27 @@ barena_reset(barena_t* arena) {
 	barena_restore(arena, NULL);
 }
 
-#if defined(__linux__) || defined(__COSMOPOLITAN__) || defined(__FreeBSD__)
+#if defined(__EMSCRIPTEN__)
+
+#include <stdlib.h>
+
+size_t
+barena_os_page_size(void) {
+	return (size_t)4096;
+}
+
+void*
+barena_os_page_alloc(size_t size) {
+	return malloc(size);
+}
+
+void
+barena_os_page_free(void* ptr, size_t size) {
+	(void)size;
+	free(ptr);
+}
+
+#elif defined(__linux__) || defined(__COSMOPOLITAN__) || defined(__FreeBSD__)
 
 #include <unistd.h>
 #include <sys/mman.h>
