@@ -121,6 +121,27 @@
 	BENT_DEFINE_COMP(NAME) = { .size = sizeof(TYPE) };
 
 /**
+ * Iterate over each component type.
+ *
+ * @param ITR name of the iterator variable of type @ref bent_comp_itr_t
+ *
+ * Example:
+ * @snippet samples/bent.c BENT_FOREACH_COMP
+ *
+ * @hideinitializer
+ */
+#define BENT_FOREACH_COMP(ITR) \
+	AUTOLIST_FOREACH(bent__itr, bent__components) \
+		for ( \
+			bent_comp_itr_t ITR = { \
+				.name = bent__itr->name, \
+				.comp = *(const bent_comp_reg_t*)bent__itr->value_addr, \
+			}; \
+			ITR.name != NULL; \
+			ITR.name = NULL \
+		)
+
+/**
  * Forward-declare a system.
  *
  * This should be used in a header file.
@@ -148,6 +169,27 @@
 	bent_sys_reg_t NAME = { .def = &BENT__SYS_DEF_NAME(NAME) }; \
 	AUTOLIST_ADD_ENTRY(bent__systems, NAME, NAME) \
 	bent_sys_def_t BENT__SYS_DEF_NAME(NAME)
+
+/**
+ * Iterate over each system.
+ *
+ * @param ITR name of the iterator variable of type @ref bent_sys_itr_t
+ *
+ * Example:
+ * @snippet samples/bent.c BENT_FOREACH_SYS
+ *
+ * @hideinitializer
+ */
+#define BENT_FOREACH_SYS(ITR) \
+	AUTOLIST_FOREACH(bent__itr, bent__systems) \
+		for ( \
+			bent_sys_itr_t ITR = { \
+				.name = bent__itr->name, \
+				.sys = *(const bent_sys_reg_t*)bent__itr->value_addr, \
+			}; \
+			ITR.name != NULL; \
+			ITR.name = NULL \
+		)
 
 /**
  * Helper for a null-terminated component list.
@@ -388,6 +430,30 @@ typedef struct {
 } bent_sys_reg_t;
 
 /**
+ * A system iterator.
+ *
+ * @see BENT_FOREACH_SYS
+ */
+typedef struct {
+	/*! Name of the system */
+	const char* name;
+	/*! The registration handle */
+	bent_sys_reg_t sys;
+} bent_sys_itr_t;
+
+/**
+ * A component type iterator.
+ *
+ * @see BENT_FOREACH_COMP
+ */
+typedef struct {
+	/*! Name of the component type */
+	const char* name;
+	/*! The registration handle */
+	bent_comp_reg_t comp;
+} bent_comp_itr_t;
+
+/**
  * Intialize an entity world.
  *
  * This function may be called multiple times in the case of hot reloading.
@@ -591,6 +657,9 @@ bent_run(bent_world_t* world, bent_mask_t update_mask);
 #define BENT__COMP_DEF_NAME(NAME) bent_comp_def_##NAME
 #define BENT__SYS_DEF_NAME(NAME) bent_sys_def_##NAME
 
+AUTOLIST_DECLARE(bent__components)
+AUTOLIST_DECLARE(bent__systems)
+
 #endif
 
 #endif
@@ -641,8 +710,8 @@ bent__libc_realloc(void* ptr, size_t size, void* ctx) {
 #include <limits.h>
 #include <string.h>
 
-AUTOLIST_DEFINE(bent__components)
-AUTOLIST_DEFINE(bent__systems)
+AUTOLIST_IMPL(bent__components)
+AUTOLIST_IMPL(bent__systems)
 
 typedef struct {
 	bent_index_t length;
@@ -795,12 +864,10 @@ bent_comp_init(
 	bent_component_data_t* comp,
 	const char* name, const bent_comp_def_t* def
 ) {
-		comp->def = def;
-#ifndef BENT_NO_RELOAD
-		if (comp->name == NULL) {  // Name for post-reload matching
-			comp->name = bent_strcpy(name, world->memctx);
-		}
-#endif
+	comp->def = def;
+	if (comp->name == NULL) {
+		comp->name = bent_strcpy(name, world->memctx);
+	}
 }
 
 static void
@@ -809,9 +876,7 @@ bent_comp_cleanup(
 	bent_component_data_t* comp
 ) {
 	bent_dyn_array_cleanup(&comp->instances, world->memctx);
-#ifndef BENT_NO_RELOAD
 	BENT_REALLOC(comp->name, 0, world->memctx);
-#endif
 }
 
 // }}}
@@ -865,10 +930,11 @@ bent_sys_init(
 	// Backup old filter to detect change
 	bent_bitset_t old_require = sys->require;
 	bent_bitset_t old_exclude = sys->exclude;
+#endif
+
 	if (sys->name == NULL) {
 		sys->name = bent_strcpy(name, world->memctx);
 	}
-#endif
 
 	bent_bitset_clear(&sys->require);
 	for (
@@ -913,7 +979,7 @@ bent_sys_init(
 		if (world->entities[i].destroyed) { continue; }
 
 		const bent_bitset_t* components = &entity->components;
-		if (sys->initialized) {
+		if (sys->initialized) {  // Existing system, do diff
 			if (bent_sys_match_impl(&old_sys, components)) {
 				if (!bent_sys_match_impl(sys, components)) {
 					bent_sys_remove_entity(world, sys, (bent_t){
@@ -929,7 +995,7 @@ bent_sys_init(
 					});
 				}
 			}
-		} else {
+		} else {  // Newly registered system, try to match existing entities
 			if (bent_sys_match_impl(sys, components)) {
 				bent_sys_add_entity(world, sys, (bent_t){
 					.index = i + 1,
@@ -952,9 +1018,7 @@ bent_sys_cleanup(bent_world_t* world, bent_system_data_t* sys) {
 	barray_free(sys->dense, world->memctx);
 	barray_free(sys->sparse, world->memctx);
 
-#ifndef BENT_NO_RELOAD
 	BENT_REALLOC(sys->name, 0, world->memctx);
-#endif
 }
 
 static void

@@ -1,5 +1,6 @@
 #include "../bent.h"
 #include <assert.h>
+#include <stdio.h>
 
 // Note: Ignore the `//! [label]` markers, they are for for Doxygen
 // They are pushed out of the way so you don't need to pay attention to them
@@ -148,4 +149,23 @@ main(int argc, const char* arg[]) {
 
 	// Destroy everything
 	bent_cleanup(&world);
+
+	// Bonus chapter: "Reflection"
+	// Tools can iterate through the list of known systems and component types
+	//!                                                                         [BENT_FOREACH_COMP]
+	BENT_FOREACH_COMP(itr) {
+		printf(
+			"Component %s has id: %d and size: %zu\n",
+			itr.name, itr.comp.id, itr.comp.def->size
+		);
+	}
+	//!                                                                         [BENT_FOREACH_COMP]
+	//!                                                                         [BENT_FOREACH_SYS]
+	BENT_FOREACH_SYS(itr) {
+		printf(
+			"System %s has id: %d and size: %zu\n",
+			itr.name, itr.sys.id, itr.sys.def->size
+		);
+	}
+	//!                                                                         [BENT_FOREACH_SYS]
 }
