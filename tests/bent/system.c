@@ -82,7 +82,7 @@ BTEST(system, basic_match) {
 	BTEST_EXPECT(!bent_match(world, single_match_system2, ent));
 	BTEST_EXPECT(!bent_match(world, double_match_system, ent));
 	BTEST_EXPECT(!bent_match(world, system_with_exclusion, ent));
-	BTEST_EXPECT(bent_match(world, dummy, ent));
+	BTEST_EXPECT(!bent_match(world, dummy, ent));
 
 	bent_add(world, ent, basic_component, NULL);
 	BTEST_EXPECT(bent_match(world, single_match_system1, ent));
@@ -155,4 +155,14 @@ BTEST(system, update_mask) {
 	BTEST_EXPECT_EQUAL("%d", a->num_updates, 1);
 	BTEST_EXPECT_EQUAL("%d", b->num_updates, 1);
 	BTEST_EXPECT_EQUAL("%d", c->num_updates, 2);
+}
+
+BTEST(system, dont_care) {
+	bent_world_t* world = fixture.world;
+
+	bent_t ent = bent_create(world);
+	BTEST_EXPECT(!bent_match(world, dummy, ent));
+
+	bent_add(world, ent, basic_component, NULL);
+	BTEST_EXPECT(!bent_match(world, dummy, ent));
 }

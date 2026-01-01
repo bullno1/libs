@@ -319,6 +319,9 @@ typedef struct {
 	 * An entity must have all of the listed components to be processed by this system.
 	 *
 	 * @see BENT_COMP_LIST
+	 *
+	 * @remarks If both this and @ref bent_sys_def_t::exclude are `NULL`, this system
+	 * will not match any entities.
 	 */
 	bent_comp_reg_t** require;
 
@@ -330,6 +333,9 @@ typedef struct {
 	 * An entity must have none of the listed components to be processed by this system.
 	 *
 	 * @see BENT_COMP_LIST
+	 *
+	 * @remarks If both this and @ref bent_sys_def_t::require are `NULL`, this system
+	 * will not match any entities.
 	 */
 	bent_comp_reg_t** exclude;
 
@@ -824,6 +830,13 @@ bent_bitset_unset(bent_bitset_t* bitset, bent_index_t bit_index) {
 	bitset->bits[mask_index] &= mask;
 }
 
+static void
+bent_bitset_flip(bent_bitset_t* bitset) {
+	for (bent_index_t i = 0; i < BENT_BITSET_LEN; ++i) {
+		bitset->bits[i] = ~bitset->bits[i];
+	}
+}
+
 static bool
 bent_bitset_check(const bent_bitset_t* bitset, bent_index_t bit_index) {
 	bent_index_t num_bits_per_mask = sizeof(bent_index_t) * CHAR_BIT;
@@ -937,21 +950,29 @@ bent_sys_init(
 	}
 
 	bent_bitset_clear(&sys->require);
-	for (
-		bent_comp_reg_t** comp = def->require;
-		comp != NULL && *comp != NULL;
-		++comp
-	) {
-		bent_bitset_set(&sys->require, (*comp)->id - 1);
-	}
-
 	bent_bitset_clear(&sys->exclude);
-	for (
-		bent_comp_reg_t** comp = def->exclude;
-		comp != NULL && *comp != NULL;
-		++comp
-	) {
-		bent_bitset_set(&sys->exclude, (*comp)->id - 1);
+
+	if (def->require == NULL && def->exclude == NULL) {
+		// A system that specifies nothing will not match anything
+		bent_bitset_flip(&sys->require);
+		bent_bitset_flip(&sys->exclude);
+	} else {
+		// Otherwise, each property is defaulted to an empty list
+		for (
+			bent_comp_reg_t** comp = def->require;
+			comp != NULL && *comp != NULL;
+			++comp
+		) {
+			bent_bitset_set(&sys->require, (*comp)->id - 1);
+		}
+
+		for (
+			bent_comp_reg_t** comp = def->exclude;
+			comp != NULL && *comp != NULL;
+			++comp
+		) {
+			bent_bitset_set(&sys->exclude, (*comp)->id - 1);
+		}
 	}
 
 	bool initialized = sys->initialized;
