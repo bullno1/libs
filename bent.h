@@ -87,6 +87,16 @@
    	}
 
 /**
+ * Define a type-safe helper function to add a tag component (zero-sized).
+ *
+ * @param NAME name of the component type
+ */
+#define BENT_DEFINE_TAG_COMP_ADDER(NAME) \
+	static inline void bent_add_##NAME(bent_world_t* world, bent_t entity) { \
+		bent_add(world, entity, NAME, NULL); \
+	}
+
+/**
  * Define a component type
  *
  * This must be followed with an initializer list for the type @ref bent_comp_def_t.
@@ -119,6 +129,12 @@
  */
 #define BENT_DEFINE_POD_COMP(NAME, TYPE) \
 	BENT_DEFINE_COMP(NAME) = { .size = sizeof(TYPE) };
+
+/**
+ * Define a component type with zero size.
+ */
+#define BENT_DEFINE_TAG_COMP(NAME) \
+	BENT_DEFINE_COMP(NAME) = { .size = 0 };
 
 /**
  * Iterate over each component type.
