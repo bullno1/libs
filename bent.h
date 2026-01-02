@@ -34,6 +34,10 @@
 #define BENT_MASK_TYPE uint32_t
 #endif
 
+#ifndef BENT_LOG
+#define BENT_LOG(...)
+#endif
+
 /**
  * Maximum number of component types.
  *
@@ -213,6 +217,21 @@
  * To be used inside a @ref bent_sys_def_t.
  */
 #define BENT_COMP_LIST(...) (bent_comp_reg_t*[]){ __VA_ARGS__, 0 }
+
+/**
+ * Helper to iterate entities.
+ */
+#define BENT_FOREACH_ENTITY(VAR, ENTITIES) \
+	for ( \
+		struct { bent_index_t index; char once; } bent__itr = { 0 }; \
+		bent__itr.index < bent__entity_list_len(ENTITIES); \
+		++bent__itr.index \
+	) \
+		for ( \
+			bent_t VAR = (bent__itr.once = 1, (ENTITIES)[bent__itr.index]); \
+			bent__itr.once; \
+			bent__itr.once = 0 \
+		)
 
 /*! Handle to an entity world */
 typedef struct bent_world_s bent_world_t;
@@ -703,6 +722,9 @@ bent_equal(bent_t lhs, bent_t rhs) {
 AUTOLIST_DECLARE(bent__components)
 AUTOLIST_DECLARE(bent__systems)
 
+BENT_API bent_index_t
+bent__entity_list_len(bent_t* entities);
+
 #endif
 
 #endif
@@ -976,6 +998,8 @@ bent_sys_init(
 ) {
 	sys->def = def;
 
+	BENT_LOG("Initializing %s", name);
+
 #ifndef BENT_NO_RELOAD
 	// Backup old filter to detect change
 	bent_bitset_t old_require = sys->require;
@@ -1069,6 +1093,8 @@ bent_sys_init(
 
 static void
 bent_sys_cleanup(bent_world_t* world, bent_system_data_t* sys) {
+	BENT_LOG("Cleaning up %s", sys->name);
+
 	if (sys->def->cleanup) {
 		sys->def->cleanup(sys->userdata, world);
 	}
@@ -1447,6 +1473,11 @@ bent_match(bent_world_t* world, bent_sys_reg_t reg, bent_t entity_id) {
 
 	const bent_system_data_t* sys = &world->systems[reg.id - 1];
 	return bent_sys_match_impl(sys, &entity_data->components);
+}
+
+bent_index_t
+bent__entity_list_len(bent_t* entities) {
+	return barray_len(entities);
 }
 
 #endif
