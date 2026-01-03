@@ -848,8 +848,9 @@ typedef struct {
 
 typedef struct {
 	bent_bitset_t components;
-	bent_index_t generation: (sizeof(bent_index_t) * CHAR_BIT) - 1;
+	bent_index_t generation: (sizeof(bent_index_t) * CHAR_BIT) - 2;
 	bool destroyed: 1;
+	bool destroy_later: 1;
 } bent_entity_data_t;
 
 struct bent_world_s {
@@ -1173,7 +1174,11 @@ bent_notify_systems(
 
 static void
 bent_destroy_immediately(bent_world_t* world, bent_t entity_id) {
-	const bent_bitset_t* components = &world->entities[entity_id.index - 1].components;
+	bent_entity_data_t* entity_data = &world->entities[entity_id.index - 1];
+	entity_data->destroyed = true;
+	++entity_data->generation;
+
+	const bent_bitset_t* components = &entity_data->components;
 
 	bent_index_t num_systems = barray_len(world->systems);
 	for (bent_index_t i = 0; i < num_systems; ++i) {
@@ -1354,6 +1359,7 @@ bent_create(bent_world_t* world) {
 	if (barray_len(world->free_indices) > 0) {
 		index = barray_pop(world->free_indices);
 		world->entities[index].destroyed = false;
+		world->entities[index].destroy_later = false;
 		bent_bitset_clear(&world->entities[index].components);
 	} else {
 		index = barray_len(world->entities);
@@ -1384,10 +1390,11 @@ bent_destroy(bent_world_t* world, bent_t entity_id) {
 	bent_entity_data_t* entity_data = bent_entity_data(world, entity_id);
 	if (entity_data == NULL) { return; }
 
-	entity_data->destroyed = true;
-	++entity_data->generation;  // Prevent futher interaction
 	if (world->defer_destruction) {
-		barray_push(world->destroy_queue, entity_id, world->memctx);
+		if (!entity_data->destroy_later) {
+			barray_push(world->destroy_queue, entity_id, world->memctx);
+			entity_data->destroy_later = true;
+		}
 	} else {
 		bent_destroy_immediately(world, entity_id);
 	}
@@ -1395,7 +1402,8 @@ bent_destroy(bent_world_t* world, bent_t entity_id) {
 
 bool
 bent_is_active(bent_world_t* world, bent_t entity_id) {
-	return bent_entity_data(world, entity_id) != NULL;
+	bent_entity_data_t* entity_data = bent_entity_data(world, entity_id);
+	return bent_entity_data(world, entity_id) != NULL && !entity_data->destroy_later;
 }
 
 void*
