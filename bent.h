@@ -38,6 +38,11 @@
 #define BENT_LOG(...)
 #endif
 
+#ifndef BENT_ASSERT
+#include <assert.h>
+#define BENT_ASSERT assert
+#endif
+
 /**
  * Maximum number of component types.
  *
@@ -232,6 +237,43 @@
 			bent__itr.once; \
 			bent__itr.once = 0 \
 		)
+
+#ifndef BENT_DEFINE_COMPONENTS
+
+/**
+ * Dual use helper for POD component.
+ *
+ * In a header file, it will forward-declare the component and define inline
+ * helpers.
+ *
+ * In a single source file, define `BENT_DEFINE_COMPONENTS` and include this
+ * header to implement the component registration.
+ */
+#define BENT_POD_COMP(NAME, TYPE) \
+	BENT_DECLARE_COMP(NAME) \
+	BENT_DEFINE_COMP_ADDER(NAME, TYPE) \
+	BENT_DEFINE_COMP_GETTER(NAME, TYPE)
+
+/**
+ * Dual use helper for tag component.
+ *
+ * In a header file, it will forward-declare the component and define inline
+ * helpers.
+ *
+ * In a single source file, define `BENT_DEFINE_COMPONENTS` and include this
+ * header to implement the component registration.
+ */
+#define BENT_TAG_COMP(NAME) \
+	BENT_DECLARE_COMP(NAME) \
+	BENT_DEFINE_TAG_COMP_ADDER(NAME)
+
+#else
+
+#define BENT_POD_COMP(NAME, TYPE) BENT_DEFINE_POD_COMP(NAME, TYPE)
+
+#define BENT_TAG_COMP(NAME) BENT_DEFINE_TAG_COMP(NAME)
+
+#endif
 
 /*! Handle to an entity world */
 typedef struct bent_world_s bent_world_t;
@@ -1201,6 +1243,7 @@ bent_init(bent_world_t** world_ptr, void* memctx) {
 		// Still not found, register for the first time
 		if (reg->id == 0) {
 			reg->id = ++world->num_components;  // 1-based
+			BENT_ASSERT(world->num_components <= BENT_MAX_NUM_COMPONENT_TYPES);
 		}
 
 		world->num_components = reg->id > world->num_components ? reg->id : world->num_components;
