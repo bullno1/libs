@@ -21,6 +21,8 @@ Collection of miscellaneous single-header libraries.
 |[btest.h](btest.h)|Unit test framework (based on autolist)|
 |[blog.h](blog.h)|Logging, with short filenames|
 |[qoi.h](qoi.h)|Quite OK image encoding/decoding|
+|[bent.h](bent.h)|Entity component system|
+|[bsv.h](bsv.h)|Binary seriallization with explicit versioning|
 
 Each one has example and documentation in the corresponding tests directory.
 
