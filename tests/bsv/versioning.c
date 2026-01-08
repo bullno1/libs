@@ -57,7 +57,7 @@ v3(bsv_ctx_t* ctx, v3_t* v) {
 		BSV_REV(1) {
 			int ib = 0;
 			BSV_REM(&ib, 2) {
-				v->b = ib;
+				v->b = (float)ib;
 			}
 		}
 

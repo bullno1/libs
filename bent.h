@@ -1008,12 +1008,12 @@ bent_sys_match_impl(const bent_system_data_t* sys, const bent_bitset_t* componen
 
 static void
 bent_sys_add_entity(bent_world_t* world, bent_system_data_t* sys, bent_t entity) {
-	bent_index_t sparse_size = barray_len(sys->sparse);
+	bent_index_t sparse_size = (bent_index_t)barray_len(sys->sparse);
 	if (entity.index - 1 >= sparse_size) {
 		bent_index_t new_sparse_size = sparse_size * 2 > entity.index ? sparse_size * 2 : entity.index;
 		barray_resize(sys->sparse, new_sparse_size, world->memctx);
 	}
-	sys->sparse[entity.index - 1] = barray_len(sys->dense);
+	sys->sparse[entity.index - 1] = (bent_index_t)barray_len(sys->dense);
 	barray_push(sys->dense, entity, world->memctx);
 
 	if (sys->def->add) {
@@ -1098,7 +1098,7 @@ bent_sys_init(
 		.require = old_require,
 		.exclude = old_exclude,
 	};
-	bent_index_t num_entities = barray_len(world->entities);
+	bent_index_t num_entities = (bent_index_t)barray_len(world->entities);
 	for (bent_index_t i = 0; i < num_entities; ++i) {
 		const bent_entity_data_t* entity = &world->entities[i];
 		if (world->entities[i].destroyed) { continue; }
@@ -1155,7 +1155,7 @@ bent_notify_systems(
 	const bent_bitset_t* old_components,
 	const bent_bitset_t* new_components
 ) {
-	bent_index_t num_systems = barray_len(world->systems);
+	bent_index_t num_systems = (bent_index_t)barray_len(world->systems);
 	for (bent_index_t i = 0; i < num_systems; ++i) {
 		bent_system_data_t* sys = &world->systems[i];
 		if (bent_sys_match_impl(sys, old_components)) {
@@ -1180,7 +1180,7 @@ bent_destroy_immediately(bent_world_t* world, bent_t entity_id) {
 
 	const bent_bitset_t* components = &entity_data->components;
 
-	bent_index_t num_systems = barray_len(world->systems);
+	bent_index_t num_systems = (bent_index_t)barray_len(world->systems);
 	for (bent_index_t i = 0; i < num_systems; ++i) {
 		bent_system_data_t* sys = &world->systems[i];
 		if (bent_sys_match_impl(sys, components)) {
@@ -1210,7 +1210,7 @@ bent_destroy_immediately(bent_world_t* world, bent_t entity_id) {
 static bent_entity_data_t*
 bent_entity_data(bent_world_t* world, bent_t entity_id) {
 	bent_index_t index = entity_id.index - 1;  // 0 wraps around
-	if (index >= barray_len(world->entities)) { return NULL; }
+	if (index >= (bent_index_t)barray_len(world->entities)) { return NULL; }
 
 	bent_entity_data_t* entity_data = &world->entities[index];
 	if (entity_data->generation != entity_id.gen) { return NULL; }
@@ -1260,13 +1260,13 @@ bent_init(bent_world_t** world_ptr, void* memctx) {
 	}
 
 	// Count the number of systems first
-	bent_index_t num_systems = barray_len(world->systems);
+	bent_index_t num_systems = (bent_index_t)barray_len(world->systems);
 	AUTOLIST_FOREACH(itr, bent__systems) {
 		bent_sys_reg_t* reg = itr->value_addr;
 #ifndef BENT_NO_RELOAD
 		if (reg->id == 0) {  // Unregistered or we just reloaded
 			// Search existing systems for a match by name
-			for (bent_index_t i = 0; i < barray_len(world->systems); ++i) {
+			for (bent_index_t i = 0; i < (bent_index_t)barray_len(world->systems); ++i) {
 				const bent_system_data_t* sys = &world->systems[i];
 				if (strcmp(sys->name, itr->name) == 0) {
 					reg->id = i + 1;
@@ -1319,7 +1319,7 @@ bent_cleanup(bent_world_t** world_ptr) {
 	bent_world_t* world = *world_ptr;
 	if (world == NULL) { return; }
 
-	bent_index_t num_entities = barray_len(world->entities);
+	bent_index_t num_entities = (bent_index_t)barray_len(world->entities);
 	for (bent_index_t i = 0; i < num_entities; ++i) {
 		if (!world->entities[i].destroyed) {
 			bent_destroy_immediately(world, (bent_t){
@@ -1334,7 +1334,7 @@ bent_cleanup(bent_world_t** world_ptr) {
 		bent_comp_cleanup(world, &world->components[i]);
 	}
 
-	bent_index_t num_systems = barray_len(world->systems);
+	bent_index_t num_systems = (bent_index_t)barray_len(world->systems);
 	for (bent_index_t i = 0; i < num_systems; ++i) {
 		bent_sys_cleanup(world, &world->systems[i]);
 	}
@@ -1362,7 +1362,7 @@ bent_create(bent_world_t* world) {
 		world->entities[index].destroy_later = false;
 		bent_bitset_clear(&world->entities[index].components);
 	} else {
-		index = barray_len(world->entities);
+		index = (bent_index_t)barray_len(world->entities);
 		barray_push(world->entities, (bent_entity_data_t){ 0 }, world->memctx);
 	}
 
@@ -1374,7 +1374,7 @@ bent_create(bent_world_t* world) {
 	// For completeness sake and also for consistent reload behavior, an empty
 	// entity can match some systems if they have no requirement
 	bent_bitset_t empty = { 0 };
-	bent_index_t num_systems = barray_len(world->systems);
+	bent_index_t num_systems = (bent_index_t)barray_len(world->systems);
 	for (bent_index_t i = 0; i < num_systems; ++i) {
 		bent_system_data_t* sys = &world->systems[i];
 		if (bent_sys_match_impl(sys, &empty)) {
@@ -1480,7 +1480,7 @@ bent_get(bent_world_t* world, bent_t entity_id, bent_comp_reg_t reg) {
 bool
 bent_has(bent_world_t* world, bent_t entity_id, bent_comp_reg_t reg) {
 	const bent_entity_data_t* entity_data = bent_entity_data(world, entity_id);
-	if (entity_data == NULL) { return NULL; }
+	if (entity_data == NULL) { return false; }
 
 	bent_index_t comp_index = reg.id - 1;
 	return bent_bitset_check(&entity_data->components, comp_index);
@@ -1493,9 +1493,9 @@ bent_get_sys_data(bent_world_t* world, bent_sys_reg_t sys) {
 
 void
 bent_run(bent_world_t* world, bent_mask_t update_mask) {
-	bent_index_t num_systems = barray_len(world->systems);
-	for (bent_index_t i = 0; i < num_systems; ++i) {
-		bent_system_data_t* sys = &world->systems[i];
+	bent_index_t num_systems = (bent_index_t)barray_len(world->systems);
+	for (bent_index_t sys_index = 0; sys_index < num_systems; ++sys_index) {
+		bent_system_data_t* sys = &world->systems[sys_index];
 		if (sys->def->update && (sys->def->update_mask & update_mask) > 0) {
 			world->defer_destruction = true;
 			sys->def->update(
@@ -1503,14 +1503,14 @@ bent_run(bent_world_t* world, bent_mask_t update_mask) {
 				world,
 				update_mask,
 				sys->dense,
-				barray_len(sys->dense)
+				(bent_index_t)barray_len(sys->dense)
 			);
 			world->defer_destruction = false;
 
 			// Check queue length every iteration since destruction could lead
 			// to more destruction
-			for (bent_index_t i = 0; i < barray_len(world->destroy_queue); ++i) {
-				bent_destroy_immediately(world, world->destroy_queue[i]);
+			for (bent_index_t queue_index = 0; queue_index < (bent_index_t)barray_len(world->destroy_queue); ++queue_index) {
+				bent_destroy_immediately(world, world->destroy_queue[queue_index]);
 			}
 			barray_clear(world->destroy_queue);
 		}
@@ -1528,7 +1528,7 @@ bent_match(bent_world_t* world, bent_sys_reg_t reg, bent_t entity_id) {
 
 bent_index_t
 bent__entity_list_len(bent_t* entities) {
-	return barray_len(entities);
+	return (bent_index_t)barray_len(entities);
 }
 
 #endif
