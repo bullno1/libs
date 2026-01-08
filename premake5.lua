@@ -48,6 +48,7 @@ workspace "libs"
       "4200",
       "4152",
       "4459",
+	  "4324",
     }
 
   debugdir "bin/%{cfg.buildcfg}"
