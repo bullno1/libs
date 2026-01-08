@@ -32,6 +32,8 @@ workspace "libs"
   location(_ACTION)
   configurations { "Debug", "Release" }
   architecture "x86_64"
+  filter {"system:windows", "action:vs*"}
+    systemversion "10.0.26100.0"
 
   warnings "Extra"
   fatalwarnings { "All" }
