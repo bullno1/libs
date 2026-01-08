@@ -1,5 +1,7 @@
 # blibs
 
+[![Build status](https://github.com/bullno1/libs/actions/workflows/build.yml/badge.svg)](https://github.com/bullno1/libs/actions/workflows/build.yml)
+
 Collection of miscellaneous single-header libraries.
 
 |Library|Description|
