@@ -61,4 +61,26 @@ make_project "bhash"
 make_project "bcoro"
 make_project "bserial"
 make_project "bspscq"
-make_project "bsv"
+
+project "tests"
+    kind "ConsoleApp"
+    language "C"
+    targetdir "bin/%{cfg.buildcfg}"
+
+    files {
+      "tests/main.c",
+      "tests/barray/*.h",
+      "tests/barray/*.c",
+      "tests/bent/*.h",
+      "tests/bent/*.c",
+      "tests/bsv/*.h",
+      "tests/bsv/*.c",
+    }
+
+    filter "configurations:Debug"
+      defines { "DEBUG" }
+      symbols "On"
+
+    filter "configurations:Release"
+      defines { "NDEBUG" }
+      optimize "On"

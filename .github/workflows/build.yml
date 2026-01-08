@@ -39,6 +39,7 @@ jobs:
           bin/Debug/bhash.exe
           bin/Debug/bserial.exe
           bin/Debug/bspscq.exe
+          bin/Debug/tests.exe
   build-linux:
     runs-on: ubuntu-latest
     steps:
@@ -61,3 +62,4 @@ jobs:
           bin/Debug/bhash
           bin/Debug/bserial
           bin/Debug/bspscq
+          bin/Debug/tests
