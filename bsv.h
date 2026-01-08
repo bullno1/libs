@@ -1084,7 +1084,7 @@ bsv_begin_array(bsv_ctx_t* ctx, bsv_len_t* length) {
 	bsv_trace_begin(ctx, BSV_EXPLAIN_ARRAY);
 
 	bsv_len_t previous_len = ctx->array_len;
-	bsv_len_t previous_version = ctx->array_version;
+	bsv_version_t previous_version = ctx->array_version;
 
 	if (ctx->explain_fn != NULL) {
 		*length = 1;

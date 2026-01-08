@@ -33,7 +33,7 @@ workspace "libs"
   configurations { "Debug", "Release" }
   architecture "x86_64"
   filter {"system:windows", "action:vs*"}
-    systemversion("10.0.22621.0")
+    systemversion "10.0.26100.0"
 
   warnings "Extra"
   fatalwarnings { "All" }
@@ -47,6 +47,8 @@ workspace "libs"
       "4100",
       "4200",
       "4152",
+      "4459",
+      "4324",
     }
 
   debugdir "bin/%{cfg.buildcfg}"
@@ -61,4 +63,26 @@ make_project "bhash"
 make_project "bcoro"
 make_project "bserial"
 make_project "bspscq"
-make_project "bsv"
+
+project "tests"
+    kind "ConsoleApp"
+    language "C"
+    targetdir "bin/%{cfg.buildcfg}"
+
+    files {
+      "tests/main.c",
+      "tests/barray/*.h",
+      "tests/barray/*.c",
+      "tests/bent/*.h",
+      "tests/bent/*.c",
+      "tests/bsv/*.h",
+      "tests/bsv/*.c",
+    }
+
+    filter "configurations:Debug"
+      defines { "DEBUG" }
+      symbols "On"
+
+    filter "configurations:Release"
+      defines { "NDEBUG" }
+      optimize "On"

@@ -13,17 +13,17 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
-      - name: Install Premake
+      - name: Setup premake
         uses: abel0b/setup-premake@v2.4
         with:
-          version: "5.0.0-beta2"
+          version: "5.0.0-beta7"
       - name: Generate project
         shell: cmd
         run: |
           for /f "usebackq tokens=*" %%i in (`.github\vswhere -latest -prerelease -property installationPath`) do (
             set VS_DIR=%%i
           )
-          call "%VS_DIR%\VC\Auxiliary\Build\vcvarsall.bat" x64 10.0.22621.0
+          call "%VS_DIR%\VC\Auxiliary\Build\vcvarsall.bat" x64 10.0.26100.0
           premake5 vs2022
       - name: Build
         shell: cmd
@@ -31,7 +31,7 @@ jobs:
           for /f "usebackq tokens=*" %%i in (`.github\vswhere -latest -prerelease -property installationPath`) do (
             set VS_DIR=%%i
           )
-          call "%VS_DIR%\VC\Auxiliary\Build\vcvarsall.bat" x64 10.0.22621.0
+          call "%VS_DIR%\VC\Auxiliary\Build\vcvarsall.bat" x64 10.0.26100.0
           cd vs2022
           msbuild libs.sln /property:Configuration=Debug /property:Platform=x64
       - name: Test
@@ -39,6 +39,7 @@ jobs:
           bin/Debug/bhash.exe
           bin/Debug/bserial.exe
           bin/Debug/bspscq.exe
+          bin/Debug/tests.exe
   build-linux:
     runs-on: ubuntu-latest
     steps:
@@ -61,3 +62,4 @@ jobs:
           bin/Debug/bhash
           bin/Debug/bserial
           bin/Debug/bspscq
+          bin/Debug/tests
