@@ -1098,7 +1098,7 @@ bent_sys_init(
 		.require = old_require,
 		.exclude = old_exclude,
 	};
-	bent_index_t num_entities = barray_len(world->entities);
+	bent_index_t num_entities = (bent_index_t)barray_len(world->entities);
 	for (bent_index_t i = 0; i < num_entities; ++i) {
 		const bent_entity_data_t* entity = &world->entities[i];
 		if (world->entities[i].destroyed) { continue; }
@@ -1480,7 +1480,7 @@ bent_get(bent_world_t* world, bent_t entity_id, bent_comp_reg_t reg) {
 bool
 bent_has(bent_world_t* world, bent_t entity_id, bent_comp_reg_t reg) {
 	const bent_entity_data_t* entity_data = bent_entity_data(world, entity_id);
-	if (entity_data == NULL) { return NULL; }
+	if (entity_data == NULL) { return false; }
 
 	bent_index_t comp_index = reg.id - 1;
 	return bent_bitset_check(&entity_data->components, comp_index);
