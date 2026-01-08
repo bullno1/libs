@@ -13,8 +13,10 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
-      - name: Install premake5
-        uses: Jarod42/install-premake5@v6
+      - name: Setup premake
+        uses: abel0b/setup-premake@v2.4
+        with:
+          version: "5.0.0-beta7"
       - name: Generate project
         shell: cmd
         run: |
