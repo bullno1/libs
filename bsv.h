@@ -517,7 +517,7 @@ bsv_bool(bsv_ctx_t* ctx, bool* boolean);
 BSV_API bsv_status_t
 bsv_raw(bsv_ctx_t* ctx, void* data, size_t size);
 
-BSV_API bsv_status_t
+bsv_status_t
 bsv_unknown(bsv_ctx_t* ctx, bsv_unkown_t* unknown);
 
 /**
