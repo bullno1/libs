@@ -10,7 +10,7 @@ static btest_suite_t basic = {
 BTEST(basic, round_trip) {
 	bsv_ctx_t out = { .out = bsv_mem_out() };
 
-	int a = -3;
+	int a = -32;
 	unsigned int b = 4;
 	float f = 6.7f;
 	BTEST_EXPECT_EQUAL("%d", bsv_auto(&out, &a), BSV_OK);
@@ -22,7 +22,7 @@ BTEST(basic, round_trip) {
 	BTEST_EXPECT_EQUAL("%d", bsv_auto(&in, &b), BSV_OK);
 	BTEST_EXPECT_EQUAL("%d", bsv_auto(&in, &f), BSV_OK);
 
-	BTEST_EXPECT_EQUAL("%d", a, -3);
+	BTEST_EXPECT_EQUAL("%d", a, -32);
 	BTEST_EXPECT_EQUAL("%d", b, 4);
 	BTEST_EXPECT_EQUAL("%f", f, 6.7f);
 }
