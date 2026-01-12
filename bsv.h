@@ -722,8 +722,7 @@ bsv_write_uint(uint64_t x, bsv_out_t* out) {
 
 bsv_status_t
 bsv_write_sint(int64_t x, bsv_out_t* out) {
-    uint64_t ux = (uint64_t)x << 1;
-    if (x < 0) { ux = ~ux; }
+    uint64_t ux = ((uint64_t)x << 1) ^ (uint64_t)(x >> 63);  // zigzag encode
     return bsv_write_uint(ux, out);
 }
 
@@ -750,15 +749,9 @@ bsv_read_uint(uint64_t* x, bsv_in_t* in) {
 bsv_status_t
 bsv_read_sint(int64_t* x, bsv_in_t* in) {
     uint64_t ux;
-
 	BSV_CHECK_STATUS(bsv_read_uint(&ux, in));
+    *x = (int64_t)((ux >> 1) ^ (~(ux & 1) + 1));  // zigzag decode
 
-    int64_t tmp = (int64_t)(ux >> 1);
-    if ((ux & 1) != 0) {
-		tmp = ~tmp;
-    }
-
-	*x = tmp;
     return BSV_OK;
 }
 
