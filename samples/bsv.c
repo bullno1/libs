@@ -66,14 +66,12 @@ bsv_item(bsv_ctx_t* ctx, item_t* item) {
 bsv_status_t
 bsv_inventory(bsv_ctx_t* ctx, inventory_t* inv) {
 	bsv_len_t len = inv->num_items;
-	BSV_WITH(ctx) {
-		BSV_ARRAY(&len) {
-			// TODO: bound check
-			inv->num_items = (int)len;
+	BSV_ARRAY(ctx, &len) {
+		// TODO: bound check
+		inv->num_items = (int)len;
 
-			for (bsv_len_t i = 0; i < len; ++i) {
-				BSV_CHECK_STATUS(bsv_item(BSV_CTX, &inv->items[i]));
-			}
+		for (bsv_len_t i = 0; i < len; ++i) {
+			BSV_CHECK_STATUS(bsv_item(ctx, &inv->items[i]));
 		}
 	}
 
