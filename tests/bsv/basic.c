@@ -67,21 +67,21 @@ BTEST(basic, array) {
 	int array[] = { 1, 2, 3, 4 };
 
 	bsv_ctx_t out = { .out = bsv_mem_out() };
-	BSV_WITH(&out) {
+	{
 		bsv_len_t len = sizeof(array) / sizeof(array[0]);
-		BSV_ARRAY(&len);
+		BSV_ARRAY(&out, &len);
 		for (bsv_len_t i = 0; i < len; ++i) {
-			bsv_auto(BSV_CTX, &array[i]);
+			bsv_auto(&out, &array[i]);
 		}
 	}
 
 	int array_in[4] = { 0 };
 	bsv_ctx_t in = { .in = bsv_mem_in() };
-	BSV_WITH(&in) {
+	{
 		bsv_len_t len = 0;
-		BSV_ARRAY(&len);
+		BSV_ARRAY(&in, &len);
 		for (bsv_len_t i = 0; i < len; ++i) {
-			bsv_auto(BSV_CTX, &array_in[i]);
+			bsv_auto(&in, &array_in[i]);
 		}
 	}
 

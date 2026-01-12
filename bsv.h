@@ -141,7 +141,8 @@
 /**
  * Serialize an array.
  *
- * @param LEN pointer to a value of type @ref bsv_len_t
+ * @param CTX Pointer to the current @ref bsv_ctx_t
+ * @param LEN Pointer to a value of type @ref bsv_len_t
  *
  * Example:
  *
@@ -149,11 +150,11 @@
  *
  * @hideinitializer
  */
-#define BSV_ARRAY(LEN) \
+#define BSV_ARRAY(CTX, LEN) \
 	for ( \
-		bsv_array_ctx_t BSV__##__LINE__ = (BSV__SET_EXPLAIN_INFO(BSV_CTX), bsv_begin_array(BSV_CTX, (LEN))); \
+		bsv_array_ctx_t BSV__##__LINE__ = (BSV__SET_EXPLAIN_INFO(CTX), bsv_begin_array(CTX, (LEN))); \
 		BSV__##__LINE__.counter < 1; \
-		++BSV__##__LINE__.counter, bsv_end_array(bsv__blk_ctx.bsv, &BSV__##__LINE__) \
+		++BSV__##__LINE__.counter, bsv_end_array(CTX, &BSV__##__LINE__) \
 	) \
 
 /**
@@ -512,6 +513,9 @@ bsv_u32(bsv_ctx_t* ctx, uint32_t* u32);
 
 BSV_API bsv_status_t
 bsv_bool(bsv_ctx_t* ctx, bool* boolean);
+
+BSV_API bsv_status_t
+bsv_raw(bsv_ctx_t* ctx, void* data, size_t size);
 
 BSV_API bsv_status_t
 bsv_unknown(bsv_ctx_t* ctx, bsv_unkown_t* unknown);
@@ -1014,14 +1018,19 @@ bsv_blob_header(bsv_ctx_t* ctx, bsv_len_t* len) {
 
 bsv_status_t
 bsv_blob_body(bsv_ctx_t* ctx, char* buf) {
+	return bsv_raw(ctx, buf, ctx->blob_size);
+}
+
+bsv_status_t
+bsv_raw(bsv_ctx_t* ctx, void* data, size_t size) {
 	BSV_CHECK(ctx);
 	BSV__SET_EXPLAIN_INFO(ctx);
 	bsv_trace_begin(ctx, BSV_EXPLAIN_RAW);
 
 	if (bsv_mode(ctx) == BSV_MODE_READ) {
-		ctx->status = bsv_read(ctx->in, buf, ctx->blob_size);
+		ctx->status = bsv_read(ctx->in, data, size);
 	} else {
-		ctx->status = bsv_write(ctx->out, buf, ctx->blob_size);
+		ctx->status = bsv_write(ctx->out, data, size);
 	}
 
 	bsv_trace_end(ctx, BSV_EXPLAIN_RAW);
