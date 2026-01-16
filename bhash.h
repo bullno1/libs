@@ -240,6 +240,20 @@ typedef struct {
 	(BHASH__TYPECHECK_EXP((table)->keys[0], key), bhash__do_find(&((table)->base), &(key)))
 
 /**
+ * @brief Retrieve a pointer to a value given its key.
+ *
+ * @return Pointer to a value or NULL if not found
+ */
+#define bhash_get_value(table, key) \
+	(BHASH__TYPECHECK_EXP((table)->keys[0], key), (BHASH__TYPEOF((table)->values))bhash__do_get_value(&((table)->base), &(key)))
+
+/**
+ * @brief Check whether a table contains a key
+ */
+#define bhash_has(table, key) \
+	bhash_is_valid(bhash_find(table, key))
+
+/**
  * @brief Remove an entry.
  *
  * @return Index of the entry.
@@ -416,7 +430,10 @@ BHASH_API bhash_alloc_result_t
 bhash__do_alloc(bhash_base_t* bhash, const void* key);
 
 BHASH_API bhash_index_t
-bhash__do_find(bhash_base_t* bhash, const void* key);
+bhash__do_find(const bhash_base_t* bhash, const void* key);
+
+BHASH_API void*
+bhash__do_get_value(bhash_base_t* bhash, const void* key);
 
 BHASH_API bhash_index_t
 bhash__do_remove(bhash_base_t* bhash, const void* key);
@@ -485,22 +502,22 @@ bhash__libc_realloc(void* ptr, size_t size, void* ctx) {
 typedef BHASH_TABLE(char, char) bhash_dummy_t;
 
 static inline void**
-bhash_keys_ptr(bhash_base_t* bhash) {
+bhash_keys_ptr(const bhash_base_t* bhash) {
 	return (void**)((char*)bhash + offsetof(bhash_dummy_t, keys) - offsetof(bhash_dummy_t, base));
 }
 
 static inline void**
-bhash_values_ptr(bhash_base_t* bhash) {
+bhash_values_ptr(const bhash_base_t* bhash) {
 	return (void**)((char*)bhash + offsetof(bhash_dummy_t, values) - offsetof(bhash_dummy_t, base));
 }
 
 static inline void*
-bhash_key_at(bhash_base_t* bhash, bhash_index_t index) {
+bhash_key_at(const bhash_base_t* bhash, bhash_index_t index) {
 	return *(char**)bhash_keys_ptr(bhash) + index * bhash->key_size;
 }
 
 static inline void*
-bhash_value_at(bhash_base_t* bhash, bhash_index_t index) {
+bhash_value_at(const bhash_base_t* bhash, bhash_index_t index) {
 	return *(char**)bhash_values_ptr(bhash) + index * bhash->value_size;
 }
 
@@ -560,7 +577,7 @@ bhash_maybe_grow(bhash_base_t* bhash) {
 
 static inline void
 bhash_find_impl(
-	bhash_base_t* bhash,
+	const bhash_base_t* bhash,
 	bhash_index_t* out_data_index,
 	bhash_index_t* out_hash_index,
 	const void* key
@@ -672,11 +689,17 @@ bhash__do_alloc(bhash_base_t* bhash, const void* key) {
 }
 
 bhash_index_t
-bhash__do_find(bhash_base_t* bhash, const void* key) {
+bhash__do_find(const bhash_base_t* bhash, const void* key) {
 	bhash_index_t data_index;
 	bhash_index_t hash_index;
 	bhash_find_impl(bhash, &data_index, &hash_index, key);
 	return data_index;
+}
+
+void*
+bhash__do_get_value(bhash_base_t* bhash, const void* key) {
+	bhash_index_t index = bhash__do_find(bhash, key);
+	return bhash_is_valid(index) ? bhash_value_at(bhash, index) : NULL;
 }
 
 bhash_index_t
