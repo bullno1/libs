@@ -1426,7 +1426,7 @@ bent_add(bent_world_t* world, bent_t entity_id, bent_comp_reg_t reg, void* arg) 
 		void* instance = bent_dyn_array_at(&comp_data->instances, entity_id.index - 1, comp_size);
 		if (comp_data->def->init) {
 			comp_data->def->init(instance, arg);
-		} else {
+		} else if (instance != NULL) {
 			if (arg == NULL) {
 				memset(instance, 0, comp_data->def->size);
 			} else {
