@@ -433,7 +433,7 @@ BHASH_API bhash_index_t
 bhash__do_find(const bhash_base_t* bhash, const void* key);
 
 BHASH_API void*
-bhash__do_get_value(bhash_base_t* bhash, const void* key);
+bhash__do_get_value(const bhash_base_t* bhash, const void* key);
 
 BHASH_API bhash_index_t
 bhash__do_remove(bhash_base_t* bhash, const void* key);
@@ -697,7 +697,7 @@ bhash__do_find(const bhash_base_t* bhash, const void* key) {
 }
 
 void*
-bhash__do_get_value(bhash_base_t* bhash, const void* key) {
+bhash__do_get_value(const bhash_base_t* bhash, const void* key) {
 	bhash_index_t index = bhash__do_find(bhash, key);
 	return bhash_is_valid(index) ? bhash_value_at(bhash, index) : NULL;
 }
