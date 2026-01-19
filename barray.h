@@ -12,18 +12,24 @@
 #define barray_push(array, element, ctx) \
 	do { \
 		size_t barray__new_len; \
-		(array) = barray__prepare_push((array), &barray__new_len, sizeof(element), ctx); \
+		(array) = barray__prepare_push((array), &barray__new_len, sizeof(element), (ctx)); \
 		(array)[barray__new_len - 1] = element; \
 	} while (0)
 
 #define barray_reserve(array, new_capacity, ctx) \
 	do { \
-		(array) = barray__do_reserve((array), new_capacity, sizeof(*(array)), ctx); \
+		(array) = barray__do_reserve((array), new_capacity, sizeof(*(array)), (ctx)); \
 	} while (0)
 
 #define barray_resize(array, new_len, ctx) \
 	do { \
-		(array) = barray__do_resize((array), new_len, sizeof(*(array)), ctx); \
+		(array) = barray__do_resize((array), new_len, sizeof(*(array)), (ctx)); \
+	} while (0)
+
+#define barray_free(array, ctx) \
+	do { \
+		barray__do_free((array), (ctx)); \
+		(array) = NULL; \
 	} while (0)
 
 #define barray_pop(array) (barray__do_pop((array)), array[barray_len((array))])
@@ -59,9 +65,6 @@ BARRAY_API size_t
 barray_capacity(void* array);
 
 BARRAY_API void
-barray_free(void* array, void* ctx);
-
-BARRAY_API void
 barray_clear(void* array);
 
 // Private
@@ -77,6 +80,9 @@ barray__do_resize(void* array, size_t new_len, size_t elem_size, void* ctx) ;
 
 BARRAY_API void
 barray__do_pop(void* array);
+
+BARRAY_API void
+barray__do_free(void* array, void* ctx);
 
 #if __STDC_VERSION__ >= 202311L
 #	define BARRAY__TYPEOF(EXP) typeof(EXP)
@@ -156,7 +162,7 @@ barray_capacity(void* array) {
 }
 
 void
-barray_free(void* array, void* ctx) {
+barray__do_free(void* array, void* ctx) {
 	barray_header_t* header = barray__header_of(array);
 	if (header != NULL) {
 		BARRAY_REALLOC(header, 0, ctx);
