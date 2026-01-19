@@ -40,5 +40,10 @@ BTEST(array, resize_emtpy_array) {
 	barray_free(arr, NULL);
 }
 
+BTEST(array, resize_emtpy_array_to_zero) {
+	barray(char) arr = NULL;
+	barray_resize(arr, 0, NULL);
+}
+
 #define BLIB_IMPLEMENTATION
 #include "../../barray.h"
