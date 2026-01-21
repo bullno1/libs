@@ -1319,6 +1319,12 @@ bent_cleanup(bent_world_t** world_ptr) {
 	bent_world_t* world = *world_ptr;
 	if (world == NULL) { return; }
 
+#ifndef BENT_NO_RELOAD
+	// Edge case: cleaning up right after a reload
+	bent_init(world_ptr, world->memctx);
+	world = *world_ptr;
+#endif
+
 	bent_index_t num_entities = (bent_index_t)barray_len(world->entities);
 	for (bent_index_t i = 0; i < num_entities; ++i) {
 		if (!world->entities[i].destroyed) {
