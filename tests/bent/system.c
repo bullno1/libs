@@ -187,4 +187,8 @@ BTEST(system, entity_still_has_component_on_sys_remove_callback) {
 	bent_t ent = bent_create(world);
 	bent_add(world, ent, comp_to_be_removed, NULL);
 	bent_remove(world, ent, comp_to_be_removed);
+
+	bent_t ent2 = bent_create(world);
+	bent_add(world, ent2, comp_to_be_removed, NULL);
+	bent_destroy(world, ent2);
 }
