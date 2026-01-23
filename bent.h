@@ -1460,8 +1460,9 @@ bent_remove(bent_world_t* world, bent_t entity_id, bent_comp_reg_t reg) {
 	if (!bent_bitset_check(&entity_data->components, comp_index)) { return; }
 
 	bent_bitset_t old_components = entity_data->components;
-	bent_bitset_unset(&entity_data->components, comp_index);
-	bent_notify_systems(world, entity_id, &old_components, &entity_data->components);
+	bent_bitset_t new_components = old_components;
+	bent_bitset_unset(&new_components, comp_index);
+	bent_notify_systems(world, entity_id, &old_components, &new_components);
 
 	bent_component_data_t* comp_data = &world->components[comp_index];
 	size_t comp_size = comp_data->def->size;
@@ -1469,6 +1470,7 @@ bent_remove(bent_world_t* world, bent_t entity_id, bent_comp_reg_t reg) {
 	if (comp_data->def->cleanup) {
 		comp_data->def->cleanup(instance);
 	}
+	bent_bitset_unset(&entity_data->components, comp_index);
 }
 
 void*
