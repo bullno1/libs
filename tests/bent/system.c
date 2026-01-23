@@ -166,3 +166,25 @@ BTEST(system, dont_care) {
 	bent_add(world, ent, basic_component, NULL);
 	BTEST_EXPECT(!bent_match(world, dummy, ent));
 }
+
+BENT_DECLARE_COMP(comp_to_be_removed)
+BENT_DEFINE_POD_COMP(comp_to_be_removed, int)
+
+static void
+entity_still_has_component_on_sys_remove_callback(void* data, bent_world_t* world, bent_t entity) {
+	BTEST_EXPECT(bent_has(world, entity, comp_to_be_removed));
+	BTEST_EXPECT(bent_get(world, entity, comp_to_be_removed) != NULL);
+}
+
+BENT_DEFINE_SYS(sys_entity_still_has_component_on_sys_remove_callback) = {
+	.require = BENT_COMP_LIST(&comp_to_be_removed),
+	.remove = entity_still_has_component_on_sys_remove_callback,
+};
+
+BTEST(system, entity_still_has_component_on_sys_remove_callback) {
+	bent_world_t* world = fixture.world;
+
+	bent_t ent = bent_create(world);
+	bent_add(world, ent, comp_to_be_removed, NULL);
+	bent_remove(world, ent, comp_to_be_removed);
+}
