@@ -1175,8 +1175,6 @@ bent_notify_systems(
 static void
 bent_destroy_immediately(bent_world_t* world, bent_t entity_id) {
 	bent_entity_data_t* entity_data = &world->entities[entity_id.index - 1];
-	entity_data->destroyed = true;
-	++entity_data->generation;
 
 	const bent_bitset_t* components = &entity_data->components;
 
@@ -1204,6 +1202,8 @@ bent_destroy_immediately(bent_world_t* world, bent_t entity_id) {
 		}
 	}
 
+	entity_data->destroyed = true;
+	++entity_data->generation;
 	barray_push(world->free_indices, entity_id.index - 1, world->memctx);
 }
 
