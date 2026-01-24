@@ -12,7 +12,7 @@
 #define barray_push(array, element, ctx) \
 	do { \
 		size_t barray__new_len; \
-		(array) = barray__prepare_push((array), &barray__new_len, sizeof(element), (ctx)); \
+		(array) = barray__prepare_push((array), &barray__new_len, sizeof(*(array)), (ctx)); \
 		(array)[barray__new_len - 1] = element; \
 	} while (0)
 
