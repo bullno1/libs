@@ -175,7 +175,7 @@ main(int argc, const char* argv[]) {
 		.current_filename = __FILE__,
 		.current_depth_in_project = BTEST_LOG_DEPTH,
 	});
-	blog_add_file_logger(BLOG_LEVEL_DEBUG, &(blog_file_logger_options_t){
+	blog_add_file_logger(BLOG_LEVEL_TRACE, &(blog_file_logger_options_t){
 		.file = stderr,
 		.with_colors = true,
 	});
