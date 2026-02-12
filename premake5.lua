@@ -77,6 +77,7 @@ project "tests"
       "tests/bent/*.c",
       "tests/bsv/*.h",
       "tests/bsv/*.c",
+      "tests/bstacktrace/*.c",
     }
 
     filter "configurations:Debug"
