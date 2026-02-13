@@ -11,7 +11,9 @@ static bool
 stack_walk(uintptr_t address, void* userdata) {
 	bcrash_info_t* crash_info = userdata;
 	// Skip frames belonging to the crash handler system
-	if (!bcrash_handler_should_report_current_frame(crash_info)) { return true; }
+	if (!bcrash_handler_should_report_current_frame(crash_info, address)) {
+		return true;
+	}
 //!                                                                             [bcrash_handler_should_report_current_frame]
 
 	bstacktrace_info_t info = bstacktrace_resolve(bstacktrace, address, BSTACKTRACE_RESOLVE_ALL);

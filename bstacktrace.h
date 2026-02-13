@@ -675,7 +675,7 @@ bstacktrace_libdw_resolve(
 	bstacktrace_libdw_session_t* session,
 	uintptr_t pc,
 	bstacktrace_resolve_flags_t flags,
-	bstacktrace_entry_t* entry
+	bstacktrace_info_t* info
 ) {
 }
 

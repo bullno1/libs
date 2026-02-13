@@ -105,10 +105,11 @@ bcrash_handler_should_report_current_pc(bcrash_info_t* info);
  * @snippet samples/bcrash_handler.c bcrash_handler_should_report_current_frame
  *
  * @param info The crash info in the callback
+ * @param pc PC of the current frame
  * @return Whether the current stackframe should be reported
  */
 BCRASH_HANDLER_API bool
-bcrash_handler_should_report_current_frame(bcrash_info_t* info);
+bcrash_handler_should_report_current_frame(bcrash_info_t* info, uintptr_t pc);
 
 #endif
 
@@ -121,16 +122,6 @@ bcrash_handler_should_report_current_frame(bcrash_info_t* info);
 #include <stddef.h>
 
 static bcrash_handler_fn_t bcrash_handler = NULL;
-
-bool
-bcrash_handler_should_report_current_frame(bcrash_info_t* info) {
-	if (info->num_handler_frames > 0) {
-		info->num_handler_frames -= 1;
-		return false;
-	} else {
-		return true;
-	}
-}
 
 #if defined(__linux__)
 // Linux {{{
@@ -178,6 +169,16 @@ bcrash_handler_should_report_current_pc(bcrash_info_t* info) {
 	return true;
 }
 
+bool
+bcrash_handler_should_report_current_frame(bcrash_info_t* info, uintptr_t pc) {
+	if (info->num_handler_frames > 0) {
+		info->num_handler_frames -= 1;
+		return false;
+	} else {
+		return true;
+	}
+}
+
 // }}}
 #elif defined(_WIN32)
 // Windows {{{
@@ -197,7 +198,7 @@ LONG WINAPI bcrash_handler_veh(EXCEPTION_POINTERS* ep) {
 		.pc = (uintptr_t)ep->ContextRecord->Pc,
 #endif
 		.fault_addr = (uintptr_t)ep->ExceptionRecord->ExceptionInformation[1],
-		.num_handler_frames = 4,
+		.num_handler_frames = 5,
 	};
 
 	bcrash_handler(crash_info);
@@ -214,6 +215,20 @@ bcrash_handler_set(bcrash_handler_fn_t handler) {
 bool
 bcrash_handler_should_report_current_pc(bcrash_info_t* info) {
 	return false;
+}
+
+bool
+bcrash_handler_should_report_current_frame(bcrash_info_t* info, uintptr_t pc) {
+	// We have reached user code
+	if (info->num_handler_frames == 0) { return true; }
+
+	// Skip until we are back to the crashing code
+	if (info->pc != pc) {
+		return false;
+	} else {
+		info->num_handler_frames = 0;
+		return true;
+	}
 }
 
 // }}}
