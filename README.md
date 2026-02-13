@@ -26,7 +26,7 @@ Collection of miscellaneous single-header libraries.
 |[bent.h](bent.h)|Entity component system|
 |[bsv.h](bsv.h)|Binary seriallization with explicit versioning|
 |[bstacktrace.h](bstacktrace.h)|Portable stacktrace with source mapping|
-|[bcrash_handler.h](bcrash_handler.h)|Portable stacktrace with source mapping|
+|[bcrash_handler.h](bcrash_handler.h)|Crash handler|
 
 Each one has example and documentation in the corresponding tests directory.
 

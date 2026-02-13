@@ -120,6 +120,7 @@ bcrash_handler_set(bcrash_handler_fn_t handler) {
 	sigaction(SIGBUS,  &sa, NULL);
 	sigaction(SIGILL,  &sa, NULL);
 	sigaction(SIGFPE,  &sa, NULL);
+	sigaction(SIGABRT, &sa, NULL);
 }
 
 // }}}
