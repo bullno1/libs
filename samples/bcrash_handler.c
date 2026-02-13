@@ -6,13 +6,13 @@
 static bstacktrace_t* bstacktrace = NULL;
 
 //!                                                                             [bcrash_handler_fn_t]
+//!                                                                             [bcrash_handler_should_report_current_frame]
 static bool
 stack_walk(uintptr_t address, void* userdata) {
-	int* num_skips = userdata;
-	if (*num_skips > 0) {
-		*num_skips -= 1;
-		return true;
-	}
+	bcrash_info_t* crash_info = userdata;
+	// Skip frames belonging to the crash handler system
+	if (!bcrash_handler_should_report_current_frame(crash_info)) { return true; }
+//!                                                                             [bcrash_handler_should_report_current_frame]
 
 	bstacktrace_info_t info = bstacktrace_resolve(bstacktrace, address, BSTACKTRACE_RESOLVE_ALL);
 	fprintf(
@@ -28,20 +28,30 @@ stack_walk(uintptr_t address, void* userdata) {
 
 static void
 crash_handler(bcrash_info_t crash_info) {
-	fprintf(stderr, "Error %d at address %p, pc = %p\n", crash_info.code, (void*)crash_info.fault_addr, (void*)crash_info.pc);
-
-	bstacktrace_info_t info = bstacktrace_resolve(bstacktrace, crash_info.pc, BSTACKTRACE_RESOLVE_ALL | BSTACKTRACE_RESOLVE_DIRECT);
 	fprintf(
 		stderr,
-		"%s (%p) in %s at %s:%d:%d\n",
-		info.function, (void*)crash_info.pc,
-		info.module,
-		info.filename, info.line, info.column
+		"Error %d at address %p, pc = %p\n",
+		crash_info.code, (void*)crash_info.fault_addr, (void*)crash_info.pc
 	);
 
-	// Skip the signal handler and the caller
-	int num_skips = crash_info.num_handler_frames;
-	bstacktrace_walk(bstacktrace, stack_walk, &num_skips);
+//!                                                                             [bcrash_handler_should_report_current_pc]
+	if (bcrash_handler_should_report_current_pc(&crash_info)) {
+		bstacktrace_info_t info = bstacktrace_resolve(
+			bstacktrace,
+			crash_info.pc,
+			BSTACKTRACE_RESOLVE_ALL | BSTACKTRACE_RESOLVE_DIRECT
+		);
+		fprintf(
+			stderr,
+			"%s (%p) in %s at %s:%d:%d\n",
+			info.function, (void*)crash_info.pc,
+			info.module,
+			info.filename, info.line, info.column
+		);
+	}
+//!                                                                             [bcrash_handler_should_report_current_pc]
+
+	bstacktrace_walk(bstacktrace, stack_walk, &crash_info);
 }
 //!                                                                             [bcrash_handler_fn_t]
 
@@ -49,11 +59,15 @@ static void
 bar(void) {
 	volatile int* a = (int*)0x01;
 	*a = 420;
+
+	printf("Unreachable\n");
 }
 
 static void
 foo(void) {
 	bar();
+
+	printf("Unreachable\n");
 }
 
 int

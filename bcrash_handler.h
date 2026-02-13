@@ -17,6 +17,7 @@
  */
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #ifndef BCRASH_HANDLER_API
 #define BCRASH_HANDLER_API
@@ -39,6 +40,8 @@ typedef struct {
 	 * Number of frames to skip during tracing.
 	 *
 	 * These frame belongs to the crash handling system and are not relevant for debugging.
+	 *
+	 * @see bcrash_handler_should_report_current_frame
 	 */
 	int num_handler_frames;
 
@@ -70,6 +73,43 @@ typedef void (*bcrash_handler_fn_t)(bcrash_info_t crash_info);
 BCRASH_HANDLER_API void
 bcrash_handler_set(bcrash_handler_fn_t handler);
 
+/**
+ * Check whether the code location at @ref bcrash_info_t.pc should be reported.
+ *
+ * Differentt platforms invoke the crash handler differently.
+ * The stacktrace originating from the crash handler may or may not encompass
+ * the crash site.
+ * This function helps to smooth over the differences.
+ *
+ * Example:
+ *
+ * @snippet samples/bcrash_handler.c bcrash_handler_should_report_current_pc
+ *
+ * @param info The crash info in the callback
+ * @return Whether the crashing location should be reported
+ */
+BCRASH_HANDLER_API bool
+bcrash_handler_should_report_current_pc(bcrash_info_t* info);
+
+/**
+ * Check whether the current stackframe inside a stack walker should be reported.
+ *
+ * The crash handler itself also has a call stack which is not relevant for debugging.
+ * Different platforms have different stack depth for crash handling.
+ * This function helps to smooth over the differences.
+ *
+ * This function is designed to be called inside a @ref bstacktrace.h "bstacktrace"'s callback
+ *
+ * Example:
+ *
+ * @snippet samples/bcrash_handler.c bcrash_handler_should_report_current_frame
+ *
+ * @param info The crash info in the callback
+ * @return Whether the current stackframe should be reported
+ */
+BCRASH_HANDLER_API bool
+bcrash_handler_should_report_current_frame(bcrash_info_t* info);
+
 #endif
 
 #if defined(BLIB_IMPLEMENTATION) && !defined(BCRASH_HANDLER_IMPLEMENTATION)
@@ -81,6 +121,16 @@ bcrash_handler_set(bcrash_handler_fn_t handler);
 #include <stddef.h>
 
 static bcrash_handler_fn_t bcrash_handler = NULL;
+
+bool
+bcrash_handler_should_report_current_frame(bcrash_info_t* info) {
+	if (info->num_handler_frames > 0) {
+		info->num_handler_frames -= 1;
+		return false;
+	} else {
+		return true;
+	}
+}
 
 #if defined(__linux__)
 // Linux {{{
@@ -123,6 +173,11 @@ bcrash_handler_set(bcrash_handler_fn_t handler) {
 	sigaction(SIGABRT, &sa, NULL);
 }
 
+bool
+bcrash_handler_should_report_current_pc(bcrash_info_t* info) {
+	return true;
+}
+
 // }}}
 #elif defined(_WIN32)
 // Windows {{{
@@ -142,7 +197,7 @@ LONG WINAPI bcrash_handler_veh(EXCEPTION_POINTERS* ep) {
 		.pc = (uintptr_t)ep->ContextRecord->Pc,
 #endif
 		.fault_addr = (uintptr_t)ep->ExceptionRecord->ExceptionInformation[1],
-		.num_handler_frames = 5,
+		.num_handler_frames = 4,
 	};
 
 	bcrash_handler(crash_info);
@@ -154,6 +209,11 @@ bcrash_handler_set(bcrash_handler_fn_t handler) {
 	bcrash_handler = handler;
 
 	AddVectoredExceptionHandler(1, bcrash_handler_veh);
+}
+
+bool
+bcrash_handler_should_report_current_pc(bcrash_info_t* info) {
+	return false;
 }
 
 // }}}
