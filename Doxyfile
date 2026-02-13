@@ -958,6 +958,7 @@ INPUT                  = mainpage.md \
 	bent.h \
 	bsv.h \
 	bstacktrace.h \
+	bcrash_handler.h \
 
 
 # This tag can be used to specify the character encoding of the source files

@@ -2,10 +2,6 @@
 #ifndef BSTACKTRACE_H
 #define BSTACKTRACE_H
 
-#include <stddef.h>
-#include <stdint.h>
-#include <stdbool.h>
-
 /**
  * @file
  *
@@ -30,10 +26,13 @@
  * On Emscripten, the flags `-sASYNCIFY=1 -gsource-map` are required for debug info resolution to work.
  */
 
+#include <stddef.h>
+#include <stdint.h>
+#include <stdbool.h>
+
 #ifndef BSTACKTRACE_API
 #define BSTACKTRACE_API
 #endif
-
 
 /**
  * Resolve everything about the stackframe.
@@ -41,7 +40,14 @@
  * @see bstacktrace_resolve
  * @see bstacktrace_resolve_flag_t
  */
-#define BSTACKTRACE_RESOLVE_ALL  ((bstacktrace_resolve_flags_t)0xffffffff)
+#define BSTACKTRACE_RESOLVE_ALL \
+	((bstacktrace_resolve_flags_t)( \
+		  BSTACKTRACE_RESOLVE_MODULE \
+		| BSTACKTRACE_RESOLVE_FUNCTION \
+		| BSTACKTRACE_RESOLVE_FILENAME \
+		| BSTACKTRACE_RESOLVE_LINE \
+		| BSTACKTRACE_RESOLVE_COLUMN \
+	))
 
 /**
  * A stacktracer context
@@ -119,6 +125,8 @@ typedef enum {
 	BSTACKTRACE_RESOLVE_LINE      = 1 << 3,
 	/*! Resolve @ref bstacktrace_info_t.column */
 	BSTACKTRACE_RESOLVE_COLUMN    = 1 << 4,
+	/*! Resolve as if this instruction is about to be executed and not as a return address */
+	BSTACKTRACE_RESOLVE_DIRECT    = 1 << 5,
 } bstacktrace_resolve_flag_t;
 
 typedef int bstacktrace_resolve_flags_t;
@@ -767,6 +775,10 @@ end_walk:;
 
 bstacktrace_info_t
 bstacktrace_resolve(bstacktrace_t* ctx, uintptr_t address, bstacktrace_resolve_flags_t flags) {
+	if ((flags & BSTACKTRACE_RESOLVE_DIRECT) == 0) {
+		address -= 1;
+	}
+
 	bstacktrace_info_t info = { 0 };
 	bstacktrace_libdw_resolve(&ctx->libdw, ctx->libdw_session, address, flags, &info);
 	return info;
@@ -854,6 +866,9 @@ bstacktrace_walk(
 bstacktrace_info_t
 bstacktrace_resolve(bstacktrace_t* ctx, uintptr_t address, bstacktrace_resolve_flags_t flags) {
 	bstacktrace_info_t info = { 0 };
+	if ((flags & BSTACKTRACE_RESOLVE_DIRECT) == 0) {
+		address -= 1;
+	}
 
 	if (flags & BSTACKTRACE_RESOLVE_FUNCTION) {
 		DWORD64 displacement = 0;

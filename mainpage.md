@@ -11,6 +11,7 @@ Collection of miscellaneous single-header libraries.
 |@ref bspscq.h|Single producer single consumer queue|
 |@ref bsv.h|Binary serialization with versioning|
 |@ref bstacktrace.h|Portable stacktrace with source mapping|
+|@ref bcrash_handler.h|Crash handler|
 
 The following libraries are not self-contained.
 They depend on other libraries in this repository.

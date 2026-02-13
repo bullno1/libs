@@ -1,10 +1,6 @@
 #ifndef BSV_H
 #define BSV_H
 
-#include <stdint.h>
-#include <stddef.h>
-#include <stdbool.h>
-
 /**
  * @file
  *
@@ -25,6 +21,10 @@
  *   * BSV_STDIO: Wrapper for FILE in stdio.h.
  * * Structured data: Read/write structured data with backward-compatibility.
  */
+
+#include <stdint.h>
+#include <stddef.h>
+#include <stdbool.h>
 
 #ifndef BSV_API
 #define BSV_API
