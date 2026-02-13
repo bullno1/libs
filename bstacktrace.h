@@ -6,40 +6,172 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+/**
+ * @file
+ *
+ * @brief Portable stacktrace with source mapping.
+ *
+ * Supported platforms:
+ *
+ * * Windows
+ * * Linux
+ * * Emscripten
+ *
+ * On all platforms, the executable should be compiled with debug info enabled.
+ *
+ * On Windows [dbghelp](https://learn.microsoft.com/en-us/windows/win32/debug/debug-help-library) is used.
+ * With MSVC, it will be automatically linked.
+ *
+ * On Linux, [libdw](https://sourceware.org/elfutils/) is an optional dependency at both compile and runtime.
+ * Without it, source level information cannot be resolved.
+ * It is recommended to compile with `-fno-omit-frame-pointer`.
+ * When using the [mold](https://github.com/rui314/mold) linker, `--separate-debug-file` will result in an **incompatible** debug info file.
+ *
+ * On Emscripten, the flags `-sASYNCIFY=1 -gsource-map` are required for debug info resolution to work.
+ */
+
 #ifndef BSTACKTRACE_API
 #define BSTACKTRACE_API
 #endif
 
-#define BSTACKTRACE_RESOLVE_NONE ((bstacktrace_resolve_flags_t)0)
+
+/**
+ * Resolve everything about the stackframe.
+ *
+ * @see bstacktrace_resolve
+ * @see bstacktrace_resolve_flag_t
+ */
 #define BSTACKTRACE_RESOLVE_ALL  ((bstacktrace_resolve_flags_t)0xffffffff)
 
+/**
+ * A stacktracer context
+ *
+ * @see bstacktrace_init
+ * @see bstacktrace_cleanup
+ */
 typedef struct bstacktrace_s bstacktrace_t;
 
+/**
+ * Information about a stackframe
+ *
+ * @see bstacktrace_resolve
+ */
 typedef struct {
+	/**
+	 * Name of the module this stackframe belongs to, enabled with @ref BSTACKTRACE_RESOLVE_MODULE.
+	 *
+	 * Even when enabled, this may still be `NULL` due to a lack of debug info.
+	 *
+	 * On Emscripten, this will always be `NULL` for Javascript code.
+	 *
+	 * @remarks This string is temporary and should be immediately copied before further calls to @ref bstacktrace_resolve.
+	 */
 	const char* module;
+
+	/**
+	 * Name of the function this stackframe belongs to, enabled with @ref BSTACKTRACE_RESOLVE_FUNCTION.
+	 *
+	 * Even when enabled, this may still be `NULL` due to a lack of debug info.
+	 *
+	 * @remarks This string is temporary and should be immediately copied before further calls to @ref bstacktrace_resolve.
+	 */
 	const char* function;
+
+	/**
+	 * Name of the file this stackframe belongs to, enabled with @ref BSTACKTRACE_RESOLVE_FILENAME.
+	 *
+	 * Even when enabled, this may still be `NULL` due to a lack of debug info.
+	 *
+	 * @remarks This string is temporary and should be immediately copied before further calls to @ref bstacktrace_resolve.
+	 */
 	const char* filename;
+
+	/**
+	 * The line number of this stackframe, enabled with @ref BSTACKTRACE_RESOLVE_LINE.
+	 *
+	 * Even when enabled, this may still be 0 due to a lack of debug info.
+	 */
 	int line;
+
+	/**
+	 * The column number of this stackframe, enabled with @ref BSTACKTRACE_RESOLVE_COLUMN.
+	 *
+	 * Even when enabled, this may still be `0` due to a lack of debug info.
+	 *
+	 * On Windows, his will always be `0`.
+	 */
 	int column;
 } bstacktrace_info_t;
 
+/**
+ * Flag values for debug symbol resolution.
+ *
+ * @see bstacktrace_resolve
+ */
 typedef enum {
+	/*! Resolve @ref bstacktrace_info_t.module */
 	BSTACKTRACE_RESOLVE_MODULE    = 1 << 0,
+	/*! Resolve @ref bstacktrace_info_t.function */
 	BSTACKTRACE_RESOLVE_FUNCTION  = 1 << 1,
+	/*! Resolve @ref bstacktrace_info_t.filename */
 	BSTACKTRACE_RESOLVE_FILENAME  = 1 << 2,
+	/*! Resolve @ref bstacktrace_info_t.line */
 	BSTACKTRACE_RESOLVE_LINE      = 1 << 3,
+	/*! Resolve @ref bstacktrace_info_t.column */
 	BSTACKTRACE_RESOLVE_COLUMN    = 1 << 4,
 } bstacktrace_resolve_flag_t;
 
 typedef int bstacktrace_resolve_flags_t;
+
+/**
+ * Stack walk callback.
+ *
+ * This will be invoked on successive stackframes, starting with the caller of @ref bstacktrace_walk.
+ *
+ * Example:
+ *
+ * @snippet samples/bstacktrace.c bstacktrace_callback_fn_t
+ *
+ * @param address Address of the current stackframe.
+ *   This should be passed to @ref bstacktrace_resolve for further info.
+ * @param userdata Arbitrary datra passed to @ref bstacktrace_walk
+ * @return Whether The walk should continue. Return `false` to terminate early.
+ *
+ * @see bstacktrace_walk
+ */
 typedef bool (*bstacktrace_callback_fn_t)(uintptr_t address, void* userdata);
 
+/**
+ * Initialize a new stacktracer.
+ *
+ * @param memctx See @ref allocator
+ * @return A new stacktracer
+ *
+ * @see bstacktrace_cleanup
+ */
 BSTACKTRACE_API bstacktrace_t*
 bstacktrace_init(void* memctx);
 
+/**
+ * Cleanup an existing stacktracer.
+ *
+ * @param ctx A stacktracer context
+ *
+ * @see bstacktrace_init
+ */
 BSTACKTRACE_API void
 bstacktrace_cleanup(bstacktrace_t* ctx);
 
+/**
+ * Walk the stack, starting from the caller of this function.
+ *
+ * @param ctx A stacktracer context
+ * @param callback A stack walk callback
+ * @param userdata Arbitrary userdata to pass to the callback
+ *
+ * @see bstacktrace_init
+ * @see bstacktrace_callback_fn_t
+ */
 BSTACKTRACE_API void
 bstacktrace_walk(
 	bstacktrace_t* ctx,
@@ -47,9 +179,28 @@ bstacktrace_walk(
 	void* userdata
 );
 
+/**
+ * Resolve informations about a stackframe.
+ *
+ * @param ctx A stacktracer context
+ * @param address An address passed to a @ref bstacktrace_callback_fn_t
+ * @param flags Which fields of @ref bstacktrace_info_t should be resolved.
+ * @return Information about the stackframe
+ */
 BSTACKTRACE_API bstacktrace_info_t
 bstacktrace_resolve(bstacktrace_t* ctx, uintptr_t address, bstacktrace_resolve_flags_t flags);
 
+/**
+ * Refresh the internal state of a stacktracer.
+ *
+ * On some platforms, locating and loading symbols is an expensive operation.
+ * @ref bstacktrace_init does this once for the program and all its loaded modules.
+ * However, with dynamnic loading, the loaded symbols may be out-of-date.
+ *
+ * This function should be called after the program loads or unloads a dynamic library at runtime (e.g: using `LoadLibrary` on Windows or `dlopen` on Unix platforms).
+ *
+ * @param ctx A stacktracer context
+ */
 BSTACKTRACE_API void
 bstacktrace_refresh(bstacktrace_t* ctx);
 

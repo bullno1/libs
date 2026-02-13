@@ -25,6 +25,7 @@ Collection of miscellaneous single-header libraries.
 |[qoi.h](qoi.h)|Quite OK image encoding/decoding|
 |[bent.h](bent.h)|Entity component system|
 |[bsv.h](bsv.h)|Binary seriallization with explicit versioning|
+|[bstacktrace.h](bstacktrace.h)|Portable stacktrace with source mapping|
 
 Each one has example and documentation in the corresponding tests directory.
 

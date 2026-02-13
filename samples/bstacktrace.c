@@ -4,6 +4,7 @@
 
 static bstacktrace_t* bstacktrace = NULL;
 
+//!                                                                             [bstacktrace_callback_fn_t]
 static bool
 stack_walk(uintptr_t address, void* userdata) {
 	bstacktrace_info_t info = bstacktrace_resolve(bstacktrace, address, BSTACKTRACE_RESOLVE_ALL);
@@ -16,6 +17,7 @@ stack_walk(uintptr_t address, void* userdata) {
 
 	return true;
 }
+//!                                                                             [bstacktrace_callback_fn_t]
 
 static void
 bar(void) {
