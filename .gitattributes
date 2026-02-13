@@ -1,1 +1,2 @@
 *.hexpat linguist-language=Rust
+*.h linguist-language=C
