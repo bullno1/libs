@@ -82,6 +82,7 @@ $(function() {
 <p>Crash handler.  
 <a href="#details">More...</a></p>
 <div class="textblock"><code>#include &lt;stdint.h&gt;</code><br />
+<code>#include &lt;stdbool.h&gt;</code><br />
 </div>
 <p><a href="bcrash__handler_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
@@ -102,6 +103,12 @@ Functions</h2></td></tr>
 <tr class="memitem:a333ad081a13baa5dc50d21602495a736" id="r_a333ad081a13baa5dc50d21602495a736"><td class="memItemLeft" align="right" valign="top">BCRASH_HANDLER_API void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bcrash__handler_8h.html#a333ad081a13baa5dc50d21602495a736">bcrash_handler_set</a> (<a class="el" href="bcrash__handler_8h.html#aa9af0da1b08a6245d60545e2953c0894">bcrash_handler_fn_t</a> handler)</td></tr>
 <tr class="memdesc:a333ad081a13baa5dc50d21602495a736"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set a crash handler.  <br /></td></tr>
 <tr class="separator:a333ad081a13baa5dc50d21602495a736"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aed5279ccda75e319ea354bbbe09a6dc9" id="r_aed5279ccda75e319ea354bbbe09a6dc9"><td class="memItemLeft" align="right" valign="top">BCRASH_HANDLER_API bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bcrash__handler_8h.html#aed5279ccda75e319ea354bbbe09a6dc9">bcrash_handler_should_report_current_pc</a> (<a class="el" href="structbcrash__info__t.html">bcrash_info_t</a> *info)</td></tr>
+<tr class="memdesc:aed5279ccda75e319ea354bbbe09a6dc9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check whether the code location at <a class="el" href="structbcrash__info__t.html#a78a798ded6b72aab5782ab499e39af3e">bcrash_info_t::pc</a> should be reported.  <br /></td></tr>
+<tr class="separator:aed5279ccda75e319ea354bbbe09a6dc9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac0d3912315ceba40f85271829b85b6c7" id="r_ac0d3912315ceba40f85271829b85b6c7"><td class="memItemLeft" align="right" valign="top">BCRASH_HANDLER_API bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bcrash__handler_8h.html#ac0d3912315ceba40f85271829b85b6c7">bcrash_handler_should_report_current_frame</a> (<a class="el" href="structbcrash__info__t.html">bcrash_info_t</a> *info)</td></tr>
+<tr class="memdesc:ac0d3912315ceba40f85271829b85b6c7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check whether the current stackframe inside a stack walker should be reported.  <br /></td></tr>
+<tr class="separator:ac0d3912315ceba40f85271829b85b6c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Crash handler. </p>
@@ -126,13 +133,12 @@ Functions</h2></td></tr>
 
 <p>Crash handler callback. </p>
 <p>Example:</p>
-<div class="fragment"><div class="line"><span class="keyword">static</span> <span class="keywordtype">bool</span></div>
+<div class="fragment"><div class="line"> </div>
+<div class="line"><span class="keyword">static</span> <span class="keywordtype">bool</span></div>
 <div class="line">stack_walk(uintptr_t address, <span class="keywordtype">void</span>* userdata) {</div>
-<div class="line">    <span class="keywordtype">int</span>* num_skips = userdata;</div>
-<div class="line">    <span class="keywordflow">if</span> (*num_skips &gt; 0) {</div>
-<div class="line">        *num_skips -= 1;</div>
-<div class="line">        <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
-<div class="line">    }</div>
+<div class="line">    <a class="code hl_struct" href="structbcrash__info__t.html">bcrash_info_t</a>* crash_info = userdata;</div>
+<div class="line">    <span class="comment">// Skip frames belonging to the crash handler system</span></div>
+<div class="line">    <span class="keywordflow">if</span> (!<a class="code hl_function" href="bcrash__handler_8h.html#ac0d3912315ceba40f85271829b85b6c7">bcrash_handler_should_report_current_frame</a>(crash_info)) { <span class="keywordflow">return</span> <span class="keyword">true</span>; }</div>
 <div class="line"> </div>
 <div class="line">    <a class="code hl_struct" href="structbstacktrace__info__t.html">bstacktrace_info_t</a> info = <a class="code hl_function" href="bstacktrace_8h.html#aa564c9e41ac1ad806b964a4b86a2a15b">bstacktrace_resolve</a>(bstacktrace, address, <a class="code hl_define" href="bstacktrace_8h.html#a6c786c7bebbd75dda25483b2c5407d8b">BSTACKTRACE_RESOLVE_ALL</a>);</div>
 <div class="line">    fprintf(</div>
@@ -148,30 +154,39 @@ Functions</h2></td></tr>
 <div class="line"> </div>
 <div class="line"><span class="keyword">static</span> <span class="keywordtype">void</span></div>
 <div class="line">crash_handler(<a class="code hl_struct" href="structbcrash__info__t.html">bcrash_info_t</a> crash_info) {</div>
-<div class="line">    fprintf(stderr, <span class="stringliteral">&quot;Error %d at address %p, pc = %p\n&quot;</span>, crash_info.<a class="code hl_variable" href="structbcrash__info__t.html#ac9e3abb2226d30c30bd444b18985ac84">code</a>, (<span class="keywordtype">void</span>*)crash_info.<a class="code hl_variable" href="structbcrash__info__t.html#a25579f84c88075d892f493bffd4979a5">fault_addr</a>, (<span class="keywordtype">void</span>*)crash_info.<a class="code hl_variable" href="structbcrash__info__t.html#a78a798ded6b72aab5782ab499e39af3e">pc</a>);</div>
-<div class="line"> </div>
-<div class="line">    <a class="code hl_struct" href="structbstacktrace__info__t.html">bstacktrace_info_t</a> info = <a class="code hl_function" href="bstacktrace_8h.html#aa564c9e41ac1ad806b964a4b86a2a15b">bstacktrace_resolve</a>(bstacktrace, crash_info.<a class="code hl_variable" href="structbcrash__info__t.html#a78a798ded6b72aab5782ab499e39af3e">pc</a>, <a class="code hl_define" href="bstacktrace_8h.html#a6c786c7bebbd75dda25483b2c5407d8b">BSTACKTRACE_RESOLVE_ALL</a> | <a class="code hl_enumvalue" href="bstacktrace_8h.html#a4f015eb091bd17c17f63427ab30f3181a0c9c40920e137eed421434e244e338b4">BSTACKTRACE_RESOLVE_DIRECT</a>);</div>
 <div class="line">    fprintf(</div>
 <div class="line">        stderr,</div>
-<div class="line">        <span class="stringliteral">&quot;%s (%p) in %s at %s:%d:%d\n&quot;</span>,</div>
-<div class="line">        info.<a class="code hl_variable" href="structbstacktrace__info__t.html#aaaa359ceb3b551c05692d488622633f9">function</a>, (<span class="keywordtype">void</span>*)crash_info.<a class="code hl_variable" href="structbcrash__info__t.html#a78a798ded6b72aab5782ab499e39af3e">pc</a>,</div>
-<div class="line">        info.module,</div>
-<div class="line">        info.<a class="code hl_variable" href="structbstacktrace__info__t.html#a613fd9d5c674635373355faab793ba72">filename</a>, info.<a class="code hl_variable" href="structbstacktrace__info__t.html#a0a600aaf892ebf40d71e784657827981">line</a>, info.<a class="code hl_variable" href="structbstacktrace__info__t.html#a6e20dfa29ddd65fa8b0e1a463e049481">column</a></div>
+<div class="line">        <span class="stringliteral">&quot;Error %d at address %p, pc = %p\n&quot;</span>,</div>
+<div class="line">        crash_info.<a class="code hl_variable" href="structbcrash__info__t.html#ac9e3abb2226d30c30bd444b18985ac84">code</a>, (<span class="keywordtype">void</span>*)crash_info.<a class="code hl_variable" href="structbcrash__info__t.html#a25579f84c88075d892f493bffd4979a5">fault_addr</a>, (<span class="keywordtype">void</span>*)crash_info.<a class="code hl_variable" href="structbcrash__info__t.html#a78a798ded6b72aab5782ab499e39af3e">pc</a></div>
 <div class="line">    );</div>
 <div class="line"> </div>
-<div class="line">    <span class="comment">// Skip the signal handler and the caller</span></div>
-<div class="line">    <span class="keywordtype">int</span> num_skips = crash_info.<a class="code hl_variable" href="structbcrash__info__t.html#a8f762c18f2791b30da63c3fed9b1311c">num_handler_frames</a>;</div>
-<div class="line">    <a class="code hl_function" href="bstacktrace_8h.html#a2837d61f9d1cac6d3bce6fcfa0c557b6">bstacktrace_walk</a>(bstacktrace, stack_walk, &amp;num_skips);</div>
+<div class="line">    <span class="keywordflow">if</span> (<a class="code hl_function" href="bcrash__handler_8h.html#aed5279ccda75e319ea354bbbe09a6dc9">bcrash_handler_should_report_current_pc</a>(&amp;crash_info)) {</div>
+<div class="line">        <a class="code hl_struct" href="structbstacktrace__info__t.html">bstacktrace_info_t</a> info = <a class="code hl_function" href="bstacktrace_8h.html#aa564c9e41ac1ad806b964a4b86a2a15b">bstacktrace_resolve</a>(</div>
+<div class="line">            bstacktrace,</div>
+<div class="line">            crash_info.<a class="code hl_variable" href="structbcrash__info__t.html#a78a798ded6b72aab5782ab499e39af3e">pc</a>,</div>
+<div class="line">            <a class="code hl_define" href="bstacktrace_8h.html#a6c786c7bebbd75dda25483b2c5407d8b">BSTACKTRACE_RESOLVE_ALL</a> | <a class="code hl_enumvalue" href="bstacktrace_8h.html#a4f015eb091bd17c17f63427ab30f3181a0c9c40920e137eed421434e244e338b4">BSTACKTRACE_RESOLVE_DIRECT</a></div>
+<div class="line">        );</div>
+<div class="line">        fprintf(</div>
+<div class="line">            stderr,</div>
+<div class="line">            <span class="stringliteral">&quot;%s (%p) in %s at %s:%d:%d\n&quot;</span>,</div>
+<div class="line">            info.<a class="code hl_variable" href="structbstacktrace__info__t.html#aaaa359ceb3b551c05692d488622633f9">function</a>, (<span class="keywordtype">void</span>*)crash_info.<a class="code hl_variable" href="structbcrash__info__t.html#a78a798ded6b72aab5782ab499e39af3e">pc</a>,</div>
+<div class="line">            info.module,</div>
+<div class="line">            info.<a class="code hl_variable" href="structbstacktrace__info__t.html#a613fd9d5c674635373355faab793ba72">filename</a>, info.<a class="code hl_variable" href="structbstacktrace__info__t.html#a0a600aaf892ebf40d71e784657827981">line</a>, info.<a class="code hl_variable" href="structbstacktrace__info__t.html#a6e20dfa29ddd65fa8b0e1a463e049481">column</a></div>
+<div class="line">        );</div>
+<div class="line">    }</div>
+<div class="line"> </div>
+<div class="line">    <a class="code hl_function" href="bstacktrace_8h.html#a2837d61f9d1cac6d3bce6fcfa0c557b6">bstacktrace_walk</a>(bstacktrace, stack_walk, &amp;crash_info);</div>
 <div class="line">}</div>
+<div class="ttc" id="abcrash__handler_8h_html_ac0d3912315ceba40f85271829b85b6c7"><div class="ttname"><a href="bcrash__handler_8h.html#ac0d3912315ceba40f85271829b85b6c7">bcrash_handler_should_report_current_frame</a></div><div class="ttdeci">BCRASH_HANDLER_API bool bcrash_handler_should_report_current_frame(bcrash_info_t *info)</div><div class="ttdoc">Check whether the current stackframe inside a stack walker should be reported.</div></div>
+<div class="ttc" id="abcrash__handler_8h_html_aed5279ccda75e319ea354bbbe09a6dc9"><div class="ttname"><a href="bcrash__handler_8h.html#aed5279ccda75e319ea354bbbe09a6dc9">bcrash_handler_should_report_current_pc</a></div><div class="ttdeci">BCRASH_HANDLER_API bool bcrash_handler_should_report_current_pc(bcrash_info_t *info)</div><div class="ttdoc">Check whether the code location at bcrash_info_t::pc should be reported.</div></div>
 <div class="ttc" id="abstacktrace_8h_html_a2837d61f9d1cac6d3bce6fcfa0c557b6"><div class="ttname"><a href="bstacktrace_8h.html#a2837d61f9d1cac6d3bce6fcfa0c557b6">bstacktrace_walk</a></div><div class="ttdeci">BSTACKTRACE_API void bstacktrace_walk(bstacktrace_t *ctx, bstacktrace_callback_fn_t callback, void *userdata)</div><div class="ttdoc">Walk the stack, starting from the caller of this function.</div></div>
 <div class="ttc" id="abstacktrace_8h_html_a4f015eb091bd17c17f63427ab30f3181a0c9c40920e137eed421434e244e338b4"><div class="ttname"><a href="bstacktrace_8h.html#a4f015eb091bd17c17f63427ab30f3181a0c9c40920e137eed421434e244e338b4">BSTACKTRACE_RESOLVE_DIRECT</a></div><div class="ttdeci">@ BSTACKTRACE_RESOLVE_DIRECT</div><div class="ttdoc">Resolve as if this instruction is about to be executed and not as a return address.</div><div class="ttdef"><b>Definition</b> bstacktrace.h:129</div></div>
 <div class="ttc" id="abstacktrace_8h_html_a6c786c7bebbd75dda25483b2c5407d8b"><div class="ttname"><a href="bstacktrace_8h.html#a6c786c7bebbd75dda25483b2c5407d8b">BSTACKTRACE_RESOLVE_ALL</a></div><div class="ttdeci">#define BSTACKTRACE_RESOLVE_ALL</div><div class="ttdoc">Resolve everything about the stackframe.</div><div class="ttdef"><b>Definition</b> bstacktrace.h:43</div></div>
 <div class="ttc" id="abstacktrace_8h_html_aa564c9e41ac1ad806b964a4b86a2a15b"><div class="ttname"><a href="bstacktrace_8h.html#aa564c9e41ac1ad806b964a4b86a2a15b">bstacktrace_resolve</a></div><div class="ttdeci">BSTACKTRACE_API bstacktrace_info_t bstacktrace_resolve(bstacktrace_t *ctx, uintptr_t address, bstacktrace_resolve_flags_t flags)</div><div class="ttdoc">Resolve informations about a stackframe.</div></div>
-<div class="ttc" id="astructbcrash__info__t_html"><div class="ttname"><a href="structbcrash__info__t.html">bcrash_info_t</a></div><div class="ttdoc">Information about a crash.</div><div class="ttdef"><b>Definition</b> bcrash_handler.h:28</div></div>
-<div class="ttc" id="astructbcrash__info__t_html_a25579f84c88075d892f493bffd4979a5"><div class="ttname"><a href="structbcrash__info__t.html#a25579f84c88075d892f493bffd4979a5">bcrash_info_t::fault_addr</a></div><div class="ttdeci">uintptr_t fault_addr</div><div class="ttdoc">If this is a memory access error, this is the address that caused the crash.</div><div class="ttdef"><b>Definition</b> bcrash_handler.h:53</div></div>
-<div class="ttc" id="astructbcrash__info__t_html_a78a798ded6b72aab5782ab499e39af3e"><div class="ttname"><a href="structbcrash__info__t.html#a78a798ded6b72aab5782ab499e39af3e">bcrash_info_t::pc</a></div><div class="ttdeci">uintptr_t pc</div><div class="ttdoc">Address of the instruction at the time of crashing.</div><div class="ttdef"><b>Definition</b> bcrash_handler.h:48</div></div>
-<div class="ttc" id="astructbcrash__info__t_html_a8f762c18f2791b30da63c3fed9b1311c"><div class="ttname"><a href="structbcrash__info__t.html#a8f762c18f2791b30da63c3fed9b1311c">bcrash_info_t::num_handler_frames</a></div><div class="ttdeci">int num_handler_frames</div><div class="ttdoc">Number of frames to skip during tracing.</div><div class="ttdef"><b>Definition</b> bcrash_handler.h:43</div></div>
-<div class="ttc" id="astructbcrash__info__t_html_ac9e3abb2226d30c30bd444b18985ac84"><div class="ttname"><a href="structbcrash__info__t.html#ac9e3abb2226d30c30bd444b18985ac84">bcrash_info_t::code</a></div><div class="ttdeci">int code</div><div class="ttdoc">The error code.</div><div class="ttdef"><b>Definition</b> bcrash_handler.h:36</div></div>
+<div class="ttc" id="astructbcrash__info__t_html"><div class="ttname"><a href="structbcrash__info__t.html">bcrash_info_t</a></div><div class="ttdoc">Information about a crash.</div><div class="ttdef"><b>Definition</b> bcrash_handler.h:29</div></div>
+<div class="ttc" id="astructbcrash__info__t_html_a25579f84c88075d892f493bffd4979a5"><div class="ttname"><a href="structbcrash__info__t.html#a25579f84c88075d892f493bffd4979a5">bcrash_info_t::fault_addr</a></div><div class="ttdeci">uintptr_t fault_addr</div><div class="ttdoc">If this is a memory access error, this is the address that caused the crash.</div><div class="ttdef"><b>Definition</b> bcrash_handler.h:56</div></div>
+<div class="ttc" id="astructbcrash__info__t_html_a78a798ded6b72aab5782ab499e39af3e"><div class="ttname"><a href="structbcrash__info__t.html#a78a798ded6b72aab5782ab499e39af3e">bcrash_info_t::pc</a></div><div class="ttdeci">uintptr_t pc</div><div class="ttdoc">Address of the instruction at the time of crashing.</div><div class="ttdef"><b>Definition</b> bcrash_handler.h:51</div></div>
+<div class="ttc" id="astructbcrash__info__t_html_ac9e3abb2226d30c30bd444b18985ac84"><div class="ttname"><a href="structbcrash__info__t.html#ac9e3abb2226d30c30bd444b18985ac84">bcrash_info_t::code</a></div><div class="ttdeci">int code</div><div class="ttdoc">The error code.</div><div class="ttdef"><b>Definition</b> bcrash_handler.h:37</div></div>
 <div class="ttc" id="astructbstacktrace__info__t_html"><div class="ttname"><a href="structbstacktrace__info__t.html">bstacktrace_info_t</a></div><div class="ttdoc">Information about a stackframe.</div><div class="ttdef"><b>Definition</b> bstacktrace.h:65</div></div>
 <div class="ttc" id="astructbstacktrace__info__t_html_a0a600aaf892ebf40d71e784657827981"><div class="ttname"><a href="structbstacktrace__info__t.html#a0a600aaf892ebf40d71e784657827981">bstacktrace_info_t::line</a></div><div class="ttdeci">int line</div><div class="ttdoc">The line number of this stackframe, enabled with BSTACKTRACE_RESOLVE_LINE.</div><div class="ttdef"><b>Definition</b> bstacktrace.h:100</div></div>
 <div class="ttc" id="astructbstacktrace__info__t_html_a613fd9d5c674635373355faab793ba72"><div class="ttname"><a href="structbstacktrace__info__t.html#a613fd9d5c674635373355faab793ba72">bstacktrace_info_t::filename</a></div><div class="ttdeci">const char * filename</div><div class="ttdoc">Name of the file this stackframe belongs to, enabled with BSTACKTRACE_RESOLVE_FILENAME.</div><div class="ttdef"><b>Definition</b> bstacktrace.h:93</div></div>
@@ -199,6 +214,84 @@ Functions</h2></td></tr>
 
 <p>Set a crash handler. </p>
 <p>This should only be called once, during initialization. </p>
+
+</div>
+</div>
+<a id="ac0d3912315ceba40f85271829b85b6c7" name="ac0d3912315ceba40f85271829b85b6c7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac0d3912315ceba40f85271829b85b6c7">&#9670;&#160;</a></span>bcrash_handler_should_report_current_frame()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">BCRASH_HANDLER_API bool bcrash_handler_should_report_current_frame </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structbcrash__info__t.html">bcrash_info_t</a> *&#160;</td>
+          <td class="paramname"><em>info</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Check whether the current stackframe inside a stack walker should be reported. </p>
+<p>The crash handler itself also has a call stack which is not relevant for debugging. Different platforms have different stack depth for crash handling. This function helps to smooth over the differences.</p>
+<p>This function is designed to be called inside a <a class="el" href="bstacktrace_8h.html">bstacktrace</a>'s callback</p>
+<p>Example:</p>
+<div class="fragment"><div class="line"><span class="keyword">static</span> <span class="keywordtype">bool</span></div>
+<div class="line">stack_walk(uintptr_t address, <span class="keywordtype">void</span>* userdata) {</div>
+<div class="line">    <a class="code hl_struct" href="structbcrash__info__t.html">bcrash_info_t</a>* crash_info = userdata;</div>
+<div class="line">    <span class="comment">// Skip frames belonging to the crash handler system</span></div>
+<div class="line">    <span class="keywordflow">if</span> (!<a class="code hl_function" href="bcrash__handler_8h.html#ac0d3912315ceba40f85271829b85b6c7">bcrash_handler_should_report_current_frame</a>(crash_info)) { <span class="keywordflow">return</span> <span class="keyword">true</span>; }</div>
+</div><!-- fragment --><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">info</td><td>The crash info in the callback </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Whether the current stackframe should be reported </dd></dl>
+
+</div>
+</div>
+<a id="aed5279ccda75e319ea354bbbe09a6dc9" name="aed5279ccda75e319ea354bbbe09a6dc9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aed5279ccda75e319ea354bbbe09a6dc9">&#9670;&#160;</a></span>bcrash_handler_should_report_current_pc()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">BCRASH_HANDLER_API bool bcrash_handler_should_report_current_pc </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structbcrash__info__t.html">bcrash_info_t</a> *&#160;</td>
+          <td class="paramname"><em>info</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Check whether the code location at <a class="el" href="structbcrash__info__t.html#a78a798ded6b72aab5782ab499e39af3e">bcrash_info_t::pc</a> should be reported. </p>
+<p>Differentt platforms invoke the crash handler differently. The stacktrace originating from the crash handler may or may not encompass the crash site. This function helps to smooth over the differences.</p>
+<p>Example:</p>
+<div class="fragment"><div class="line">    <span class="keywordflow">if</span> (<a class="code hl_function" href="bcrash__handler_8h.html#aed5279ccda75e319ea354bbbe09a6dc9">bcrash_handler_should_report_current_pc</a>(&amp;crash_info)) {</div>
+<div class="line">        <a class="code hl_struct" href="structbstacktrace__info__t.html">bstacktrace_info_t</a> info = <a class="code hl_function" href="bstacktrace_8h.html#aa564c9e41ac1ad806b964a4b86a2a15b">bstacktrace_resolve</a>(</div>
+<div class="line">            bstacktrace,</div>
+<div class="line">            crash_info.pc,</div>
+<div class="line">            <a class="code hl_define" href="bstacktrace_8h.html#a6c786c7bebbd75dda25483b2c5407d8b">BSTACKTRACE_RESOLVE_ALL</a> | <a class="code hl_enumvalue" href="bstacktrace_8h.html#a4f015eb091bd17c17f63427ab30f3181a0c9c40920e137eed421434e244e338b4">BSTACKTRACE_RESOLVE_DIRECT</a></div>
+<div class="line">        );</div>
+<div class="line">        fprintf(</div>
+<div class="line">            stderr,</div>
+<div class="line">            <span class="stringliteral">&quot;%s (%p) in %s at %s:%d:%d\n&quot;</span>,</div>
+<div class="line">            info.<a class="code hl_variable" href="structbstacktrace__info__t.html#aaaa359ceb3b551c05692d488622633f9">function</a>, (<span class="keywordtype">void</span>*)crash_info.pc,</div>
+<div class="line">            info.module,</div>
+<div class="line">            info.<a class="code hl_variable" href="structbstacktrace__info__t.html#a613fd9d5c674635373355faab793ba72">filename</a>, info.<a class="code hl_variable" href="structbstacktrace__info__t.html#a0a600aaf892ebf40d71e784657827981">line</a>, info.<a class="code hl_variable" href="structbstacktrace__info__t.html#a6e20dfa29ddd65fa8b0e1a463e049481">column</a></div>
+<div class="line">        );</div>
+<div class="line">    }</div>
+</div><!-- fragment --><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">info</td><td>The crash info in the callback </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Whether the crashing location should be reported </dd></dl>
 
 </div>
 </div>
