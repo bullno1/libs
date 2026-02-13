@@ -28,7 +28,7 @@ local function make_project(name)
       optimize "On"
 end
 
-local function make_samle(name)
+local function make_sample(name)
   project(name)
     kind "ConsoleApp"
     language "C"
