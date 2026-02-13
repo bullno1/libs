@@ -6,7 +6,7 @@ var searchData=
   ['bcoro_5fstatus_3',['bcoro_status',['../bcoro_8h.html#ac087cb240cf12a7bece0ec94fef1ecb5',1,'bcoro.h']]],
   ['bcoro_5fstop_4',['bcoro_stop',['../bcoro_8h.html#ad6bab3a11626b6988858a73924b852a3',1,'bcoro.h']]],
   ['bcrash_5fhandler_5fset_5',['bcrash_handler_set',['../bcrash__handler_8h.html#a333ad081a13baa5dc50d21602495a736',1,'bcrash_handler.h']]],
-  ['bcrash_5fhandler_5fshould_5freport_5fcurrent_5fframe_6',['bcrash_handler_should_report_current_frame',['../bcrash__handler_8h.html#ac0d3912315ceba40f85271829b85b6c7',1,'bcrash_handler.h']]],
+  ['bcrash_5fhandler_5fshould_5freport_5fcurrent_5fframe_6',['bcrash_handler_should_report_current_frame',['../bcrash__handler_8h.html#aa3745f2d0f1b7f3c16f96b98333a9295',1,'bcrash_handler.h']]],
   ['bcrash_5fhandler_5fshould_5freport_5fcurrent_5fpc_7',['bcrash_handler_should_report_current_pc',['../bcrash__handler_8h.html#aed5279ccda75e319ea354bbbe09a6dc9',1,'bcrash_handler.h']]],
   ['bent_5fadd_8',['bent_add',['../bent_8h.html#ae75bedb5a72a29c14e2b3d5b054ce3c7',1,'bent.h']]],
   ['bent_5fcleanup_9',['bent_cleanup',['../bent_8h.html#a1549a76aaa85abe0cc7b0f5e128a0807',1,'bent.h']]],
