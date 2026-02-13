@@ -131,8 +131,6 @@ bcrash_handler_set(bcrash_handler_fn_t handler) {
 
 static
 LONG WINAPI bcrash_handler_veh(EXCEPTION_POINTERS* ep) {
-    DWORD code = ep->ExceptionRecord->ExceptionCode;
-
 	bcrash_info_t crash_info = {
 		.code = ep->ExceptionRecord->ExceptionCode,
 #if defined(_M_X64)
