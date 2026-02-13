@@ -39,6 +39,8 @@ jobs:
           bin/Debug/bhash.exe
           bin/Debug/bserial.exe
           bin/Debug/bspscq.exe
+          bin/Debug/bstacktrace.exe
+          bin/Debug/bcrash_handler.exe
           bin/Debug/tests.exe
   build-linux:
     runs-on: ubuntu-latest
@@ -66,4 +68,6 @@ jobs:
           bin/Debug/bhash
           bin/Debug/bserial
           bin/Debug/bspscq
+          bin/Debug/bstacktrace
+          bin/Debug/bcrash_handler || true
           bin/Debug/tests

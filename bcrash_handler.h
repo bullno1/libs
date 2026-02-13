@@ -1,3 +1,4 @@
+// vim: set foldmethod=marker foldlevel=0:
 #ifndef BCRASH_HANDLER
 #define BCRASH_HANDLER
 

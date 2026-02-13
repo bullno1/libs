@@ -28,6 +28,25 @@ local function make_project(name)
       optimize "On"
 end
 
+local function make_samle(name)
+  project(name)
+    kind "ConsoleApp"
+    language "C"
+    targetdir "bin/%{cfg.buildcfg}"
+
+    files {
+      "samples/"..name..".c",
+    }
+
+    filter "configurations:Debug"
+      defines { "DEBUG" }
+      symbols "On"
+
+    filter "configurations:Release"
+      defines { "NDEBUG" }
+      optimize "On"
+end
+
 workspace "libs"
   location(_ACTION)
   configurations { "Debug", "Release" }
@@ -63,6 +82,8 @@ make_project "bhash"
 make_project "bcoro"
 make_project "bserial"
 make_project "bspscq"
+make_sample "bstacktrace"
+make_sample "bcrash_handler"
 
 project "tests"
     kind "ConsoleApp"
