@@ -395,7 +395,7 @@ bstacktrace_cleanup(bstacktrace_t* ctx) {
 }
 
 void
-bstacktrace_reload(bstacktrace_t* ctx) {
+bstacktrace_refresh(bstacktrace_t* ctx) {
 }
 
 BSTACKTRACE_NOINLINE void
@@ -708,7 +708,7 @@ bstacktrace_cleanup(bstacktrace_t* ctx) {
 }
 
 void
-bstacktrace_reload(bstacktrace_t* ctx) {
+bstacktrace_refresh(bstacktrace_t* ctx) {
 	bstacktrace_libdw_session_end(&ctx->libdw, &ctx->libdw_session);
 	bstacktrace_libdw_session_begin(&ctx->libdw, &ctx->libdw_session);
 }
