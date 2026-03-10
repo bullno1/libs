@@ -770,24 +770,27 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00774" name="l00774"></a><span class="lineno">  774</span> </div>
 <div class="line"><a id="l00775" name="l00775"></a><span class="lineno">  775</span><span class="keywordtype">void</span></div>
 <div class="line"><a id="l00776" name="l00776"></a><span class="lineno">  776</span>bhash__do_cleanup(<a class="code hl_struct" href="structbhash__base__s.html">bhash_base_t</a>* bhash) {</div>
-<div class="line"><a id="l00777" name="l00777"></a><span class="lineno">  777</span>    BHASH_REALLOC(*bhash_keys_ptr(bhash), 0, bhash-&gt;memctx);</div>
-<div class="line"><a id="l00778" name="l00778"></a><span class="lineno">  778</span>    <span class="keywordflow">if</span> (bhash-&gt;value_size &gt; 0) {</div>
-<div class="line"><a id="l00779" name="l00779"></a><span class="lineno">  779</span>        BHASH_REALLOC(*bhash_values_ptr(bhash), 0, bhash-&gt;memctx);</div>
-<div class="line"><a id="l00780" name="l00780"></a><span class="lineno">  780</span>    }</div>
-<div class="line"><a id="l00781" name="l00781"></a><span class="lineno">  781</span>    BHASH_REALLOC(bhash-&gt;indices, 0, bhash-&gt;memctx);</div>
-<div class="line"><a id="l00782" name="l00782"></a><span class="lineno">  782</span>    BHASH_REALLOC(bhash-&gt;r_indices, 0, bhash-&gt;memctx);</div>
-<div class="line"><a id="l00783" name="l00783"></a><span class="lineno">  783</span>    BHASH_REALLOC(bhash-&gt;hashes, 0, bhash-&gt;memctx);</div>
-<div class="line"><a id="l00784" name="l00784"></a><span class="lineno">  784</span>}</div>
-<div class="line"><a id="l00785" name="l00785"></a><span class="lineno">  785</span> </div>
-<div class="line"><a id="l00786" name="l00786"></a><span class="lineno">  786</span><span class="keywordtype">void</span></div>
-<div class="line"><a id="l00787" name="l00787"></a><span class="lineno">  787</span>bhash__do_clear(<a class="code hl_struct" href="structbhash__base__s.html">bhash_base_t</a>* bhash) {</div>
-<div class="line"><a id="l00788" name="l00788"></a><span class="lineno">  788</span>    bhash-&gt;len = 0;</div>
-<div class="line"><a id="l00789" name="l00789"></a><span class="lineno">  789</span>    bhash_index_t hash_capacity = 1 &lt;&lt; bhash-&gt;exp;</div>
-<div class="line"><a id="l00790" name="l00790"></a><span class="lineno">  790</span>    memset(bhash-&gt;indices, 0, <span class="keyword">sizeof</span>(bhash_index_t) * hash_capacity);</div>
-<div class="line"><a id="l00791" name="l00791"></a><span class="lineno">  791</span>    bhash-&gt;free_space = hash_capacity * bhash-&gt;load_percent / 100;</div>
-<div class="line"><a id="l00792" name="l00792"></a><span class="lineno">  792</span>}</div>
-<div class="line"><a id="l00793" name="l00793"></a><span class="lineno">  793</span> </div>
-<div class="line"><a id="l00794" name="l00794"></a><span class="lineno">  794</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00777" name="l00777"></a><span class="lineno">  777</span>    <span class="keywordflow">if</span> (bhash-&gt;eq == NULL) { <span class="keywordflow">return</span>; }</div>
+<div class="line"><a id="l00778" name="l00778"></a><span class="lineno">  778</span> </div>
+<div class="line"><a id="l00779" name="l00779"></a><span class="lineno">  779</span>    BHASH_REALLOC(*bhash_keys_ptr(bhash), 0, bhash-&gt;memctx);</div>
+<div class="line"><a id="l00780" name="l00780"></a><span class="lineno">  780</span>    <span class="keywordflow">if</span> (bhash-&gt;value_size &gt; 0) {</div>
+<div class="line"><a id="l00781" name="l00781"></a><span class="lineno">  781</span>        BHASH_REALLOC(*bhash_values_ptr(bhash), 0, bhash-&gt;memctx);</div>
+<div class="line"><a id="l00782" name="l00782"></a><span class="lineno">  782</span>    }</div>
+<div class="line"><a id="l00783" name="l00783"></a><span class="lineno">  783</span>    BHASH_REALLOC(bhash-&gt;indices, 0, bhash-&gt;memctx);</div>
+<div class="line"><a id="l00784" name="l00784"></a><span class="lineno">  784</span>    BHASH_REALLOC(bhash-&gt;r_indices, 0, bhash-&gt;memctx);</div>
+<div class="line"><a id="l00785" name="l00785"></a><span class="lineno">  785</span>    BHASH_REALLOC(bhash-&gt;hashes, 0, bhash-&gt;memctx);</div>
+<div class="line"><a id="l00786" name="l00786"></a><span class="lineno">  786</span>    *bhash = (<a class="code hl_typedef" href="bhash_8h.html#ac78b32cdb2870ed082f1ee71dfbcbd00">bhash_base_t</a>){ 0 };</div>
+<div class="line"><a id="l00787" name="l00787"></a><span class="lineno">  787</span>}</div>
+<div class="line"><a id="l00788" name="l00788"></a><span class="lineno">  788</span> </div>
+<div class="line"><a id="l00789" name="l00789"></a><span class="lineno">  789</span><span class="keywordtype">void</span></div>
+<div class="line"><a id="l00790" name="l00790"></a><span class="lineno">  790</span>bhash__do_clear(<a class="code hl_struct" href="structbhash__base__s.html">bhash_base_t</a>* bhash) {</div>
+<div class="line"><a id="l00791" name="l00791"></a><span class="lineno">  791</span>    bhash-&gt;len = 0;</div>
+<div class="line"><a id="l00792" name="l00792"></a><span class="lineno">  792</span>    bhash_index_t hash_capacity = 1 &lt;&lt; bhash-&gt;exp;</div>
+<div class="line"><a id="l00793" name="l00793"></a><span class="lineno">  793</span>    memset(bhash-&gt;indices, 0, <span class="keyword">sizeof</span>(bhash_index_t) * hash_capacity);</div>
+<div class="line"><a id="l00794" name="l00794"></a><span class="lineno">  794</span>    bhash-&gt;free_space = hash_capacity * bhash-&gt;load_percent / 100;</div>
+<div class="line"><a id="l00795" name="l00795"></a><span class="lineno">  795</span>}</div>
+<div class="line"><a id="l00796" name="l00796"></a><span class="lineno">  796</span> </div>
+<div class="line"><a id="l00797" name="l00797"></a><span class="lineno">  797</span><span class="preprocessor">#endif</span></div>
 <div class="ttc" id="abhash_8h_html_a071e1dd906897cd81948ab0988f25ea8"><div class="ttname"><a href="bhash_8h.html#a071e1dd906897cd81948ab0988f25ea8">bhash_config_default</a></div><div class="ttdeci">static bhash_config_t bhash_config_default(void)</div><div class="ttdoc">Default configuration.</div><div class="ttdef"><b>Definition</b> bhash.h:371</div></div>
 <div class="ttc" id="abhash_8h_html_a794c1261f2a9b19b1ffbe2f7fea2f835"><div class="ttname"><a href="bhash_8h.html#a794c1261f2a9b19b1ffbe2f7fea2f835">bhash_is_valid</a></div><div class="ttdeci">#define bhash_is_valid(index)</div><div class="ttdoc">Check whether an index is valid.</div><div class="ttdef"><b>Definition</b> bhash.h:269</div></div>
 <div class="ttc" id="abhash_8h_html_abc994e2dfdce3196f8218210bade50c8"><div class="ttname"><a href="bhash_8h.html#abc994e2dfdce3196f8218210bade50c8">bhash_config_t</a></div><div class="ttdeci">struct bhash_config_s bhash_config_t</div><div class="ttdoc">Configuration for a hash table.</div></div>
