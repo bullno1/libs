@@ -774,6 +774,8 @@ bhash__do_validate(bhash_base_t* bhash) {
 
 void
 bhash__do_cleanup(bhash_base_t* bhash) {
+	if (bhash->eq == NULL) { return; }
+
 	BHASH_REALLOC(*bhash_keys_ptr(bhash), 0, bhash->memctx);
 	if (bhash->value_size > 0) {
 		BHASH_REALLOC(*bhash_values_ptr(bhash), 0, bhash->memctx);
@@ -781,6 +783,7 @@ bhash__do_cleanup(bhash_base_t* bhash) {
 	BHASH_REALLOC(bhash->indices, 0, bhash->memctx);
 	BHASH_REALLOC(bhash->r_indices, 0, bhash->memctx);
 	BHASH_REALLOC(bhash->hashes, 0, bhash->memctx);
+	*bhash = (bhash_base_t){ 0 };
 }
 
 void
