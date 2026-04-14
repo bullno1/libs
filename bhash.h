@@ -379,6 +379,19 @@ bhash_config_default(void) {
 	};
 }
 
+static inline bhash_config_t
+bhash_config(void* memctx) {
+	return (bhash_config_t){
+		.hash = bhash_hash,
+		.eq = bhash_eq,
+		.load_percent = 50,
+		.tombstone_percent = 75,
+		.initial_exp = 3,
+		.removable = true,
+		.memctx = memctx,
+	};
+}
+
 // Private
 
 #ifndef DOXYGEN
