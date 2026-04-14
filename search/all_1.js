@@ -136,7 +136,7 @@ var searchData=
   ['bserial_5fin_5fs_133',['bserial_in_s',['../structbserial__in__s.html',1,'']]],
   ['bserial_5fin_5ft_134',['bserial_in_t',['../bserial_8h.html#a56d281fa86968526ec136bed52c5bb10',1,'bserial.h']]],
   ['bserial_5fio_5ferror_135',['BSERIAL_IO_ERROR',['../bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3ba4b9c397d67960dc944c44c5f5e618fa8',1,'bserial.h']]],
-  ['bserial_5fkey_136',['bserial_key',['../bserial_8h.html#aa263323ebc7bc8fc33a97514821d6b59',1,'bserial_key(bserial_ctx_t *ctx, const char *name, uint64_t len):&#160;bserial.h'],['../bserial_8h.html#a6b7a06a5232f7be971abccb32123fe39',1,'BSERIAL_KEY:&#160;bserial.h']]],
+  ['bserial_5fkey_136',['bserial_key',['../bserial_8h.html#a6b7a06a5232f7be971abccb32123fe39',1,'BSERIAL_KEY:&#160;bserial.h'],['../bserial_8h.html#aa263323ebc7bc8fc33a97514821d6b59',1,'bserial_key(bserial_ctx_t *ctx, const char *name, uint64_t len):&#160;bserial.h']]],
   ['bserial_5fmake_5fctx_137',['bserial_make_ctx',['../bserial_8h.html#a0bda2e436ef436feab6b8eb1d5542d7c',1,'bserial.h']]],
   ['bserial_5fmalformed_138',['BSERIAL_MALFORMED',['../bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3ba26a96cefb83bab521b44f029a20fe239',1,'bserial.h']]],
   ['bserial_5fmem_5fin_5fs_139',['bserial_mem_in_s',['../structbserial__mem__in__s.html',1,'']]],
