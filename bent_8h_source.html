@@ -1134,7 +1134,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l01529" name="l01529"></a><span class="lineno"> 1529</span><a class="code hl_function" href="bent_8h.html#a0e05186828b7e8fef1c6f75ac9163e8b">bent_get_entity_list</a>(<a class="code hl_typedef" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a>* world, <a class="code hl_struct" href="structbent__sys__reg__t.html">bent_sys_reg_t</a> sys, <a class="code hl_typedef" href="bent_8h.html#aef1f57c00a98e4078b680c9b384bdf54">bent_index_t</a>* num_entities) {</div>
 <div class="line"><a id="l01530" name="l01530"></a><span class="lineno"> 1530</span>    bent_system_data_t* sys_data = &amp;world-&gt;systems[sys.id - 1];</div>
 <div class="line"><a id="l01531" name="l01531"></a><span class="lineno"> 1531</span> </div>
-<div class="line"><a id="l01532" name="l01532"></a><span class="lineno"> 1532</span>    <span class="keywordflow">if</span> (num_entities) { *num_entities = barray_len(sys_data-&gt;dense); }</div>
+<div class="line"><a id="l01532" name="l01532"></a><span class="lineno"> 1532</span>    <span class="keywordflow">if</span> (num_entities) { *num_entities = (<a class="code hl_typedef" href="bent_8h.html#aef1f57c00a98e4078b680c9b384bdf54">bent_index_t</a>)barray_len(sys_data-&gt;dense); }</div>
 <div class="line"><a id="l01533" name="l01533"></a><span class="lineno"> 1533</span> </div>
 <div class="line"><a id="l01534" name="l01534"></a><span class="lineno"> 1534</span>    <span class="keywordflow">return</span> sys_data-&gt;dense;</div>
 <div class="line"><a id="l01535" name="l01535"></a><span class="lineno"> 1535</span>}</div>
