@@ -1529,7 +1529,7 @@ bent_t*
 bent_get_entity_list(bent_world_t* world, bent_sys_reg_t sys, bent_index_t* num_entities) {
 	bent_system_data_t* sys_data = &world->systems[sys.id - 1];
 
-	if (num_entities) { *num_entities = barray_len(sys_data->dense); }
+	if (num_entities) { *num_entities = (bent_index_t)barray_len(sys_data->dense); }
 
 	return sys_data->dense;
 }
