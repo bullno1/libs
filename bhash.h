@@ -126,6 +126,15 @@ typedef struct {
 		K* keys; \
 	}
 
+/**
+ * For each helper
+ *
+ * The key and value will be copied to the iterators
+ *
+ * @param KEY key variable
+ * @param VALUE value variable
+ * @paaram TABLE table to iterate
+ */
 #define BHASH_FOREACH(KEY, VALUE, TABLE) \
 	for (bhash_index_t bhash__itr = 0; bhash__itr < bhash_len(TABLE); ++bhash__itr) \
 		for (struct { \
@@ -142,20 +151,113 @@ typedef struct {
 			for (BHASH__TYPEOF((TABLE)->keys[0]) KEY = bhash__kv.key; bhash__kv.guard;) \
 			for (BHASH__TYPEOF((TABLE)->values[0]) VALUE = bhash__kv.value; bhash__kv.guard; bhash__kv.guard = 0) \
 
+/**
+ * For each helper
+ *
+ * The key and value will be referenced using pointers
+ *
+ * @param KEY key variable
+ * @param VALUE value variable
+ * @paaram TABLE table to iterate
+ */
 #define BHASH_FOREACH_REF(KEY, VALUE, TABLE) \
 	for (bhash_index_t bhash__itr = 0; bhash__itr < bhash_len(TABLE); ++bhash__itr) \
 		for (struct { \
-				BHASH__TYPEOF((TABLE)->keys) key; \
+				const BHASH__TYPEOF((TABLE)->keys) key; \
 				BHASH__TYPEOF((TABLE)->values) value; \
 				char guard; \
 			} bhash__kv = { \
-				.key = &(TABLE)->keys[bhash_itr], \
-				.value = &(TABLE)->values[bhash_itr], \
+				.key = &(TABLE)->keys[bhash__itr], \
+				.value = &(TABLE)->values[bhash__itr], \
 				.guard = 1, \
 			}; \
 			bhash__kv.guard; \
 		) \
-			for (BHASH__TYPEOF((TABLE)->keys) KEY = bhash__kv.key; bhash__kv.guard;) \
+			for (const BHASH__TYPEOF((TABLE)->keys) KEY = bhash__kv.key; bhash__kv.guard;) \
+			for (BHASH__TYPEOF((TABLE)->values) VALUE = bhash__kv.value; bhash__kv.guard; bhash__kv.guard = 0) \
+
+/**
+ * For each helper
+ *
+ * The key will be copied to the iterators
+ *
+ * @param KEY key variable
+ * @paaram TABLE table to iterate
+ */
+#define BHASH_FOREACH_KEY(KEY, TABLE) \
+	for (bhash_index_t bhash__itr = 0; bhash__itr < bhash_len(TABLE); ++bhash__itr) \
+		for (struct { \
+				BHASH__TYPEOF((TABLE)->keys[0]) key; \
+				char guard; \
+			} bhash__kv = { \
+				.key = (TABLE)->keys[bhash__itr], \
+				.guard = 1, \
+			}; \
+			bhash__kv.guard; \
+		) \
+			for (BHASH__TYPEOF((TABLE)->keys[0]) KEY = bhash__kv.key; bhash__kv.guard;) \
+
+/**
+ * For each helper
+ *
+ * The key will be referenced using pointers
+ *
+ * @param KEY key variable
+ * @paaram TABLE table to iterate
+ */
+#define BHASH_FOREACH_KEY_REF(KEY, TABLE) \
+	for (bhash_index_t bhash__itr = 0; bhash__itr < bhash_len(TABLE); ++bhash__itr) \
+		for (struct { \
+				const BHASH__TYPEOF((TABLE)->keys) key; \
+				char guard; \
+			} bhash__kv = { \
+				.key = &(TABLE)->keys[bhash__itr], \
+				.guard = 1, \
+			}; \
+			bhash__kv.guard; \
+		) \
+			for (const BHASH__TYPEOF((TABLE)->keys) KEY = bhash__kv.key; bhash__kv.guard;) \
+
+/**
+ * For each helper
+ *
+ * The value will be copied to the iterators
+ *
+ * @param VALUE value variable
+ * @paaram TABLE table to iterate
+ */
+#define BHASH_FOREACH_VALUE(VALUE, TABLE) \
+	for (bhash_index_t bhash__itr = 0; bhash__itr < bhash_len(TABLE); ++bhash__itr) \
+		for (struct { \
+				BHASH__TYPEOF((TABLE)->values[0]) value; \
+				char guard; \
+			} bhash__kv = { \
+				.value = (TABLE)->values[bhash__itr], \
+				.guard = 1, \
+			}; \
+			bhash__kv.guard; \
+		) \
+			for (BHASH__TYPEOF((TABLE)->values[0]) VALUE = bhash__kv.value; bhash__kv.guard; bhash__kv.guard = 0) \
+
+/**
+ * For each helper
+ *
+ * The value will be referenced using pointers
+ *
+ * @param VALUE value variable
+ * @paaram TABLE table to iterate
+ */
+#define BHASH_FOREACH_VALUE_REF(VALUE, TABLE) \
+	for (bhash_index_t bhash__itr = 0; bhash__itr < bhash_len(TABLE); ++bhash__itr) \
+		for (struct { \
+				BHASH__TYPEOF((TABLE)->values) value; \
+				char guard; \
+			} bhash__kv = { \
+				.value = &(TABLE)->values[bhash__itr], \
+				.guard = 1, \
+			}; \
+			bhash__kv.guard; \
+		) \
 			for (BHASH__TYPEOF((TABLE)->values) VALUE = bhash__kv.value; bhash__kv.guard; bhash__kv.guard = 0) \
 
 #ifdef DOXYGEN
@@ -278,6 +380,19 @@ typedef struct {
  */
 #define bhash_get_value(table, key) \
 	(BHASH__TYPECHECK_EXP((table)->keys[0], key), (BHASH__TYPEOF((table)->values))bhash__do_get_value(&((table)->base), &(key)))
+
+/**
+ * @brief Ensure that an entry with the given key exists.
+ *
+ * If the entry does not exist, it is created by copying the given key.
+ * The value is zero-initialized.
+ *
+ * Otherwise, the entry is retrieved.
+ *
+ * @return Pointer to the value of the entry
+ */
+#define bhash_ensure(table, key) \
+	(BHASH__TYPECHECK_EXP((table)->keys[0], key), (BHASH__TYPEOF((table)->values))bhash__do_ensure(&((table)->base), &(key)))
 
 /**
  * @brief Check whether a table contains a key
@@ -479,6 +594,9 @@ bhash__do_find(const bhash_base_t* bhash, const void* key);
 
 BHASH_API void*
 bhash__do_get_value(const bhash_base_t* bhash, const void* key);
+
+BHASH_API void*
+bhash__do_ensure(bhash_base_t* bhash, const void* key);
 
 BHASH_API bhash_index_t
 bhash__do_remove(bhash_base_t* bhash, const void* key);
@@ -766,6 +884,19 @@ void*
 bhash__do_get_value(const bhash_base_t* bhash, const void* key) {
 	bhash_index_t index = bhash__do_find(bhash, key);
 	return bhash_is_valid(index) ? bhash_value_at(bhash, index) : NULL;
+}
+
+void*
+bhash__do_ensure(bhash_base_t* bhash, const void* key) {
+	bhash_alloc_result_t alloc_result = bhash__do_alloc(bhash, key);
+	if (alloc_result.is_new) {
+		memcpy(bhash_key_at(bhash, alloc_result.index), key, bhash->key_size);
+		void* value = bhash_value_at(bhash, alloc_result.index);
+		memset(value, 0, bhash->value_size);
+		return value;
+	} else {
+		return bhash_value_at(bhash, alloc_result.index);
+	}
 }
 
 bhash_index_t
