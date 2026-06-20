@@ -709,6 +709,16 @@ BENT_API void*
 bent_get_sys_data(bent_world_t* world, bent_sys_reg_t sys);
 
 /**
+ * Retrieve a system's name
+ *
+ * @param world the world
+ * @param sys a system's registration handle
+ * @return the system's name
+ */
+BENT_API const char*
+bent_get_sys_name(bent_world_t* world, bent_sys_reg_t sys);
+
+/**
  * Check whther a system may process an entity
  *
  * @param world the world
@@ -748,6 +758,17 @@ bent_match(bent_world_t* world, bent_sys_reg_t sys, bent_t entity);
  */
 BENT_API void
 bent_run(bent_world_t* world, bent_mask_t update_mask);
+
+/**
+ * Retrieve the list of matched entities for a system
+ *
+ * @param world the world
+ * @param sys the system
+ * @param num_entities pointer to receive number of entities
+ * @return The list of matched entities
+ */
+BENT_API bent_t*
+bent_get_entity_list(bent_world_t* world, bent_sys_reg_t sys, bent_index_t* num_entities);
 
 static inline bool
 bent_equal(bent_t lhs, bent_t rhs) {
@@ -1497,6 +1518,20 @@ bent_has(bent_world_t* world, bent_t entity_id, bent_comp_reg_t reg) {
 void*
 bent_get_sys_data(bent_world_t* world, bent_sys_reg_t sys) {
 	return world->systems[sys.id - 1].userdata;
+}
+
+const char*
+bent_get_sys_name(bent_world_t* world, bent_sys_reg_t sys) {
+	return world->systems[sys.id - 1].name;
+}
+
+bent_t*
+bent_get_entity_list(bent_world_t* world, bent_sys_reg_t sys, bent_index_t* num_entities) {
+	bent_system_data_t* sys_data = &world->systems[sys.id - 1];
+
+	if (num_entities) { *num_entities = barray_len(sys_data->dense); }
+
+	return sys_data->dense;
 }
 
 void
