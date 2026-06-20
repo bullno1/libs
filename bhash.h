@@ -61,8 +61,8 @@ typedef struct bhash_config_s {
 	/*! Initial exponential */
 	bhash_index_t initial_exp;
 
-	/*! Whether the hashtable supports removal */
-	bool removable;
+	/*! If set to true, the hashtable will not support removal */
+	bool put_only;
 
 	/*! Context passed to allocator */
 	void* memctx;
@@ -126,6 +126,38 @@ typedef struct {
 		K* keys; \
 	}
 
+#define BHASH_FOREACH(KEY, VALUE, TABLE) \
+	for (bhash_index_t bhash__itr = 0; bhash__itr < bhash_len(TABLE); ++bhash__itr) \
+		for (struct { \
+				BHASH__TYPEOF((TABLE)->keys[0]) key; \
+				BHASH__TYPEOF((TABLE)->values[0]) value; \
+				char guard; \
+			} bhash__kv = { \
+				.key = (TABLE)->keys[bhash__itr], \
+				.value = (TABLE)->values[bhash__itr], \
+				.guard = 1, \
+			}; \
+			bhash__kv.guard; \
+		) \
+			for (BHASH__TYPEOF((TABLE)->keys[0]) KEY = bhash__kv.key; bhash__kv.guard;) \
+			for (BHASH__TYPEOF((TABLE)->values[0]) VALUE = bhash__kv.value; bhash__kv.guard; bhash__kv.guard = 0) \
+
+#define BHASH_FOREACH_REF(KEY, VALUE, TABLE) \
+	for (bhash_index_t bhash__itr = 0; bhash__itr < bhash_len(TABLE); ++bhash__itr) \
+		for (struct { \
+				BHASH__TYPEOF((TABLE)->keys) key; \
+				BHASH__TYPEOF((TABLE)->values) value; \
+				char guard; \
+			} bhash__kv = { \
+				.key = &(TABLE)->keys[bhash_itr], \
+				.value = &(TABLE)->values[bhash_itr], \
+				.guard = 1, \
+			}; \
+			bhash__kv.guard; \
+		) \
+			for (BHASH__TYPEOF((TABLE)->keys) KEY = bhash__kv.key; bhash__kv.guard;) \
+			for (BHASH__TYPEOF((TABLE)->values) VALUE = bhash__kv.value; bhash__kv.guard; bhash__kv.guard = 0) \
+
 #ifdef DOXYGEN
 
 /*! A sample hashtable */
@@ -147,23 +179,23 @@ typedef struct {
  *
  * @see bhash_sample_t
  */
-#define bhash_init(table, config) \
+#define bhash_init(table, ...) \
 	bhash__do_init( \
 		&((table)->base), \
 		sizeof((table)->keys[0]), \
 		sizeof((table)->values[0]), \
-		config \
+		__VA_ARGS__ \
 	)
 
 /**
  * @brief Reload-friendly initialization.
  */
-#define bhash_reinit(table, config) \
+#define bhash_reinit(table, ...) \
 	bhash__do_reinit( \
 		&((table)->base), \
 		sizeof((table)->keys[0]), \
 		sizeof((table)->values[0]), \
-		config \
+		__VA_ARGS__ \
 	)
 
 /**
@@ -375,7 +407,7 @@ bhash_config_default(void) {
 		.load_percent = 50,
 		.tombstone_percent = 75,
 		.initial_exp = 3,
-		.removable = true,
+		.put_only = false,
 	};
 }
 
@@ -387,7 +419,7 @@ bhash_config(void* memctx) {
 		.load_percent = 50,
 		.tombstone_percent = 75,
 		.initial_exp = 3,
-		.removable = true,
+		.put_only = false,
 		.memctx = memctx,
 	};
 }
@@ -434,10 +466,10 @@ bhash_config(void* memctx) {
 #endif
 
 BHASH_API void
-bhash__do_init(bhash_base_t* bhash, size_t key_size, size_t value_size, bhash_config_t config);
+bhash__do_init(bhash_base_t* bhash, size_t key_size, size_t value_size, const bhash_config_t* config);
 
 BHASH_API void
-bhash__do_reinit(bhash_base_t* bhash, size_t key_size, size_t value_size, bhash_config_t config);
+bhash__do_reinit(bhash_base_t* bhash, size_t key_size, size_t value_size, const bhash_config_t*  config);
 
 BHASH_API bhash_alloc_result_t
 bhash__do_alloc(bhash_base_t* bhash, const void* key);
@@ -618,16 +650,36 @@ bhash_find_impl(
 	}
 }
 
+static inline bhash_config_t
+bhash_merge_config(const bhash_config_t* opt_config) {
+	bhash_config_t default_config = bhash_config_default();
+	if (opt_config == NULL) {
+		return default_config;
+	} else {
+		return (bhash_config_t) {
+			.hash = opt_config->hash != NULL ? opt_config->hash : default_config.hash,
+			.eq = opt_config->eq != NULL ? opt_config->eq : default_config.eq,
+			.load_percent = opt_config->load_percent > 0 ? opt_config->load_percent : default_config.load_percent,
+			.tombstone_percent = opt_config->tombstone_percent > 0 ? opt_config->tombstone_percent : default_config.tombstone_percent,
+			.initial_exp = opt_config->initial_exp > 0 ? opt_config->initial_exp : default_config.initial_exp,
+			.put_only = opt_config->put_only,
+			.memctx = opt_config->memctx,
+		};
+	}
+}
+
 void
 bhash__do_init(
 	bhash_base_t* bhash,
 	size_t key_size,
 	size_t value_size,
-	bhash_config_t config
+	const bhash_config_t* opt_config
 ) {
+	bhash_config_t config = bhash_merge_config(opt_config);
+
 	bhash_index_t hash_capacity = 1 << config.initial_exp;
 	bhash_index_t data_capacity = hash_capacity * config.load_percent / 100;
-	bhash_index_t extra_space = config.removable ? 1 : 0; // Extra temp space for swapping
+	bhash_index_t extra_space = !config.put_only ? 1 : 0; // Extra temp space for swapping
 	(*bhash) = (bhash_base_t){
 		.memctx = config.memctx,
 		.hash = config.hash,
@@ -644,7 +696,7 @@ bhash__do_init(
 	};
 	memset(bhash->indices, 0, sizeof(bhash_index_t) * hash_capacity);
 
-	if (config.removable) {
+	if (!config.put_only) {
 		bhash->r_indices = BHASH_REALLOC(NULL, sizeof(bhash_index_t) * data_capacity, config.memctx);
 	}
 
@@ -655,13 +707,14 @@ bhash__do_init(
 }
 
 void
-bhash__do_reinit(bhash_base_t* bhash, size_t key_size, size_t value_size, bhash_config_t config) {
+bhash__do_reinit(bhash_base_t* bhash, size_t key_size, size_t value_size, const bhash_config_t* opt_config) {
 	if (bhash->eq != NULL) {
+		bhash_config_t config = bhash_merge_config(opt_config);
 		bhash->eq = config.eq;
 		bhash->hash = config.hash;
 		bhash->memctx = config.memctx;
 	} else {
-		bhash__do_init(bhash, key_size, value_size, config);
+		bhash__do_init(bhash, key_size, value_size, opt_config);
 	}
 }
 

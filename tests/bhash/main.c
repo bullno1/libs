@@ -17,7 +17,7 @@ int main(int argc, const char* argv[]) {
 	(void)argv;
 
 	table_t tbl;
-	bhash_init(&tbl, bhash_config_default());
+	bhash_init(&tbl, NULL);
 
 	// A simple boolean table to track membership of each number in [0, 10)
 	bool memberships[10] = { 0 };
