@@ -232,12 +232,18 @@ Functions</h2></td></tr>
 <tr class="memitem:afc26a6b4e9d87cf09975cffb6051825f" id="r_afc26a6b4e9d87cf09975cffb6051825f"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bent_8h.html#afc26a6b4e9d87cf09975cffb6051825f">bent_get_sys_data</a> (<a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *world, <a class="el" href="structbent__sys__reg__t.html">bent_sys_reg_t</a> sys)</td></tr>
 <tr class="memdesc:afc26a6b4e9d87cf09975cffb6051825f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieve a system's private data.  <br /></td></tr>
 <tr class="separator:afc26a6b4e9d87cf09975cffb6051825f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1eb59f6f99c976371e3b8f5bee82930a" id="r_a1eb59f6f99c976371e3b8f5bee82930a"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bent_8h.html#a1eb59f6f99c976371e3b8f5bee82930a">bent_get_sys_name</a> (<a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *world, <a class="el" href="structbent__sys__reg__t.html">bent_sys_reg_t</a> sys)</td></tr>
+<tr class="memdesc:a1eb59f6f99c976371e3b8f5bee82930a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieve a system's name.  <br /></td></tr>
+<tr class="separator:a1eb59f6f99c976371e3b8f5bee82930a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab3ddf58289789dd8b1127a0a7f188d0b" id="r_ab3ddf58289789dd8b1127a0a7f188d0b"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bent_8h.html#ab3ddf58289789dd8b1127a0a7f188d0b">bent_match</a> (<a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *world, <a class="el" href="structbent__sys__reg__t.html">bent_sys_reg_t</a> sys, <a class="el" href="structbent__t.html">bent_t</a> entity)</td></tr>
 <tr class="memdesc:ab3ddf58289789dd8b1127a0a7f188d0b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check whther a system may process an entity.  <br /></td></tr>
 <tr class="separator:ab3ddf58289789dd8b1127a0a7f188d0b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6c47f4d0f18919c36f60e5b300787d20" id="r_a6c47f4d0f18919c36f60e5b300787d20"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bent_8h.html#a6c47f4d0f18919c36f60e5b300787d20">bent_run</a> (<a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *world, <a class="el" href="bent_8h.html#a21e030cf08c3b1500b58273680b5f081">bent_mask_t</a> update_mask)</td></tr>
 <tr class="memdesc:a6c47f4d0f18919c36f60e5b300787d20"><td class="mdescLeft">&#160;</td><td class="mdescRight">Run all systems matching the update mask.  <br /></td></tr>
 <tr class="separator:a6c47f4d0f18919c36f60e5b300787d20"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0e05186828b7e8fef1c6f75ac9163e8b" id="r_a0e05186828b7e8fef1c6f75ac9163e8b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structbent__t.html">bent_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bent_8h.html#a0e05186828b7e8fef1c6f75ac9163e8b">bent_get_entity_list</a> (<a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *world, <a class="el" href="structbent__sys__reg__t.html">bent_sys_reg_t</a> sys, <a class="el" href="bent_8h.html#aef1f57c00a98e4078b680c9b384bdf54">bent_index_t</a> *num_entities)</td></tr>
+<tr class="memdesc:a0e05186828b7e8fef1c6f75ac9163e8b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieve the list of matched entities for a system.  <br /></td></tr>
+<tr class="separator:a0e05186828b7e8fef1c6f75ac9163e8b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa2f45fa50c1c507436d0e67be11a8527" id="r_aa2f45fa50c1c507436d0e67be11a8527"><td class="memItemLeft" align="right" valign="top"><a id="aa2f45fa50c1c507436d0e67be11a8527" name="aa2f45fa50c1c507436d0e67be11a8527"></a>
 static bool&#160;</td><td class="memItemRight" valign="bottom"><b>bent_equal</b> (<a class="el" href="structbent__t.html">bent_t</a> lhs, <a class="el" href="structbent__t.html">bent_t</a> rhs)</td></tr>
 <tr class="separator:aa2f45fa50c1c507436d0e67be11a8527"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1024,6 +1030,51 @@ static bool&#160;</td><td class="memItemRight" valign="bottom"><b>bent_equal</b>
 
 </div>
 </div>
+<a id="a0e05186828b7e8fef1c6f75ac9163e8b" name="a0e05186828b7e8fef1c6f75ac9163e8b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0e05186828b7e8fef1c6f75ac9163e8b">&#9670;&#160;</a></span>bent_get_entity_list()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structbent__t.html">bent_t</a> * bent_get_entity_list </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *&#160;</td>
+          <td class="paramname"><em>world</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structbent__sys__reg__t.html">bent_sys_reg_t</a>&#160;</td>
+          <td class="paramname"><em>sys</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="bent_8h.html#aef1f57c00a98e4078b680c9b384bdf54">bent_index_t</a> *&#160;</td>
+          <td class="paramname"><em>num_entities</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Retrieve the list of matched entities for a system. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">world</td><td>the world </td></tr>
+    <tr><td class="paramname">sys</td><td>the system </td></tr>
+    <tr><td class="paramname">num_entities</td><td>pointer to receive number of entities </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The list of matched entities </dd></dl>
+
+</div>
+</div>
 <a id="afc26a6b4e9d87cf09975cffb6051825f" name="afc26a6b4e9d87cf09975cffb6051825f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#afc26a6b4e9d87cf09975cffb6051825f">&#9670;&#160;</a></span>bent_get_sys_data()</h2>
 
@@ -1063,6 +1114,44 @@ static bool&#160;</td><td class="memItemRight" valign="bottom"><b>bent_equal</b>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="structbent__sys__def__t.html#ae82443c6a45c8b359762a75c95fd85aa" title="Optional initialization callback.">bent_sys_def_t::init</a> </dd>
 <dd>
 <a class="el" href="structbent__sys__def__t.html#ab8f8abac04fba85d1ab34ad92c8c45ca" title="Size of the data for this system.">bent_sys_def_t::size</a> </dd></dl>
+
+</div>
+</div>
+<a id="a1eb59f6f99c976371e3b8f5bee82930a" name="a1eb59f6f99c976371e3b8f5bee82930a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1eb59f6f99c976371e3b8f5bee82930a">&#9670;&#160;</a></span>bent_get_sys_name()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const char * bent_get_sys_name </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *&#160;</td>
+          <td class="paramname"><em>world</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structbent__sys__reg__t.html">bent_sys_reg_t</a>&#160;</td>
+          <td class="paramname"><em>sys</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Retrieve a system's name. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">world</td><td>the world </td></tr>
+    <tr><td class="paramname">sys</td><td>a system's registration handle </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>the system's name </dd></dl>
 
 </div>
 </div>

@@ -117,12 +117,16 @@ Macros</h2></td></tr>
 <tr class="memitem:a2a4b89790d809618e5e7ccd1b6153dbf" id="r_a2a4b89790d809618e5e7ccd1b6153dbf"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bhash_8h.html#a2a4b89790d809618e5e7ccd1b6153dbf">BHASH_SET</a>(K)</td></tr>
 <tr class="memdesc:a2a4b89790d809618e5e7ccd1b6153dbf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Helper macro to define a hashset type.  <br /></td></tr>
 <tr class="separator:a2a4b89790d809618e5e7ccd1b6153dbf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab9c2632a8fae136780dfee0dd0679948" id="r_ab9c2632a8fae136780dfee0dd0679948"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bhash_8h.html#ab9c2632a8fae136780dfee0dd0679948">bhash_init</a>(table,  config)</td></tr>
-<tr class="memdesc:ab9c2632a8fae136780dfee0dd0679948"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize a hashtable.  <br /></td></tr>
-<tr class="separator:ab9c2632a8fae136780dfee0dd0679948"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac11ac723fcca6a3111fd61a39e10f9bc" id="r_ac11ac723fcca6a3111fd61a39e10f9bc"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bhash_8h.html#ac11ac723fcca6a3111fd61a39e10f9bc">bhash_reinit</a>(table,  config)</td></tr>
-<tr class="memdesc:ac11ac723fcca6a3111fd61a39e10f9bc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reload-friendly initialization.  <br /></td></tr>
-<tr class="separator:ac11ac723fcca6a3111fd61a39e10f9bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aca8aaeab7de0e8bee4803b311ee00b1a" id="r_aca8aaeab7de0e8bee4803b311ee00b1a"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bhash_8h.html#aca8aaeab7de0e8bee4803b311ee00b1a">BHASH_FOREACH</a>(KEY,  VALUE,  TABLE)</td></tr>
+<tr class="separator:aca8aaeab7de0e8bee4803b311ee00b1a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acbc970aac8764b6538de7d2e22fa5cae" id="r_acbc970aac8764b6538de7d2e22fa5cae"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bhash_8h.html#acbc970aac8764b6538de7d2e22fa5cae">BHASH_FOREACH_REF</a>(KEY,  VALUE,  TABLE)</td></tr>
+<tr class="separator:acbc970aac8764b6538de7d2e22fa5cae"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4ffa609c1c1344c82d340ce6e0e02733" id="r_a4ffa609c1c1344c82d340ce6e0e02733"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bhash_8h.html#a4ffa609c1c1344c82d340ce6e0e02733">bhash_init</a>(table, ...)</td></tr>
+<tr class="memdesc:a4ffa609c1c1344c82d340ce6e0e02733"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize a hashtable.  <br /></td></tr>
+<tr class="separator:a4ffa609c1c1344c82d340ce6e0e02733"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afd4536a019e8ef52e01ffeb94e6b6f36" id="r_afd4536a019e8ef52e01ffeb94e6b6f36"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bhash_8h.html#afd4536a019e8ef52e01ffeb94e6b6f36">bhash_reinit</a>(table, ...)</td></tr>
+<tr class="memdesc:afd4536a019e8ef52e01ffeb94e6b6f36"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reload-friendly initialization.  <br /></td></tr>
+<tr class="separator:afd4536a019e8ef52e01ffeb94e6b6f36"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a978bbc63d819ae4447270e4afd39b21e" id="r_a978bbc63d819ae4447270e4afd39b21e"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bhash_8h.html#a978bbc63d819ae4447270e4afd39b21e">bhash_init_set</a>(table,  config)</td></tr>
 <tr class="memdesc:a978bbc63d819ae4447270e4afd39b21e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize a hashtable.  <br /></td></tr>
 <tr class="separator:a978bbc63d819ae4447270e4afd39b21e"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -274,7 +278,7 @@ static <a class="el" href="bhash_8h.html#abc994e2dfdce3196f8218210bade50c8">bhas
 </div><div class="memdoc">
 
 <p>Free up all resources used by a hashtable. </p>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="bhash_8h.html#ab9c2632a8fae136780dfee0dd0679948" title="Initialize a hashtable.">bhash_init</a> </dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="bhash_8h.html#a4ffa609c1c1344c82d340ce6e0e02733" title="Initialize a hashtable.">bhash_init</a> </dd></dl>
 
 </div>
 </div>
@@ -309,6 +313,103 @@ static <a class="el" href="bhash_8h.html#abc994e2dfdce3196f8218210bade50c8">bhas
 
 </div>
 </div>
+<a id="aca8aaeab7de0e8bee4803b311ee00b1a" name="aca8aaeab7de0e8bee4803b311ee00b1a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aca8aaeab7de0e8bee4803b311ee00b1a">&#9670;&#160;</a></span>BHASH_FOREACH</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define BHASH_FOREACH</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">KEY, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">VALUE, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">TABLE&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<b>Value:</b><div class="fragment"><div class="line">    <span class="keywordflow">for</span> (bhash_index_t bhash__itr = 0; bhash__itr &lt; <a class="code hl_define" href="bhash_8h.html#aa91ade0fe677d291b389494897c62a42">bhash_len</a>(TABLE); ++bhash__itr) \</div>
+<div class="line">        <span class="keywordflow">for</span> (<span class="keyword">struct</span> { \</div>
+<div class="line">                BHASH__TYPEOF((TABLE)-&gt;keys[0]) key; \</div>
+<div class="line">                BHASH__TYPEOF((TABLE)-&gt;values[0]) value; \</div>
+<div class="line">                <span class="keywordtype">char</span> guard; \</div>
+<div class="line">            } bhash__kv = { \</div>
+<div class="line">                .key = (TABLE)-&gt;keys[bhash__itr], \</div>
+<div class="line">                .value = (TABLE)-&gt;values[bhash__itr], \</div>
+<div class="line">                .guard = 1, \</div>
+<div class="line">            }; \</div>
+<div class="line">            bhash__kv.guard; \</div>
+<div class="line">        ) \</div>
+<div class="line">            <span class="keywordflow">for</span> (BHASH__TYPEOF((TABLE)-&gt;keys[0]) KEY = bhash__kv.key; bhash__kv.guard;) \</div>
+<div class="line">            <span class="keywordflow">for</span> (BHASH__TYPEOF((TABLE)-&gt;values[0]) VALUE = bhash__kv.value; bhash__kv.guard; bhash__kv.guard = 0) \</div>
+<div class="ttc" id="abhash_8h_html_aa91ade0fe677d291b389494897c62a42"><div class="ttname"><a href="bhash_8h.html#aa91ade0fe677d291b389494897c62a42">bhash_len</a></div><div class="ttdeci">#define bhash_len(table)</div><div class="ttdoc">Retrieve the length of the table.</div><div class="ttdef"><b>Definition</b> bhash.h:304</div></div>
+</div><!-- fragment -->
+</div>
+</div>
+<a id="acbc970aac8764b6538de7d2e22fa5cae" name="acbc970aac8764b6538de7d2e22fa5cae"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acbc970aac8764b6538de7d2e22fa5cae">&#9670;&#160;</a></span>BHASH_FOREACH_REF</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define BHASH_FOREACH_REF</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">KEY, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">VALUE, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">TABLE&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<b>Value:</b><div class="fragment"><div class="line">    <span class="keywordflow">for</span> (bhash_index_t bhash__itr = 0; bhash__itr &lt; <a class="code hl_define" href="bhash_8h.html#aa91ade0fe677d291b389494897c62a42">bhash_len</a>(TABLE); ++bhash__itr) \</div>
+<div class="line">        <span class="keywordflow">for</span> (<span class="keyword">struct</span> { \</div>
+<div class="line">                BHASH__TYPEOF((TABLE)-&gt;keys) key; \</div>
+<div class="line">                BHASH__TYPEOF((TABLE)-&gt;values) value; \</div>
+<div class="line">                <span class="keywordtype">char</span> guard; \</div>
+<div class="line">            } bhash__kv = { \</div>
+<div class="line">                .key = &amp;(TABLE)-&gt;keys[bhash_itr], \</div>
+<div class="line">                .value = &amp;(TABLE)-&gt;values[bhash_itr], \</div>
+<div class="line">                .guard = 1, \</div>
+<div class="line">            }; \</div>
+<div class="line">            bhash__kv.guard; \</div>
+<div class="line">        ) \</div>
+<div class="line">            <span class="keywordflow">for</span> (BHASH__TYPEOF((TABLE)-&gt;keys) KEY = bhash__kv.key; bhash__kv.guard;) \</div>
+<div class="line">            <span class="keywordflow">for</span> (BHASH__TYPEOF((TABLE)-&gt;values) VALUE = bhash__kv.value; bhash__kv.guard; bhash__kv.guard = 0) \</div>
+</div><!-- fragment -->
+</div>
+</div>
 <a id="a64c60d8b6c6fd3b1124822bcc7784867" name="a64c60d8b6c6fd3b1124822bcc7784867"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a64c60d8b6c6fd3b1124822bcc7784867">&#9670;&#160;</a></span>bhash_get_value</h2>
 
@@ -340,8 +441,8 @@ static <a class="el" href="bhash_8h.html#abc994e2dfdce3196f8218210bade50c8">bhas
 
 </div>
 </div>
-<a id="ab9c2632a8fae136780dfee0dd0679948" name="ab9c2632a8fae136780dfee0dd0679948"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab9c2632a8fae136780dfee0dd0679948">&#9670;&#160;</a></span>bhash_init</h2>
+<a id="a4ffa609c1c1344c82d340ce6e0e02733" name="a4ffa609c1c1344c82d340ce6e0e02733"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4ffa609c1c1344c82d340ce6e0e02733">&#9670;&#160;</a></span>bhash_init</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -356,7 +457,7 @@ static <a class="el" href="bhash_8h.html#abc994e2dfdce3196f8218210bade50c8">bhas
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">&#160;</td>
-          <td class="paramname">config&#160;</td>
+          <td class="paramname"><em>...</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -369,7 +470,7 @@ static <a class="el" href="bhash_8h.html#abc994e2dfdce3196f8218210bade50c8">bhas
 <div class="line">        &amp;((table)-&gt;base), \</div>
 <div class="line">        <span class="keyword">sizeof</span>((table)-&gt;keys[0]), \</div>
 <div class="line">        <span class="keyword">sizeof</span>((table)-&gt;values[0]), \</div>
-<div class="line">        config \</div>
+<div class="line">        __VA_ARGS__ \</div>
 <div class="line">    )</div>
 </div><!-- fragment -->
 <p>Initialize a hashtable. </p>
@@ -467,7 +568,7 @@ static <a class="el" href="bhash_8h.html#abc994e2dfdce3196f8218210bade50c8">bhas
 <div class="line">        (table)-&gt;keys[bhash__put_index] = key; \</div>
 <div class="line">        (table)-&gt;values[bhash__put_index] = value; \</div>
 <div class="line">    } <span class="keywordflow">while</span> (0)</div>
-<div class="ttc" id="abhash_8h_html_ac0dc417972153de59f61acff9bc99512"><div class="ttname"><a href="bhash_8h.html#ac0dc417972153de59f61acff9bc99512">bhash_alloc</a></div><div class="ttdeci">#define bhash_alloc(table, key)</div><div class="ttdoc">Allocate an entry in the hashtable.</div><div class="ttdef"><b>Definition</b> bhash.h:213</div></div>
+<div class="ttc" id="abhash_8h_html_ac0dc417972153de59f61acff9bc99512"><div class="ttname"><a href="bhash_8h.html#ac0dc417972153de59f61acff9bc99512">bhash_alloc</a></div><div class="ttdeci">#define bhash_alloc(table, key)</div><div class="ttdoc">Allocate an entry in the hashtable.</div><div class="ttdef"><b>Definition</b> bhash.h:245</div></div>
 </div><!-- fragment -->
 <p>Add a new entry to the table. </p>
 
@@ -508,8 +609,8 @@ static <a class="el" href="bhash_8h.html#abc994e2dfdce3196f8218210bade50c8">bhas
 
 </div>
 </div>
-<a id="ac11ac723fcca6a3111fd61a39e10f9bc" name="ac11ac723fcca6a3111fd61a39e10f9bc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac11ac723fcca6a3111fd61a39e10f9bc">&#9670;&#160;</a></span>bhash_reinit</h2>
+<a id="afd4536a019e8ef52e01ffeb94e6b6f36" name="afd4536a019e8ef52e01ffeb94e6b6f36"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afd4536a019e8ef52e01ffeb94e6b6f36">&#9670;&#160;</a></span>bhash_reinit</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -524,7 +625,7 @@ static <a class="el" href="bhash_8h.html#abc994e2dfdce3196f8218210bade50c8">bhas
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">&#160;</td>
-          <td class="paramname">config&#160;</td>
+          <td class="paramname"><em>...</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -537,7 +638,7 @@ static <a class="el" href="bhash_8h.html#abc994e2dfdce3196f8218210bade50c8">bhas
 <div class="line">        &amp;((table)-&gt;base), \</div>
 <div class="line">        <span class="keyword">sizeof</span>((table)-&gt;keys[0]), \</div>
 <div class="line">        <span class="keyword">sizeof</span>((table)-&gt;values[0]), \</div>
-<div class="line">        config \</div>
+<div class="line">        __VA_ARGS__ \</div>
 <div class="line">    )</div>
 </div><!-- fragment -->
 <p>Reload-friendly initialization. </p>
