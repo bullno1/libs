@@ -28,6 +28,12 @@
 #define BENUM_DEFINE__(NAME) NAME,
 #define BENUM_TO_STR__(NAME) case NAME: return BSTRINGIFY(NAME);
 
+#define BMASK_ENUM(X) \
+	enum { X(BMASK_ENUM__SHIFT) }; \
+	enum { X(BMASK_ENUM__MASK) };
+#define BMASK_ENUM__SHIFT(NAME) BCONCAT(NAME, _SHIFT),
+#define BMASK_ENUM__MASK(NAME) NAME = 1 << BCONCAT(NAME, _SHIFT),
+
 #if defined(__GNUC__) || defined(__clang__)
 #	define BFORMAT_ATTRIBUTE(FMT, VA) __attribute__((format(printf, FMT, VA)))
 #else
