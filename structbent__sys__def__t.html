@@ -96,10 +96,9 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a8ac4995a75939ff1de8d93d2f16bab87" id="r_a8ac4995a75939ff1de8d93d2f16bab87"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structbent__comp__reg__t.html">bent_comp_reg_t</a> **&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structbent__sys__def__t.html#a8ac4995a75939ff1de8d93d2f16bab87">exclude</a></td></tr>
 <tr class="memdesc:a8ac4995a75939ff1de8d93d2f16bab87"><td class="mdescLeft">&#160;</td><td class="mdescRight">Null-terminated list of required components.  <br /></td></tr>
 <tr class="separator:a8ac4995a75939ff1de8d93d2f16bab87"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa8794b6367fc6a5936461904296a8787" id="r_aa8794b6367fc6a5936461904296a8787"><td class="memItemLeft" align="right" valign="top"><a id="aa8794b6367fc6a5936461904296a8787" name="aa8794b6367fc6a5936461904296a8787"></a>
-<a class="el" href="structbent__sys__def__t.html#ab8f8abac04fba85d1ab34ad92c8c45ca">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><b>allow_reinit</b></td></tr>
-<tr class="memdesc:aa8794b6367fc6a5936461904296a8787"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether this system's <a class="el" href="structbent__sys__def__t.html#ae82443c6a45c8b359762a75c95fd85aa">bent_sys_def_t::init</a> callback can be called on reload. <br /></td></tr>
-<tr class="separator:aa8794b6367fc6a5936461904296a8787"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae437146f07ecb71e121cac08f10b226d" id="r_ae437146f07ecb71e121cac08f10b226d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structbent__sys__def__t.html#ab8f8abac04fba85d1ab34ad92c8c45ca">uint32_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structbent__sys__def__t.html#ae437146f07ecb71e121cac08f10b226d">flags</a></td></tr>
+<tr class="memdesc:ae437146f07ecb71e121cac08f10b226d"><td class="mdescLeft">&#160;</td><td class="mdescRight">System behaviour flags.  <br /></td></tr>
+<tr class="separator:ae437146f07ecb71e121cac08f10b226d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae82443c6a45c8b359762a75c95fd85aa" id="r_ae82443c6a45c8b359762a75c95fd85aa"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structbent__sys__def__t.html#ab8f8abac04fba85d1ab34ad92c8c45ca">void</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structbent__sys__def__t.html#ae82443c6a45c8b359762a75c95fd85aa">init</a> )(<a class="el" href="structbent__sys__def__t.html#ab8f8abac04fba85d1ab34ad92c8c45ca">void</a> *<a class="el" href="structbent__sys__def__t.html#ab8f8abac04fba85d1ab34ad92c8c45ca">userdata</a>, <a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *<a class="el" href="structbent__sys__def__t.html#ab8f8abac04fba85d1ab34ad92c8c45ca">world</a>)</td></tr>
 <tr class="memdesc:ae82443c6a45c8b359762a75c95fd85aa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Optional initialization callback.  <br /></td></tr>
 <tr class="separator:ae82443c6a45c8b359762a75c95fd85aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -195,6 +194,23 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="ae437146f07ecb71e121cac08f10b226d" name="ae437146f07ecb71e121cac08f10b226d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae437146f07ecb71e121cac08f10b226d">&#9670;&#160;</a></span>flags</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structbent__sys__def__t.html#ab8f8abac04fba85d1ab34ad92c8c45ca">uint32_t</a> bent_sys_def_t::flags</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>System behaviour flags. </p>
+<p>A bitwise OR of values from <a class="el" href="bent_8h.html#ae97b5bf4222c2b44b069ca8e760dff2d">bent_sys_flags_t</a>. </p>
+
+</div>
+</div>
 <a id="ae82443c6a45c8b359762a75c95fd85aa" name="ae82443c6a45c8b359762a75c95fd85aa"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae82443c6a45c8b359762a75c95fd85aa">&#9670;&#160;</a></span>init</h2>
 
@@ -208,7 +224,7 @@ Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Optional initialization callback. </p>
-<p>This may be called multiple times if <a class="el" href="structbent__sys__def__t.html#aa8794b6367fc6a5936461904296a8787">bent_sys_def_t::allow_reinit</a> is <code>true</code>.</p>
+<p>This may be called multiple times if <a class="el" href="structbent__sys__def__t.html#ae437146f07ecb71e121cac08f10b226d">bent_sys_def_t::flags</a> contains <a class="el" href="bent_8h.html#ae97b5bf4222c2b44b069ca8e760dff2da6c1c6f8cc1f52474099a10ac0b3b0c81">BENT_SYS_ALLOW_REINIT</a>.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">userdata</td><td>pointer to a data buffer with the size given in <a class="el" href="structbent__sys__def__t.html#ab8f8abac04fba85d1ab34ad92c8c45ca">bent_sys_def_t::size</a> </td></tr>
@@ -233,7 +249,7 @@ Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Optional post-initialization callback. </p>
-<p>Unlike <a class="el" href="structbent__sys__def__t.html#ae82443c6a45c8b359762a75c95fd85aa" title="Optional initialization callback.">bent_sys_def_t::init</a>, this will always be called after every system has finished initialization. This allows a dependent system to make queries to another system. The <a class="el" href="structbent__sys__def__t.html#aa8794b6367fc6a5936461904296a8787">bent_sys_def_t::allow_reinit</a> flag has no effect.</p>
+<p>Unlike <a class="el" href="structbent__sys__def__t.html#ae82443c6a45c8b359762a75c95fd85aa" title="Optional initialization callback.">bent_sys_def_t::init</a>, this will always be called after every system has finished initialization. This allows a dependent system to make queries to another system. The <a class="el" href="bent_8h.html#ae97b5bf4222c2b44b069ca8e760dff2da6c1c6f8cc1f52474099a10ac0b3b0c81">BENT_SYS_ALLOW_REINIT</a> flag has no effect.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">userdata</td><td>pointer to a data buffer with the size given in <a class="el" href="structbent__sys__def__t.html#ab8f8abac04fba85d1ab34ad92c8c45ca">bent_sys_def_t::size</a> </td></tr>
