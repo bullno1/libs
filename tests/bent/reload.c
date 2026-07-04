@@ -46,7 +46,7 @@ BENT_DEFINE_SYS(without_reinit) = {
 BENT_DEFINE_SYS(with_reinit) = {
 	.size = sizeof(reinit_data_t),
 	.init = count_init,
-	.allow_reinit = true,
+	.flags = BENT_SYS_ALLOW_REINIT,
 };
 
 BTEST(reload, reload_with_new_match) {

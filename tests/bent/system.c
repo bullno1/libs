@@ -192,3 +192,42 @@ BTEST(system, entity_still_has_component_on_sys_remove_callback) {
 	bent_add(world, ent2, comp_to_be_removed, NULL);
 	bent_destroy(world, ent2);
 }
+
+static void
+sys_update_empty_list(
+	void* userdata,
+	bent_world_t* world,
+	bent_mask_t update_mask,
+	bent_t* entities,
+	bent_index_t num_entities
+) {
+	BTEST_EXPECT(entities == NULL);
+	BTEST_EXPECT_EQUAL("%d", num_entities, 0);
+
+	int num_iterations = 0;
+	BENT_FOREACH_ENTITY(entity, entities) {
+		(void)entity;
+		++num_iterations;
+	}
+	BTEST_EXPECT_EQUAL("%d", num_iterations, 0);
+}
+
+BENT_DEFINE_SYS(no_entity_list_system) = {
+	.require = BENT_COMP_LIST(&basic_component),
+	.flags = BENT_SYS_NO_ENTITY_LIST,
+	.update = sys_update_empty_list,
+	.update_mask = UPDATE_PHASE_A,
+};
+
+BTEST(system, system_has_no_entity_list) {
+	bent_world_t* world = fixture.world;
+	bent_t ent = bent_create(world);
+	bent_add(world, ent, basic_component, NULL);
+
+	bent_index_t num_entities;
+	bent_t* list = bent_get_entity_list(world, no_entity_list_system, &num_entities);
+	BTEST_EXPECT(list == NULL);
+	BTEST_EXPECT_EQUAL("%d", num_entities, 0);
+
+	bent_run(world, UPDATE_PHASE_A);
+}

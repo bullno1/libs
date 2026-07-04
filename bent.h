@@ -363,6 +363,26 @@ typedef struct {
 } bent_comp_reg_t;
 
 /**
+ * System behavior flags.
+ *
+ * @see bent_sys_def_t::flags.
+ */
+typedef enum {
+	/**
+	 * Whether this system's @ref bent_sys_def_t::init callback can be called
+	 * on reload.
+	 */
+	BENT_SYS_ALLOW_REINIT      = 1 << 0,
+
+	/**
+	 * When set, this system will not keep an internal entity list.
+	 *
+	 * Functions @ref bent_get_entity_list will return NULL.
+	 */
+	BENT_SYS_NO_ENTITY_LIST    = 1 << 1,
+} bent_sys_flags_t;
+
+/**
  * System definition.
  *
  * @see BENT_DEFINE_SYS
@@ -417,15 +437,16 @@ typedef struct {
 	bent_comp_reg_t** exclude;
 
 	/**
-	 * Whether this system's @ref bent_sys_def_t::init callback can be called
-	 * on reload.
+	 * System behaviour flags.
+	 *
+	 * A bitwise OR of values from @ref bent_sys_flags_t.
 	 */
-	bool allow_reinit;
+	uint32_t flags;
 
 	/**
 	 * Optional initialization callback.
 	 *
-	 * This may be called multiple times if @ref bent_sys_def_t::allow_reinit is `true`.
+	 * This may be called multiple times if @ref bent_sys_def_t::flags contains @ref BENT_SYS_ALLOW_REINIT.
 	 *
 	 * @param userdata pointer to a data buffer with the size given in @ref bent_sys_def_t::size
 	 * @param world the world this system belongs to
@@ -439,7 +460,7 @@ typedef struct {
 	 *
 	 * Unlike bent_sys_def_t::init, this will always be called after every system has finished initialization.
 	 * This allows a dependent system to make queries to another system.
-	 * The @ref bent_sys_def_t::allow_reinit flag has no effect.
+	 * The @ref BENT_SYS_ALLOW_REINIT flag has no effect.
 	 *
 	 * @param userdata pointer to a data buffer with the size given in @ref bent_sys_def_t::size
 	 * @param world the world this system belongs to
@@ -1029,13 +1050,15 @@ bent_sys_match_impl(const bent_system_data_t* sys, const bent_bitset_t* componen
 
 static void
 bent_sys_add_entity(bent_world_t* world, bent_system_data_t* sys, bent_t entity) {
-	bent_index_t sparse_size = (bent_index_t)barray_len(sys->sparse);
-	if (entity.index - 1 >= sparse_size) {
-		bent_index_t new_sparse_size = sparse_size * 2 > entity.index ? sparse_size * 2 : entity.index;
-		barray_resize(sys->sparse, new_sparse_size, world->memctx);
+	if (!(sys->def->flags & BENT_SYS_NO_ENTITY_LIST)) {
+		bent_index_t sparse_size = (bent_index_t)barray_len(sys->sparse);
+		if (entity.index - 1 >= sparse_size) {
+			bent_index_t new_sparse_size = sparse_size * 2 > entity.index ? sparse_size * 2 : entity.index;
+			barray_resize(sys->sparse, new_sparse_size, world->memctx);
+		}
+		sys->sparse[entity.index - 1] = (bent_index_t)barray_len(sys->dense);
+		barray_push(sys->dense, entity, world->memctx);
 	}
-	sys->sparse[entity.index - 1] = (bent_index_t)barray_len(sys->dense);
-	barray_push(sys->dense, entity, world->memctx);
 
 	if (sys->def->add) {
 		sys->def->add(sys->userdata, world, entity);
@@ -1044,10 +1067,12 @@ bent_sys_add_entity(bent_world_t* world, bent_system_data_t* sys, bent_t entity)
 
 static void
 bent_sys_remove_entity(bent_world_t* world, bent_system_data_t* sys, bent_t entity) {
-	bent_index_t dense_index = sys->sparse[entity.index - 1];
-	bent_t last_entity = barray_pop(sys->dense);
-	sys->dense[dense_index] = last_entity;
-	sys->sparse[last_entity.index - 1] = dense_index;
+	if (!(sys->def->flags & BENT_SYS_NO_ENTITY_LIST)) {
+		bent_index_t dense_index = sys->sparse[entity.index - 1];
+		bent_t last_entity = barray_pop(sys->dense);
+		sys->dense[dense_index] = last_entity;
+		sys->sparse[last_entity.index - 1] = dense_index;
+	}
 
 	if (sys->def->remove) {
 		sys->def->remove(sys->userdata, world, entity);
@@ -1108,7 +1133,7 @@ bent_sys_init(
 		}
 	}
 
-	if (def->init && (!initialized || def->allow_reinit)) {
+	if (def->init && (!initialized || (def->flags & BENT_SYS_ALLOW_REINIT))) {
 		def->init(sys->userdata, world);
 	}
 
