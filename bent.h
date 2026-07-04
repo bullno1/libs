@@ -19,6 +19,8 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <limits.h>
+#include <string.h>
 
 #ifndef BENT_API
 #define BENT_API
@@ -51,6 +53,8 @@
 #ifndef BENT_MAX_NUM_COMPONENT_TYPES
 #define BENT_MAX_NUM_COMPONENT_TYPES 32
 #endif
+
+#define BENT_BITSET_LEN ((BENT_MAX_NUM_COMPONENT_TYPES + sizeof(bent_mask_t) * CHAR_BIT - 1) / (sizeof(bent_mask_t) * CHAR_BIT))
 
 /**
  * Forward-declare a component type.
@@ -283,6 +287,10 @@ typedef BENT_INDEX_TYPE bent_index_t;
 
 /*! Bitmask type used in the library */
 typedef BENT_MASK_TYPE bent_mask_t;
+
+typedef struct {
+	bent_mask_t bits[BENT_BITSET_LEN];
+} bent_bitset_t;
 
 /**
  * Entity handle
@@ -791,10 +799,95 @@ bent_run(bent_world_t* world, bent_mask_t update_mask);
 BENT_API bent_t*
 bent_get_entity_list(bent_world_t* world, bent_sys_reg_t sys, bent_index_t* num_entities);
 
+/**
+ * Retrieve the component mask of an entity
+ *
+ * @param world the world
+ * @param sys the entity
+ * @return The component mask
+ */
+BENT_API bent_bitset_t
+bent_get_entity_mask(bent_world_t* world, bent_t entity);
+
 static inline bool
 bent_equal(bent_t lhs, bent_t rhs) {
 	return lhs.index == rhs.index && lhs.gen == rhs.gen;
 }
+
+// bitset {{{
+
+static void
+bent_bitset_clear(bent_bitset_t* bitset) {
+	memset(bitset, 0, sizeof(*bitset));
+}
+
+static void
+bent_bitset_set(bent_bitset_t* bitset, bent_index_t bit_index) {
+	bent_index_t num_bits_per_mask = sizeof(bent_index_t) * CHAR_BIT;
+	bent_index_t mask_index = bit_index / num_bits_per_mask;
+	bent_mask_t mask = (bent_mask_t)1 << (bit_index % num_bits_per_mask);
+	bitset->bits[mask_index] |= mask;
+}
+
+static void
+bent_bitset_unset(bent_bitset_t* bitset, bent_index_t bit_index) {
+	bent_index_t num_bits_per_mask = sizeof(bent_index_t) * CHAR_BIT;
+	bent_index_t mask_index = bit_index / num_bits_per_mask;
+	bent_mask_t mask = ~((bent_mask_t)1 << (bit_index % num_bits_per_mask));
+	bitset->bits[mask_index] &= mask;
+}
+
+static void
+bent_bitset_flip(bent_bitset_t* bitset) {
+	for (bent_index_t i = 0; i < BENT_BITSET_LEN; ++i) {
+		bitset->bits[i] = ~bitset->bits[i];
+	}
+}
+
+static bool
+bent_bitset_check(const bent_bitset_t* bitset, bent_index_t bit_index) {
+	bent_index_t num_bits_per_mask = sizeof(bent_index_t) * CHAR_BIT;
+	bent_index_t mask_index = bit_index / num_bits_per_mask;
+	bent_mask_t mask = (bent_mask_t)1 << (bit_index % num_bits_per_mask);
+	return (bitset->bits[mask_index] & mask) > 0;
+}
+
+static bool
+bent_bitset_any_match(const bent_bitset_t* subject, const bent_bitset_t* requirement) {
+	bool result = false;
+	for (bent_index_t i = 0; i < BENT_BITSET_LEN; ++i) {
+		bent_mask_t subject_mask = subject->bits[i];
+		bent_mask_t required_mask = requirement->bits[i];
+		result = result || ((subject_mask & required_mask) > 0);
+	}
+	return result;
+}
+
+static bool
+bent_bitset_all_match(const bent_bitset_t* subject, const bent_bitset_t* requirement) {
+	bool result = true;
+	for (bent_index_t i = 0; i < BENT_BITSET_LEN; ++i) {
+		bent_mask_t subject_mask = subject->bits[i];
+		bent_mask_t required_mask = requirement->bits[i];
+		result = result && ((subject_mask & required_mask) == required_mask);
+	}
+	return result;
+}
+
+static inline bent_bitset_t
+bent_bitset_from_comp_list(bent_comp_reg_t** comp_list) {
+	bent_bitset_t result = { 0 };
+	for (
+		bent_comp_reg_t** comp = comp_list;
+		comp != NULL && *comp != NULL;
+		++comp
+	) {
+		bent_bitset_set(&result, (*comp)->id - 1);
+	}
+	return result;
+}
+
+// }}}
 
 // Private
 
@@ -845,7 +938,6 @@ bent__libc_realloc(void* ptr, size_t size, void* ctx) {
 #endif
 
 #define BARRAY_REALLOC BENT_REALLOC
-#define BENT_BITSET_LEN ((BENT_MAX_NUM_COMPONENT_TYPES + sizeof(bent_mask_t) * CHAR_BIT - 1) / (sizeof(bent_mask_t) * CHAR_BIT))
 
 // We depend on barray but try to hide its symbols to avoid conflict.
 // If it is compiled in the same unit, honor the existing symbol decision>
@@ -856,9 +948,6 @@ bent__libc_realloc(void* ptr, size_t size, void* ctx) {
 #include "barray.h"
 #endif
 
-#include <limits.h>
-#include <string.h>
-
 AUTOLIST_IMPL(bent__components)
 AUTOLIST_IMPL(bent__systems)
 
@@ -866,10 +955,6 @@ typedef struct {
 	bent_index_t length;
 	uint8_t* data;
 } bent_dyn_array_t;
-
-typedef struct {
-	bent_mask_t bits[BENT_BITSET_LEN];
-} bent_bitset_t;
 
 typedef struct {
 	bent_bitset_t require;
@@ -947,68 +1032,6 @@ bent_dyn_array_ensure_length(
 static void
 bent_dyn_array_cleanup(bent_dyn_array_t* array, void* memctx) {
 	BENT_REALLOC(array->data, 0, memctx);
-}
-
-// }}}
-
-// bitset {{{
-
-static void
-bent_bitset_clear(bent_bitset_t* bitset) {
-	memset(bitset, 0, sizeof(*bitset));
-}
-
-static void
-bent_bitset_set(bent_bitset_t* bitset, bent_index_t bit_index) {
-	bent_index_t num_bits_per_mask = sizeof(bent_index_t) * CHAR_BIT;
-	bent_index_t mask_index = bit_index / num_bits_per_mask;
-	bent_mask_t mask = (bent_mask_t)1 << (bit_index % num_bits_per_mask);
-	bitset->bits[mask_index] |= mask;
-}
-
-static void
-bent_bitset_unset(bent_bitset_t* bitset, bent_index_t bit_index) {
-	bent_index_t num_bits_per_mask = sizeof(bent_index_t) * CHAR_BIT;
-	bent_index_t mask_index = bit_index / num_bits_per_mask;
-	bent_mask_t mask = ~((bent_mask_t)1 << (bit_index % num_bits_per_mask));
-	bitset->bits[mask_index] &= mask;
-}
-
-static void
-bent_bitset_flip(bent_bitset_t* bitset) {
-	for (bent_index_t i = 0; i < BENT_BITSET_LEN; ++i) {
-		bitset->bits[i] = ~bitset->bits[i];
-	}
-}
-
-static bool
-bent_bitset_check(const bent_bitset_t* bitset, bent_index_t bit_index) {
-	bent_index_t num_bits_per_mask = sizeof(bent_index_t) * CHAR_BIT;
-	bent_index_t mask_index = bit_index / num_bits_per_mask;
-	bent_mask_t mask = (bent_mask_t)1 << (bit_index % num_bits_per_mask);
-	return (bitset->bits[mask_index] & mask) > 0;
-}
-
-static bool
-bent_bitset_any_match(const bent_bitset_t* subject, const bent_bitset_t* requirement) {
-	bool result = false;
-	for (bent_index_t i = 0; i < BENT_BITSET_LEN; ++i) {
-		bent_mask_t subject_mask = subject->bits[i];
-		bent_mask_t required_mask = requirement->bits[i];
-		result = result || ((subject_mask & required_mask) > 0);
-	}
-	return result;
-}
-
-static bool
-bent_bitset_all_match(const bent_bitset_t* subject, const bent_bitset_t* requirement) {
-	bool result = true;
-	for (bent_index_t i = 0; i < BENT_BITSET_LEN; ++i) {
-		bent_mask_t subject_mask = subject->bits[i];
-		bent_mask_t required_mask = requirement->bits[i];
-		result = result && ((subject_mask & required_mask) == required_mask);
-	}
-	return result;
 }
 
 // }}}
@@ -1108,21 +1131,8 @@ bent_sys_init(
 		bent_bitset_flip(&sys->exclude);
 	} else {
 		// Otherwise, each property is defaulted to an empty list
-		for (
-			bent_comp_reg_t** comp = def->require;
-			comp != NULL && *comp != NULL;
-			++comp
-		) {
-			bent_bitset_set(&sys->require, (*comp)->id - 1);
-		}
-
-		for (
-			bent_comp_reg_t** comp = def->exclude;
-			comp != NULL && *comp != NULL;
-			++comp
-		) {
-			bent_bitset_set(&sys->exclude, (*comp)->id - 1);
-		}
+		sys->require = bent_bitset_from_comp_list(def->require);
+		sys->exclude = bent_bitset_from_comp_list(def->exclude);
 	}
 
 	bool initialized = sys->initialized;
@@ -1557,6 +1567,12 @@ bent_get_entity_list(bent_world_t* world, bent_sys_reg_t sys, bent_index_t* num_
 	if (num_entities) { *num_entities = (bent_index_t)barray_len(sys_data->dense); }
 
 	return sys_data->dense;
+}
+
+bent_bitset_t
+bent_get_entity_mask(bent_world_t* world, bent_t entity) {
+	const bent_entity_data_t* entity_data = bent_entity_data(world, entity);
+	return entity_data != NULL ? entity_data->components : (bent_bitset_t){ 0 };
 }
 
 void
