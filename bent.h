@@ -227,12 +227,6 @@
  */
 #define BENT_COMP_LIST(...) (bent_comp_reg_t*[]){ __VA_ARGS__, 0 }
 
-
-#ifdef _MSC_VER
-#	pragma warning(push)
-#	pragma warning(disable: 4116)  // Anonymous typedef
-#endif
-
 /**
  * Helper to iterate entities.
  */
@@ -247,10 +241,6 @@
 			bent__itr.once; \
 			bent__itr.once = 0 \
 		)
-
-#ifdef _MSC_VER
-#	pragma warning(pop)
-#endif
 
 #ifndef BENT_DEFINE_COMPONENTS
 
