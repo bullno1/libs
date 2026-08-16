@@ -35,6 +35,8 @@ Tested on:
 * Linux (GCC+Clang)
 * Windows (MSVC)
 
+For documentation, see: https://bullno1.com/libs
+
 ## On allocator
 
 Whenever a library needs to allocate memory a `memctx` argument can be passed to it.
