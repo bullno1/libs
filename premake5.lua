@@ -63,6 +63,7 @@ workspace "libs"
       "/experimental:c11atomics",
     }
     disablewarnings {
+      "4127",
       "4100",
       "4200",
       "4152",
