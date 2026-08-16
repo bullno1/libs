@@ -107,6 +107,11 @@ BTEST(subcoro, terminate_unwinds_the_whole_chain) {
 	BTEST_EXPECT_EQUAL("%d", bco_status(coro_a()), BCO_TERMINATED);
 }
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4702) // unreachable code
+#endif
+
 bco_static(subcoro_returning_leaf, int id) {
 	bco_begin
 	trace("leaf%d:enter", bco_arg(id));
@@ -115,6 +120,10 @@ bco_static(subcoro_returning_leaf, int id) {
 	bco_end
 	trace("leaf%d:cleanup", bco_arg(id));
 }
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 bco_static(subcoro_return_parent, int calls) {
 	bco_vars(int k;)

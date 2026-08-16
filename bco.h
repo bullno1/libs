@@ -148,7 +148,10 @@
 	_Static_assert(bco__begin_declared == 0, "bco_begin can only be used once"); \
 	enum { bco__begin_declared = 1 }; \
 	switch (bco__on_resume(bco__coro)) { \
-		case 0: if (bco__vars_declared) { bco__zero_vars(bco__coro); }
+		case 0: \
+			bco__begin_constant_cond \
+			if (bco__vars_declared) { bco__zero_vars(bco__coro); } \
+			bco__end_constant_cond
 
 /**
  * Mark the end of a coroutine body
@@ -396,6 +399,14 @@ bco_get_userdata(bco_t* coro);
 #define bco__struct_field_5(ARG, ...) ARG; bco__struct_field_4(__VA_ARGS__)
 #define bco__struct_field_6(ARG, ...) ARG; bco__struct_field_5(__VA_ARGS__)
 #define bco__struct_field_7(ARG, ...) ARG; bco__struct_field_6(__VA_ARGS__)
+
+#ifdef _MSC_VER
+#define bco__begin_constant_cond __pragma(warning(push)) __pragma(warning(disable: 4127))
+#define bco__end_constant_cond __pragma(warning(pop))
+#else
+#define bco__begin_constant_cond
+#define bco__end_constant_cond
+#endif
 
 typedef void (*bco_fn_t)(bco_t* coro, void* args);
 
