@@ -31,39 +31,65 @@
  * If there is any pointers, they should have their lifetime last for the entire
  * execution of the coroutine.
  *
+ * The coroutine function has external linkage, so its name must be unique across
+ * the whole program.
+ * Use @ref bco_static for a coroutine that is private to one source file.
+ *
  * @param NAME the name for the coroutine function
  * @param ... argument list with up to 6 arguments.
+ *
+ * @see bco_static
  */
 #define bco(NAME, ...) \
 	bco_decl(NAME, __VA_ARGS__); \
 	bco_impl(NAME)
 
 /**
+ * Declare and implement a coroutine function with internal linkage
+ *
+ * Same as @ref bco but the coroutine function is private to the enclosing
+ * source file, so its name will not collide with a coroutine of the same name
+ * in another one.
+ *
+ * @param NAME the name for the coroutine function
+ * @param ... argument list with up to 6 arguments.
+ *
+ * @see bco
+ */
+#define bco_static(NAME, ...) \
+	bco_decl_static(NAME, __VA_ARGS__); \
+	bco_impl(NAME)
+
+/**
  * Forward declare a coroutine function without implementing it
  *
  * @see bco
+ * @see bco_decl_static
+ */
+#define bco_decl(NAME, ...) bco__decl(extern, NAME, __VA_ARGS__)
+
+/**
+ * Forward declare a coroutine function with internal linkage
+ *
+ * The matching @ref bco_impl must appear in the same source file.
+ * It does not need to repeat `static`, the definition inherits the linkage of
+ * this declaration.
+ *
+ * @see bco_static
  * @see bco_decl
  */
-#define bco_decl(NAME, ...) \
-	typedef struct bco__arg_type(NAME) bco__arg_type(NAME); \
-	bco__fn(NAME); \
-	static inline void bco__concat(bco__wrapper_, NAME)(bco_t* bco__coro, void* args) { \
-		NAME(bco__coro, args); \
-	} \
-	struct bco__arg_type(NAME) { \
-		bco__struct_fields(__VA_ARGS__ __VA_OPT__(,) -) \
-	}; \
-	_Static_assert( \
-		_Alignof(bco__arg_type(NAME)) <= _Alignof(bco_align_t), \
-		"Coroutine arguments contain member(s) with alignment requirement above BCO_MAX_ALIGN" \
-	)
+#define bco_decl_static(NAME, ...) bco__decl(static, NAME, __VA_ARGS__)
 
 #define bco__arg_type(NAME) bco__concat(bco__args_, NAME)
 
 /**
  * Implement a coroutine function that was previously forward declared
  *
+ * The linkage comes from the declaration, so this is used for both
+ * @ref bco_decl and @ref bco_decl_static.
+ *
  * @see bco_decl
+ * @see bco_decl_static
  */
 #define bco_impl(NAME) bco__fn(NAME)
 
@@ -340,6 +366,20 @@ bco_get_userdata(bco_t* coro);
 #ifndef DOXYGEN
 
 #define bco__fn(NAME) void NAME(bco_t* bco__coro, bco__arg_type(NAME)* bco__args)
+
+#define bco__decl(LINKAGE, NAME, ...) \
+	typedef struct bco__arg_type(NAME) bco__arg_type(NAME); \
+	LINKAGE bco__fn(NAME); \
+	static inline void bco__concat(bco__wrapper_, NAME)(bco_t* bco__coro, void* args) { \
+		NAME(bco__coro, args); \
+	} \
+	struct bco__arg_type(NAME) { \
+		bco__struct_fields(__VA_ARGS__ __VA_OPT__(,) -) \
+	}; \
+	_Static_assert( \
+		_Alignof(bco__arg_type(NAME)) <= _Alignof(bco_align_t), \
+		"Coroutine arguments contain member(s) with alignment requirement above BCO_MAX_ALIGN" \
+	)
 
 #define bco__struct_fields(...) bco__concat(bco__struct_field_, bco__count(__VA_ARGS__))(__VA_ARGS__)
 
