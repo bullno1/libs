@@ -6,6 +6,21 @@
  * @brief Coroutine using macro.
  *
  * In **exactly one** source file, define `BCO_IMPLEMENTATION` before including bco.h.
+ *
+ * To define a coroutine, use @ref bco and related macros.
+ * Then it can be spawned with @ref bco_spawn.
+ *
+ * Within the coroutine, the following controls are available:
+ *
+ * * @ref bco_yield : Yield back to the caller
+ * * @ref bco_call : Call into a subcoroutine
+ * * @ref bco_return : Early return
+ * * @ref bco_join : Wait for another coroutine
+ *
+ * To access arguments, use @ref bco_arg
+ * To have local variables that get persisted between runs, use @ref bco_vars
+ *
+ * Checkout the rest of the documentation for other features such as @ref bco_copy, @ref bco_terminate...
  */
 
 #include <stddef.h>
@@ -38,6 +53,10 @@
  * @param NAME the name for the coroutine function
  * @param ... argument list with up to 6 arguments.
  *
+ * Example:
+ *
+ * @snippet samples/bco.c bco
+ *
  * @see bco_static
  */
 #define bco(NAME, ...) \
@@ -63,13 +82,25 @@
 /**
  * Forward declare a coroutine function without implementing it
  *
+ * @param NAME the name for the coroutine function
+ * @param ... argument list with up to 6 arguments.
+ *
  * @see bco
  * @see bco_decl_static
+ *
+ * Example:
+ *
+ * @snippet samples/bco.c bco_decl
+ *
+ * @hideinitializer
  */
 #define bco_decl(NAME, ...) bco__decl(extern, NAME, __VA_ARGS__)
 
 /**
  * Forward declare a coroutine function with internal linkage
+ *
+ * @param NAME the name for the coroutine function
+ * @param ... argument list with up to 6 arguments.
  *
  * The matching @ref bco_impl must appear in the same source file.
  * It does not need to repeat `static`, the definition inherits the linkage of
@@ -77,10 +108,10 @@
  *
  * @see bco_static
  * @see bco_decl
+ *
+ * @hideinitializer
  */
 #define bco_decl_static(NAME, ...) bco__decl(static, NAME, __VA_ARGS__)
-
-#define bco__arg_type(NAME) bco__concat(bco__args_, NAME)
 
 /**
  * Implement a coroutine function that was previously forward declared
@@ -88,12 +119,24 @@
  * The linkage comes from the declaration, so this is used for both
  * @ref bco_decl and @ref bco_decl_static.
  *
+ * @param NAME name of the coroutine function previously declared
+ *
+ * Example:
+ *
+ * @snippet samples/bco.c bco_impl
+ *
  * @see bco_decl
  * @see bco_decl_static
+ *
+ * @hideinitializer
  */
 #define bco_impl(NAME) bco__fn(NAME)
 
-/// Access an argument from a coroutine's body
+/**
+ *  Access an argument from a coroutine's body
+ *
+ * @hideinitializer
+ */
 #define bco_arg(NAME) bco__args->NAME
 
 /**
@@ -103,6 +146,8 @@
  *
  * @see bco_set_userdata
  * @see bco_get_userdata
+ *
+ * @hideinitializer
  */
 #define bco_userdata bco_get_userdata(bco__coro)
 
@@ -113,6 +158,14 @@
  * They are zero-initialized when the coroutine body is first entered.
  *
  * Must be placed before @ref bco_begin and can only be used once.
+ *
+ * Example:
+ *
+ * @snippet samples/bco.c bco_vars
+ *
+ * @see bco_var
+ *
+ * @hideinitializer
  */
 #define bco_vars(...) \
 	_Static_assert(bco__begin_declared == 0, "bco_vars must be placed *before* bco_begin"); \
@@ -133,6 +186,8 @@
  * Access a coroutine variable
  *
  * @see bco_vars
+ *
+ * @hideinitializer
  */
 #define bco_var(NAME) bco__vars->NAME
 
@@ -143,6 +198,8 @@
  * a @ref bco_end.
  *
  * @see bco_end
+ *
+ * @hideinitializer
  */
 #define bco_begin \
 	_Static_assert(bco__begin_declared == 0, "bco_begin can only be used once"); \
@@ -162,8 +219,14 @@
  * be run regardless of whether the coroutine runs to completion, returns early
  * with @ref bco_return or is forcefully terminated with @ref bco_terminate.
  *
+ * Example:
+ *
+ * @snippet samples/bco.c bco_end
+ *
  * @see bco_terminate
  * @see bco_return
+ *
+ * @hideinitializer
  */
 #define bco_end \
 	default: { \
@@ -179,6 +242,8 @@
  * Yield the currently running coroutine
  *
  * Only valid between @ref bco_begin and @ref bco_end.
+ *
+ * @hideinitializer
  */
 #define bco_yield() \
 	do { \
@@ -200,6 +265,12 @@
  * @param CORO the coroutine handle
  * @param NAME name of the entry function
  * @param ... arguments to pass to the function
+ *
+ * Example:
+ *
+ * @snippet samples/bco.c bco_spawn
+ *
+ * @hideinitializer
  */
 #define bco_spawn(CORO, NAME, ...) \
 	do { \
@@ -217,6 +288,8 @@
  *
  * @param NAME name of the entry function
  * @param ... arguments to pass to the function
+ *
+ * @hideinitializer
  */
 #define bco_call(NAME, ...) \
 	do { \
@@ -231,6 +304,8 @@
  * Wait for another coroutine to finish
  *
  * @param CORO the coroutine to wait for
+ *
+ * @hideinitializer
  */
 #define bco_join(CORO) \
 	do { \
@@ -249,6 +324,8 @@
  * This is the only correct way to leave a coroutine body early.
  *
  * @see bco_end
+ *
+ * @hideinitializer
  */
 #define bco_return() \
 	do { \
@@ -367,6 +444,8 @@ bco_get_userdata(bco_t* coro);
 // Private
 
 #ifndef DOXYGEN
+
+#define bco__arg_type(NAME) bco__concat(bco__args_, NAME)
 
 #define bco__fn(NAME) void NAME(bco_t* bco__coro, bco__arg_type(NAME)* bco__args)
 

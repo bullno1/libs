@@ -951,7 +951,7 @@ WARN_LOGFILE           =
 
 INPUT                  = mainpage.md \
 	bresmon.h \
-	bcoro.h \
+	bco.h \
 	bhash.h \
 	bserial.h \
 	bspscq.h \
