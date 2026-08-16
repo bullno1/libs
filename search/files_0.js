@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['bcoro_2eh_0',['bcoro.h',['../bcoro_8h.html',1,'']]],
+  ['bco_2eh_0',['bco.h',['../bco_8h.html',1,'']]],
   ['bcrash_5fhandler_2eh_1',['bcrash_handler.h',['../bcrash__handler_8h.html',1,'']]],
   ['bent_2eh_2',['bent.h',['../bent_8h.html',1,'']]],
   ['bhash_2eh_3',['bhash.h',['../bhash_8h.html',1,'']]],

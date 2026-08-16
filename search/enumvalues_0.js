@@ -1,8 +1,8 @@
 var searchData=
 [
-  ['bcoro_5frunning_0',['BCORO_RUNNING',['../bcoro_8h.html#af3ba7f47d67111b22a9e77957e415b49a50336c155a89f41de11732ea795db517',1,'bcoro.h']]],
-  ['bcoro_5fsuspended_1',['BCORO_SUSPENDED',['../bcoro_8h.html#af3ba7f47d67111b22a9e77957e415b49ac329d90d4735f0defed23415b4f94e4c',1,'bcoro.h']]],
-  ['bcoro_5fterminated_2',['BCORO_TERMINATED',['../bcoro_8h.html#af3ba7f47d67111b22a9e77957e415b49ab3b9466fc489d6d6435a8e709df5331a',1,'bcoro.h']]],
+  ['bco_5frunning_0',['BCO_RUNNING',['../bco_8h.html#a002f80be001293f8e6e2134fbe4e8688ad99f1fe9072f5cfa65534ed5462523d7',1,'bco.h']]],
+  ['bco_5fsuspended_1',['BCO_SUSPENDED',['../bco_8h.html#a002f80be001293f8e6e2134fbe4e8688ac9709d9c51b29b538b12b9ca2a20ecde',1,'bco.h']]],
+  ['bco_5fterminated_2',['BCO_TERMINATED',['../bco_8h.html#a002f80be001293f8e6e2134fbe4e8688a8e8c59d07d04389c0c7267a149cafc75',1,'bco.h']]],
   ['bent_5fsys_5fallow_5freinit_3',['BENT_SYS_ALLOW_REINIT',['../bent_8h.html#ae97b5bf4222c2b44b069ca8e760dff2da6c1c6f8cc1f52474099a10ac0b3b0c81',1,'bent.h']]],
   ['bent_5fsys_5fno_5fentity_5flist_4',['BENT_SYS_NO_ENTITY_LIST',['../bent_8h.html#ae97b5bf4222c2b44b069ca8e760dff2dac05bea9c1f4c5aff7d53b2a5e6f05927',1,'bent.h']]],
   ['bserial_5fio_5ferror_5',['BSERIAL_IO_ERROR',['../bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3ba4b9c397d67960dc944c44c5f5e618fa8',1,'bserial.h']]],

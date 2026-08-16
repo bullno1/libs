@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['bcoro_5fs_0',['bcoro_s',['../structbcoro__s.html',1,'']]],
+  ['bco_5falign_5ft_0',['bco_align_t',['../structbco__align__t.html',1,'']]],
   ['bcrash_5finfo_5ft_1',['bcrash_info_t',['../structbcrash__info__t.html',1,'']]],
   ['bent_5fbitset_5ft_2',['bent_bitset_t',['../structbent__bitset__t.html',1,'']]],
   ['bent_5fcomp_5fdef_5ft_3',['bent_comp_def_t',['../structbent__comp__def__t.html',1,'']]],
