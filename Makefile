@@ -9,7 +9,6 @@ all: \
 	bin/tlsf \
 	bin/bresmon \
 	bin/bhash \
-	bin/bcoro \
 	bin/bserial \
 	bin/bspscq \
 	bin/barray \
@@ -55,10 +54,6 @@ bin/bresmon: tests/bresmon/main.c bresmon.h
 bin/bhash: tests/bhash/main.c bhash.h
 	mkdir -p bin
 	$(CC) $(CFLAGS) -Itests/bhash $(filter-out %.h, $^) -o $@
-
-bin/bcoro: tests/bcoro/main.c bcoro.h
-	mkdir -p bin
-	$(CC) $(CFLAGS) -Itests/bcoro $(filter-out %.h, $^) -o $@
 
 bin/bserial: \
 		bserial.h \
