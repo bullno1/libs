@@ -181,7 +181,12 @@
 #  define INCBIN_BYTE            ".byte "
 #  define INCBIN_TYPE(...)
 #else
-#  define INCBIN_SECTION         ".section " INCBIN_OUTPUT_SECTION "\n"
+#  if defined(__wasm__)
+/* The WebAssembly assembler requires flags and a type on `.section' */
+#    define INCBIN_SECTION       ".section " INCBIN_OUTPUT_SECTION ",\"\",@\n"
+#  else
+#    define INCBIN_SECTION       ".section " INCBIN_OUTPUT_SECTION "\n"
+#  endif
 #  define INCBIN_GLOBAL(NAME)    ".global " INCBIN_STRINGIZE(INCBIN_PREFIX) #NAME "\n"
 #  if defined(__ghs__)
 #    define INCBIN_INT           ".word "
@@ -204,6 +209,19 @@
 #    define INCBIN_TYPE(NAME)    ".type " INCBIN_STRINGIZE(INCBIN_PREFIX) #NAME ", @object\n"
 #  endif
 #  define INCBIN_BYTE            ".byte "
+#endif
+
+/*
+ * WebAssembly requires every data symbol to carry an explicit `.size', and has
+ * no `.text' section to switch back to from module-level assembly.
+ */
+#if defined(__wasm__)
+#  define INCBIN_SIZE_OF(NAME, SIZE) \
+    ".size " INCBIN_MANGLE INCBIN_STRINGIZE(INCBIN_PREFIX) NAME ", " SIZE "\n"
+#  define INCBIN_TEXT
+#else
+#  define INCBIN_SIZE_OF(NAME, SIZE)
+#  define INCBIN_TEXT ".text\n"
 #endif
 
 /* List of style types used for symbol names */
@@ -294,17 +312,21 @@
             INCBIN_MANGLE INCBIN_STRINGIZE(INCBIN_PREFIX) #NAME INCBIN_STYLE_STRING(DATA) ":\n" \
             INCBIN_MACRO " \"" FILENAME "\"\n" \
                 TERMINATOR \
+            INCBIN_SIZE_OF(#NAME INCBIN_STYLE_STRING(DATA), \
+                ". - " INCBIN_MANGLE INCBIN_STRINGIZE(INCBIN_PREFIX) #NAME INCBIN_STYLE_STRING(DATA)) \
             INCBIN_GLOBAL_LABELS(NAME, END) \
             INCBIN_ALIGN_BYTE \
             INCBIN_MANGLE INCBIN_STRINGIZE(INCBIN_PREFIX) #NAME INCBIN_STYLE_STRING(END) ":\n" \
                 INCBIN_BYTE "1\n" \
+            INCBIN_SIZE_OF(#NAME INCBIN_STYLE_STRING(END), "1") \
             INCBIN_GLOBAL_LABELS(NAME, SIZE) \
             INCBIN_ALIGN_HOST \
             INCBIN_MANGLE INCBIN_STRINGIZE(INCBIN_PREFIX) #NAME INCBIN_STYLE_STRING(SIZE) ":\n" \
                 INCBIN_INT INCBIN_MANGLE INCBIN_STRINGIZE(INCBIN_PREFIX) #NAME INCBIN_STYLE_STRING(END) " - " \
                            INCBIN_MANGLE INCBIN_STRINGIZE(INCBIN_PREFIX) #NAME INCBIN_STYLE_STRING(DATA) "\n" \
+            INCBIN_SIZE_OF(#NAME INCBIN_STYLE_STRING(SIZE), "4") \
             INCBIN_ALIGN_HOST \
-            ".text\n" \
+            INCBIN_TEXT \
     )
 
 typedef struct xincbin_data_s {
