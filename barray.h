@@ -2,6 +2,7 @@
 #define BARRAY_H
 
 #include <stddef.h>
+#include <string.h>
 
 #ifndef BARRAY_API
 #define BARRAY_API
@@ -20,6 +21,18 @@
 	do { \
 		(array) = barray__do_reserve((array), new_capacity, sizeof(*(array)), (ctx)); \
 	} while (0)
+
+#define barray_shift_remove(array, index) \
+	( \
+		memmove(&(array)[index], &(array)[index + 1], ((int)barray_len((array)) - index - 1) * sizeof(*(array))), \
+		barray_pop(array) \
+	)
+
+#define barray_swap_remove(array, index) \
+	( \
+		(array)[index] = (array)[barray_len((array)) - 1], \
+		barray_pop(array) \
+	)
 
 #define barray_resize(array, new_len, ctx) \
 	do { \
