@@ -310,23 +310,23 @@ typedef struct {
  *
  * @see bhash_sample_t
  */
-#define bhash_init_set(table, config) \
+#define bhash_init_set(table, ...) \
 	bhash__do_init( \
 		&((table)->base), \
 		sizeof((table)->keys[0]), \
 		0, \
-		config \
+		__VA_ARGS__ \
 	)
 
 /**
  * @brief Reload-friendly initialization.
  */
-#define bhash_reinit_set(table, config) \
+#define bhash_reinit_set(table, ...) \
 	bhash__do_reinit( \
 		&((table)->base), \
 		sizeof((table)->keys[0]), \
 		0, \
-		config \
+		__VA_ARGS__ \
 	)
 
 /*! Clear a table */

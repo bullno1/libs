@@ -345,12 +345,12 @@ typedef struct bco_s bco_t;
 
 /// Coroutine's status
 typedef enum {
+	/// The coroutine is terminated
+	BCO_TERMINATED,
 	/// The coroutine is running
 	BCO_RUNNING,
 	/// The coroutine is suspended
 	BCO_SUSPENDED,
-	/// The coroutine is terminated
-	BCO_TERMINATED,
 } bco_status_t;
 
 /**
