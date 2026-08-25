@@ -291,22 +291,22 @@ $(document).ready(function() { init_codefold(0); });
 </div>
 <div class="line"><a id="l00302" name="l00302"></a><span class="lineno">  302</span> </div>
 <div class="foldopen" id="foldopen00313" data-start="" data-end="">
-<div class="line"><a id="l00313" name="l00313"></a><span class="lineno"><a class="line" href="bhash_8h.html#a978bbc63d819ae4447270e4afd39b21e">  313</a></span><span class="preprocessor">#define bhash_init_set(table, config) \</span></div>
+<div class="line"><a id="l00313" name="l00313"></a><span class="lineno"><a class="line" href="bhash_8h.html#a25245f4355cc263420b6294311500002">  313</a></span><span class="preprocessor">#define bhash_init_set(table, ...) \</span></div>
 <div class="line"><a id="l00314" name="l00314"></a><span class="lineno">  314</span><span class="preprocessor">    bhash__do_init( \</span></div>
 <div class="line"><a id="l00315" name="l00315"></a><span class="lineno">  315</span><span class="preprocessor">        &amp;((table)-&gt;base), \</span></div>
 <div class="line"><a id="l00316" name="l00316"></a><span class="lineno">  316</span><span class="preprocessor">        sizeof((table)-&gt;keys[0]), \</span></div>
 <div class="line"><a id="l00317" name="l00317"></a><span class="lineno">  317</span><span class="preprocessor">        0, \</span></div>
-<div class="line"><a id="l00318" name="l00318"></a><span class="lineno">  318</span><span class="preprocessor">        config \</span></div>
+<div class="line"><a id="l00318" name="l00318"></a><span class="lineno">  318</span><span class="preprocessor">        __VA_ARGS__ \</span></div>
 <div class="line"><a id="l00319" name="l00319"></a><span class="lineno">  319</span><span class="preprocessor">    )</span></div>
 </div>
 <div class="line"><a id="l00320" name="l00320"></a><span class="lineno">  320</span> </div>
 <div class="foldopen" id="foldopen00324" data-start="" data-end="">
-<div class="line"><a id="l00324" name="l00324"></a><span class="lineno"><a class="line" href="bhash_8h.html#a6fa33d7145d3bf8aff9224e28a547b8a">  324</a></span><span class="preprocessor">#define bhash_reinit_set(table, config) \</span></div>
+<div class="line"><a id="l00324" name="l00324"></a><span class="lineno"><a class="line" href="bhash_8h.html#a50289b0ff3950097f5ce7f34891880f0">  324</a></span><span class="preprocessor">#define bhash_reinit_set(table, ...) \</span></div>
 <div class="line"><a id="l00325" name="l00325"></a><span class="lineno">  325</span><span class="preprocessor">    bhash__do_reinit( \</span></div>
 <div class="line"><a id="l00326" name="l00326"></a><span class="lineno">  326</span><span class="preprocessor">        &amp;((table)-&gt;base), \</span></div>
 <div class="line"><a id="l00327" name="l00327"></a><span class="lineno">  327</span><span class="preprocessor">        sizeof((table)-&gt;keys[0]), \</span></div>
 <div class="line"><a id="l00328" name="l00328"></a><span class="lineno">  328</span><span class="preprocessor">        0, \</span></div>
-<div class="line"><a id="l00329" name="l00329"></a><span class="lineno">  329</span><span class="preprocessor">        config \</span></div>
+<div class="line"><a id="l00329" name="l00329"></a><span class="lineno">  329</span><span class="preprocessor">        __VA_ARGS__ \</span></div>
 <div class="line"><a id="l00330" name="l00330"></a><span class="lineno">  330</span><span class="preprocessor">    )</span></div>
 </div>
 <div class="line"><a id="l00331" name="l00331"></a><span class="lineno">  331</span> </div>
