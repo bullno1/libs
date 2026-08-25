@@ -661,7 +661,7 @@ bresmon_should_reload(bresmon_t* mon, bool wait) {
 			notification_itr = notification_itr->NextEntryOffset != 0
 				? (FILE_NOTIFY_INFORMATION*)((char*)notification_itr + notification_itr->NextEntryOffset)
 				: NULL
-		) {			
+		) {
 			if (notification_itr->Action == FILE_ACTION_RENAMED_OLD_NAME) { continue; }
 
 			for (
