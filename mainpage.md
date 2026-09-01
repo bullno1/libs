@@ -14,6 +14,7 @@ Collection of miscellaneous single-header libraries.
 |@ref bscn.h|Text scanner for hand-written parsers|
 |@ref bstacktrace.h|Portable stacktrace with source mapping|
 |@ref bcrash_handler.h|Crash handler|
+|@ref barg.h|Command line argument parser|
 
 The following libraries are not self-contained.
 They depend on other libraries in this repository.
