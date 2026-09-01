@@ -11,6 +11,7 @@ Collection of miscellaneous single-header libraries.
 |@ref bserial.h|Serialization|
 |@ref bspscq.h|Single producer single consumer queue|
 |@ref bsv.h|Binary serialization with versioning|
+|@ref bscn.h|Text scanner for hand-written parsers|
 |@ref bstacktrace.h|Portable stacktrace with source mapping|
 |@ref bcrash_handler.h|Crash handler|
 

@@ -100,6 +100,8 @@ project "tests"
       "tests/bent/*.c",
       "tests/bsv/*.h",
       "tests/bsv/*.c",
+      "tests/bscn/*.h",
+      "tests/bscn/*.c",
       "tests/bco/*.h",
       "tests/bco/*.c",
       "tests/bstacktrace/*.c",

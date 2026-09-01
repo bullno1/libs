@@ -26,6 +26,7 @@ Collection of miscellaneous single-header libraries.
 |[qoi.h](qoi.h)|Quite OK image encoding/decoding|
 |[bent.h](bent.h)|Entity component system|
 |[bsv.h](bsv.h)|Binary seriallization with explicit versioning|
+|[bscn.h](tests/bscn)|Text scanner for hand-written parsers|
 |[bstacktrace.h](bstacktrace.h)|Portable stacktrace with source mapping|
 |[bcrash_handler.h](bcrash_handler.h)|Crash handler|
 
