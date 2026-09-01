@@ -955,6 +955,7 @@ INPUT                  = mainpage.md \
 	bhash.h \
 	bserial.h \
 	bspscq.h \
+	bseg.h \
 	bent.h \
 	bsv.h \
 	bstacktrace.h \

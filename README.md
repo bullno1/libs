@@ -14,6 +14,7 @@ Collection of miscellaneous single-header libraries.
 |[tlsf.h](tests/tlsf)|Adaptation of [jserv/tlsf-bsd](https://github.com/jserv/tlsf-bsd)|
 |[bhash.h](tests/bhash)|Hashtable|
 |[barray.h](barray.h)|Dynamic array|
+|[bseg.h](tests/bseg)|Segmented array|
 |[bco.h](bco.h)|Coroutine|
 |[bserial.h](tests/bserial)|Binary serialization|
 |[bspsc.h](tests/bspscq)|Single producer single consumer queue|

@@ -4,8 +4,9 @@ Collection of miscellaneous single-header libraries.
 
 |Library|Description|
 |-------|-----------|
-|@ref bresmon.h|File watcher|
+|@ref autolist.h|A list of items collected from all compilation units|
 |@ref bhash.h|Type-safe hashtable|
+|@ref bseg.h|Segmented array|
 |@ref bco.h|Coroutine|
 |@ref bserial.h|Serialization|
 |@ref bspscq.h|Single producer single consumer queue|
