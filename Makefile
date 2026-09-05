@@ -83,6 +83,7 @@ bin/bspscq: tests/bspscq/main.c bspscq.h
 
 bin/test-all: \
 		barray.h tests/barray/main.c \
+		bseg.h tests/bseg/main.c \
 		bhamt.h barena.h tests/bhamt/main.c \
 		bent.h tests/bent/shared.c tests/bent/component.c tests/bent/system.c tests/bent/reload.c \
 		bsv.h tests/bsv/shared.c tests/bsv/basic.c tests/bsv/versioning.c \

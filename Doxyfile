@@ -958,6 +958,7 @@ INPUT                  = mainpage.md \
 	bhamt.h \
 	bserial.h \
 	bspscq.h \
+	bseg.h \
 	bent.h \
 	bsv.h \
 	bscn.h \

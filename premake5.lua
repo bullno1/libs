@@ -129,6 +129,8 @@ project "tests"
       "tests/main.c",
       "tests/barray/*.h",
       "tests/barray/*.c",
+      "tests/bseg/*.h",
+      "tests/bseg/*.c",
       "tests/bhamt/*.h",
       "tests/bhamt/*.c",
       "tests/bent/*.h",
