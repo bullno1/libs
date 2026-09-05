@@ -56,11 +56,11 @@ bco(reloadable, int frames) {
 	bco_yield_points(WAIT_FRAME, WAIT_SUB)
 	bco_begin
 	for (bco_var(i) = 0; bco_var(i) < bco_arg(frames); ++bco_var(i)) {
-		// Suspend at a name instead of a line number
-		bco_yield_at(WAIT_FRAME);
+		// Suspend at a name instead of a line number: prefix the yield with bco_at
+		bco_at(WAIT_FRAME) bco_yield();
 	}
 	// The same for waiting on a subcoroutine
-	bco_call_at(WAIT_SUB, subcoro, 0);
+	bco_at(WAIT_SUB) bco_call(subcoro, 0);
 	bco_end
 }
 //!                                                                             [bco_yield_points]
@@ -86,10 +86,10 @@ int main(int argc, const char* argv[]) {
 	bco_spawn(coro, reloadable, 3);
 	bco_resume(coro);
 	// Before swapping code: every coroutine must be parked at a named point
-	if (bco_relocatable(coro)) {
-		bco_relocate_begin(coro);
+	if (bco_reloadable(coro)) {
+		bco_reload_begin(coro);
 		// ... unload the old code, load the new one, fix up function pointers ...
-		bco_relocate_end(coro);
+		bco_reload_end(coro);
 	}
 	bco_terminate(coro);
 //!                                                                             [bco_relocate]

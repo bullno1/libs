@@ -33,9 +33,9 @@ bco_static(worker_v1, int n) {
 	bco_begin
 	for (bco_var(i) = 0; bco_var(i) < bco_arg(n); ++bco_var(i)) {
 		trace("v1:a%d", bco_var(i));
-		bco_yield_at(WAIT_A);
+		bco_at(WAIT_A) bco_yield();
 		trace("v1:b%d", bco_var(i));
-		bco_yield_at(WAIT_B);
+		bco_at(WAIT_B) bco_yield();
 		trace("v1:line%d", bco_var(i));
 		bco_yield();
 	}
@@ -53,11 +53,11 @@ bco_static(worker_v2, int n) {
 	trace("v2:new-code");
 	for (bco_var(i) = 0; bco_var(i) < bco_arg(n); ++bco_var(i)) {
 		trace("v2:a%d", bco_var(i));
-		bco_yield_at(WAIT_A);
+		bco_at(WAIT_A) bco_yield();
 		trace("v2:b%d", bco_var(i));
-		bco_yield_at(WAIT_B);
+		bco_at(WAIT_B) bco_yield();
 		trace("v2:c%d", bco_var(i));
-		bco_yield_at(WAIT_C);
+		bco_at(WAIT_C) bco_yield();
 	}
 	bco_end
 	trace("v2:cleanup");
@@ -68,7 +68,7 @@ bco_static(worker_v2, int n) {
 bco_static(worker_v3, int n) {
 	bco_yield_points(WAIT_A)
 	bco_begin
-	bco_yield_at(WAIT_A);
+	bco_at(WAIT_A) bco_yield();
 	bco_end
 	trace("v3:cleanup");
 }
@@ -151,7 +151,7 @@ bco_static(leaf_v1, int n) {
 	bco_yield_points(LEAF_WAIT)
 	bco_begin
 	trace("leaf1:enter");
-	bco_yield_at(LEAF_WAIT);
+	bco_at(LEAF_WAIT) bco_yield();
 	trace("leaf1:line");
 	bco_yield();
 	bco_end
@@ -162,8 +162,8 @@ bco_static(leaf_v2, int n) {
 	bco_yield_points(LEAF_EXTRA, LEAF_WAIT)
 	bco_begin
 	trace("leaf2:enter");
-	bco_yield_at(LEAF_EXTRA);
-	bco_yield_at(LEAF_WAIT);
+	bco_at(LEAF_EXTRA) bco_yield();
+	bco_at(LEAF_WAIT) bco_yield();
 	trace("leaf2:after");
 	bco_end
 	trace("leaf2:cleanup");
@@ -176,7 +176,7 @@ bco_static(parent_v1, int n) {
 	bco_yield_points(WAIT_LEAF)
 	bco_begin
 	trace("parent:enter");
-	bco_call_at(WAIT_LEAF, leaf, 0);
+	bco_at(WAIT_LEAF) bco_call(leaf, 0);
 	trace("parent:after");
 	bco_end
 	trace("parent:cleanup");
@@ -228,14 +228,14 @@ bco_static(joiner_v1, int n) {
 	bco_yield_points(WAIT_OTHER)
 	bco_begin
 	trace("joiner:start");
-	bco_join_at(WAIT_OTHER, coro_b());
+	bco_at(WAIT_OTHER) bco_join(coro_b());
 	trace("joiner:done");
 	bco_end
 }
 
 static void run_joiner_v1(bco_t* coro, void* args) { joiner_v1(coro, args); }
 
-BTEST(relocate, join_at_is_relocatable) {
+BTEST(relocate, join_is_relocatable) {
 	leaf_build = run_leaf_v1;
 	bco_spawn(coro_b(), leaf, 0);
 	worker_build = run_joiner_v1;
