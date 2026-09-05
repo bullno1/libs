@@ -322,14 +322,6 @@ bhamt_eq(const void* lhs, const void* rhs, size_t size) {
 #	define BHAMT__TYPEOF(EXP) __typeof__(EXP)
 #endif
 
-#if defined(__clang__) || defined(__GNUC__)
-#	define BHAMT__ALIGNOF(EXP) __alignof__(EXP)
-#elif defined(_MSC_VER)
-#	define BHAMT__ALIGNOF(EXP) __alignof(EXP)
-#else
-#	define BHAMT__ALIGNOF(EXP) _Alignof(BHAMT__TYPEOF(EXP))
-#endif
-
 #ifdef BHAMT__TYPEOF
 // When typeof is available we can make a direct type comparison.
 #	define BHAMT__TYPECHECK_STMT(LHS, RHS) \
@@ -364,7 +356,7 @@ bhamt_eq(const void* lhs, const void* rhs, size_t size) {
 #define BHAMT__SPEC(TABLE) \
 	(&(bhamt_spec_t){ \
 		.node_size = sizeof(*(TABLE)->root), \
-		.node_align = BHAMT__ALIGNOF(*(TABLE)->root), \
+		.node_align = _Alignof(BHAMT__TYPEOF(*(TABLE)->root)), \
 		.key_size = sizeof((TABLE)->root->key), \
 		.key_offset = BHAMT__MEMBER_OFFSET((TABLE)->root, key), \
 	})
