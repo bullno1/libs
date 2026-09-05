@@ -113,6 +113,6 @@ project "tests"
       defines { "NDEBUG" }
       optimize "On"
 
-    filter "toolset:msc"
+    filter "toolset:msc*"
       defines { "_CRT_SECURE_NO_WARNINGS" }
       buildoptions { "/std:clatest" }
