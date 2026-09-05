@@ -6,12 +6,15 @@ Collection of miscellaneous single-header libraries.
 |-------|-----------|
 |@ref bresmon.h|File watcher|
 |@ref bhash.h|Type-safe hashtable|
+|@ref bhamt.h|Type-safe hash trie, an arena-friendly associative map|
 |@ref bco.h|Coroutine|
 |@ref bserial.h|Serialization|
 |@ref bspscq.h|Single producer single consumer queue|
 |@ref bsv.h|Binary serialization with versioning|
+|@ref bscn.h|Text scanner for hand-written parsers|
 |@ref bstacktrace.h|Portable stacktrace with source mapping|
 |@ref bcrash_handler.h|Crash handler|
+|@ref barg.h|Command line argument parser|
 
 The following libraries are not self-contained.
 They depend on other libraries in this repository.
@@ -20,6 +23,7 @@ They depend on other libraries in this repository.
 |-------|-----------|
 |@ref btest.h|Unit testing framework with automatic test registration|
 |@ref bent.h|Hot reload aware entity component system|
+|@ref bsfn.h|Stable function pointers for hot-reloadable modules|
 
 ## On allocator
 \anchor allocator

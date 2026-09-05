@@ -150,6 +150,7 @@ extern "C" {
 
 // Stream utilities
 
+/*! Read exactly @a size bytes from an input stream */
 static inline bserial_status_t
 bserial_read(bserial_in_t* in, void* buf, size_t size) {
 	char* cbuf = buf;
@@ -163,6 +164,7 @@ bserial_read(bserial_in_t* in, void* buf, size_t size) {
 	return BSERIAL_OK;
 }
 
+/*! Skip exactly @a size bytes from an input stream */
 static inline bserial_status_t
 bserial_skip(bserial_in_t* in, size_t size) {
 	if (in->skip) {
@@ -178,6 +180,7 @@ bserial_skip(bserial_in_t* in, size_t size) {
 	}
 }
 
+/*! Write exactly @a size bytes to an output stream */
 static inline bserial_status_t
 bserial_write(bserial_out_t* out, const void* buf, size_t size) {
 	const char* cbuf = buf;
@@ -249,6 +252,7 @@ bserial_ctx_mem_size(bserial_ctx_config_t config);
  * @brief Initialize a serialization context
  * @param mem Memory for the context.
  *   Must have at least as many bytes as returned by @ref bserial_ctx_mem_size.
+ * @param config The configuration.
  * @param in (Optional) Input stream.
  * @param out (Optional) Out stream.
  *
@@ -321,6 +325,7 @@ bserial_u16(bserial_ctx_t* ctx, uint16_t* u16);
 BSERIAL_API bserial_status_t
 bserial_u32(bserial_ctx_t* ctx, uint32_t* u32);
 
+/*! @brief Read/write a boolean */
 BSERIAL_API bserial_status_t
 bserial_bool(bserial_ctx_t* ctx, bool* boolean);
 
@@ -348,6 +353,7 @@ bserial_bool(bserial_ctx_t* ctx, bool* boolean);
  * Instead of combining into one step, one can also use: @ref bserial_blob_header
  * and @ref bserial_blob_body.
  *
+ * @param ctx The serialization context.
  * @param buf The buffer to read/write.
  * @param len Size of the buffer. Will be set to the actual size.
  */
@@ -357,6 +363,7 @@ bserial_blob(bserial_ctx_t* ctx, char* buf, uint64_t* len);
 /**
  * @brief Read/write a binary blob's header
  *
+ * @param ctx The serialization context.
  * @param len Maximum size. Will be set to the actual size on read.
  */
 BSERIAL_API bserial_status_t
@@ -369,6 +376,7 @@ bserial_blob_body(bserial_ctx_t* ctx, char* buf);
 /**
  * @brief Read/write a symbol.
  *
+ * @param ctx The serialization context.
  * @param buf Pointer to the buffer to read/write.
  * @param len Size of the buffer. Will be set to the actual size.
  * @remarks
@@ -436,6 +444,7 @@ bserial_record(bserial_ctx_t* ctx, void* record);
  *
  * Therefore, the @ref BSERIAL_KEY macro should be used.
  *
+ * @param ctx The serialization context.
  * @param name Name of the field being serialized.
  * @param len Length of the field name being serialized.
  */
@@ -470,14 +479,18 @@ bserial_trace(bserial_ctx_t* ctx, bserial_tracer_t tracer, void* userdata);
 
 /*! stdio input stream */
 typedef struct bserial_stdio_in_s {
+	/// @cond INTERNAL
 	bserial_in_t bserial;
 	FILE* file;
+	/// @endcond
 } bserial_stdio_in_t;
 
 /*! stdio output stream */
 typedef struct bserial_stdio_out_s {
+	/// @cond INTERNAL
 	bserial_out_t bserial;
 	FILE* file;
+	/// @endcond
 } bserial_stdio_out_t;
 
 /*! Wrap a stdio FILE into an input stream */
@@ -494,18 +507,24 @@ bserial_stdio_init_out(bserial_stdio_out_t* bserial_stdio, FILE* file);
 
 /*! Memory input stream */
 typedef struct bserial_mem_in_s {
+	/// @cond INTERNAL
 	bserial_in_t bserial;
 	char* cur;
 	char* end;
+	/// @endcond
 } bserial_mem_in_t;
 
 /*! Memory output stream */
 typedef struct bserial_mem_out_s {
+	/// @cond INTERNAL
 	bserial_out_t bserial;
+	/// @endcond
 	/*! Size of bserial_mem_out_t.mem */
 	size_t len;
+	/// @cond INTERNAL
 	size_t capacity;
 	void* memctx;
+	/// @endcond
 	/**
 	 * @brief The underlying memory.
 	 *
@@ -516,6 +535,7 @@ typedef struct bserial_mem_out_s {
 
 /**
  * @brief Create a memory input stream
+ * @param bserial_mem The stream to initialize.
  * @param mem The backing memory.
  * @param size Size of the backing memory.
  * @return An input stream.
@@ -525,6 +545,7 @@ bserial_mem_init_in(bserial_mem_in_t* bserial_mem, void* mem, size_t size);
 
 /**
  * @brief Create a memory output stream
+ * @param bserial_mem The stream to initialize.
  * @param memctx The allocator context.
  * @return An output stream.
  * @see bserial_mem_out_t

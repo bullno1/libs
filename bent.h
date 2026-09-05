@@ -36,10 +36,12 @@
 #define BENT_MASK_TYPE uint32_t
 #endif
 
+/*! Customizable log function */
 #ifndef BENT_LOG
 #define BENT_LOG(...)
 #endif
 
+/*! Customizable assert function */
 #ifndef BENT_ASSERT
 #include <assert.h>
 #define BENT_ASSERT assert
@@ -54,6 +56,7 @@
 #define BENT_MAX_NUM_COMPONENT_TYPES 32
 #endif
 
+/*! Number of words in a @ref bent_bitset_t */
 #define BENT_BITSET_LEN ((BENT_MAX_NUM_COMPONENT_TYPES + sizeof(bent_mask_t) * CHAR_BIT - 1) / (sizeof(bent_mask_t) * CHAR_BIT))
 
 /**
@@ -91,7 +94,7 @@
  * Define a type-safe helper function to add a component.
  *
  * @param NAME name of the component type
- * @param COM_TYPE type of the component's data
+ * @param COMP_TYPE type of the component's data
  * @param ARG_TYPE type of the constructor argument
  */
 #define BENT_DEFINE_COMP_ADDER_EX(NAME, COMP_TYPE, ARG_TYPE) \
@@ -288,8 +291,11 @@ typedef BENT_INDEX_TYPE bent_index_t;
 /*! Bitmask type used in the library */
 typedef BENT_MASK_TYPE bent_mask_t;
 
+/*! A component bitset */
 typedef struct {
+	/// @cond INTERNAL
 	bent_mask_t bits[BENT_BITSET_LEN];
+	/// @endcond
 } bent_bitset_t;
 
 /**
@@ -610,7 +616,7 @@ bent_cleanup(bent_world_t** world_ptr);
  *
  * This allows systems to use the same memory allocator as the world.
  *
- * @param world_ptr pointer to a world
+ * @param world the world
  */
 BENT_API void*
 bent_memctx(bent_world_t* world);
@@ -780,7 +786,7 @@ bent_match(bent_world_t* world, bent_sys_reg_t sys, bent_t entity);
  * A system whose `update_mask = LOGIC_MASK | RENDER_MASK` will be invoked in both cases.
  *
  * @param world the world
- * @param mask an update mask
+ * @param update_mask an update mask
  *
  * @see bent_sys_def_t::update_mask
  * @see bent_sys_def_t::update
@@ -803,12 +809,13 @@ bent_get_entity_list(bent_world_t* world, bent_sys_reg_t sys, bent_index_t* num_
  * Retrieve the component mask of an entity
  *
  * @param world the world
- * @param sys the entity
+ * @param entity the entity
  * @return The component mask
  */
 BENT_API bent_bitset_t
 bent_get_entity_mask(bent_world_t* world, bent_t entity);
 
+/*! Check whether two entity handles are equal */
 static inline bool
 bent_equal(bent_t lhs, bent_t rhs) {
 	return lhs.index == rhs.index && lhs.gen == rhs.gen;
@@ -816,11 +823,13 @@ bent_equal(bent_t lhs, bent_t rhs) {
 
 // bitset {{{
 
+/*! Clear all bits in a bitset */
 static void
 bent_bitset_clear(bent_bitset_t* bitset) {
 	memset(bitset, 0, sizeof(*bitset));
 }
 
+/*! Set a bit in a bitset */
 static void
 bent_bitset_set(bent_bitset_t* bitset, bent_index_t bit_index) {
 	bent_index_t num_bits_per_mask = sizeof(bent_index_t) * CHAR_BIT;
@@ -829,6 +838,7 @@ bent_bitset_set(bent_bitset_t* bitset, bent_index_t bit_index) {
 	bitset->bits[mask_index] |= mask;
 }
 
+/*! Unset a bit in a bitset */
 static void
 bent_bitset_unset(bent_bitset_t* bitset, bent_index_t bit_index) {
 	bent_index_t num_bits_per_mask = sizeof(bent_index_t) * CHAR_BIT;
@@ -837,6 +847,7 @@ bent_bitset_unset(bent_bitset_t* bitset, bent_index_t bit_index) {
 	bitset->bits[mask_index] &= mask;
 }
 
+/*! Flip all bits in a bitset */
 static void
 bent_bitset_flip(bent_bitset_t* bitset) {
 	for (bent_index_t i = 0; i < BENT_BITSET_LEN; ++i) {
@@ -844,6 +855,7 @@ bent_bitset_flip(bent_bitset_t* bitset) {
 	}
 }
 
+/*! Check whether a bit is set in a bitset */
 static bool
 bent_bitset_check(const bent_bitset_t* bitset, bent_index_t bit_index) {
 	bent_index_t num_bits_per_mask = sizeof(bent_index_t) * CHAR_BIT;
@@ -852,6 +864,7 @@ bent_bitset_check(const bent_bitset_t* bitset, bent_index_t bit_index) {
 	return (bitset->bits[mask_index] & mask) > 0;
 }
 
+/*! Check whether a bitset has at least one bit of another set */
 static bool
 bent_bitset_any_match(const bent_bitset_t* subject, const bent_bitset_t* requirement) {
 	bool result = false;
@@ -863,6 +876,7 @@ bent_bitset_any_match(const bent_bitset_t* subject, const bent_bitset_t* require
 	return result;
 }
 
+/*! Check whether a bitset has all the bits of another set */
 static bool
 bent_bitset_all_match(const bent_bitset_t* subject, const bent_bitset_t* requirement) {
 	bool result = true;
@@ -874,6 +888,7 @@ bent_bitset_all_match(const bent_bitset_t* subject, const bent_bitset_t* require
 	return result;
 }
 
+/*! Build a bitset from a NULL-terminated list of components */
 static inline bent_bitset_t
 bent_bitset_from_comp_list(bent_comp_reg_t** comp_list) {
 	bent_bitset_t result = { 0 };

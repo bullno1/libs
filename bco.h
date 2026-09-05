@@ -43,15 +43,18 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+/*! Customizable linkage for API functions */
 #ifndef BCO_API
 #define BCO_API
 #endif
 
+/*! Customizable assert function */
 #ifndef BCO_ASSERT
 #include <assert.h>
 #define BCO_ASSERT(COND, MSG) assert((COND) && (MSG))
 #endif
 
+/*! Customizable maximum alignment for the coroutine's storage */
 #ifndef BCO_MAX_ALIGN
 #define BCO_MAX_ALIGN 16
 #endif
@@ -222,6 +225,7 @@
 #define bco_begin \
 	_Static_assert(bco__begin_declared == 0, "bco_begin can only be used once"); \
 	enum { bco__begin_declared = 1 }; \
+	(void)bco__args; \
 	switch (bco__on_resume(bco__coro)) { \
 		case BCO__RELOCATE: bco__relocate(bco__coro, bco__yps, bco__yps_count); return; \
 		case 0: \
@@ -452,7 +456,11 @@
  *
  * This can be used to stack-allocate a coroutine's storage.
  */
-typedef struct { _Alignas(BCO_MAX_ALIGN) char bco__dummy; } bco_align_t;
+typedef struct {
+	/// @cond INTERNAL
+	_Alignas(BCO_MAX_ALIGN) char bco__dummy;
+	/// @endcond
+} bco_align_t;
 
 /// The opaque type for a coroutine's storage
 typedef struct bco_s bco_t;

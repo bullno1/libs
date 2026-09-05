@@ -14,6 +14,12 @@
 
 #define INCBIN_PREFIX xincbin_
 
+/* On compilers without GNU-style inline assembly (i.e: MSVC), fallback to
+ * embedding through Windows resources. Can also be defined manually. */
+#if !defined(XINCBIN_USE_WINRES) && defined(_MSC_VER)
+#	define XINCBIN_USE_WINRES
+#endif
+
 #ifndef RC_INVOKED
 // Copied from INCBIN
 /**
@@ -317,7 +323,10 @@
             INCBIN_GLOBAL_LABELS(NAME, END) \
             INCBIN_ALIGN_BYTE \
             INCBIN_MANGLE INCBIN_STRINGIZE(INCBIN_PREFIX) #NAME INCBIN_STYLE_STRING(END) ":\n" \
-                INCBIN_BYTE "1\n" \
+                /* This byte sits at data[size] (size = end - data), giving every \
+                 * resource an implicit null terminator not counted in its size. \
+                 * The winres path guarantees this by copying instead. */ \
+                INCBIN_BYTE "0\n" \
             INCBIN_SIZE_OF(#NAME INCBIN_STYLE_STRING(END), "1") \
             INCBIN_GLOBAL_LABELS(NAME, SIZE) \
             INCBIN_ALIGN_HOST \
@@ -329,15 +338,26 @@
             INCBIN_TEXT \
     )
 
+/**
+ * @brief An embedded resource.
+ *
+ * `data` is followed by an implicit null terminator at `data[size]` which is
+ * not counted in `size`, so text resources can be used as C strings without
+ * copying.
+ */
 typedef struct xincbin_data_s {
     unsigned int size;
     const unsigned char* data;
 } xincbin_data_t;
 
-#ifdef _MSC_VER
-#	define XINCBIN(NAME, FILENAME) INCBIN_EXTERNAL const char* INCBIN_CONCATENATE(INCBIN_PREFIX, NAME);
-#	define XINCBIN_GET(NAME) xincbin_get(INCBIN_CONCATENATE(INCBIN_PREFIX, NAME))
-	INCBIN_EXTERNAL xincbin_data_t xincbin_get(const char* name);
+#ifdef XINCBIN_USE_WINRES
+#	define XINCBIN(NAME, FILENAME) \
+		INCBIN_EXTERNAL const char* INCBIN_CONCATENATE(INCBIN_CONCATENATE(INCBIN_PREFIX, NAME), _name); \
+		INCBIN_EXTERNAL xincbin_data_t INCBIN_CONCATENATE(INCBIN_CONCATENATE(INCBIN_PREFIX, NAME), _cache);
+#	define XINCBIN_GET(NAME) xincbin_get( \
+		INCBIN_CONCATENATE(INCBIN_CONCATENATE(INCBIN_PREFIX, NAME), _name), \
+		&INCBIN_CONCATENATE(INCBIN_CONCATENATE(INCBIN_PREFIX, NAME), _cache))
+	INCBIN_EXTERNAL xincbin_data_t xincbin_get(const char* name, xincbin_data_t* cache);
 #else
 #	define XINCBIN(NAME, FILENAME) INCBIN_EXTERN(unsigned char, NAME);
 #	define XINCBIN_GET(NAME) (xincbin_data_t){ \
@@ -357,20 +377,33 @@ typedef struct xincbin_data_s {
 #ifdef XINCBIN_IMPLEMENTATION
 
 #undef XINCBIN
-#ifdef _MSC_VER
-#	define XINCBIN(NAME, FILENAME) const char* INCBIN_CONCATENATE(INCBIN_PREFIX, NAME) = INCBIN_STRINGIZE(INCBIN_CONCATENATE(INCBIN_PREFIX, NAME));
+#ifdef XINCBIN_USE_WINRES
+#	define XINCBIN(NAME, FILENAME) \
+		const char* INCBIN_CONCATENATE(INCBIN_CONCATENATE(INCBIN_PREFIX, NAME), _name) = \
+			INCBIN_STRINGIZE(INCBIN_CONCATENATE(INCBIN_PREFIX, NAME)); \
+		xincbin_data_t INCBIN_CONCATENATE(INCBIN_CONCATENATE(INCBIN_PREFIX, NAME), _cache) = { 0, NULL };
 #else
 #	define XINCBIN(NAME, FILENAME) INCBIN_COMMON(unsigned char, NAME, FILENAME,);
 #endif
 
-#ifdef _MSC_VER
+#ifdef XINCBIN_USE_WINRES
 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
 #include <windows.h>
+#include <string.h>
 
-xincbin_data_t xincbin_get(const char* name) {
+xincbin_data_t xincbin_get(const char* name, xincbin_data_t* cache) {
+	// The full barrier also guarantees that the size written before the data
+	// pointer was published is visible
+	const unsigned char* data = (const unsigned char*)InterlockedCompareExchangePointer(
+		(volatile PVOID*)&cache->data, NULL, NULL
+	);
+	if (data != NULL) {
+		return (xincbin_data_t){ .size = cache->size, .data = data };
+	}
+
 	HMODULE module = NULL;
 	GetModuleHandleExA(
 		GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS
@@ -386,10 +419,26 @@ xincbin_data_t xincbin_get(const char* name) {
 	HGLOBAL glob = LoadResource(module, res);
 	if (glob == NULL) { return (xincbin_data_t){ 0 }; }
 
-	return (xincbin_data_t){
-		.size = (unsigned int)SizeofResource(module, res),
-		.data = LockResource(glob),
-	};
+	// Resources are stored verbatim so a copy is needed to guarantee the
+	// implicit null terminator at data[size].
+	// It is made once and cached for the lifetime of the process.
+	unsigned int size = (unsigned int)SizeofResource(module, res);
+	unsigned char* copy = HeapAlloc(GetProcessHeap(), 0, (SIZE_T)size + 1);
+	if (copy == NULL) { return (xincbin_data_t){ 0 }; }
+	memcpy(copy, LockResource(glob), size);
+	copy[size] = 0;
+
+	cache->size = size;
+	PVOID prev = InterlockedCompareExchangePointer(
+		(volatile PVOID*)&cache->data, copy, NULL
+	);
+	if (prev != NULL) {
+		// Another thread made the copy first, use its result instead
+		HeapFree(GetProcessHeap(), 0, copy);
+		return (xincbin_data_t){ .size = cache->size, .data = (const unsigned char*)prev };
+	}
+
+	return (xincbin_data_t){ .size = size, .data = copy };
 }
 
 #endif
