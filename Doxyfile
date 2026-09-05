@@ -955,6 +955,7 @@ INPUT                  = mainpage.md \
 	bresmon.h \
 	bco.h \
 	bhash.h \
+	bhamt.h \
 	bserial.h \
 	bspscq.h \
 	bent.h \

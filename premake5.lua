@@ -94,6 +94,8 @@ project "tests"
       "tests/main.c",
       "tests/barray/*.h",
       "tests/barray/*.c",
+      "tests/bhamt/*.h",
+      "tests/bhamt/*.c",
       "tests/bent/*.h",
       "tests/bent/*.c",
       "tests/bsv/*.h",
@@ -110,3 +112,7 @@ project "tests"
     filter "configurations:Release"
       defines { "NDEBUG" }
       optimize "On"
+
+    filter "toolset:msc*"
+      defines { "_CRT_SECURE_NO_WARNINGS" }
+      buildoptions { "/std:clatest" }

@@ -6,6 +6,7 @@ Collection of miscellaneous single-header libraries.
 |-------|-----------|
 |@ref bresmon.h|File watcher|
 |@ref bhash.h|Type-safe hashtable|
+|@ref bhamt.h|Type-safe hash trie, an arena-friendly associative map|
 |@ref bco.h|Coroutine|
 |@ref bserial.h|Serialization|
 |@ref bspscq.h|Single producer single consumer queue|
