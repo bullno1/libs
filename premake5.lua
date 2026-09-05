@@ -59,9 +59,10 @@ workspace "libs"
 
   filter { "action:vs*" }
     buildoptions {
-      "/std:c11",
+      "/std:clatest",
       "/experimental:c11atomics",
     }
+    defines { "_CRT_SECURE_NO_WARNINGS" }
     disablewarnings {
       "4100",
       "4200",
@@ -69,6 +70,7 @@ workspace "libs"
       "4459",
       "4324",
       "4116",
+      "4189", -- Too many misdiagnostics
     }
 
   debugdir "bin/%{cfg.buildcfg}"
@@ -114,7 +116,3 @@ project "tests"
     filter "configurations:Release"
       defines { "NDEBUG" }
       optimize "On"
-
-    filter "toolset:msc*"
-      defines { "_CRT_SECURE_NO_WARNINGS" }
-      buildoptions { "/std:clatest" }
