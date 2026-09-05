@@ -204,6 +204,7 @@
 #define bco_begin \
 	_Static_assert(bco__begin_declared == 0, "bco_begin can only be used once"); \
 	enum { bco__begin_declared = 1 }; \
+	bco__diag_push \
 	switch (bco__on_resume(bco__coro)) { \
 		case 0: \
 			bco__begin_constant_cond \
@@ -236,6 +237,7 @@
 		bco__cleanup: bco__on_terminate(bco__coro); \
 	} /* default */ \
 	} /* switch */ \
+	bco__diag_pop \
 	enum { bco__end_declared = 1 };
 
 /**
@@ -485,6 +487,18 @@ bco_get_userdata(bco_t* coro);
 #else
 #define bco__begin_constant_cond
 #define bco__end_constant_cond
+#endif
+
+// Catch locals that should have been declared with bco_vars: their initialization
+// would be skipped when a resume jumps to a case label past them.
+#if defined(__GNUC__) || defined(__clang__)
+#define bco__diag_push \
+	_Pragma("GCC diagnostic push") \
+	_Pragma("GCC diagnostic error \"-Wjump-misses-init\"")
+#define bco__diag_pop _Pragma("GCC diagnostic pop")
+#else
+#define bco__diag_push
+#define bco__diag_pop
 #endif
 
 typedef void (*bco_fn_t)(bco_t* coro, void* args);
