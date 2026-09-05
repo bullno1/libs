@@ -960,6 +960,7 @@ INPUT                  = mainpage.md \
 	bspscq.h \
 	bent.h \
 	bsv.h \
+	bscn.h \
 	bstacktrace.h \
 	bcrash_handler.h \
 
