@@ -164,10 +164,6 @@ bspscq_cleanup(bspscq_t* queue) {
 
 bool
 bspscq_produce(bspscq_t* queue, void* item, bool wait) {
-	// Every load of count here must be acquire, including the ones in the
-	// wait loop: seeing count < size is what licenses overwriting a slot, so
-	// it must synchronize with the release fetch_sub the consumer performed
-	// after reading that slot.
 	if (atomic_load_explicit(&queue->count, memory_order_acquire) == queue->size) {
 		if (!wait) { return false; }
 
@@ -180,9 +176,6 @@ bspscq_produce(bspscq_t* queue, void* item, bool wait) {
 
 	unsigned int tail = queue->tail++;
 	queue->values[tail & (queue->size - 1)] = item;
-	// Release publishes the values[] store to the consumer's acquire load of
-	// count. No stronger ordering is needed: with a single shared counter
-	// there is no Dekker-style pattern requiring seq_cst.
 	if (atomic_fetch_add_explicit(&queue->count, 1, memory_order_release) == 0) {
 		bspscq_signal_raise(&queue->can_consume);
 	}
@@ -192,9 +185,6 @@ bspscq_produce(bspscq_t* queue, void* item, bool wait) {
 
 bool
 bspscq_consume(bspscq_t* queue, void** itemp, bool wait) {
-	// Mirror image of bspscq_produce: acquire on count synchronizes with the
-	// producer's release fetch_add, making the values[] store visible before
-	// the slot is read.
 	if (atomic_load_explicit(&queue->count, memory_order_acquire) == 0) {
 		if (!wait) { return false; }
 
@@ -207,8 +197,6 @@ bspscq_consume(bspscq_t* queue, void** itemp, bool wait) {
 
 	unsigned int head = queue->head++;
 	*itemp = queue->values[head & (queue->size - 1)];
-	// Release publishes "this slot has been read" so the producer's acquire
-	// load of count cannot overwrite the slot early.
 	if (atomic_fetch_sub_explicit(&queue->count, 1, memory_order_release) == queue->size) {
 		bspscq_signal_raise(&queue->can_produce);
 	}
