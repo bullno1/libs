@@ -70,4 +70,5 @@ jobs:
           bin/Debug/bspscq
           bin/Debug/bstacktrace
           bin/Debug/bcrash_handler || true
+          bin/Debug/bsfn
           bin/Debug/tests
