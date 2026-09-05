@@ -47,11 +47,13 @@
 /**
  *  Customizable function wrapper
  *
- *  By default, @ref bsfn.h will be used to keep function pointers stable.
+ *  It should return a function of the same type.
+ *  By default, this is an identity macro (returning the same function).
+ *
+ *  @see BSFN
  */
 #ifndef BCO_WRAPPER
-#	include "bsfn.h"
-#	define BCO_WRAPPER(FN) BSFN(FN)
+#	define BCO_WRAPPER(FN) FN
 #endif
 
 /*! Customizable linkage for API functions */
