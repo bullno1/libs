@@ -274,9 +274,9 @@ typedef struct {
 typedef struct {
 	/*! The implementation details, should be treated as opaque */
 	bhash_base_t base;
-	/*! All keys of the table as a contiguouos array */
+	/*! All keys of the table as a contiguous array */
 	K* keys;
-	/*! All values of the table as a contiguouos array */
+	/*! All values of the table as a contiguous array */
 	V* values;
 } bhash_sample_t;
 
