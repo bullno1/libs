@@ -114,9 +114,9 @@ Functions</h2></td></tr>
 <tr class="memitem:a81dd8c6a12c06f22ff79e45043d82c6e" id="r_a81dd8c6a12c06f22ff79e45043d82c6e"><td class="memItemLeft" align="right" valign="top">BSPSCQ_API bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bspscq_8h.html#a81dd8c6a12c06f22ff79e45043d82c6e">bspscq_produce</a> (<a class="el" href="bspscq_8h.html#a5fe965d4a3400633f0fa3d5393fc5ec5">bspscq_t</a> *queue, void *item, bool wait)</td></tr>
 <tr class="memdesc:a81dd8c6a12c06f22ff79e45043d82c6e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Put an item into the queue.  <br /></td></tr>
 <tr class="separator:a81dd8c6a12c06f22ff79e45043d82c6e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad7005c5129f0eaf7f6561cb0652a9c90" id="r_ad7005c5129f0eaf7f6561cb0652a9c90"><td class="memItemLeft" align="right" valign="top">BSPSCQ_API void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bspscq_8h.html#ad7005c5129f0eaf7f6561cb0652a9c90">bspscq_consume</a> (<a class="el" href="bspscq_8h.html#a5fe965d4a3400633f0fa3d5393fc5ec5">bspscq_t</a> *queue, bool wait)</td></tr>
-<tr class="memdesc:ad7005c5129f0eaf7f6561cb0652a9c90"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get an item from the queue.  <br /></td></tr>
-<tr class="separator:ad7005c5129f0eaf7f6561cb0652a9c90"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a69bddae49fa2f35af94bcd7e361cbe06" id="r_a69bddae49fa2f35af94bcd7e361cbe06"><td class="memItemLeft" align="right" valign="top">BSPSCQ_API bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bspscq_8h.html#a69bddae49fa2f35af94bcd7e361cbe06">bspscq_consume</a> (<a class="el" href="bspscq_8h.html#a5fe965d4a3400633f0fa3d5393fc5ec5">bspscq_t</a> *queue, void **itemp, bool wait)</td></tr>
+<tr class="memdesc:a69bddae49fa2f35af94bcd7e361cbe06"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get an item from the queue.  <br /></td></tr>
+<tr class="separator:a69bddae49fa2f35af94bcd7e361cbe06"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Lock-free single-producer single-consumer (spsc) queue. </p>
@@ -156,17 +156,23 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ad7005c5129f0eaf7f6561cb0652a9c90" name="ad7005c5129f0eaf7f6561cb0652a9c90"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad7005c5129f0eaf7f6561cb0652a9c90">&#9670;&#160;</a></span>bspscq_consume()</h2>
+<a id="a69bddae49fa2f35af94bcd7e361cbe06" name="a69bddae49fa2f35af94bcd7e361cbe06"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a69bddae49fa2f35af94bcd7e361cbe06">&#9670;&#160;</a></span>bspscq_consume()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">BSPSCQ_API void * bspscq_consume </td>
+          <td class="memname">BSPSCQ_API bool bspscq_consume </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="bspscq_8h.html#a5fe965d4a3400633f0fa3d5393fc5ec5">bspscq_t</a> *&#160;</td>
           <td class="paramname"><em>queue</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void **&#160;</td>
+          <td class="paramname"><em>itemp</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -185,12 +191,13 @@ Functions</h2></td></tr>
 <p>Get an item from the queue. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">queue</td><td>The queue to produce into. </td></tr>
-    <tr><td class="paramname">wait</td><td>Whether the caller will be blocked if the queue is not empty. The caller will be unblocked once at least one item has been produced. </td></tr>
+    <tr><td class="paramname">queue</td><td>The queue to consume from. </td></tr>
+    <tr><td class="paramname">itemp</td><td>Where the consumed item will be stored. This is only written to when the function returns true. </td></tr>
+    <tr><td class="paramname">wait</td><td>Whether the caller will be blocked if the queue is empty. The caller will be unblocked once at least one item has been produced. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>An item from the queue or NULL if the queue is empty. If <code>wait</code> is true, this will never be NULL. If <code>wait</code> is false, this may return NULL if the queue is empty. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>Whether an item was successfully taken out of the queue. If <code>wait</code> is true, this will always be true. If <code>wait</code> is false, this may return false if the queue is empty. </dd></dl>
 
 </div>
 </div>
@@ -237,7 +244,7 @@ Functions</h2></td></tr>
 </dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="bspscq_8h.html#a81dd8c6a12c06f22ff79e45043d82c6e" title="Put an item into the queue.">bspscq_produce</a> </dd>
 <dd>
-<a class="el" href="bspscq_8h.html#ad7005c5129f0eaf7f6561cb0652a9c90" title="Get an item from the queue.">bspscq_consume</a> </dd></dl>
+<a class="el" href="bspscq_8h.html#a69bddae49fa2f35af94bcd7e361cbe06" title="Get an item from the queue.">bspscq_consume</a> </dd></dl>
 
 </div>
 </div>
