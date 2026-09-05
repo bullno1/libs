@@ -12,13 +12,14 @@ all: \
 	bin/bserial \
 	bin/bspscq \
 	bin/barray \
-	bin/bsv
+	bin/bsv \
+	bin/bsfn
 
 clean:
 	rm -rf bin
 	rm -rf doc
 
-test: bin/test-all bin/bserial bin/bhash bin/bspscq
+test: bin/test-all bin/bserial bin/bhash bin/bspscq bin/bsfn
 	@set -e; \
 	for p in $^; do \
 		./$$p; \
@@ -66,6 +67,15 @@ bin/bserial: \
 		tests/bserial/main.c
 	mkdir -p bin
 	$(CC) $(CFLAGS) $(filter-out %.h, $^) -o $@
+
+bin/bsfn: \
+		bsfn.h tests/bsfn/module/module.c \
+		tests/bsfn/basic.c tests/bsfn/no_reload.c tests/bsfn/reload.c \
+		tests/bsfn/main.c
+	mkdir -p bin
+	$(CC) $(CFLAGS) -fPIC -shared -DBSFN_MODULE_VARIANT=1 tests/bsfn/module/module.c -o bin/bsfn_module1.so
+	$(CC) $(CFLAGS) -fPIC -shared -DBSFN_MODULE_VARIANT=2 tests/bsfn/module/module.c -o bin/bsfn_module2.so
+	$(CC) $(CFLAGS) $(filter-out %.h tests/bsfn/module/%, $^) -o $@ -ldl
 
 bin/bspscq: tests/bspscq/main.c bspscq.h
 	mkdir -p bin

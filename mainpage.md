@@ -22,6 +22,7 @@ They depend on other libraries in this repository.
 |-------|-----------|
 |@ref btest.h|Unit testing framework with automatic test registration|
 |@ref bent.h|Hot reload aware entity component system|
+|@ref bsfn.h|Stable function pointers for hot-reloadable modules|
 
 ## On allocator
 \anchor allocator

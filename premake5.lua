@@ -87,6 +87,39 @@ make_project "bspscq"
 make_sample "bstacktrace"
 make_sample "bcrash_handler"
 
+-- bsfn only supports Linux: the test dlopens two builds of the same module
+if os.target() == "linux" then
+  local function make_bsfn_module(variant)
+    project("bsfn_module"..variant)
+      kind "SharedLib"
+      language "C"
+      targetdir "bin/%{cfg.buildcfg}"
+      targetprefix ""
+      pic "On"
+
+      files {
+        "tests/bsfn/module/module.c",
+      }
+
+      defines { "BSFN_MODULE_VARIANT="..variant }
+
+      filter "configurations:Debug"
+        defines { "DEBUG" }
+        symbols "On"
+
+      filter "configurations:Release"
+        defines { "NDEBUG" }
+        optimize "On"
+  end
+
+  make_bsfn_module(1)
+  make_bsfn_module(2)
+
+  make_project "bsfn"
+    links { "dl" }
+    dependson { "bsfn_module1", "bsfn_module2" }
+end
+
 project "tests"
     kind "ConsoleApp"
     language "C"
