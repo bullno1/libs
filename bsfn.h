@@ -35,6 +35,41 @@
  *   expression to register a function from within an expression, which MSVC
  *   does not have.
  *   On other unsupported targets, define `BSFN_NO_RELOAD` explicitly.
+ *
+ * @remarks
+ *   Build and link flags that affect correctness:
+ *
+ *   - **Symbol interposition**: the address recorded by @ref BSFN is resolved
+ *     by the dynamic linker.
+ *     For a non-static function with default visibility, that lookup is by
+ *     name and the host (or an earlier loaded module) exporting a function
+ *     with the same name will win, so the stub ends up pointing outside the
+ *     module.
+ *     Wrapped functions should be `static`, or modules should be built with
+ *     `-fvisibility=hidden` or linked with `-Wl,-Bsymbolic-functions`.
+ *   - **Allocator lifetime**: every module carries its own copy of the
+ *     implementation, and a reloaded module's @ref bsfn_bind grows arrays
+ *     that the previous incarnation allocated.
+ *     `BSFN_REALLOC` and `memctx` must therefore outlive every module that
+ *     binds into the context: the libc default or a host-owned allocator is
+ *     fine, a module-local arena is not.
+ *     The context does not have to be created by the host.
+ *     A module can create its own on first load and only park the pointer in
+ *     host state.
+ *   - **Section retention**: registration records rely on the `retain`
+ *     attribute (GCC 11, Clang 13, binutils 2.36) to survive
+ *     `-Wl,--gc-sections`.
+ *     Older toolchains ignore it with a warning and lld, which no longer
+ *     keeps sections just because `__start_`/`__stop_` are referenced, will
+ *     discard the records.
+ *   - **Stable `__FILE__`**: stubs are keyed by `__FILE__`, so it must not
+ *     change between builds of the same module (working directory,
+ *     `-fmacro-prefix-map`), otherwise the rebuilt module gets fresh stubs
+ *     while callbacks registered earlier keep jumping into unloaded code.
+ *
+ *   Whole-program optimizations (LTO, `-fipa-*`, `-fcf-protection`) are safe:
+ *   the address of every wrapped function escapes into a retained record, so
+ *   the compiler must keep an out-of-line copy with the standard ABI.
  */
 
 #if defined(__linux__) && !defined(_DEFAULT_SOURCE)
@@ -304,6 +339,19 @@ bsfn__chunk_add(bsfn_ctx_t* ctx) {
 	if (base == MAP_FAILED) { return false; }
 
 	// jmp qword ptr [rip + page_size - 6], padded with int3
+	//
+	// The stub is entered by an indirect call from the host and leaves with
+	// an indirect jmp, but it does not start with endbr64.
+	// Under Intel CET's Indirect Branch Tracking (IBT) every indirect branch
+	// target must begin with endbr64 or the CPU faults.
+	// Linux currently enforces only the shadow stack half of CET for user
+	// space, which the stub is compatible with since it never touches the
+	// return address, so this is not a problem today.
+	// Should user space IBT ever be enforced, prefix the stub with
+	// f3 0f 1e fa (endbr64); the encoding still fits in BSFN__STUB_SIZE.
+	// A Windows port would face Control Flow Guard instead: a host built
+	// with /guard:cf rejects indirect calls into memory that is not a
+	// registered call target (see SetProcessValidCallTargets).
 	uint32_t disp32 = (uint32_t)(page_size - 6);
 	for (size_t i = 0; i < ctx->stubs_per_chunk; ++i) {
 		uint8_t* stub = base + i * BSFN__STUB_SIZE;
