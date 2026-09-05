@@ -956,7 +956,7 @@ static <a class="el" href="structbent__bitset__t.html">bent_bitset_t</a>&#160;</
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>component data</dd></dl>
-<dl class="section remark"><dt>Remarks</dt><dd>The returned pointer is temporary. Any further interaction with the same world may invalidate it.</dd></dl>
+<dl class="section remark"><dt>Remarks</dt><dd>The returned pointer remains valid until the component is removed from the entity or the entity is destroyed. Component storage is never relocated.</dd></dl>
 <p>Example:</p>
 <div class="fragment"><div class="line">    <a class="code hl_function" href="bent_8h.html#ae75bedb5a72a29c14e2b3d5b054ce3c7">bent_add</a>(world, ent, transform, &amp;(transform_t){</div>
 <div class="line">        .x = 10,</div>
@@ -1106,7 +1106,7 @@ static <a class="el" href="structbent__bitset__t.html">bent_bitset_t</a>&#160;</
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>component's data or <code>NULL</code> if the entity does not have this component</dd></dl>
-<dl class="section remark"><dt>Remarks</dt><dd>If the component has a zero size, this will always return <code>NULL</code>. For "tag" components, use <a class="el" href="bent_8h.html#a873fd6a3320ab4e7908b36adba026527">bent_has</a> instead. The returned pointer is temporary. Any further interaction with the world may invalidate it.</dd></dl>
+<dl class="section remark"><dt>Remarks</dt><dd>If the component has a zero size, this will always return <code>NULL</code>. For "tag" components, use <a class="el" href="bent_8h.html#a873fd6a3320ab4e7908b36adba026527">bent_has</a> instead. The returned pointer remains valid until the component is removed from the entity or the entity is destroyed.</dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="bent_8h.html#a4c18e4ac589daa89c2bb5fa1dfc65406" title="Define a type-safe helper function to retrieve a component.">BENT_DEFINE_COMP_GETTER</a> </dd></dl>
 
 </div>
