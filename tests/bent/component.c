@@ -154,3 +154,19 @@ BTEST(component, callback) {
 	bent_destroy(world, ent);
 	BTEST_EXPECT_EQUAL("%d", arg.value, 2);
 }
+
+BTEST(component, stable_pointers) {
+	bent_world_t* world = fixture.world;
+
+	bent_t ent = bent_create(world);
+	int* ptr = bent_add(world, ent, basic_component, &(int){ 42 });
+
+	// Force the component storage to grow many times
+	for (int i = 0; i < 100000; ++i) {
+		bent_t other = bent_create(world);
+		bent_add(world, other, basic_component, &(int){ i });
+	}
+
+	BTEST_EXPECT_EQUAL("%p", (void*)ptr, bent_get(world, ent, basic_component));
+	BTEST_EXPECT_EQUAL("%d", *ptr, 42);
+}
