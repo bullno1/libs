@@ -6,11 +6,12 @@ Stable function pointers for hot-reloadable modules.
 `bsfn_reload` repoints every stub of the calling image at its current
 functions.
 
-`basic.c` and `no_reload.c` are part of the aggregate `tests` binary.
-The `reload/` directory contains a standalone test that performs an actual
-`dlopen`/`dlclose` reload: the same module source is built into two shared
-libraries (v1 and v2) and the host verifies that the stable pointer obtained
-from v1 reaches the v2 code after a reload.
+The library is Linux-only so its tests are a standalone binary rather than
+part of the aggregate `tests` binary.
+Besides the unit tests, `reload.c` performs an actual `dlopen`/`dlclose`
+reload: `module/module.c` is built into two shared libraries (v1 and v2) next
+to the test executable, and the test verifies that the stable pointer
+obtained from v1 reaches the v2 code after a reload.
 Build and run it with:
 
 ```sh

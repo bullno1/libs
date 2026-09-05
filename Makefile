@@ -68,11 +68,14 @@ bin/bserial: \
 	mkdir -p bin
 	$(CC) $(CFLAGS) $(filter-out %.h, $^) -o $@
 
-bin/bsfn: tests/bsfn/reload/host.c tests/bsfn/reload/module.c bsfn.h
+bin/bsfn: \
+		bsfn.h tests/bsfn/module/module.c \
+		tests/bsfn/basic.c tests/bsfn/no_reload.c tests/bsfn/reload.c \
+		tests/bsfn/main.c
 	mkdir -p bin
-	$(CC) $(CFLAGS) -fPIC -shared -DBSFN_MODULE_VARIANT=1 tests/bsfn/reload/module.c -o bin/bsfn_module1.so
-	$(CC) $(CFLAGS) -fPIC -shared -DBSFN_MODULE_VARIANT=2 tests/bsfn/reload/module.c -o bin/bsfn_module2.so
-	$(CC) $(CFLAGS) tests/bsfn/reload/host.c -o $@ -ldl
+	$(CC) $(CFLAGS) -fPIC -shared -DBSFN_MODULE_VARIANT=1 tests/bsfn/module/module.c -o bin/bsfn_module1.so
+	$(CC) $(CFLAGS) -fPIC -shared -DBSFN_MODULE_VARIANT=2 tests/bsfn/module/module.c -o bin/bsfn_module2.so
+	$(CC) $(CFLAGS) $(filter-out %.h tests/bsfn/module/%, $^) -o $@ -ldl
 
 bin/bspscq: tests/bspscq/main.c bspscq.h
 	mkdir -p bin
@@ -84,7 +87,6 @@ bin/test-all: \
 		bent.h tests/bent/shared.c tests/bent/component.c tests/bent/system.c tests/bent/reload.c \
 		bsv.h tests/bsv/shared.c tests/bsv/basic.c tests/bsv/versioning.c \
 		bco.h tests/bco/shared.c tests/bco/basic.c tests/bco/cleanup.c tests/bco/subcoro.c tests/bco/clone.c \
-		bsfn.h tests/bsfn/basic.c tests/bsfn/no_reload.c \
 		tests/main.c
 	mkdir -p bin
 	$(CC) $(CFLAGS) $(filter-out %.h, $^) -o $@

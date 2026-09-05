@@ -1,9 +1,3 @@
-// bsfn is only available on x86_64 unix with GCC/Clang
-#if (defined(__GNUC__) || defined(__clang__)) \
-	&& defined(__x86_64__) \
-	&& defined(__unix__) \
-	&& !defined(__APPLE__)
-
 #include <stdio.h>
 #include "../../bsfn.h"
 #include "../../btest.h"
@@ -137,10 +131,3 @@ BTEST(bsfn, many_stubs) {
 
 #define BSFN_IMPLEMENTATION
 #include "../../bsfn.h"
-
-#else
-
-// Keep the translation unit non-empty on unsupported platforms
-typedef int bsfn__no_tests_t;
-
-#endif
