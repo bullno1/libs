@@ -17,8 +17,9 @@ int worker_thread_entry(void* arg) {
 	worker_context_t* ctx = arg;
 
 	while (true) {
-		message_t* message = bspscq_consume(ctx->req, true);
-		assert(message != NULL);
+		void* item;
+		assert(bspscq_consume(ctx->req, &item, true));
+		message_t* message = item;
 		bool should_stop = message->stop;
 		int content = message->content;
 		assert(bspscq_produce(ctx->res, message, true));
@@ -66,11 +67,13 @@ int main(int argc, const char* argv[]) {
 	assert(bspscq_produce(&requests, stop_msg, true));
 
 	for (int i = 0; i < 5; ++i) {
-		message_t* msg = bspscq_consume(&responses, true);
-		assert(msg != NULL);
+		void* item;
+		assert(bspscq_consume(&responses, &item, true));
+		message_t* msg = item;
 		assert(msg->content == i);
 	}
-	message_t* stop_response = bspscq_consume(&responses, true);
+	void* stop_response;
+	assert(bspscq_consume(&responses, &stop_response, true));
 	assert(stop_response == stop_msg);
 
 	int res;
