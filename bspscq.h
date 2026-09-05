@@ -46,11 +46,12 @@ typedef struct bspscq_s {
 	/// @cond INTERNAL
 	bspscq_signal_t can_produce;
 	bspscq_signal_t can_consume;
-	atomic_int count;
-	atomic_uint head;
-	atomic_uint tail;
 	void** values;
 	unsigned int size;
+	// Each hot field lives on its own cache line to avoid false sharing.
+	_Alignas(64) atomic_uint count;
+	_Alignas(64) unsigned int head;
+	_Alignas(64) unsigned int tail;
 	/// @endcond
 } bspscq_t;
 
@@ -99,15 +100,18 @@ bspscq_produce(bspscq_t* queue, void* item, bool wait);
 
 /**
  * @brief Get an item from the queue.
- * @param queue The queue to produce into.
- * @param wait Whether the caller will be blocked if the queue is not empty.
+ *
+ * @param queue The queue to consume from.
+ * @param itemp Where the consumed item will be stored.
+ *   This is only written to when the function returns true.
+ * @param wait Whether the caller will be blocked if the queue is empty.
  *   The caller will be unblocked once at least one item has been produced.
- * @return An item from the queue or NULL if the queue is empty.
- *   If @p wait is true, this will never be NULL.
- *   If @p wait is false, this may return NULL if the queue is empty.
+ * @return Whether an item was successfully taken out of the queue.
+ *   If @p wait is true, this will always be true.
+ *   If @p wait is false, this may return false if the queue is empty.
  */
-BSPSCQ_API void*
-bspscq_consume(bspscq_t* queue, bool wait);
+BSPSCQ_API bool
+bspscq_consume(bspscq_t* queue, void** itemp, bool wait);
 
 #endif
 
@@ -118,21 +122,6 @@ bspscq_consume(bspscq_t* queue, bool wait);
 #ifdef BSPSCQ_IMPLEMENTATION
 
 #include <assert.h>
-#include <stdint.h>
-
-static inline uint32_t
-bspscq_next_pow2(uint32_t v) {
-    uint32_t next = v;
-    next--;
-    next |= next >> 1;
-    next |= next >> 2;
-    next |= next >> 4;
-    next |= next >> 8;
-    next |= next >> 16;
-    next++;
-
-    return next;
-}
 
 static void
 bspscq_signal_init(bspscq_signal_t* signal) {
@@ -158,13 +147,11 @@ bspscq_init(bspscq_t* queue, void** values, unsigned int size) {
 	bspscq_signal_init(&queue->can_produce);
 	bspscq_signal_init(&queue->can_consume);
 	queue->values = values;
-	atomic_store(&queue->head, 0);
-	atomic_store(&queue->tail, 0);
+	queue->head = 0;
+	queue->tail = 0;
 	atomic_store(&queue->count, 0);
 
-#ifndef NDEBUG
-	assert((size == bspscq_next_pow2(size)) && "size must be a power of 2");
-#endif
+	assert((size != 0) && ((size & (size - 1)) == 0) && "size must be a power of 2");
 
 	queue->size = size;
 }
@@ -177,44 +164,44 @@ bspscq_cleanup(bspscq_t* queue) {
 
 bool
 bspscq_produce(bspscq_t* queue, void* item, bool wait) {
-	if (atomic_load(&queue->count) == (int)queue->size) {
+	if (atomic_load_explicit(&queue->count, memory_order_acquire) == queue->size) {
 		if (!wait) { return false; }
 
 		mtx_lock(&queue->can_produce.mtx);
-		while (queue->count == (int)queue->size) {
+		while (atomic_load_explicit(&queue->count, memory_order_acquire) == queue->size) {
 			cnd_wait(&queue->can_produce.cnd, &queue->can_produce.mtx);
 		}
 		mtx_unlock(&queue->can_produce.mtx);
 	}
 
-	unsigned int tail = atomic_fetch_add(&queue->tail, 1);
+	unsigned int tail = queue->tail++;
 	queue->values[tail & (queue->size - 1)] = item;
-	if (atomic_fetch_add(&queue->count, 1) == 0) {
+	if (atomic_fetch_add_explicit(&queue->count, 1, memory_order_release) == 0) {
 		bspscq_signal_raise(&queue->can_consume);
 	}
 
 	return true;
 }
 
-void*
-bspscq_consume(bspscq_t* queue, bool wait) {
-	if (atomic_load(&queue->count) == 0) {
-		if (!wait) { return NULL; }
+bool
+bspscq_consume(bspscq_t* queue, void** itemp, bool wait) {
+	if (atomic_load_explicit(&queue->count, memory_order_acquire) == 0) {
+		if (!wait) { return false; }
 
 		mtx_lock(&queue->can_consume.mtx);
-		while (queue->count == 0) {
+		while (atomic_load_explicit(&queue->count, memory_order_acquire) == 0) {
 			cnd_wait(&queue->can_consume.cnd, &queue->can_consume.mtx);
 		}
 		mtx_unlock(&queue->can_consume.mtx);
 	}
 
-	unsigned int head = atomic_fetch_add(&queue->head, 1);
-	void* item = queue->values[head & (queue->size - 1)];
-	if (atomic_fetch_add(&queue->count, -1) == (int)queue->size) {
+	unsigned int head = queue->head++;
+	*itemp = queue->values[head & (queue->size - 1)];
+	if (atomic_fetch_sub_explicit(&queue->count, 1, memory_order_release) == queue->size) {
 		bspscq_signal_raise(&queue->can_produce);
 	}
 
-	return item;
+	return true;
 }
 
 #endif
