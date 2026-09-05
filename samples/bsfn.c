@@ -26,7 +26,7 @@ on_config_changed(const char* file, void* userdata) {
 void
 module_entry(host_state_t* host, bool first_load) {
 	// Create or repoint the stubs of all BSFN-wrapped functions in this module
-	bsfn_reload(host->bsfn);
+	bsfn_bind(host->bsfn);
 
 	if (first_load) {
 		// The callback is registered only once: BSFN yields a pointer that
@@ -53,7 +53,7 @@ main(int argc, const char* argv[]) {
 
 	// Load the module and call its entry point.
 	// On every subsequent reload the entry point is called again and
-	// bsfn_reload repoints the stubs at the new code.
+	// bsfn_bind repoints the stubs at the new code.
 	module_entry(&host, true);
 
 	// Main loop

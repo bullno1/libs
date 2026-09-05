@@ -9,7 +9,7 @@
  * long-lived system (e.g @ref bresmon_watch) dangles into the unloaded module.
  * @ref BSFN solves this by returning a *stable* pointer instead: a small JIT stub,
  * allocated outside of any module, that jumps to the wrapped function.
- * After each (re)load, a single call to @ref bsfn_reload repoints every stub
+ * After each (re)load, a single call to @ref bsfn_bind repoints every stub
  * in the calling module at the new function addresses.
  *
  * In **exactly one** source file of **every module** (host executable and each
@@ -21,7 +21,7 @@
  * @snippet samples/bsfn.c bsfn_host
  *
  * A module only has to wrap its callbacks with @ref BSFN and call
- * @ref bsfn_reload once per (re)load:
+ * @ref bsfn_bind once per (re)load:
  *
  * @snippet samples/bsfn.c bsfn_module
  *
@@ -116,10 +116,10 @@ bsfn_ctx_destroy(bsfn_ctx_t* ctx);
 #ifndef DOXYGEN
 
 BSFN_API void
-bsfn__reload(bsfn_ctx_t* ctx, const bsfn_reg_t* begin, const bsfn_reg_t* end);
+bsfn__bind(bsfn_ctx_t* ctx, const bsfn_reg_t* begin, const bsfn_reg_t* end);
 
 BSFN_API void
-bsfn__unload(bsfn_ctx_t* ctx, const bsfn_reg_t* begin, const bsfn_reg_t* end);
+bsfn__unbind(bsfn_ctx_t* ctx, const bsfn_reg_t* begin, const bsfn_reg_t* end);
 
 #endif
 
@@ -141,13 +141,13 @@ bsfn__unload(bsfn_ctx_t* ctx, const bsfn_reg_t* begin, const bsfn_reg_t* end);
 
 static inline bsfn_fn_t
 bsfn__load_slot(bsfn_fn_t* slot) {
-	BSFN_ASSERT(*slot != NULL && "bsfn_reload was not called in this module");
+	BSFN_ASSERT(*slot != NULL && "bsfn_bind was not called in this module");
 	return *slot;
 }
 /** @endcond */
 
 /**
- * @brief Repoint all stubs of the calling module at its current functions.
+ * @brief Bind the calling module's functions to their stable stubs.
  *
  * This must be called every time the module is loaded, **including the first
  * time**, before any @ref BSFN expression in the module is evaluated.
@@ -155,31 +155,31 @@ bsfn__load_slot(bsfn_fn_t* slot) {
  * @param ctx The registry, received from the host.
  */
 static inline void
-bsfn_reload(bsfn_ctx_t* ctx) {
-	bsfn__reload(ctx, BSFN__LIST_BEGIN, BSFN__LIST_END);
+bsfn_bind(bsfn_ctx_t* ctx) {
+	bsfn__bind(ctx, BSFN__LIST_BEGIN, BSFN__LIST_END);
 }
 
 /**
- * @brief Detach all stubs of the calling module.
+ * @brief Unbind the calling module's functions from their stable stubs.
  *
  * This is optional and only needed when a module is unloaded *for good*.
  *
  * @param ctx The registry, received from the host.
  */
 static inline void
-bsfn_unload(bsfn_ctx_t* ctx) {
-	bsfn__unload(ctx, BSFN__LIST_BEGIN, BSFN__LIST_END);
+bsfn_unbind(bsfn_ctx_t* ctx) {
+	bsfn__unbind(ctx, BSFN__LIST_BEGIN, BSFN__LIST_END);
 }
 
 /**
  * @brief Wrap a function, yielding a stable pointer to it.
  *
  * This is an expression and has the same type as `&FN`.
- * The returned pointer never changes across reloads of the image containing
- * `FN`; use it anywhere a callback would outlive the current image.
+ * The returned pointer never changes across reloads of the module containing
+ * `FN`; use it anywhere a callback would outlive the current module.
  *
  * `FN` must be a function, not a function pointer variable.
- * @ref bsfn_reload must have been called in the current image beforehand.
+ * @ref bsfn_bind must have been called in the current module beforehand.
  */
 #define BSFN(FN) \
 	((__typeof__(&(FN)))(__extension__({ \
@@ -211,12 +211,12 @@ bsfn_ctx_destroy(bsfn_ctx_t* ctx) {
 }
 
 static inline void
-bsfn_reload(bsfn_ctx_t* ctx) {
+bsfn_bind(bsfn_ctx_t* ctx) {
 	(void)ctx;
 }
 
 static inline void
-bsfn_unload(bsfn_ctx_t* ctx) {
+bsfn_unbind(bsfn_ctx_t* ctx) {
 	(void)ctx;
 }
 
@@ -437,7 +437,7 @@ bsfn_ctx_destroy(bsfn_ctx_t* ctx) {
 }
 
 BSFN_API void
-bsfn__reload(bsfn_ctx_t* ctx, const bsfn_reg_t* begin, const bsfn_reg_t* end) {
+bsfn__bind(bsfn_ctx_t* ctx, const bsfn_reg_t* begin, const bsfn_reg_t* end) {
 	for (const bsfn_reg_t* reg = begin; reg != end; ++reg) {
 		bsfn__rec_t* rec = bsfn__find(ctx, reg->name);
 		if (rec == NULL) {
@@ -451,7 +451,7 @@ bsfn__reload(bsfn_ctx_t* ctx, const bsfn_reg_t* begin, const bsfn_reg_t* end) {
 }
 
 BSFN_API void
-bsfn__unload(bsfn_ctx_t* ctx, const bsfn_reg_t* begin, const bsfn_reg_t* end) {
+bsfn__unbind(bsfn_ctx_t* ctx, const bsfn_reg_t* begin, const bsfn_reg_t* end) {
 	for (const bsfn_reg_t* reg = begin; reg != end; ++reg) {
 		bsfn__rec_t* rec = bsfn__find(ctx, reg->name);
 		if (rec != NULL) {

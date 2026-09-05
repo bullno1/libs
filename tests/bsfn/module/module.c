@@ -15,6 +15,6 @@ version(void) {
 }
 
 int (*module_entry(bsfn_ctx_t* ctx))(void) {
-	bsfn_reload(ctx);
+	bsfn_bind(ctx);
 	return BSFN(version);
 }

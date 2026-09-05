@@ -16,7 +16,7 @@ callback(void) {
 BTEST(bsfn_no_reload, passthrough) {
 	// The whole API must compile to no-ops
 	bsfn_ctx_t* ctx = bsfn_ctx_create(NULL);
-	bsfn_reload(ctx);
+	bsfn_bind(ctx);
 
 	// BSFN is the wrapped function itself
 	BTEST_ASSERT(BSFN(callback) == callback);
@@ -24,6 +24,6 @@ BTEST(bsfn_no_reload, passthrough) {
 	BSFN(callback)();
 	BTEST_ASSERT_EQUAL("%d", num_calls, 1);
 
-	bsfn_unload(ctx);
+	bsfn_unbind(ctx);
 	bsfn_ctx_destroy(ctx);
 }

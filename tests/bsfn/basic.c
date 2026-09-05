@@ -17,7 +17,7 @@ callback(int arg) {
 BTEST(bsfn, stub_call) {
 	bsfn_ctx_t* ctx = bsfn_ctx_create(NULL);
 	BTEST_ASSERT(ctx != NULL);
-	bsfn_reload(ctx);
+	bsfn_bind(ctx);
 
 	num_calls = 0;
 	int (*stable)(int) = BSFN(callback);
@@ -31,7 +31,7 @@ BTEST(bsfn, stub_call) {
 BTEST(bsfn, same_function_same_stub) {
 	bsfn_ctx_t* ctx = bsfn_ctx_create(NULL);
 	BTEST_ASSERT(ctx != NULL);
-	bsfn_reload(ctx);
+	bsfn_bind(ctx);
 
 	// Two wraps of the same function share one identity and thus one stub
 	BTEST_EXPECT(BSFN(callback) == BSFN(callback));
@@ -52,7 +52,7 @@ fn_v2(void) {
 	num_v2_calls += 1;
 }
 
-// Simulate two loads of the same module by handing bsfn__reload synthetic
+// Simulate two loads of the same module by handing bsfn__bind synthetic
 // lists: same name, different function address and slot each time.
 BTEST(bsfn, stable_across_reload) {
 	bsfn_ctx_t* ctx = bsfn_ctx_create(NULL);
@@ -65,7 +65,7 @@ BTEST(bsfn, stable_across_reload) {
 		.fn = (bsfn_fn_t)fn_v1,
 		.slot = &slot_v1,
 	};
-	bsfn__reload(ctx, &reg_v1, &reg_v1 + 1);
+	bsfn__bind(ctx, &reg_v1, &reg_v1 + 1);
 
 	bsfn_fn_t stable = slot_v1;
 	BTEST_ASSERT(stable != NULL);
@@ -79,7 +79,7 @@ BTEST(bsfn, stable_across_reload) {
 		.fn = (bsfn_fn_t)fn_v2,
 		.slot = &slot_v2,
 	};
-	bsfn__reload(ctx, &reg_v2, &reg_v2 + 1);
+	bsfn__bind(ctx, &reg_v2, &reg_v2 + 1);
 
 	// The stable pointer did not change but now reaches the new function
 	BTEST_ASSERT(slot_v2 == stable);
@@ -87,9 +87,9 @@ BTEST(bsfn, stable_across_reload) {
 	BTEST_ASSERT_EQUAL("%d", num_v1_calls, 1);
 	BTEST_ASSERT_EQUAL("%d", num_v2_calls, 1);
 
-	// Unload detaches, a further reload reattaches
-	bsfn__unload(ctx, &reg_v2, &reg_v2 + 1);
-	bsfn__reload(ctx, &reg_v2, &reg_v2 + 1);
+	// Unbind detaches, a further bind reattaches
+	bsfn__unbind(ctx, &reg_v2, &reg_v2 + 1);
+	bsfn__bind(ctx, &reg_v2, &reg_v2 + 1);
 	stable();
 	BTEST_ASSERT_EQUAL("%d", num_v2_calls, 2);
 
@@ -114,7 +114,7 @@ BTEST(bsfn, many_stubs) {
 			.slot = &slots[i],
 		};
 	}
-	bsfn__reload(ctx, regs, regs + 600);
+	bsfn__bind(ctx, regs, regs + 600);
 
 	for (int i = 0; i < 600; ++i) {
 		BTEST_ASSERT(slots[i] != NULL);
