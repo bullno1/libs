@@ -87,7 +87,7 @@ bin/test-all: \
 		bent.h tests/bent/shared.c tests/bent/component.c tests/bent/system.c tests/bent/reload.c \
 		bsv.h tests/bsv/shared.c tests/bsv/basic.c tests/bsv/versioning.c \
 		bscn.h tests/bscn/shared.c tests/bscn/basic.c tests/bscn/pos.c tests/bscn/sub.c \
-		bco.h tests/bco/shared.c tests/bco/basic.c tests/bco/cleanup.c tests/bco/subcoro.c tests/bco/clone.c \
+		bco.h tests/bco/shared.c tests/bco/basic.c tests/bco/cleanup.c tests/bco/subcoro.c tests/bco/clone.c tests/bco/relocate.c \
 		tests/main.c
 	mkdir -p bin
 	$(CC) $(CFLAGS) $(filter-out %.h, $^) -o $@
