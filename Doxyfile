@@ -958,10 +958,14 @@ INPUT                  = mainpage.md \
 	bhamt.h \
 	bserial.h \
 	bspscq.h \
+	bseg.h \
 	bent.h \
 	bsv.h \
+	bscn.h \
 	bstacktrace.h \
 	bcrash_handler.h \
+	bsfn.h \
+	barg.h \
 
 
 # This tag can be used to specify the character encoding of the source files
@@ -2432,7 +2436,7 @@ INCLUDE_FILE_PATTERNS  =
 # This tag requires that the tag ENABLE_PREPROCESSING is set to YES.
 
 PREDEFINED             = DOXYGEN \
-	BRESMON_API BCORO_API BHASH_API BSERIAL_API BENT_API BSERIAL_MEM BSERIAL_STDIO
+	BRESMON_API BCORO_API BHASH_API BSERIAL_API BENT_API BSFN_API BSERIAL_MEM BSERIAL_STDIO
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then this
 # tag can be used to specify a list of macro names that should be expanded. The

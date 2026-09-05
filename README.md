@@ -15,6 +15,7 @@ Collection of miscellaneous single-header libraries.
 |[bhash.h](tests/bhash)|Hashtable|
 |[bhamt.h](tests/bhamt)|Hash trie, an arena-friendly associative map|
 |[barray.h](barray.h)|Dynamic array|
+|[bseg.h](tests/bseg)|Segmented array|
 |[bco.h](bco.h)|Coroutine|
 |[bserial.h](tests/bserial)|Binary serialization|
 |[bspsc.h](tests/bspscq)|Single producer single consumer queue|
@@ -26,6 +27,7 @@ Collection of miscellaneous single-header libraries.
 |[qoi.h](qoi.h)|Quite OK image encoding/decoding|
 |[bent.h](bent.h)|Entity component system|
 |[bsv.h](bsv.h)|Binary seriallization with explicit versioning|
+|[bscn.h](tests/bscn)|Text scanner for hand-written parsers|
 |[bstacktrace.h](bstacktrace.h)|Portable stacktrace with source mapping|
 |[bcrash_handler.h](bcrash_handler.h)|Crash handler|
 
