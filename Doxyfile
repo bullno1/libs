@@ -964,6 +964,7 @@ INPUT                  = mainpage.md \
 	bstacktrace.h \
 	bcrash_handler.h \
 	bsfn.h \
+	barg.h \
 
 
 # This tag can be used to specify the character encoding of the source files
