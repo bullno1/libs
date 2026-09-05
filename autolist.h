@@ -8,14 +8,42 @@
 
 #include <stddef.h>
 
+/**
+ * Define a variable and register it as an entry of a list.
+ *
+ * @param LIST_NAME name of the list
+ * @param ITEM_TYPE type of the variable
+ * @param ITEM_NAME name of the variable
+ *
+ * @hideinitializer
+ */
 #define AUTOLIST_ENTRY(LIST_NAME, ITEM_TYPE, ITEM_NAME) \
 	AUTOLIST_ENTRY_EX(LIST_NAME, ITEM_TYPE, ITEM_NAME, ITEM_NAME)
 
+/**
+ * Same as @ref AUTOLIST_ENTRY but the variable and entry names can differ.
+ *
+ * @param LIST_NAME name of the list
+ * @param ITEM_TYPE type of the variable
+ * @param ITEM_NAME name of the entry
+ * @param VAR_NAME name of the variable
+ *
+ * @hideinitializer
+ */
 #define AUTOLIST_ENTRY_EX(LIST_NAME, ITEM_TYPE, ITEM_NAME, VAR_NAME) \
 	extern ITEM_TYPE VAR_NAME; \
 	AUTOLIST_ADD_ENTRY(LIST_NAME, ITEM_NAME, VAR_NAME) \
 	ITEM_TYPE VAR_NAME
 
+/**
+ * Register an existing variable as an entry of a list.
+ *
+ * @param LIST_NAME name of the list
+ * @param ITEM_NAME name of the entry
+ * @param VAR_NAME name of the variable
+ *
+ * @hideinitializer
+ */
 #define AUTOLIST_ADD_ENTRY(LIST_NAME, ITEM_NAME, VAR_NAME) \
 	const autolist_entry_t AUTOLIST__CONCAT4(LIST_NAME, _, ITEM_NAME, _entry) = { \
 		.name = #ITEM_NAME, \
@@ -28,6 +56,14 @@
 		&AUTOLIST__CONCAT4(LIST_NAME, _, ITEM_NAME, _entry); \
 	AUTOLIST__SECTION_END(AUTOLIST__CONCAT4(LIST_NAME, _, ITEM_NAME, _info_ptr))
 
+/**
+ * Iterate over all entries of a list.
+ *
+ * @param ITR name of the iterator variable, of type `const autolist_entry_t*`
+ * @param LIST_NAME name of the list
+ *
+ * @hideinitializer
+ */
 #define AUTOLIST_FOREACH(ITR, LIST_NAME) \
 	for ( \
 		const autolist_entry_t* const* autolist__itr = AUTOLIST_BEGIN(LIST_NAME); \
@@ -66,10 +102,15 @@
 #	define AUTOLIST__SECTION_END(INFO_PTR)
 #endif
 
+/*! An entry of a list */
 typedef struct {
+	/*! Name of the entry */
 	const char* name;
+	/*! Length of @ref autolist_entry_t.name */
 	size_t name_length;
+	/*! Address of the registered variable */
 	void* value_addr;
+	/*! Size of the registered variable */
 	size_t value_size;
 } autolist_entry_t;
 
@@ -103,6 +144,15 @@ typedef struct {
 		const autolist_entry_t* const AUTOLIST__CONCAT3(autolist_, NAME, __dummy) = NULL;
 #endif
 
+/**
+ * Define a list.
+ *
+ * This must be done in exactly one compilation unit.
+ *
+ * @param NAME name of the list
+ *
+ * @hideinitializer
+ */
 #define AUTOLIST_DEFINE(NAME) \
 	AUTOLIST_DECLARE(NAME) \
 	AUTOLIST_IMPL(NAME)

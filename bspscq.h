@@ -33,12 +33,17 @@
 #define BSPSCQ_API
 #endif
 
+/*! An internal signal, should be treated as opaque */
 typedef struct {
+	/// @cond INTERNAL
 	mtx_t mtx;
 	cnd_t cnd;
+	/// @endcond
 } bspscq_signal_t;
 
+/*! A single producer single consumer queue, should be treated as opaque */
 typedef struct bspscq_s {
+	/// @cond INTERNAL
 	bspscq_signal_t can_produce;
 	bspscq_signal_t can_consume;
 	atomic_int count;
@@ -46,6 +51,7 @@ typedef struct bspscq_s {
 	atomic_uint tail;
 	void** values;
 	unsigned int size;
+	/// @endcond
 } bspscq_t;
 
 /**

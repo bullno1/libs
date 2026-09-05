@@ -25,15 +25,18 @@
 
 #include <stddef.h>
 
+/*! Customizable linkage for API functions */
 #ifndef BCO_API
 #define BCO_API
 #endif
 
+/*! Customizable assert function */
 #ifndef BCO_ASSERT
 #include <assert.h>
 #define BCO_ASSERT(COND, MSG) assert((COND) && (MSG))
 #endif
 
+/*! Customizable maximum alignment for the coroutine's storage */
 #ifndef BCO_MAX_ALIGN
 #define BCO_MAX_ALIGN 16
 #endif
@@ -338,7 +341,11 @@
  *
  * This can be used to stack-allocate a coroutine's storage.
  */
-typedef struct { _Alignas(BCO_MAX_ALIGN) char bco__dummy; } bco_align_t;
+typedef struct {
+	/// @cond INTERNAL
+	_Alignas(BCO_MAX_ALIGN) char bco__dummy;
+	/// @endcond
+} bco_align_t;
 
 /// The opaque type for a coroutine's storage
 typedef struct bco_s bco_t;

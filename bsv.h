@@ -26,6 +26,7 @@
 #include <stddef.h>
 #include <stdbool.h>
 
+/*! Customizable linkage for API functions */
 #ifndef BSV_API
 #define BSV_API
 #endif
@@ -55,6 +56,7 @@
 #define BSV_VERSION_TYPE uint32_t
 #endif
 
+/*! Customizable assert function */
 #ifndef BSV_ASSERT
 #include <assert.h>
 #define BSV_ASSERT(cond) assert(cond)
@@ -233,6 +235,16 @@
 	} \
 	if (bsv_should_serialize_rem(BSV_CTX, (VERSION_REMOVED)))
 
+/**
+ * Explain the wire format of a serializer without reading or writing.
+ *
+ * @param TYPE type of the value being serialized
+ * @param SERIALIZER the serializer function
+ * @param EXPLAIN_FN the callback (@ref bsv_explain_fn_t) invoked for every element
+ * @param EXPLAIN_CTX context passed to the callback
+ *
+ * @hideinitializer
+ */
 #define BSV_EXPLAIN(TYPE, SERIALIZER, EXPLAIN_FN, EXPLAIN_CTX) \
 	do { \
 		TYPE bsv__explain_value = { 0 }; \
@@ -296,8 +308,11 @@
 
 #endif
 
+/*! Placeholder type for @ref bsv_unknown */
 typedef struct bsv_unknown_s bsv_unkown_t;
+/*! Version number type */
 typedef BSV_VERSION_TYPE bsv_version_t;
+/*! Length type for blobs and arrays */
 typedef uint64_t bsv_len_t;
 
 /*! IO status */
@@ -344,42 +359,66 @@ typedef enum {
 	BSV_MODE_READ,
 } bsv_mode_t;
 
+/*! Type of an element being explained */
 typedef enum {
+	/*! The root value */
 	BSV_EXPLAIN_ROOT,
+	/*! A block */
 	BSV_EXPLAIN_BLK,
+	/*! A revision */
 	BSV_EXPLAIN_REV,
+	/*! An array */
 	BSV_EXPLAIN_ARRAY,
+	/*! A field added in a revision */
 	BSV_EXPLAIN_ADD,
+	/*! A field removed in a revision */
 	BSV_EXPLAIN_REM,
+	/*! A raw value */
 	BSV_EXPLAIN_RAW,
 } bsv_explain_type_t;
 
+/*! Whether an explained scope is being entered or exited */
 typedef enum {
+	/*! The scope is being entered */
 	BSV_EXPLAIN_BEGIN_SCOPE,
+	/*! The scope is being exited */
 	BSV_EXPLAIN_END_SCOPE,
 } bsv_explain_scope_t;
 
+/*! Information about an element passed to @ref bsv_explain_fn_t */
 typedef struct bsv_explain_s {
+	/*! Type of the element */
 	bsv_explain_type_t type;
+	/*! Whether the element's scope is being entered or exited */
 	bsv_explain_scope_t scope;
 
+	/*! Source file of the serialization code */
 	const char* file;
+	/*! Function containing the serialization code */
 	const char* function;
+	/*! Name of the element */
 	const char* name;
+	/*! Line number of the serialization code */
 	int line;
 
+	/*! Version associated with the element */
 	bsv_version_t version;
+	/*! Address of the value being serialized */
 	void* value;
 } bsv_explain_t;
 
+/*! Callback for @ref BSV_EXPLAIN */
 typedef void (*bsv_explain_fn_t)(const bsv_explain_t* explain, void* ctx);
 
 /*! @brief Serialization context */
 typedef struct bsv_ctx_s {
+	/*! (Optional) Input stream */
 	bsv_in_t* in;
+	/*! (Optional) Output stream */
 	bsv_out_t* out;
 
 	// Private do not initialize
+	/// @cond INTERNAL
 	bsv_len_t blob_size;
 	bsv_len_t array_len;
 	bsv_version_t max_revision;
@@ -391,6 +430,7 @@ typedef struct bsv_ctx_s {
 	bsv_explain_t explain_info;
 	bsv_explain_fn_t explain_fn;
 	void* explain_ctx;
+	/// @endcond
 } bsv_ctx_t;
 
 #ifdef __cplusplus
@@ -411,6 +451,7 @@ bsv_status(bsv_ctx_t* ctx) {
 
 // Stream utilities
 
+/*! Read exactly @a size bytes from an input stream */
 static inline bsv_status_t
 bsv_read(bsv_in_t* in, void* buf, size_t size) {
 	char* cbuf = buf;
@@ -424,6 +465,7 @@ bsv_read(bsv_in_t* in, void* buf, size_t size) {
 	return BSV_OK;
 }
 
+/*! Write exactly @a size bytes to an output stream */
 static inline bsv_status_t
 bsv_write(bsv_out_t* out, const void* buf, size_t size) {
 	const char* cbuf = buf;
@@ -493,36 +535,46 @@ bsv_f64(bsv_ctx_t* ctx, double* value);
 
 // Int type adapters
 
+/*! Read/write an 8-bit signed integer as a varint with bound check */
 BSV_API bsv_status_t
 bsv_i8(bsv_ctx_t* ctx, int8_t* i8);
 
+/*! Read/write a 16-bit signed integer as a varint with bound check */
 BSV_API bsv_status_t
 bsv_i16(bsv_ctx_t* ctx, int16_t* i16);
 
+/*! Read/write a 32-bit signed integer as a varint with bound check */
 BSV_API bsv_status_t
 bsv_i32(bsv_ctx_t* ctx, int32_t* i32);
 
+/*! Read/write an 8-bit unsigned integer as a varint with bound check */
 BSV_API bsv_status_t
 bsv_u8(bsv_ctx_t* ctx, uint8_t* u8);
 
+/*! Read/write a 16-bit unsigned integer as a varint with bound check */
 BSV_API bsv_status_t
 bsv_u16(bsv_ctx_t* ctx, uint16_t* u16);
 
+/*! Read/write a 32-bit unsigned integer as a varint with bound check */
 BSV_API bsv_status_t
 bsv_u32(bsv_ctx_t* ctx, uint32_t* u32);
 
+/*! Read/write a boolean */
 BSV_API bsv_status_t
 bsv_bool(bsv_ctx_t* ctx, bool* boolean);
 
+/*! Read/write raw bytes */
 BSV_API bsv_status_t
 bsv_raw(bsv_ctx_t* ctx, void* data, size_t size);
 
+/*! Placeholder serializer for unknown types, always asserts */
 bsv_status_t
 bsv_unknown(bsv_ctx_t* ctx, bsv_unkown_t* unknown);
 
 /**
  * @brief Read/write a binary blob's header
  *
+ * @param ctx The serialization context.
  * @param len Maximum size. Will be set to the actual size on read.
  */
 BSV_API bsv_status_t
@@ -534,39 +586,52 @@ bsv_blob_body(bsv_ctx_t* ctx, char* buf);
 
 // Versioned data
 
+/*! Opaque context for @ref bsv_begin_block / @ref bsv_end_block */
 typedef struct {
+	/// @cond INTERNAL
 	bsv_ctx_t* bsv;
 	bsv_version_t previous_version;
 	int counter;
+	/// @endcond
 } bsv_blk_ctx_t;
 
+/*! Opaque context for @ref bsv_begin_array / @ref bsv_end_array */
 typedef struct {
+	/// @cond INTERNAL
 	bsv_len_t previous_len;
 	bsv_version_t previous_version;
 	int counter;
+	/// @endcond
 } bsv_array_ctx_t;
 
+/*! Begin a versioned block, prefer @ref BSV_BLK */
 BSV_API bsv_blk_ctx_t
 bsv_begin_block(bsv_ctx_t* ctx, bsv_version_t version);
 
+/*! End a versioned block, prefer @ref BSV_BLK */
 BSV_API bsv_status_t
 bsv_end_block(bsv_ctx_t* ctx, bsv_blk_ctx_t* blk);
 
+/*! Begin a revision, prefer @ref BSV_REV */
 BSV_API bsv_status_t
 bsv_begin_revision(bsv_ctx_t* ctx, bsv_version_t rev);
 
+/*! End a revision, prefer @ref BSV_REV */
 BSV_API bsv_status_t
 bsv_end_revision(bsv_ctx_t* ctx);
 
+/*! Begin an array, prefer @ref BSV_ARRAY */
 BSV_API bsv_array_ctx_t
 bsv_begin_array(bsv_ctx_t* ctx, bsv_len_t* length);
 
+/*! End an array, prefer @ref BSV_ARRAY */
 BSV_API bsv_status_t
 bsv_end_array(bsv_ctx_t* ctx, bsv_array_ctx_t* array);
 
 BSV_API bsv_in_t*
 bsv__zero_in(void);
 
+/*! Invoke the explain callback for the current element, if any */
 static inline void
 bsv_trace(bsv_ctx_t* ctx, bsv_explain_type_t type, bsv_explain_scope_t scope) {
 #ifdef BSV_REFLECTION
@@ -578,16 +643,19 @@ bsv_trace(bsv_ctx_t* ctx, bsv_explain_type_t type, bsv_explain_scope_t scope) {
 #endif
 }
 
+/*! Invoke the explain callback when entering a scope */
 static inline void
 bsv_trace_begin(bsv_ctx_t* ctx, bsv_explain_type_t type) {
 	bsv_trace(ctx, type, BSV_EXPLAIN_BEGIN_SCOPE);
 }
 
+/*! Invoke the explain callback when exiting a scope */
 static inline void
 bsv_trace_end(bsv_ctx_t* ctx, bsv_explain_type_t type) {
 	bsv_trace(ctx, type, BSV_EXPLAIN_END_SCOPE);
 }
 
+/*! Record the source location for the explain callback */
 static inline void
 bsv_set_explain_info(bsv_ctx_t* ctx, const char* file, int line, const char* function) {
 #ifdef BSV_REFLECTION
@@ -597,6 +665,7 @@ bsv_set_explain_info(bsv_ctx_t* ctx, const char* file, int line, const char* fun
 #endif
 }
 
+/*! Whether a field added in the current revision should be serialized, prefer @ref BSV_ADD */
 static inline bool
 bsv_should_serialize_add(bsv_ctx_t* ctx) {
 	return bsv_mode(ctx) == BSV_MODE_WRITE
@@ -604,6 +673,7 @@ bsv_should_serialize_add(bsv_ctx_t* ctx) {
 		ctx->current_blk_version >= ctx->current_revision;
 }
 
+/*! Whether a field removed in a revision should be serialized, prefer @ref BSV_REM */
 static inline bool
 bsv_should_serialize_rem(bsv_ctx_t* ctx, bsv_version_t version_removed) {
 	return bsv_mode(ctx) == BSV_MODE_READ
