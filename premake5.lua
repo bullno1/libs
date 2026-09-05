@@ -102,6 +102,8 @@ project "tests"
       "tests/bsv/*.c",
       "tests/bco/*.h",
       "tests/bco/*.c",
+      "tests/bsfn/*.h",
+      "tests/bsfn/*.c",
       "tests/bstacktrace/*.c",
     }
 
