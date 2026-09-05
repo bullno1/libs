@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['def_0',['def',['../structbent__comp__reg__t.html#a310c7a000c533339adf23b5d191e76e3',1,'bent_comp_reg_t::def'],['../structbent__sys__reg__t.html#a5c4adefd2ab3362e8b3f5b07f18828cd',1,'bent_sys_reg_t::def']]]
+  ['def_0',['def',['../structbent__comp__reg__t.html#a310c7a000c533339adf23b5d191e76e3',1,'bent_comp_reg_t::def'],['../structbent__sys__reg__t.html#a5c4adefd2ab3362e8b3f5b07f18828cd',1,'bent_sys_reg_t::def']]],
+  ['description_1',['description',['../structbarg__opt__t.html#a603d522ea43856008011e2e28369801d',1,'barg_opt_t']]]
 ];
