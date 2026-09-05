@@ -207,6 +207,7 @@
 #define bco_begin \
 	_Static_assert(bco__begin_declared == 0, "bco_begin can only be used once"); \
 	enum { bco__begin_declared = 1 }; \
+	(void)bco__args; \
 	switch (bco__on_resume(bco__coro)) { \
 		case 0: \
 			bco__begin_constant_cond \
