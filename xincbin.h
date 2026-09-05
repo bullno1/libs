@@ -357,44 +357,16 @@ typedef struct xincbin_data_s {
 #	define XINCBIN_GET(NAME) xincbin_get( \
 		INCBIN_CONCATENATE(INCBIN_CONCATENATE(INCBIN_PREFIX, NAME), _name), \
 		&INCBIN_CONCATENATE(INCBIN_CONCATENATE(INCBIN_PREFIX, NAME), _cache))
-	INCBIN_EXTERNAL xincbin_data_t xincbin_get(const char* name, xincbin_data_t* cache);
-#else
-#	define XINCBIN(NAME, FILENAME) INCBIN_EXTERN(unsigned char, NAME);
-#	define XINCBIN_GET(NAME) (xincbin_data_t){ \
-		.size = INCBIN_CONCATENATE(INCBIN_CONCATENATE(INCBIN_PREFIX, NAME), INCBIN_STYLE_IDENT(SIZE)), \
-		.data = INCBIN_CONCATENATE(INCBIN_CONCATENATE(INCBIN_PREFIX, NAME), INCBIN_STYLE_IDENT(DATA)), \
-	}
-#endif
 
-#else // RC_INVOKED
+#	ifndef WIN32_LEAN_AND_MEAN
+#	define WIN32_LEAN_AND_MEAN
+#	endif
+#	include <windows.h>
+#	include <string.h>
 
-#define XINCBIN(NAME, FILENAME) INCBIN_CONCATENATE(INCBIN_PREFIX, NAME) RCDATA FILENAME
-
-#endif
-
-#endif // Include guard
-
-#ifdef XINCBIN_IMPLEMENTATION
-
-#undef XINCBIN
-#ifdef XINCBIN_USE_WINRES
-#	define XINCBIN(NAME, FILENAME) \
-		const char* INCBIN_CONCATENATE(INCBIN_CONCATENATE(INCBIN_PREFIX, NAME), _name) = \
-			INCBIN_STRINGIZE(INCBIN_CONCATENATE(INCBIN_PREFIX, NAME)); \
-		xincbin_data_t INCBIN_CONCATENATE(INCBIN_CONCATENATE(INCBIN_PREFIX, NAME), _cache) = { 0, NULL };
-#else
-#	define XINCBIN(NAME, FILENAME) INCBIN_COMMON(unsigned char, NAME, FILENAME,);
-#endif
-
-#ifdef XINCBIN_USE_WINRES
-
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-#include <windows.h>
-#include <string.h>
-
-xincbin_data_t xincbin_get(const char* name, xincbin_data_t* cache) {
+// Inline this so xincbin can be used in different modules
+static inline xincbin_data_t
+xincbin_get(const char* name, xincbin_data_t* cache) {
 	// The full barrier also guarantees that the size written before the data
 	// pointer was published is visible
 	const unsigned char* data = (const unsigned char*)InterlockedCompareExchangePointer(
@@ -441,6 +413,32 @@ xincbin_data_t xincbin_get(const char* name, xincbin_data_t* cache) {
 	return (xincbin_data_t){ .size = size, .data = copy };
 }
 
+#else
+#	define XINCBIN(NAME, FILENAME) INCBIN_EXTERN(unsigned char, NAME);
+#	define XINCBIN_GET(NAME) (xincbin_data_t){ \
+		.size = INCBIN_CONCATENATE(INCBIN_CONCATENATE(INCBIN_PREFIX, NAME), INCBIN_STYLE_IDENT(SIZE)), \
+		.data = INCBIN_CONCATENATE(INCBIN_CONCATENATE(INCBIN_PREFIX, NAME), INCBIN_STYLE_IDENT(DATA)), \
+	}
+#endif
+
+#else // RC_INVOKED
+
+#define XINCBIN(NAME, FILENAME) INCBIN_CONCATENATE(INCBIN_PREFIX, NAME) RCDATA FILENAME
+
+#endif
+
+#endif // Include guard
+
+#ifdef XINCBIN_IMPLEMENTATION
+
+#undef XINCBIN
+#ifdef XINCBIN_USE_WINRES
+#	define XINCBIN(NAME, FILENAME) \
+		const char* INCBIN_CONCATENATE(INCBIN_CONCATENATE(INCBIN_PREFIX, NAME), _name) = \
+			INCBIN_STRINGIZE(INCBIN_CONCATENATE(INCBIN_PREFIX, NAME)); \
+		xincbin_data_t INCBIN_CONCATENATE(INCBIN_CONCATENATE(INCBIN_PREFIX, NAME), _cache) = { 0, NULL };
+#else
+#	define XINCBIN(NAME, FILENAME) INCBIN_COMMON(unsigned char, NAME, FILENAME,);
 #endif
 
 #endif
