@@ -38,10 +38,23 @@
  * 4. Call @ref bco_reload_end on each one.
  *
  * @ref bsfn.h can be used to keep the function pointer stable across reload.
+ * @see BCO_WRAPPER
  */
 
 #include <stdbool.h>
 #include <stddef.h>
+
+/**
+ *  Customizable function wrapper
+ *
+ *  It should return a function of the same type.
+ *  By default, this is an identity macro (returning the same function).
+ *
+ *  @see BSFN
+ */
+#ifndef BCO_WRAPPER
+#	define BCO_WRAPPER(FN) FN
+#endif
 
 /*! Customizable linkage for API functions */
 #ifndef BCO_API
@@ -354,7 +367,7 @@
 	do { \
 		bco__spawn( \
 			CORO, \
-			bco__concat(bco__wrapper_, NAME), \
+			BCO_WRAPPER(bco__concat(bco__wrapper_, NAME)), \
 			sizeof(bco__arg_type(NAME)), \
 			_Alignof(bco__arg_type(NAME)), \
 			&(bco__arg_type(NAME)){ __VA_ARGS__ } \
