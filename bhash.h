@@ -15,7 +15,9 @@
 
 #ifndef BHASH_INDEX_TYPE
 #include <stdint.h>
+/*! The type used for indices, can be overridden */
 #define BHASH_INDEX_TYPE int32_t
+/*! The type used for hash values, can be overridden */
 #define BHASH_HASH_TYPE uint64_t
 #endif
 
@@ -27,9 +29,13 @@
 #include <string.h>
 #include <stdbool.h>
 
+/*! Index type used in the library */
 typedef BHASH_INDEX_TYPE bhash_index_t;
+/*! Hash value type used in the library */
 typedef BHASH_HASH_TYPE bhash_hash_t;
+/*! Hash function type */
 typedef bhash_hash_t (*bhash_hash_fn_t)(const void* key, size_t size);
+/*! Comparison function type */
 typedef bool (*bhash_eq_fn_t)(const void* lhs, const void* rhs, size_t size);
 
 /*! Configuration for a hash table */
@@ -74,6 +80,7 @@ typedef struct bhash_config_s {
  * Should be treated as opaque.
  */
 typedef struct bhash_base_s {
+	/// @cond INTERNAL
 	void* memctx;
 	bhash_hash_fn_t hash;
 	bhash_eq_fn_t eq;
@@ -87,6 +94,7 @@ typedef struct bhash_base_s {
 	bhash_index_t len;
 	bhash_index_t free_space;
 	bhash_index_t exp;
+	/// @endcond
 } bhash_base_t;
 
 /*! Result of @ref bhash_alloc */
@@ -133,7 +141,7 @@ typedef struct {
  *
  * @param KEY key variable
  * @param VALUE value variable
- * @paaram TABLE table to iterate
+ * @param TABLE table to iterate
  */
 #define BHASH_FOREACH(KEY, VALUE, TABLE) \
 	for (bhash_index_t bhash__itr = 0; bhash__itr < bhash_len(TABLE); ++bhash__itr) \
@@ -158,7 +166,7 @@ typedef struct {
  *
  * @param KEY key variable
  * @param VALUE value variable
- * @paaram TABLE table to iterate
+ * @param TABLE table to iterate
  */
 #define BHASH_FOREACH_REF(KEY, VALUE, TABLE) \
 	for (bhash_index_t bhash__itr = 0; bhash__itr < bhash_len(TABLE); ++bhash__itr) \
@@ -182,7 +190,7 @@ typedef struct {
  * The key will be copied to the iterators
  *
  * @param KEY key variable
- * @paaram TABLE table to iterate
+ * @param TABLE table to iterate
  */
 #define BHASH_FOREACH_KEY(KEY, TABLE) \
 	for (bhash_index_t bhash__itr = 0; bhash__itr < bhash_len(TABLE); ++bhash__itr) \
@@ -203,7 +211,7 @@ typedef struct {
  * The key will be referenced using pointers
  *
  * @param KEY key variable
- * @paaram TABLE table to iterate
+ * @param TABLE table to iterate
  */
 #define BHASH_FOREACH_KEY_REF(KEY, TABLE) \
 	for (bhash_index_t bhash__itr = 0; bhash__itr < bhash_len(TABLE); ++bhash__itr) \
@@ -224,7 +232,7 @@ typedef struct {
  * The value will be copied to the iterators
  *
  * @param VALUE value variable
- * @paaram TABLE table to iterate
+ * @param TABLE table to iterate
  */
 #define BHASH_FOREACH_VALUE(VALUE, TABLE) \
 	for (bhash_index_t bhash__itr = 0; bhash__itr < bhash_len(TABLE); ++bhash__itr) \
@@ -245,7 +253,7 @@ typedef struct {
  * The value will be referenced using pointers
  *
  * @param VALUE value variable
- * @paaram TABLE table to iterate
+ * @param TABLE table to iterate
  */
 #define BHASH_FOREACH_VALUE_REF(VALUE, TABLE) \
 	for (bhash_index_t bhash__itr = 0; bhash__itr < bhash_len(TABLE); ++bhash__itr) \
@@ -264,10 +272,11 @@ typedef struct {
 
 /*! A sample hashtable */
 typedef struct {
+	/*! The implementation details, should be treated as opaque */
 	bhash_base_t base;
-	/*! All keys of the table as a contiguouos array */
+	/*! All keys of the table as a contiguous array */
 	K* keys;
-	/*! All values of the table as a contiguouos array */
+	/*! All values of the table as a contiguous array */
 	V* values;
 } bhash_sample_t;
 
@@ -277,7 +286,7 @@ typedef struct {
  * @brief Initialize a hashtable.
  *
  * @param table Address of the hashtable (defined with @ref BHASH_TABLE).
- * @param config The configuration (@ref bhash_config_t).
+ * @param ... The configuration (@ref bhash_config_t).
  *
  * @see bhash_sample_t
  */
@@ -306,7 +315,7 @@ typedef struct {
  * Same as a hashtable but without values.
  *
  * @param table Address of the hashtable (defined with @ref BHASH_SET).
- * @param config The configuration (@ref bhash_config_t).
+ * @param ... The configuration (@ref bhash_config_t).
  *
  * @see bhash_sample_t
  */
@@ -503,11 +512,13 @@ bhash__chibihash64(const void *keyIn, ptrdiff_t len, uint64_t seed) {
 
 // }}}
 
+/*! Default hash function */
 static inline bhash_hash_t
 bhash_hash(const void* key, size_t size) {
 	return (bhash_hash_t)bhash__chibihash64(key, size, 0);
 }
 
+/*! Default comparison function */
 static inline bool
 bhash_eq(const void* lhs, const void* rhs, size_t size) {
 	return memcmp(lhs, rhs, size) == 0;
@@ -526,6 +537,7 @@ bhash_config_default(void) {
 	};
 }
 
+/*! Default configuration with a memory context */
 static inline bhash_config_t
 bhash_config(void* memctx) {
 	return (bhash_config_t){

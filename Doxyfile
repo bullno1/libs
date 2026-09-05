@@ -950,16 +950,22 @@ WARN_LOGFILE           =
 # Note: If this tag is empty the current directory is searched.
 
 INPUT                  = mainpage.md \
+	autolist.h \
+	btest.h \
 	bresmon.h \
 	bco.h \
 	bhash.h \
+	bhamt.h \
 	bserial.h \
 	bspscq.h \
 	bseg.h \
 	bent.h \
 	bsv.h \
+	bscn.h \
 	bstacktrace.h \
 	bcrash_handler.h \
+	bsfn.h \
+	barg.h \
 
 
 # This tag can be used to specify the character encoding of the source files
@@ -1089,7 +1095,7 @@ EXCLUDE_PATTERNS       =
 # wildcard * is used, a substring. Examples: ANamespace, AClass,
 # ANamespace::AClass, ANamespace::*Test
 
-EXCLUDE_SYMBOLS        =
+EXCLUDE_SYMBOLS        = *__*
 
 # The EXAMPLE_PATH tag can be used to specify one or more files or directories
 # that contain example code fragments that are included (see the \include
@@ -2430,7 +2436,7 @@ INCLUDE_FILE_PATTERNS  =
 # This tag requires that the tag ENABLE_PREPROCESSING is set to YES.
 
 PREDEFINED             = DOXYGEN \
-	BRESMON_API BCORO_API BHASH_API BSERIAL_API BENT_API BSERIAL_MEM BSERIAL_STDIO
+	BRESMON_API BCORO_API BHASH_API BSERIAL_API BENT_API BSFN_API BSERIAL_MEM BSERIAL_STDIO
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then this
 # tag can be used to specify a list of macro names that should be expanded. The
@@ -2820,15 +2826,6 @@ DOT_GRAPH_MAX_NODES    = 50
 # This tag requires that the tag HAVE_DOT is set to YES.
 
 MAX_DOT_GRAPH_DEPTH    = 0
-
-# Set the DOT_MULTI_TARGETS tag to YES to allow dot to generate multiple output
-# files in one run (i.e. multiple -o and -T options on the command line). This
-# makes dot run faster, but since only newer versions of dot (>1.8.10) support
-# this, this feature is disabled by default.
-# The default value is: NO.
-# This tag requires that the tag HAVE_DOT is set to YES.
-
-DOT_MULTI_TARGETS      = NO
 
 # If the GENERATE_LEGEND tag is set to YES doxygen will generate a legend page
 # explaining the meaning of the various boxes and arrows in the dot generated

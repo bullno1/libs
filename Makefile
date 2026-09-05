@@ -12,13 +12,14 @@ all: \
 	bin/bserial \
 	bin/bspscq \
 	bin/barray \
-	bin/bsv
+	bin/bsv \
+	bin/bsfn
 
 clean:
 	rm -rf bin
 	rm -rf doc
 
-test: bin/test-all bin/bserial bin/bhash bin/bspscq
+test: bin/test-all bin/bserial bin/bhash bin/bspscq bin/bsfn
 	@set -e; \
 	for p in $^; do \
 		./$$p; \
@@ -67,6 +68,15 @@ bin/bserial: \
 	mkdir -p bin
 	$(CC) $(CFLAGS) $(filter-out %.h, $^) -o $@
 
+bin/bsfn: \
+		bsfn.h tests/bsfn/module/module.c \
+		tests/bsfn/basic.c tests/bsfn/no_reload.c tests/bsfn/reload.c \
+		tests/bsfn/main.c
+	mkdir -p bin
+	$(CC) $(CFLAGS) -fPIC -shared -DBSFN_MODULE_VARIANT=1 tests/bsfn/module/module.c -o bin/bsfn_module1.so
+	$(CC) $(CFLAGS) -fPIC -shared -DBSFN_MODULE_VARIANT=2 tests/bsfn/module/module.c -o bin/bsfn_module2.so
+	$(CC) $(CFLAGS) $(filter-out %.h tests/bsfn/module/%, $^) -o $@ -ldl
+
 bin/bspscq: tests/bspscq/main.c bspscq.h
 	mkdir -p bin
 	$(CC) $(CFLAGS) -Itests/bspscq $(filter-out %.h, $^) -o $@
@@ -74,9 +84,11 @@ bin/bspscq: tests/bspscq/main.c bspscq.h
 bin/test-all: \
 		barray.h tests/barray/main.c \
 		bseg.h tests/bseg/main.c \
+		bhamt.h barena.h tests/bhamt/main.c \
 		bent.h tests/bent/shared.c tests/bent/component.c tests/bent/system.c tests/bent/reload.c \
 		bsv.h tests/bsv/shared.c tests/bsv/basic.c tests/bsv/versioning.c \
-		bco.h tests/bco/shared.c tests/bco/basic.c tests/bco/cleanup.c tests/bco/subcoro.c tests/bco/clone.c \
+		bscn.h tests/bscn/shared.c tests/bscn/basic.c tests/bscn/pos.c tests/bscn/sub.c \
+		bco.h tests/bco/shared.c tests/bco/basic.c tests/bco/cleanup.c tests/bco/subcoro.c tests/bco/clone.c tests/bco/relocate.c \
 		tests/main.c
 	mkdir -p bin
 	$(CC) $(CFLAGS) $(filter-out %.h, $^) -o $@

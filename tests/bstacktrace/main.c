@@ -62,4 +62,3 @@ BTEST(bstacktrace_, basic) {
 
 #define BLIB_IMPLEMENTATION
 #include "../../bstacktrace.h"
-#include "../../barena.h"

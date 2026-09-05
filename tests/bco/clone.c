@@ -52,8 +52,10 @@ bco_static(counter, int to) {
 	bco_vars(int i;)
 	bco_begin
 	for (bco_var(i) = 0; bco_var(i) < bco_arg(to); ++bco_var(i)) {
-		const clone_env_t* env = bco_userdata;
-		trace("%s:%d:own=%d", env->name, bco_var(i), owns(env, &bco_var(i)));
+		{  // Scoped so that it does not live across the yield below
+			const clone_env_t* env = bco_userdata;
+			trace("%s:%d:own=%d", env->name, bco_var(i), owns(env, &bco_var(i)));
+		}
 		bco_yield();
 	}
 	bco_end
@@ -125,8 +127,10 @@ bco_static(clone_sub, int rounds) {
 	bco_vars(int i;)
 	bco_begin
 	for (bco_var(i) = 0; bco_var(i) < bco_arg(rounds); ++bco_var(i)) {
-		const clone_env_t* env = bco_userdata;
-		trace("%s:sub:%d:own=%d", env->name, bco_var(i), owns(env, &bco_var(i)));
+		{  // Scoped so that it does not live across the yield below
+			const clone_env_t* env = bco_userdata;
+			trace("%s:sub:%d:own=%d", env->name, bco_var(i), owns(env, &bco_var(i)));
+		}
 		bco_yield();
 	}
 	bco_end

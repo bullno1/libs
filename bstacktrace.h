@@ -30,6 +30,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+/*! Customizable linkage for API functions */
 #ifndef BSTACKTRACE_API
 #define BSTACKTRACE_API
 #endif
@@ -129,6 +130,7 @@ typedef enum {
 	BSTACKTRACE_RESOLVE_DIRECT    = 1 << 5,
 } bstacktrace_resolve_flag_t;
 
+/*! A combination of @ref bstacktrace_resolve_flag_t values */
 typedef int bstacktrace_resolve_flags_t;
 
 /**

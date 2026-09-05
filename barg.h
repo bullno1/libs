@@ -1,6 +1,31 @@
 #ifndef BARG_H
 #define BARG_H
 
+/**
+ * @file
+ * @brief Command line argument parser.
+ *
+ * In **exactly one** source file, define `BARG_IMPLEMENTATION` before including barg.h.
+ *
+ * Declare the options in an array of @ref barg_opt_t, reference it from a
+ * @ref barg_t and call @ref barg_parse.
+ * Parsed values are written through the parsers assigned to each option
+ * (@ref barg_int, @ref barg_boolean, @ref barg_str, @ref barg_array or a
+ * custom @ref barg_opt_parser_t).
+ *
+ * Both `--option value` and `--option=value` are accepted, as well as
+ * `-o value` and `-ovalue` for short names.
+ * A lone `--` marks the end of options.
+ *
+ * Use @ref barg_print_result to report an error or print the help text
+ * depending on the result of @ref barg_parse.
+ *
+ * Example:
+ *
+ * @snippet samples/barg.c barg_opt
+ * @snippet samples/barg.c barg_parse
+ */
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -9,74 +34,241 @@
 #define BARG_API
 #endif
 
+/**
+ * @brief Parser for an option's value.
+ *
+ * Example:
+ *
+ * @snippet samples/barg.c barg_custom_parser
+ *
+ * @see barg_int
+ * @see barg_boolean
+ * @see barg_str
+ * @see barg_array
+ */
 typedef struct {
+	/*! Arbitrary context passed to @ref parse */
 	void* userdata;
+
+	/**
+	 * @brief Parse the value of an option.
+	 *
+	 * @param userdata The @ref userdata field.
+	 * @param value The raw string value.
+	 *   `NULL` when the option is a boolean flag.
+	 * @return `NULL` on success, or an error message on failure.
+	 */
 	const char* (*parse)(void* userdata, const char* value);
 } barg_opt_parser_t;
 
+/**
+ * @brief A command line option.
+ *
+ * Example:
+ *
+ * @snippet samples/barg.c barg_opt
+ */
 typedef struct {
+	/*! Long name, used as `--name` (optional) */
 	const char* name;
+	/*! Short name, used as `-x` (optional) */
 	char short_name;
+	/*! One line summary, shown next to the option in the help text (optional) */
 	const char* summary;
+	/*! Detailed, potentially multiline description, shown in the help text (optional) */
 	const char* description;
+	/*! Name for the option's value in the help text, defaults to `value` (optional) */
 	const char* value_name;
+	/*! Whether this option is a boolean flag that takes no value */
 	bool boolean;
+	/*! Whether this option can be specified more than once */
 	bool repeatable;
+	/*! Whether to hide this option from the help text */
 	bool hidden;
+	/*! How to parse this option's value */
 	barg_opt_parser_t parser;
 
 	// Private
+	/*! @cond */
 	int barg__count;
 	size_t barg__name_len;
+	/*! @endcond */
 } barg_opt_t;
 
+/*! Status of a parse */
 typedef enum {
+	/*! All options were parsed successfully */
 	BARG_OK,
+	/*! An argument could not be parsed */
 	BARG_PARSE_ERROR,
+	/*! The help option was invoked and the help text should be shown */
 	BARG_SHOW_HELP,
 } barg_status_t;
 
+/**
+ * @brief Result of a parse.
+ *
+ * @see barg_parse
+ * @see barg_print_result
+ */
 typedef struct {
+	/*! Status of the parse */
 	barg_status_t status;
+	/**
+	 * @brief Index into `argv`.
+	 *
+	 * On @ref BARG_OK, this is the index of the first positional argument.
+	 * It is equal to `argc` when there is none.
+	 *
+	 * On @ref BARG_PARSE_ERROR, this is the index of the offending argument.
+	 */
 	int arg_index;
+	/*! The offending value on @ref BARG_PARSE_ERROR */
 	const char* value;
+	/*! The error message on @ref BARG_PARSE_ERROR */
 	const char* message;
 } barg_result_t;
 
+/**
+ * @brief Configuration for @ref barg_array.
+ *
+ * This must stay alive for the duration of @ref barg_parse.
+ */
 typedef struct {
+	/*! Size in bytes of an array element */
 	size_t element_size;
+	/**
+	 * @brief Parser for a single element.
+	 *
+	 * Its `userdata` must initially point at the first element of the output
+	 * array.
+	 * It will be advanced by @ref element_size after each parsed element.
+	 */
 	barg_opt_parser_t element_parser;
+	/*! Capacity of the output array */
 	int max_num_elements;
 
-	int num_elements;  // Must be initialized to 0
+	/**
+	 * @brief Number of elements parsed so far.
+	 *
+	 * Must be initialized to 0.
+	 */
+	int num_elements;
 } barg_array_opts_t;
 
+/*! The argument parser */
 typedef struct {
+	/*! Number of options in @ref opts */
 	int num_opts;
+	/*! The options */
 	barg_opt_t* opts;
+	/*! Whether positional arguments are allowed */
 	bool allow_positional;
+	/*! Usage line, shown at the top of the help text (optional) */
 	const char* usage;
+	/*! Summary of the program, shown in the help text (optional) */
 	const char* summary;
 } barg_t;
 
+/**
+ * @brief Parse the command line arguments.
+ *
+ * `argv[0]` is assumed to be the program name and is skipped.
+ * Parsing stops at the first positional argument or at a lone `--`.
+ *
+ * @param barg The parser.
+ * @param argc Number of arguments, as passed to `main`.
+ * @param argv The arguments, as passed to `main`.
+ * @return The result of the parse.
+ *   On @ref BARG_OK, `arg_index` is the index of the first positional argument.
+ *
+ * Example:
+ *
+ * @snippet samples/barg.c barg_parse
+ *
+ * @see barg_print_result
+ */
 BARG_API barg_result_t
 barg_parse(barg_t* barg, int argc, const char* argv[]);
 
+/**
+ * @brief Print the result of a parse.
+ *
+ * On @ref BARG_PARSE_ERROR, print the error message.
+ * On @ref BARG_SHOW_HELP, print the help text.
+ * Otherwise, print nothing.
+ *
+ * @param barg The parser previously passed to @ref barg_parse.
+ * @param result The result returned by @ref barg_parse.
+ * @param file Where to print to.
+ */
 BARG_API void
 barg_print_result(barg_t* barg, barg_result_t result, FILE* file);
 
+/**
+ * @brief Create a parser that parses the value as an `int`.
+ *
+ * @param out Where to store the parsed value.
+ *   This must stay alive for the duration of @ref barg_parse.
+ * @return The parser.
+ */
 BARG_API barg_opt_parser_t
 barg_int(int* out);
 
+/**
+ * @brief Create a parser for a boolean flag.
+ *
+ * The output is set to `true` when the flag is present.
+ * The associated option should have @ref barg_opt_t.boolean set.
+ *
+ * @param out Where to store the parsed value.
+ *   This must stay alive for the duration of @ref barg_parse.
+ * @return The parser.
+ */
 BARG_API barg_opt_parser_t
 barg_boolean(bool* out);
 
+/**
+ * @brief Create a parser that stores the value as a string.
+ *
+ * The stored pointer refers to the original string in `argv`, no copy is made.
+ *
+ * @param out Where to store the parsed value.
+ *   This must stay alive for the duration of @ref barg_parse.
+ * @return The parser.
+ */
 BARG_API barg_opt_parser_t
 barg_str(const char** out);
 
+/**
+ * @brief Create a parser that collects values into a fixed size array.
+ *
+ * Each occurrence of the option appends one element.
+ * The associated option should have @ref barg_opt_t.repeatable set.
+ *
+ * @param options How to parse the elements.
+ *   This must stay alive for the duration of @ref barg_parse.
+ * @return The parser.
+ *
+ * Example:
+ *
+ * @snippet samples/barg.c barg_array
+ *
+ * @see barg_array_opts_t
+ */
 BARG_API barg_opt_parser_t
 barg_array(barg_array_opts_t* options);
 
+/**
+ * @brief Create the standard help option.
+ *
+ * This adds `-h, --help` which makes @ref barg_parse return
+ * @ref BARG_SHOW_HELP.
+ *
+ * @return The option, to be included in @ref barg_t.opts.
+ *
+ * @see barg_print_result
+ */
 BARG_API barg_opt_t
 barg_opt_help(void);
 
