@@ -27,8 +27,8 @@
  * A plain @ref bco_yield is identified by its line number, which changes
  * whenever the source is edited.
  * To survive a code reload, park the coroutine at a named point instead:
- * declare the names with @ref bco_yield_points and suspend with @ref bco_yield_at,
- * @ref bco_join_at or @ref bco_call_at.
+ * declare the names with @ref bco_yield_points and prefix the @ref bco_yield,
+ * @ref bco_join or @ref bco_call with @ref bco_at.
  *
  * The host then drives a reload as follows:
  *
@@ -284,9 +284,9 @@
 #define bco_yield() \
 	do { \
 		_Static_assert(bco__begin_declared == 1 && bco__end_declared == 0, "bco_yield can only be used *between* bco_begin and bco_end"); \
-		bco__on_yield(bco__coro, __LINE__); \
+		bco__on_yield(bco__coro, bco__resume_point); \
 		return; \
-		case __LINE__:; \
+		case bco__resume_point:; \
 	} while (0)
 
 /**
@@ -296,8 +296,7 @@
  * there can be resumed by a freshly reloaded build of the same function even
  * though all its line numbers changed.
  *
- * A name can be used by at most one @ref bco_yield_at, @ref bco_join_at or
- * @ref bco_call_at.
+ * A name can be used by at most one @ref bco_at.
  * The order of the names does not matter and may change between builds.
  *
  * Must be placed before @ref bco_begin and can only be used once.
@@ -308,7 +307,7 @@
  *
  * @snippet samples/bco.c bco_yield_points
  *
- * @see bco_yield_at
+ * @see bco_at
  * @see bco_reloadable
  *
  * @hideinitializer
@@ -322,27 +321,28 @@
 	static const char bco__yps[] = #__VA_ARGS__;
 
 /**
- * Yield the currently running coroutine at a named point
+ * Suspend at a named point so the coroutine survives a code reload
  *
- * Same as @ref bco_yield but the suspension is identified by `NAME` instead of
- * its line number, so it survives a code reload.
+ * Prefix a @ref bco_yield, @ref bco_join or @ref bco_call with this and the
+ * suspension is identified by `NAME` instead of its line number.
  *
  * `NAME` must have been declared with @ref bco_yield_points and each name can
  * only be used once per coroutine.
+ * It applies to the single statement that follows, which must contain exactly
+ * one suspension.
  *
  * Only valid between @ref bco_begin and @ref bco_end.
+ *
+ * Example:
+ *
+ * @snippet samples/bco.c bco_yield_points
  *
  * @see bco_yield_points
  *
  * @hideinitializer
  */
-#define bco_yield_at(NAME) \
-	do { \
-		_Static_assert(bco__begin_declared == 1 && bco__end_declared == 0, "bco_yield_at can only be used *between* bco_begin and bco_end"); \
-		bco__on_yield(bco__coro, -(NAME)); \
-		return; \
-		case -(NAME):; \
-	} while (0)
+#define bco_at(NAME) \
+	for (char (*bco__at)[NAME] = (void*)bco__coro; bco__at; bco__at = 0)
 
 /**
  * Spawn a coroutine
@@ -402,46 +402,6 @@
 	do { \
 		_Static_assert(bco__begin_declared == 1 && bco__end_declared == 0, "bco_join can only be used *between* bco_begin and bco_end"); \
 		while (bco_resume(CORO) != BCO_TERMINATED) { bco_yield(); } \
-	} while (0)
-
-/**
- * Spawn a subcoroutine and transfer control to it, waiting at a named point
- *
- * Same as @ref bco_call but the wait survives a code reload.
- *
- * @param NAME a name declared with @ref bco_yield_points
- * @param FN name of the entry function
- * @param ... arguments to pass to the function
- *
- * @see bco_yield_at
- *
- * @hideinitializer
- */
-#define bco_call_at(NAME, FN, ...) \
-	do { \
-		_Static_assert(bco__begin_declared == 1 && bco__end_declared == 0, "bco_call_at can only be used *between* bco_begin and bco_end"); \
-		bco_spawn(bco__alloc_subcoro(bco__coro), FN, __VA_ARGS__); \
-		bco_set_userdata(bco__subcoro(bco__coro), bco_get_userdata(bco__coro)); \
-		bco_join_at(NAME, bco__subcoro(bco__coro)); \
-		bco__free_subcoro(bco__coro); \
-	} while (0)
-
-/**
- * Wait for another coroutine to finish at a named point
- *
- * Same as @ref bco_join but the wait survives a code reload.
- *
- * @param NAME a name declared with @ref bco_yield_points
- * @param CORO the coroutine to wait for
- *
- * @see bco_yield_at
- *
- * @hideinitializer
- */
-#define bco_join_at(NAME, CORO) \
-	do { \
-		_Static_assert(bco__begin_declared == 1 && bco__end_declared == 0, "bco_join_at can only be used *between* bco_begin and bco_end"); \
-		while (bco_resume(CORO) != BCO_TERMINATED) { bco_yield_at(NAME); } \
 	} while (0)
 
 /**
@@ -588,7 +548,7 @@ bco_get_userdata(bco_t* coro);
  * @param coro the coroutine
  * @return whether it is safe to reload
  *
- * @see bco_yield_at
+ * @see bco_at
  * @see bco_reload_begin
  */
 BCO_API bool
@@ -642,6 +602,11 @@ bco_reload_end(bco_t* coro);
 //   <= -3        named yield point
 #define BCO__RELOCATE    (-2)
 #define BCO__NAMED_FIRST 3
+
+// bco_at shadows bco__at with a pointer whose type carries the name.
+// Only its type is inspected so this stays an integer constant expression and
+// the outer fallback never needs a definition.
+#define bco__resume_point (sizeof(*bco__at) > 1 ? -(int)sizeof(*bco__at) : __LINE__)
 
 #define bco__arg_type(NAME) bco__concat(bco__args_, NAME)
 
@@ -718,6 +683,7 @@ BCO_API void
 bco__relocate(bco_t* coro, const char* names, int count);
 
 extern const char bco__yps[];
+extern char (*bco__at)[1];
 
 enum {
 	bco__vars_declared = 0,
