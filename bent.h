@@ -670,8 +670,9 @@ bent_is_active(bent_world_t* world, bent_t entity);
  * @param arg argument to pass to @ref bent_comp_def_t::init
  * @return component data
  *
- * @remarks The returned pointer is temporary.
- *     Any further interaction with the same world may invalidate it.
+ * @remarks The returned pointer remains valid until the component is removed
+ *     from the entity or the entity is destroyed.
+ *     Component storage is never relocated.
  *
  * Example:
  *
@@ -709,8 +710,8 @@ bent_remove(bent_world_t* world, bent_t entity, bent_comp_reg_t comp);
  *
  * @remarks If the component has a zero size, this will always return `NULL`.
  *     For "tag" components, use @ref bent_has instead.
- *     The returned pointer is temporary.
- *     Any further interaction with the world may invalidate it.
+ *     The returned pointer remains valid until the component is removed
+ *     from the entity or the entity is destroyed.
  *
  * @see BENT_DEFINE_COMP_GETTER
  */
@@ -954,8 +955,8 @@ bent__libc_realloc(void* ptr, size_t size, void* ctx) {
 
 #define BARRAY_REALLOC BENT_REALLOC
 
-// We depend on barray but try to hide its symbols to avoid conflict.
-// If it is compiled in the same unit, honor the existing symbol decision>
+// We depend on barray and bseg but try to hide their symbols to avoid conflict.
+// If they are compiled in the same unit, honor the existing symbol decision.
 
 #ifndef BARRAY_IMPLEMENTATION
 #define BARRAY_API static inline
@@ -963,13 +964,16 @@ bent__libc_realloc(void* ptr, size_t size, void* ctx) {
 #include "barray.h"
 #endif
 
+#define BSEG_REALLOC BENT_REALLOC
+
+#ifndef BSEG_IMPLEMENTATION
+#define BSEG_API static inline
+#define BSEG_IMPLEMENTATION
+#include "bseg.h"
+#endif
+
 AUTOLIST_IMPL(bent__components)
 AUTOLIST_IMPL(bent__systems)
-
-typedef struct {
-	bent_index_t length;
-	uint8_t* data;
-} bent_dyn_array_t;
 
 typedef struct {
 	bent_bitset_t require;
@@ -983,7 +987,8 @@ typedef struct {
 } bent_system_data_t;
 
 typedef struct {
-	bent_dyn_array_t instances;
+	// Segmented so that component pointers are stable
+	bseg_t instances;
 	const bent_comp_def_t* def;
 	char* name;
 } bent_component_data_t;
@@ -1000,7 +1005,8 @@ struct bent_world_s {
 	bool defer_destruction;
 
 	barray(bent_system_data_t) systems;
-	barray(bent_entity_data_t) entities;
+	// Segmented so that entity data pointers stay valid across user callbacks
+	bseg(bent_entity_data_t) entities;
 	barray(bent_index_t) free_indices;
 	barray(bent_t) destroy_queue;
 	bent_component_data_t components[BENT_MAX_NUM_COMPONENT_TYPES];
@@ -1015,43 +1021,30 @@ bent_strcpy(const char* str, void* memctx) {
 	return copy;
 }
 
-// dyn_array {{{
+// component {{{
 
+// Instance of a component at an index that has already been allocated
 static void*
-bent_dyn_array_at(
-	bent_dyn_array_t* array,
-	bent_index_t index,
-	size_t elem_size
-) {
-	if (elem_size != 0) {
-		return array->data + (index * elem_size);
-	} else {
-		return NULL;
-	}
+bent_comp_instance(bent_component_data_t* comp, bent_index_t index) {
+	size_t size = comp->def->size;
+	return size != 0 ? bseg__at(&comp->instances, index, size) : NULL;
 }
 
-static void
-bent_dyn_array_ensure_length(
-	bent_dyn_array_t* array,
-	bent_index_t length,
-	size_t elem_size,
+// Instance of a component at an index, allocating storage if needed
+static void*
+bent_comp_ensure_instance(
+	bent_component_data_t* comp,
+	bent_index_t index,
 	void* memctx
 ) {
-	if (array->length >= length || elem_size == 0) { return; }
+	size_t size = comp->def->size;
+	if (size == 0) { return NULL; }
 
-	bent_index_t new_length = array->length * 2 > length ? array->length * 2 : length;
-	array->data = BENT_REALLOC(array->data, elem_size * new_length, memctx);
-	array->length = new_length;
+	if (index >= bseg__capacity(&comp->instances)) {
+		bseg__do_reserve(&comp->instances, (size_t)index + 1, size, memctx);
+	}
+	return bseg__at(&comp->instances, index, size);
 }
-
-static void
-bent_dyn_array_cleanup(bent_dyn_array_t* array, void* memctx) {
-	BENT_REALLOC(array->data, 0, memctx);
-}
-
-// }}}
-
-// component {{{
 
 static void
 bent_comp_init(
@@ -1070,7 +1063,7 @@ bent_comp_cleanup(
 	bent_world_t* world,
 	bent_component_data_t* comp
 ) {
-	bent_dyn_array_cleanup(&comp->instances, world->memctx);
+	bseg__do_free(&comp->instances, world->memctx);
 	BENT_REALLOC(comp->name, 0, world->memctx);
 }
 
@@ -1169,10 +1162,10 @@ bent_sys_init(
 		.require = old_require,
 		.exclude = old_exclude,
 	};
-	bent_index_t num_entities = (bent_index_t)barray_len(world->entities);
+	bent_index_t num_entities = (bent_index_t)bseg_len(world->entities);
 	for (bent_index_t i = 0; i < num_entities; ++i) {
-		const bent_entity_data_t* entity = &world->entities[i];
-		if (world->entities[i].destroyed) { continue; }
+		const bent_entity_data_t* entity = bseg_ref(world->entities, i);
+		if (entity->destroyed) { continue; }
 
 		const bent_bitset_t* components = &entity->components;
 		if (sys->initialized) {  // Existing system, do diff
@@ -1245,7 +1238,7 @@ bent_notify_systems(
 
 static void
 bent_destroy_immediately(bent_world_t* world, bent_t entity_id) {
-	bent_entity_data_t* entity_data = &world->entities[entity_id.index - 1];
+	bent_entity_data_t* entity_data = bseg_ref(world->entities, entity_id.index - 1);
 
 	const bent_bitset_t* components = &entity_data->components;
 
@@ -1265,11 +1258,7 @@ bent_destroy_immediately(bent_world_t* world, bent_t entity_id) {
 			&&
 			comp->def->cleanup
 		) {
-			comp->def->cleanup(bent_dyn_array_at(
-				&comp->instances,
-				entity_id.index - 1,
-				comp->def->size
-			));
+			comp->def->cleanup(bent_comp_instance(comp, entity_id.index - 1));
 		}
 	}
 
@@ -1281,9 +1270,9 @@ bent_destroy_immediately(bent_world_t* world, bent_t entity_id) {
 static bent_entity_data_t*
 bent_entity_data(bent_world_t* world, bent_t entity_id) {
 	bent_index_t index = entity_id.index - 1;  // 0 wraps around
-	if (index >= (bent_index_t)barray_len(world->entities)) { return NULL; }
+	if (index >= (bent_index_t)bseg_len(world->entities)) { return NULL; }
 
-	bent_entity_data_t* entity_data = &world->entities[index];
+	bent_entity_data_t* entity_data = bseg_ref(world->entities, index);
 	if (entity_data->generation != entity_id.gen) { return NULL; }
 
 	return entity_data;
@@ -1396,12 +1385,13 @@ bent_cleanup(bent_world_t** world_ptr) {
 	world = *world_ptr;
 #endif
 
-	bent_index_t num_entities = (bent_index_t)barray_len(world->entities);
+	bent_index_t num_entities = (bent_index_t)bseg_len(world->entities);
 	for (bent_index_t i = 0; i < num_entities; ++i) {
-		if (!world->entities[i].destroyed) {
+		const bent_entity_data_t* entity = bseg_ref(world->entities, i);
+		if (!entity->destroyed) {
 			bent_destroy_immediately(world, (bent_t){
 				.index = i + 1,
-				.gen = world->entities[i].generation,
+				.gen = entity->generation,
 			});
 		}
 	}
@@ -1417,7 +1407,7 @@ bent_cleanup(bent_world_t** world_ptr) {
 	}
 
 	barray_free(world->systems, world->memctx);
-	barray_free(world->entities, world->memctx);
+	bseg_free(world->entities, world->memctx);
 	barray_free(world->free_indices, world->memctx);
 	barray_free(world->destroy_queue, world->memctx);
 	BENT_REALLOC(world, 0, world->memctx);
@@ -1433,19 +1423,22 @@ bent_memctx(bent_world_t* world) {
 bent_t
 bent_create(bent_world_t* world) {
 	bent_index_t index;
+	bent_entity_data_t* entity_data;
 	if (barray_len(world->free_indices) > 0) {
 		index = barray_pop(world->free_indices);
-		world->entities[index].destroyed = false;
-		world->entities[index].destroy_later = false;
-		bent_bitset_clear(&world->entities[index].components);
+		entity_data = bseg_ref(world->entities, index);
+		entity_data->destroyed = false;
+		entity_data->destroy_later = false;
+		bent_bitset_clear(&entity_data->components);
 	} else {
-		index = (bent_index_t)barray_len(world->entities);
-		barray_push(world->entities, (bent_entity_data_t){ 0 }, world->memctx);
+		index = (bent_index_t)bseg_len(world->entities);
+		bseg_push(world->entities, (bent_entity_data_t){ 0 }, world->memctx);
+		entity_data = bseg_ref(world->entities, index);
 	}
 
 	bent_t entity_id = {
 		.index = index + 1,
-		.gen = world->entities[index].generation,
+		.gen = entity_data->generation,
 	};
 
 	// For completeness sake and also for consistent reload behavior, an empty
@@ -1493,14 +1486,9 @@ bent_add(bent_world_t* world, bent_t entity_id, bent_comp_reg_t reg, void* arg) 
 
 	if (!bent_bitset_check(&entity_data->components, comp_index)) {
 		// New component
-		size_t comp_size = comp_data->def->size;
-		bent_dyn_array_ensure_length(
-			&comp_data->instances,
-			entity_id.index,
-			comp_size,
-			world->memctx
+		void* instance = bent_comp_ensure_instance(
+			comp_data, entity_id.index - 1, world->memctx
 		);
-		void* instance = bent_dyn_array_at(&comp_data->instances, entity_id.index - 1, comp_size);
 		if (comp_data->def->init) {
 			comp_data->def->init(instance, arg);
 		} else if (instance != NULL) {
@@ -1518,7 +1506,7 @@ bent_add(bent_world_t* world, bent_t entity_id, bent_comp_reg_t reg, void* arg) 
 		return instance;
 	} else {
 		// Already added, return existing data
-		return bent_dyn_array_at(&comp_data->instances, entity_id.index - 1, comp_data->def->size);
+		return bent_comp_instance(comp_data, entity_id.index - 1);
 	}
 }
 
@@ -1536,8 +1524,7 @@ bent_remove(bent_world_t* world, bent_t entity_id, bent_comp_reg_t reg) {
 	bent_notify_systems(world, entity_id, &old_components, &new_components);
 
 	bent_component_data_t* comp_data = &world->components[comp_index];
-	size_t comp_size = comp_data->def->size;
-	void* instance = bent_dyn_array_at(&comp_data->instances, entity_id.index - 1, comp_size);
+	void* instance = bent_comp_instance(comp_data, entity_id.index - 1);
 	if (comp_data->def->cleanup) {
 		comp_data->def->cleanup(instance);
 	}
@@ -1553,7 +1540,7 @@ bent_get(bent_world_t* world, bent_t entity_id, bent_comp_reg_t reg) {
 	if (!bent_bitset_check(&entity_data->components, comp_index)) { return NULL; }
 
 	bent_component_data_t* comp_data = &world->components[comp_index];
-	return bent_dyn_array_at(&comp_data->instances, entity_id.index - 1, comp_data->def->size);
+	return bent_comp_instance(comp_data, entity_id.index - 1);
 }
 
 bool

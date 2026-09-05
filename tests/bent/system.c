@@ -231,3 +231,34 @@ BTEST(system, system_has_no_entity_list) {
 
 	bent_run(world, UPDATE_PHASE_A);
 }
+
+BENT_DECLARE_COMP(comp_spawner)
+BENT_DEFINE_POD_COMP(comp_spawner, int)
+
+static void
+spawn_entities_on_sys_remove_callback(void* data, bent_world_t* world, bent_t entity) {
+	// Grow the entity table while the caller still holds a reference into it
+	for (int i = 0; i < 1000; ++i) {
+		bent_create(world);
+	}
+}
+
+BENT_DEFINE_SYS(sys_spawn_entities_on_remove) = {
+	.require = BENT_COMP_LIST(&comp_spawner),
+	.remove = spawn_entities_on_sys_remove_callback,
+};
+
+BTEST(system, entity_table_grows_in_sys_remove_callback) {
+	bent_world_t* world = fixture.world;
+
+	bent_t ent = bent_create(world);
+	bent_add(world, ent, comp_spawner, NULL);
+	bent_remove(world, ent, comp_spawner);
+	BTEST_EXPECT(bent_is_active(world, ent));
+	BTEST_EXPECT(!bent_has(world, ent, comp_spawner));
+
+	bent_t ent2 = bent_create(world);
+	bent_add(world, ent2, comp_spawner, NULL);
+	bent_destroy(world, ent2);
+	BTEST_EXPECT(!bent_is_active(world, ent2));
+}
