@@ -80,13 +80,13 @@ static void run_worker_v3(bco_t* coro, void* args) { worker_v3(coro, args); }
 BTEST(relocate, fresh_and_terminated_coroutines_are_relocatable) {
 	worker_build = run_worker_v1;
 	bco_spawn(coro_a(), worker, 1);
-	BTEST_EXPECT(bco_relocatable(coro_a()));
-	BTEST_EXPECT(bco_relocate_begin(coro_a()));
-	BTEST_EXPECT(bco_relocate_end(coro_a()));
+	BTEST_EXPECT(bco_reloadable(coro_a()));
+	BTEST_EXPECT(bco_reload_begin(coro_a()));
+	BTEST_EXPECT(bco_reload_end(coro_a()));
 
 	drive(coro_a());
 	BTEST_EXPECT_EQUAL("%d", bco_status(coro_a()), BCO_TERMINATED);
-	BTEST_EXPECT(bco_relocatable(coro_a()));
+	BTEST_EXPECT(bco_reloadable(coro_a()));
 }
 
 BTEST(relocate, only_named_points_are_relocatable) {
@@ -94,11 +94,11 @@ BTEST(relocate, only_named_points_are_relocatable) {
 	bco_spawn(coro_a(), worker, 1);
 
 	bco_resume(coro_a());  // WAIT_A
-	BTEST_EXPECT(bco_relocatable(coro_a()));
+	BTEST_EXPECT(bco_reloadable(coro_a()));
 	bco_resume(coro_a());  // WAIT_B
-	BTEST_EXPECT(bco_relocatable(coro_a()));
+	BTEST_EXPECT(bco_reloadable(coro_a()));
 	bco_resume(coro_a());  // plain bco_yield
-	BTEST_EXPECT(!bco_relocatable(coro_a()));
+	BTEST_EXPECT(!bco_reloadable(coro_a()));
 }
 
 BTEST(relocate, refused_begin_leaves_the_coroutine_runnable) {
@@ -108,7 +108,7 @@ BTEST(relocate, refused_begin_leaves_the_coroutine_runnable) {
 	bco_resume(coro_a());
 	bco_resume(coro_a());  // plain bco_yield
 
-	BTEST_EXPECT(!bco_relocate_begin(coro_a()));
+	BTEST_EXPECT(!bco_reload_begin(coro_a()));
 
 	drive(coro_a());
 	BCO_EXPECT_TRACE("v1:a0 v1:b0 v1:line0 v1:cleanup");
@@ -120,9 +120,9 @@ BTEST(relocate, resumes_in_the_new_build_by_name) {
 	for (int i = 0; i < 5; ++i) { bco_resume(coro_a()); }
 	BCO_EXPECT_TRACE("v1:a0 v1:b0 v1:line0 v1:a1 v1:b1");
 
-	BTEST_EXPECT(bco_relocate_begin(coro_a()));
+	BTEST_EXPECT(bco_reload_begin(coro_a()));
 	worker_build = run_worker_v2;
-	BTEST_EXPECT(bco_relocate_end(coro_a()));
+	BTEST_EXPECT(bco_reload_end(coro_a()));
 
 	// Continues right after WAIT_B of the new build, with its variables intact
 	drive(coro_a());
@@ -136,9 +136,9 @@ BTEST(relocate, a_vanished_point_terminates_with_cleanup) {
 	bco_resume(coro_a());
 	bco_resume(coro_a());  // WAIT_B
 
-	BTEST_EXPECT(bco_relocate_begin(coro_a()));
+	BTEST_EXPECT(bco_reload_begin(coro_a()));
 	worker_build = run_worker_v3;
-	BTEST_EXPECT(!bco_relocate_end(coro_a()));
+	BTEST_EXPECT(!bco_reload_end(coro_a()));
 
 	BCO_EXPECT_TRACE("v1:a0 v1:b0 v3:cleanup");
 	BTEST_EXPECT_EQUAL("%d", bco_status(coro_a()), BCO_TERMINATED);
@@ -197,14 +197,14 @@ BTEST(relocate, every_link_of_the_chain_must_be_named) {
 	worker_build = run_parent_v1;
 	bco_spawn(coro_a(), worker, 0);
 	bco_resume(coro_a());  // parent at WAIT_LEAF, leaf at LEAF_WAIT
-	BTEST_EXPECT(bco_relocatable(coro_a()));
+	BTEST_EXPECT(bco_reloadable(coro_a()));
 	bco_resume(coro_a());  // leaf at a plain yield
-	BTEST_EXPECT(!bco_relocatable(coro_a()));
+	BTEST_EXPECT(!bco_reloadable(coro_a()));
 
 	worker_build = run_parent_line;
 	bco_spawn(coro_a(), worker, 0);
 	bco_resume(coro_a());  // parent at a plain bco_call, leaf at LEAF_WAIT
-	BTEST_EXPECT(!bco_relocatable(coro_a()));
+	BTEST_EXPECT(!bco_reloadable(coro_a()));
 }
 
 BTEST(relocate, relocates_the_whole_chain) {
@@ -214,9 +214,9 @@ BTEST(relocate, relocates_the_whole_chain) {
 	bco_resume(coro_a());
 	BCO_EXPECT_TRACE("parent:enter leaf1:enter");
 
-	BTEST_EXPECT(bco_relocate_begin(coro_a()));
+	BTEST_EXPECT(bco_reload_begin(coro_a()));
 	leaf_build = run_leaf_v2;
-	BTEST_EXPECT(bco_relocate_end(coro_a()));
+	BTEST_EXPECT(bco_reload_end(coro_a()));
 
 	drive(coro_a());
 	BCO_EXPECT_TRACE(
@@ -242,9 +242,9 @@ BTEST(relocate, join_at_is_relocatable) {
 	bco_spawn(coro_a(), worker, 0);
 
 	bco_resume(coro_a());
-	BTEST_EXPECT(bco_relocatable(coro_a()));
-	BTEST_EXPECT(bco_relocate_begin(coro_a()));
-	BTEST_EXPECT(bco_relocate_end(coro_a()));
+	BTEST_EXPECT(bco_reloadable(coro_a()));
+	BTEST_EXPECT(bco_reload_begin(coro_a()));
+	BTEST_EXPECT(bco_reload_end(coro_a()));
 
 	drive(coro_a());
 	BCO_EXPECT_TRACE("joiner:start leaf1:enter leaf1:line leaf1:cleanup joiner:done");

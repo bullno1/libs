@@ -32,13 +32,12 @@
  *
  * The host then drives a reload as follows:
  *
- * 1. Check every live coroutine with @ref bco_relocatable and postpone if any is not.
- * 2. Call @ref bco_relocate_begin on each one while the old code is still loaded.
+ * 1. Check every live coroutine with @ref bco_reloadable and postpone if any is not.
+ * 2. Call @ref bco_reload_begin on each one while the old code is still loaded.
  * 3. Swap the code.
- * 4. Call @ref bco_relocate_end on each one.
+ * 4. Call @ref bco_reload_end on each one.
  *
- * Making the coroutine's function pointer survive the swap is outside the
- * scope of this library, as is keeping the layout of @ref bco_vars compatible.
+ * @ref bsfn.h can be used to keep the function pointer stable across reload.
  */
 
 #include <stdbool.h>
@@ -280,9 +279,8 @@
  * there can be resumed by a freshly reloaded build of the same function even
  * though all its line numbers changed.
  *
- * Each name becomes a constant scoped to the coroutine function.
  * A name can be used by at most one @ref bco_yield_at, @ref bco_join_at or
- * @ref bco_call_at, which is enforced at compile time.
+ * @ref bco_call_at.
  * The order of the names does not matter and may change between builds.
  *
  * Must be placed before @ref bco_begin and can only be used once.
@@ -294,7 +292,7 @@
  * @snippet samples/bco.c bco_yield_points
  *
  * @see bco_yield_at
- * @see bco_relocatable
+ * @see bco_reloadable
  *
  * @hideinitializer
  */
@@ -567,41 +565,38 @@ bco_get_userdata(bco_t* coro);
  * every live coroutine.
  *
  * @param coro the coroutine
- * @return whether it is safe to relocate
+ * @return whether it is safe to reload
  *
  * @see bco_yield_at
- * @see bco_relocate_begin
+ * @see bco_reload_begin
  */
 BCO_API bool
-bco_relocatable(bco_t* coro);
+bco_reloadable(bco_t* coro);
 
 /**
  * Prepare a coroutine for a code reload
  *
  * Must be called while the old code is still loaded.
- * It records where the coroutine is parked in a way that does not depend on
- * the old code.
  *
- * Returns false and does nothing if the coroutine is not @ref bco_relocatable,
+ * Returns false and does nothing if the coroutine is not @ref bco_reloadable,
  * in which case the reload has to be postponed.
  * The coroutine can keep running as normal after a refused or abandoned begin.
  *
- * Otherwise the coroutine must not be resumed until @ref bco_relocate_end.
+ * Otherwise the coroutine must not be resumed until @ref bco_reload_end.
  *
  * @param coro the coroutine
  * @return whether the coroutine is ready for the swap
  *
- * @see bco_relocate_end
+ * @see bco_reload_end
  */
 BCO_API bool
-bco_relocate_begin(bco_t* coro);
+bco_reload_begin(bco_t* coro);
 
 /**
  * Finish relocating a coroutine after a code reload
  *
- * Must be called after @ref bco_relocate_begin and after the coroutine's
+ * Must be called after @ref bco_reload_begin and after the coroutine's
  * function has been swapped to the new build.
- * The recorded point is looked up in the new build's @ref bco_yield_points.
  *
  * If the name no longer exists, the coroutine is terminated and its cleanup
  * section runs, exactly as with @ref bco_terminate.
@@ -609,10 +604,10 @@ bco_relocate_begin(bco_t* coro);
  * @param coro the coroutine
  * @return whether every coroutine in the chain found its point
  *
- * @see bco_relocate_begin
+ * @see bco_reload_begin
  */
 BCO_API bool
-bco_relocate_end(bco_t* coro);
+bco_reload_end(bco_t* coro);
 
 // Private
 
@@ -732,7 +727,7 @@ struct bco_s {
 	void* userdata;
 	bco_t* subcoro;
 	int resume_point;
-	unsigned int named_point;  // Only meaningful between bco_relocate_begin and bco_relocate_end
+	unsigned int named_point;  // Only meaningful between bco_reload_begin and bco_reload_end
 	bool relocating;
 	bool relocate_found;
 	bco_status_t status;
@@ -745,7 +740,7 @@ _Static_assert(_Alignof(bco_t) == _Alignof(bco_align_t), "Alignment mismatch");
 bco_status_t
 bco_resume(bco_t* coro) {
 	if (coro->status != BCO_SUSPENDED) { return coro->status; }
-	BCO_ASSERT(!coro->relocating, "Coroutine was resumed between bco_relocate_begin and bco_relocate_end");
+	BCO_ASSERT(!coro->relocating, "Coroutine was resumed between bco_reload_begin and bco_reload_end");
 
 	coro->status = BCO_RUNNING;
 	coro->sp = coro->bp;
@@ -931,10 +926,10 @@ bco__relocate(bco_t* coro, const char* names, int count) {
 }
 
 bool
-bco_relocatable(bco_t* coro) {
+bco_reloadable(bco_t* coro) {
 	if (coro->status != BCO_SUSPENDED || coro->resume_point == 0) { return true; }
 	if (!bco__at_named_point(coro)) { return false; }
-	return coro->subcoro == NULL || bco_relocatable(coro->subcoro);
+	return coro->subcoro == NULL || bco_reloadable(coro->subcoro);
 }
 
 // Enter the coroutine's function with a relocate request and let bco_begin
@@ -949,10 +944,10 @@ bco__relocate_call(bco_t* coro) {
 }
 
 bool
-bco_relocate_begin(bco_t* coro) {
-	if (!bco_relocatable(coro)) { return false; }
+bco_reload_begin(bco_t* coro) {
+	if (!bco_reloadable(coro)) { return false; }
 	if (coro->status != BCO_SUSPENDED || coro->resume_point == 0) { return true; }
-	BCO_ASSERT(!coro->relocating, "bco_relocate_begin was called twice");
+	BCO_ASSERT(!coro->relocating, "bco_reload_begin was called twice");
 
 	int resume_point = coro->resume_point;
 	coro->named_point = (unsigned int)resume_point;  // Tell bco__relocate which name to hash
@@ -960,13 +955,13 @@ bco_relocate_begin(bco_t* coro) {
 	coro->resume_point = resume_point;
 	coro->relocating = true;
 
-	return coro->subcoro == NULL || bco_relocate_begin(coro->subcoro);
+	return coro->subcoro == NULL || bco_reload_begin(coro->subcoro);
 }
 
 bool
-bco_relocate_end(bco_t* coro) {
+bco_reload_end(bco_t* coro) {
 	if (coro->status != BCO_SUSPENDED || coro->resume_point == 0) { return true; }
-	BCO_ASSERT(coro->relocating, "bco_relocate_end was called without bco_relocate_begin");
+	BCO_ASSERT(coro->relocating, "bco_reload_end was called without bco_reload_begin");
 
 	bco__relocate_call(coro);
 	coro->relocating = false;
@@ -976,7 +971,7 @@ bco_relocate_end(bco_t* coro) {
 		return false;
 	}
 
-	return coro->subcoro == NULL || bco_relocate_end(coro->subcoro);
+	return coro->subcoro == NULL || bco_reload_end(coro->subcoro);
 }
 
 #endif
