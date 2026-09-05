@@ -13,6 +13,7 @@ Collection of miscellaneous single-header libraries.
 |[barena.h](tests/barena)|Arena allocator|
 |[tlsf.h](tests/tlsf)|Adaptation of [jserv/tlsf-bsd](https://github.com/jserv/tlsf-bsd)|
 |[bhash.h](tests/bhash)|Hashtable|
+|[bhamt.h](tests/bhamt)|Hash trie, an arena-friendly associative map|
 |[barray.h](barray.h)|Dynamic array|
 |[bco.h](bco.h)|Coroutine|
 |[bserial.h](tests/bserial)|Binary serialization|

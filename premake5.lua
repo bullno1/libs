@@ -94,6 +94,8 @@ project "tests"
       "tests/main.c",
       "tests/barray/*.h",
       "tests/barray/*.c",
+      "tests/bhamt/*.h",
+      "tests/bhamt/*.c",
       "tests/bent/*.h",
       "tests/bent/*.c",
       "tests/bsv/*.h",
