@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>blibs: bsv_ctx_s Struct Reference</title>
+<title>blibs: autolist_entry_t Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -72,31 +72,39 @@ $(function() {
 <div class="header">
   <div class="summary">
 <a href="#pub-attribs">Public Attributes</a> &#124;
-<a href="structbsv__ctx__s-members.html">List of all members</a>  </div>
-  <div class="headertitle"><div class="title">bsv_ctx_s Struct Reference</div></div>
+<a href="structautolist__entry__t-members.html">List of all members</a>  </div>
+  <div class="headertitle"><div class="title">autolist_entry_t Struct Reference</div></div>
 </div><!--header-->
 <div class="contents">
 
-<p>Serialization context.  
- <a href="structbsv__ctx__s.html#details">More...</a></p>
+<p>An entry of a list.  
+ <a href="structautolist__entry__t.html#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="bsv_8h_source.html">bsv.h</a>&gt;</code></p>
+<p><code>#include &lt;<a class="el" href="autolist_8h_source.html">autolist.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:a4109a71e950a580a8a170b4df048b2a1" id="r_a4109a71e950a580a8a170b4df048b2a1"><td class="memItemLeft" align="right" valign="top"><a id="a4109a71e950a580a8a170b4df048b2a1" name="a4109a71e950a580a8a170b4df048b2a1"></a>
-<a class="el" href="bsv_8h.html#a8b04e3ec60d3338c751600abe8f974c8">bsv_in_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>in</b></td></tr>
-<tr class="memdesc:a4109a71e950a580a8a170b4df048b2a1"><td class="mdescLeft">&#160;</td><td class="mdescRight">(Optional) Input stream <br /></td></tr>
-<tr class="separator:a4109a71e950a580a8a170b4df048b2a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1e1bee113c0c92fc084db2e792de3150" id="r_a1e1bee113c0c92fc084db2e792de3150"><td class="memItemLeft" align="right" valign="top"><a id="a1e1bee113c0c92fc084db2e792de3150" name="a1e1bee113c0c92fc084db2e792de3150"></a>
-<a class="el" href="bsv_8h.html#af50e7d4f32c010f279bbe14f9882f857">bsv_out_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>out</b></td></tr>
-<tr class="memdesc:a1e1bee113c0c92fc084db2e792de3150"><td class="mdescLeft">&#160;</td><td class="mdescRight">(Optional) Output stream <br /></td></tr>
-<tr class="separator:a1e1bee113c0c92fc084db2e792de3150"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a59d1b21d20b5782ed63fda1785b7958c" id="r_a59d1b21d20b5782ed63fda1785b7958c"><td class="memItemLeft" align="right" valign="top"><a id="a59d1b21d20b5782ed63fda1785b7958c" name="a59d1b21d20b5782ed63fda1785b7958c"></a>
+const char *&#160;</td><td class="memItemRight" valign="bottom"><b>name</b></td></tr>
+<tr class="memdesc:a59d1b21d20b5782ed63fda1785b7958c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Name of the entry. <br /></td></tr>
+<tr class="separator:a59d1b21d20b5782ed63fda1785b7958c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abacc5460eb5ecdae43b8a05a0d8527f0" id="r_abacc5460eb5ecdae43b8a05a0d8527f0"><td class="memItemLeft" align="right" valign="top"><a id="abacc5460eb5ecdae43b8a05a0d8527f0" name="abacc5460eb5ecdae43b8a05a0d8527f0"></a>
+size_t&#160;</td><td class="memItemRight" valign="bottom"><b>name_length</b></td></tr>
+<tr class="memdesc:abacc5460eb5ecdae43b8a05a0d8527f0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Length of <a class="el" href="structautolist__entry__t.html#a59d1b21d20b5782ed63fda1785b7958c">autolist_entry_t::name</a>. <br /></td></tr>
+<tr class="separator:abacc5460eb5ecdae43b8a05a0d8527f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9e4eb6783ce2048ef8cfa8f0b330a8d8" id="r_a9e4eb6783ce2048ef8cfa8f0b330a8d8"><td class="memItemLeft" align="right" valign="top"><a id="a9e4eb6783ce2048ef8cfa8f0b330a8d8" name="a9e4eb6783ce2048ef8cfa8f0b330a8d8"></a>
+void *&#160;</td><td class="memItemRight" valign="bottom"><b>value_addr</b></td></tr>
+<tr class="memdesc:a9e4eb6783ce2048ef8cfa8f0b330a8d8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Address of the registered variable. <br /></td></tr>
+<tr class="separator:a9e4eb6783ce2048ef8cfa8f0b330a8d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6ff447d394e619b100a8b39e95c93540" id="r_a6ff447d394e619b100a8b39e95c93540"><td class="memItemLeft" align="right" valign="top"><a id="a6ff447d394e619b100a8b39e95c93540" name="a6ff447d394e619b100a8b39e95c93540"></a>
+size_t&#160;</td><td class="memItemRight" valign="bottom"><b>value_size</b></td></tr>
+<tr class="memdesc:a6ff447d394e619b100a8b39e95c93540"><td class="mdescLeft">&#160;</td><td class="mdescRight">Size of the registered variable. <br /></td></tr>
+<tr class="separator:a6ff447d394e619b100a8b39e95c93540"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Serialization context. </p>
+<div class="textblock"><p>An entry of a list. </p>
 </div><hr/>The documentation for this struct was generated from the following file:<ul>
-<li><a class="el" href="bsv_8h_source.html">bsv.h</a></li>
+<li><a class="el" href="autolist_8h_source.html">autolist.h</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

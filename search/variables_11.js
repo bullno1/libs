@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['write_0',['write',['../structbserial__out__s.html#a3e2efc8581edaf94befe53729a17f0b2',1,'bserial_out_s::write'],['../structbsv__out__s.html#ade905b067efd1508063dcf0860991827',1,'bsv_out_s::write']]]
+  ['update_0',['update',['../structbent__sys__def__t.html#acaba5a2f6982bb3b9405d7b5d1dc8dd4',1,'bent_sys_def_t']]],
+  ['update_5fmask_1',['update_mask',['../structbent__sys__def__t.html#a9c28a9adfb7d2b205fc9ae5e7f017ba9',1,'bent_sys_def_t']]]
 ];

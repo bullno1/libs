@@ -97,12 +97,15 @@ Classes</h2></td></tr>
 Macros</h2></td></tr>
 <tr class="memitem:a40e8891bb52264c106441c6eae915ea6" id="r_a40e8891bb52264c106441c6eae915ea6"><td class="memItemLeft" align="right" valign="top"><a id="a40e8891bb52264c106441c6eae915ea6" name="a40e8891bb52264c106441c6eae915ea6"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>BCO_API</b></td></tr>
+<tr class="memdesc:a40e8891bb52264c106441c6eae915ea6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Customizable linkage for API functions. <br /></td></tr>
 <tr class="separator:a40e8891bb52264c106441c6eae915ea6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa7651160a340a53ede9f8fe4ff3ef9c8" id="r_aa7651160a340a53ede9f8fe4ff3ef9c8"><td class="memItemLeft" align="right" valign="top"><a id="aa7651160a340a53ede9f8fe4ff3ef9c8" name="aa7651160a340a53ede9f8fe4ff3ef9c8"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>BCO_ASSERT</b>(COND,  MSG)&#160;&#160;&#160;assert((COND) &amp;&amp; (MSG))</td></tr>
+<tr class="memdesc:aa7651160a340a53ede9f8fe4ff3ef9c8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Customizable assert function. <br /></td></tr>
 <tr class="separator:aa7651160a340a53ede9f8fe4ff3ef9c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a81833b3c5276d68591f14a418ca9a1e7" id="r_a81833b3c5276d68591f14a418ca9a1e7"><td class="memItemLeft" align="right" valign="top"><a id="a81833b3c5276d68591f14a418ca9a1e7" name="a81833b3c5276d68591f14a418ca9a1e7"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>BCO_MAX_ALIGN</b>&#160;&#160;&#160;16</td></tr>
+<tr class="memdesc:a81833b3c5276d68591f14a418ca9a1e7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Customizable maximum alignment for the coroutine's storage. <br /></td></tr>
 <tr class="separator:a81833b3c5276d68591f14a418ca9a1e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5af8a28dd3de13ac803b77159b8eb1db" id="r_a5af8a28dd3de13ac803b77159b8eb1db"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bco_8h.html#a5af8a28dd3de13ac803b77159b8eb1db">bco</a>(NAME, ...)</td></tr>
 <tr class="memdesc:a5af8a28dd3de13ac803b77159b8eb1db"><td class="mdescLeft">&#160;</td><td class="mdescRight">Declare and implement a coroutine function.  <br /></td></tr>
@@ -172,26 +175,26 @@ Enumerations</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a313614af83ada87aaaf1f59f11a920ff" id="r_a313614af83ada87aaaf1f59f11a920ff"><td class="memItemLeft" align="right" valign="top">BCO_API size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bco_8h.html#a313614af83ada87aaaf1f59f11a920ff">bco_mem_size</a> (size_t stack_size)</td></tr>
+<tr class="memitem:a313614af83ada87aaaf1f59f11a920ff" id="r_a313614af83ada87aaaf1f59f11a920ff"><td class="memItemLeft" align="right" valign="top"><a class="el" href="bco_8h.html#a40e8891bb52264c106441c6eae915ea6">BCO_API</a> size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bco_8h.html#a313614af83ada87aaaf1f59f11a920ff">bco_mem_size</a> (size_t stack_size)</td></tr>
 <tr class="memdesc:a313614af83ada87aaaf1f59f11a920ff"><td class="mdescLeft">&#160;</td><td class="mdescRight">Required memory for a coroutine.  <br /></td></tr>
 <tr class="separator:a313614af83ada87aaaf1f59f11a920ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab4aaf11162454e43a2c420ac98b04b5b" id="r_ab4aaf11162454e43a2c420ac98b04b5b"><td class="memItemLeft" align="right" valign="top">BCO_API <a class="el" href="bco_8h.html#a002f80be001293f8e6e2134fbe4e8688">bco_status_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bco_8h.html#ab4aaf11162454e43a2c420ac98b04b5b">bco_resume</a> (<a class="el" href="bco_8h.html#aa3fa918011dfc80578b6328037c5596f">bco_t</a> *coro)</td></tr>
+<tr class="memitem:ab4aaf11162454e43a2c420ac98b04b5b" id="r_ab4aaf11162454e43a2c420ac98b04b5b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="bco_8h.html#a40e8891bb52264c106441c6eae915ea6">BCO_API</a> <a class="el" href="bco_8h.html#a002f80be001293f8e6e2134fbe4e8688">bco_status_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bco_8h.html#ab4aaf11162454e43a2c420ac98b04b5b">bco_resume</a> (<a class="el" href="bco_8h.html#aa3fa918011dfc80578b6328037c5596f">bco_t</a> *coro)</td></tr>
 <tr class="memdesc:ab4aaf11162454e43a2c420ac98b04b5b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Resume a coroutine.  <br /></td></tr>
 <tr class="separator:ab4aaf11162454e43a2c420ac98b04b5b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a56f8de4423ef12ca3942e175bbce1211" id="r_a56f8de4423ef12ca3942e175bbce1211"><td class="memItemLeft" align="right" valign="top">BCO_API void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bco_8h.html#a56f8de4423ef12ca3942e175bbce1211">bco_terminate</a> (<a class="el" href="bco_8h.html#aa3fa918011dfc80578b6328037c5596f">bco_t</a> *coro)</td></tr>
+<tr class="memitem:a56f8de4423ef12ca3942e175bbce1211" id="r_a56f8de4423ef12ca3942e175bbce1211"><td class="memItemLeft" align="right" valign="top"><a class="el" href="bco_8h.html#a40e8891bb52264c106441c6eae915ea6">BCO_API</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bco_8h.html#a56f8de4423ef12ca3942e175bbce1211">bco_terminate</a> (<a class="el" href="bco_8h.html#aa3fa918011dfc80578b6328037c5596f">bco_t</a> *coro)</td></tr>
 <tr class="memdesc:a56f8de4423ef12ca3942e175bbce1211"><td class="mdescLeft">&#160;</td><td class="mdescRight">Force terminate a coroutine.  <br /></td></tr>
 <tr class="separator:a56f8de4423ef12ca3942e175bbce1211"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7053ed69452005accda746e0e1c0770d" id="r_a7053ed69452005accda746e0e1c0770d"><td class="memItemLeft" align="right" valign="top"><a id="a7053ed69452005accda746e0e1c0770d" name="a7053ed69452005accda746e0e1c0770d"></a>
-BCO_API <a class="el" href="bco_8h.html#a002f80be001293f8e6e2134fbe4e8688">bco_status_t</a>&#160;</td><td class="memItemRight" valign="bottom"><b>bco_status</b> (<a class="el" href="bco_8h.html#aa3fa918011dfc80578b6328037c5596f">bco_t</a> *coro)</td></tr>
+<a class="el" href="bco_8h.html#a40e8891bb52264c106441c6eae915ea6">BCO_API</a> <a class="el" href="bco_8h.html#a002f80be001293f8e6e2134fbe4e8688">bco_status_t</a>&#160;</td><td class="memItemRight" valign="bottom"><b>bco_status</b> (<a class="el" href="bco_8h.html#aa3fa918011dfc80578b6328037c5596f">bco_t</a> *coro)</td></tr>
 <tr class="memdesc:a7053ed69452005accda746e0e1c0770d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the status of a coroutine. <br /></td></tr>
 <tr class="separator:a7053ed69452005accda746e0e1c0770d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a306236fdd099d61cce15b4609ab07ac0" id="r_a306236fdd099d61cce15b4609ab07ac0"><td class="memItemLeft" align="right" valign="top">BCO_API void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bco_8h.html#a306236fdd099d61cce15b4609ab07ac0">bco_copy</a> (<a class="el" href="bco_8h.html#aa3fa918011dfc80578b6328037c5596f">bco_t</a> *dst, <a class="el" href="bco_8h.html#aa3fa918011dfc80578b6328037c5596f">bco_t</a> *src)</td></tr>
+<tr class="memitem:a306236fdd099d61cce15b4609ab07ac0" id="r_a306236fdd099d61cce15b4609ab07ac0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="bco_8h.html#a40e8891bb52264c106441c6eae915ea6">BCO_API</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bco_8h.html#a306236fdd099d61cce15b4609ab07ac0">bco_copy</a> (<a class="el" href="bco_8h.html#aa3fa918011dfc80578b6328037c5596f">bco_t</a> *dst, <a class="el" href="bco_8h.html#aa3fa918011dfc80578b6328037c5596f">bco_t</a> *src)</td></tr>
 <tr class="memdesc:a306236fdd099d61cce15b4609ab07ac0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Make a copy of a coroutine.  <br /></td></tr>
 <tr class="separator:a306236fdd099d61cce15b4609ab07ac0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab31560d592a58604bddce97b807aac81" id="r_ab31560d592a58604bddce97b807aac81"><td class="memItemLeft" align="right" valign="top">BCO_API void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bco_8h.html#ab31560d592a58604bddce97b807aac81">bco_set_userdata</a> (<a class="el" href="bco_8h.html#aa3fa918011dfc80578b6328037c5596f">bco_t</a> *coro, void *userdata)</td></tr>
+<tr class="memitem:ab31560d592a58604bddce97b807aac81" id="r_ab31560d592a58604bddce97b807aac81"><td class="memItemLeft" align="right" valign="top"><a class="el" href="bco_8h.html#a40e8891bb52264c106441c6eae915ea6">BCO_API</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bco_8h.html#ab31560d592a58604bddce97b807aac81">bco_set_userdata</a> (<a class="el" href="bco_8h.html#aa3fa918011dfc80578b6328037c5596f">bco_t</a> *coro, void *userdata)</td></tr>
 <tr class="memdesc:ab31560d592a58604bddce97b807aac81"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set a userdata associated with the coroutine.  <br /></td></tr>
 <tr class="separator:ab31560d592a58604bddce97b807aac81"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afe8eb5ad872c63d2b31d433f04ede44b" id="r_afe8eb5ad872c63d2b31d433f04ede44b"><td class="memItemLeft" align="right" valign="top">BCO_API void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bco_8h.html#afe8eb5ad872c63d2b31d433f04ede44b">bco_get_userdata</a> (<a class="el" href="bco_8h.html#aa3fa918011dfc80578b6328037c5596f">bco_t</a> *coro)</td></tr>
+<tr class="memitem:afe8eb5ad872c63d2b31d433f04ede44b" id="r_afe8eb5ad872c63d2b31d433f04ede44b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="bco_8h.html#a40e8891bb52264c106441c6eae915ea6">BCO_API</a> void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bco_8h.html#afe8eb5ad872c63d2b31d433f04ede44b">bco_get_userdata</a> (<a class="el" href="bco_8h.html#aa3fa918011dfc80578b6328037c5596f">bco_t</a> *coro)</td></tr>
 <tr class="memdesc:afe8eb5ad872c63d2b31d433f04ede44b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieve the userdata associated with the coroutine.  <br /></td></tr>
 <tr class="separator:afe8eb5ad872c63d2b31d433f04ede44b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
@@ -236,7 +239,7 @@ BCO_API <a class="el" href="bco_8h.html#a002f80be001293f8e6e2134fbe4e8688">bco_s
 </div><div class="memdoc">
 <b>Value:</b><div class="fragment"><div class="line">    <a class="code hl_define" href="bco_8h.html#a200577ec098344c082992e552e136c8b">bco_decl</a>(NAME, __VA_ARGS__); \</div>
 <div class="line">    bco_impl(NAME)</div>
-<div class="ttc" id="abco_8h_html_a200577ec098344c082992e552e136c8b"><div class="ttname"><a href="bco_8h.html#a200577ec098344c082992e552e136c8b">bco_decl</a></div><div class="ttdeci">#define bco_decl(NAME,...)</div><div class="ttdoc">Forward declare a coroutine function without implementing it.</div><div class="ttdef"><b>Definition</b> bco.h:97</div></div>
+<div class="ttc" id="abco_8h_html_a200577ec098344c082992e552e136c8b"><div class="ttname"><a href="bco_8h.html#a200577ec098344c082992e552e136c8b">bco_decl</a></div><div class="ttdeci">#define bco_decl(NAME,...)</div><div class="ttdoc">Forward declare a coroutine function without implementing it.</div><div class="ttdef"><b>Definition</b> bco.h:100</div></div>
 </div><!-- fragment -->
 <p>Declare and implement a coroutine function. </p>
 <p>Arguments should preferably be passed by value so they are copied into the coroutine's private stack. If there is any pointers, they should have their lifetime last for the entire execution of the coroutine.</p>
@@ -273,14 +276,14 @@ BCO_API <a class="el" href="bco_8h.html#a002f80be001293f8e6e2134fbe4e8688">bco_s
 <div class="line">    <span class="comment">// as the coroutine has started</span></div>
 <div class="line">    free(<a class="code hl_define" href="bco_8h.html#acd5a413669eacaf6151e74a5dc101b18">bco_var</a>(scratch_buffer));</div>
 <div class="line">}</div>
-<div class="ttc" id="abco_8h_html_a030c8ca86fc9e9e345a14c25c1e35a3b"><div class="ttname"><a href="bco_8h.html#a030c8ca86fc9e9e345a14c25c1e35a3b">bco_begin</a></div><div class="ttdeci">#define bco_begin</div><div class="ttdoc">Mark the beginning of a coroutine body.</div><div class="ttdef"><b>Definition</b> bco.h:204</div></div>
-<div class="ttc" id="abco_8h_html_a06625dcae87fbf16664551b2532f1f0d"><div class="ttname"><a href="bco_8h.html#a06625dcae87fbf16664551b2532f1f0d">bco_call</a></div><div class="ttdeci">#define bco_call(NAME,...)</div><div class="ttdoc">Spawn a subcoroutine from within a coroutine and transfer control to it.</div><div class="ttdef"><b>Definition</b> bco.h:294</div></div>
-<div class="ttc" id="abco_8h_html_a2baf5f05f2b196742c0bcb92cfdb99b9"><div class="ttname"><a href="bco_8h.html#a2baf5f05f2b196742c0bcb92cfdb99b9">bco_yield</a></div><div class="ttdeci">#define bco_yield()</div><div class="ttdoc">Yield the currently running coroutine.</div><div class="ttdef"><b>Definition</b> bco.h:248</div></div>
-<div class="ttc" id="abco_8h_html_a423d1d00af72206b6a9d45322674066b"><div class="ttname"><a href="bco_8h.html#a423d1d00af72206b6a9d45322674066b">bco_arg</a></div><div class="ttdeci">#define bco_arg(NAME)</div><div class="ttdoc">Access an argument from a coroutine's body.</div><div class="ttdef"><b>Definition</b> bco.h:140</div></div>
-<div class="ttc" id="abco_8h_html_a5af8a28dd3de13ac803b77159b8eb1db"><div class="ttname"><a href="bco_8h.html#a5af8a28dd3de13ac803b77159b8eb1db">bco</a></div><div class="ttdeci">#define bco(NAME,...)</div><div class="ttdoc">Declare and implement a coroutine function.</div><div class="ttdef"><b>Definition</b> bco.h:62</div></div>
-<div class="ttc" id="abco_8h_html_a5eccac09e99e2c67746cd1ffc0563000"><div class="ttname"><a href="bco_8h.html#a5eccac09e99e2c67746cd1ffc0563000">bco_end</a></div><div class="ttdeci">#define bco_end</div><div class="ttdoc">Mark the end of a coroutine body.</div><div class="ttdef"><b>Definition</b> bco.h:231</div></div>
-<div class="ttc" id="abco_8h_html_a8f050128aadebc9a8a6a1313221f8341"><div class="ttname"><a href="bco_8h.html#a8f050128aadebc9a8a6a1313221f8341">bco_vars</a></div><div class="ttdeci">#define bco_vars(...)</div><div class="ttdoc">Declare coroutine variables.</div><div class="ttdef"><b>Definition</b> bco.h:170</div></div>
-<div class="ttc" id="abco_8h_html_acd5a413669eacaf6151e74a5dc101b18"><div class="ttname"><a href="bco_8h.html#acd5a413669eacaf6151e74a5dc101b18">bco_var</a></div><div class="ttdeci">#define bco_var(NAME)</div><div class="ttdoc">Access a coroutine variable.</div><div class="ttdef"><b>Definition</b> bco.h:192</div></div>
+<div class="ttc" id="abco_8h_html_a030c8ca86fc9e9e345a14c25c1e35a3b"><div class="ttname"><a href="bco_8h.html#a030c8ca86fc9e9e345a14c25c1e35a3b">bco_begin</a></div><div class="ttdeci">#define bco_begin</div><div class="ttdoc">Mark the beginning of a coroutine body.</div><div class="ttdef"><b>Definition</b> bco.h:207</div></div>
+<div class="ttc" id="abco_8h_html_a06625dcae87fbf16664551b2532f1f0d"><div class="ttname"><a href="bco_8h.html#a06625dcae87fbf16664551b2532f1f0d">bco_call</a></div><div class="ttdeci">#define bco_call(NAME,...)</div><div class="ttdoc">Spawn a subcoroutine from within a coroutine and transfer control to it.</div><div class="ttdef"><b>Definition</b> bco.h:297</div></div>
+<div class="ttc" id="abco_8h_html_a2baf5f05f2b196742c0bcb92cfdb99b9"><div class="ttname"><a href="bco_8h.html#a2baf5f05f2b196742c0bcb92cfdb99b9">bco_yield</a></div><div class="ttdeci">#define bco_yield()</div><div class="ttdoc">Yield the currently running coroutine.</div><div class="ttdef"><b>Definition</b> bco.h:251</div></div>
+<div class="ttc" id="abco_8h_html_a423d1d00af72206b6a9d45322674066b"><div class="ttname"><a href="bco_8h.html#a423d1d00af72206b6a9d45322674066b">bco_arg</a></div><div class="ttdeci">#define bco_arg(NAME)</div><div class="ttdoc">Access an argument from a coroutine's body.</div><div class="ttdef"><b>Definition</b> bco.h:143</div></div>
+<div class="ttc" id="abco_8h_html_a5af8a28dd3de13ac803b77159b8eb1db"><div class="ttname"><a href="bco_8h.html#a5af8a28dd3de13ac803b77159b8eb1db">bco</a></div><div class="ttdeci">#define bco(NAME,...)</div><div class="ttdoc">Declare and implement a coroutine function.</div><div class="ttdef"><b>Definition</b> bco.h:65</div></div>
+<div class="ttc" id="abco_8h_html_a5eccac09e99e2c67746cd1ffc0563000"><div class="ttname"><a href="bco_8h.html#a5eccac09e99e2c67746cd1ffc0563000">bco_end</a></div><div class="ttdeci">#define bco_end</div><div class="ttdoc">Mark the end of a coroutine body.</div><div class="ttdef"><b>Definition</b> bco.h:234</div></div>
+<div class="ttc" id="abco_8h_html_a8f050128aadebc9a8a6a1313221f8341"><div class="ttname"><a href="bco_8h.html#a8f050128aadebc9a8a6a1313221f8341">bco_vars</a></div><div class="ttdeci">#define bco_vars(...)</div><div class="ttdoc">Declare coroutine variables.</div><div class="ttdef"><b>Definition</b> bco.h:173</div></div>
+<div class="ttc" id="abco_8h_html_acd5a413669eacaf6151e74a5dc101b18"><div class="ttname"><a href="bco_8h.html#acd5a413669eacaf6151e74a5dc101b18">bco_var</a></div><div class="ttdeci">#define bco_var(NAME)</div><div class="ttdoc">Access a coroutine variable.</div><div class="ttdef"><b>Definition</b> bco.h:195</div></div>
 </div><!-- fragment --><dl class="section see"><dt>See also</dt><dd><a class="el" href="bco_8h.html#a35ceb81228858eebab066ec696052340" title="Declare and implement a coroutine function with internal linkage.">bco_static</a> </dd></dl>
 
 </div>
@@ -482,7 +485,7 @@ BCO_API <a class="el" href="bco_8h.html#a002f80be001293f8e6e2134fbe4e8688">bco_s
 <div class="line">    <a class="code hl_define" href="bco_8h.html#a030c8ca86fc9e9e345a14c25c1e35a3b">bco_begin</a></div>
 <div class="line">    <a class="code hl_define" href="bco_8h.html#a5eccac09e99e2c67746cd1ffc0563000">bco_end</a></div>
 <div class="line">}</div>
-<div class="ttc" id="abco_8h_html_a3838f831728cdef8eed14920a31e1673"><div class="ttname"><a href="bco_8h.html#a3838f831728cdef8eed14920a31e1673">bco_impl</a></div><div class="ttdeci">#define bco_impl(NAME)</div><div class="ttdoc">Implement a coroutine function that was previously forward declared.</div><div class="ttdef"><b>Definition</b> bco.h:133</div></div>
+<div class="ttc" id="abco_8h_html_a3838f831728cdef8eed14920a31e1673"><div class="ttname"><a href="bco_8h.html#a3838f831728cdef8eed14920a31e1673">bco_impl</a></div><div class="ttdeci">#define bco_impl(NAME)</div><div class="ttdoc">Implement a coroutine function that was previously forward declared.</div><div class="ttdef"><b>Definition</b> bco.h:136</div></div>
 </div><!-- fragment --><dl class="section see"><dt>See also</dt><dd><a class="el" href="bco_8h.html#a200577ec098344c082992e552e136c8b" title="Forward declare a coroutine function without implementing it.">bco_decl</a> </dd>
 <dd>
 <a class="el" href="bco_8h.html#a82a4c7bebd089137577c0b6a1a36e59c" title="Forward declare a coroutine function with internal linkage.">bco_decl_static</a> </dd></dl>
@@ -588,9 +591,9 @@ BCO_API <a class="el" href="bco_8h.html#a002f80be001293f8e6e2134fbe4e8688">bco_s
 <div class="line">    _Alignas(<a class="code hl_struct" href="structbco__align__t.html">bco_align_t</a>) <span class="keywordtype">char</span> bco_buf[1024];</div>
 <div class="line">    <a class="code hl_typedef" href="bco_8h.html#aa3fa918011dfc80578b6328037c5596f">bco_t</a>* coro = (<span class="keywordtype">void</span>*)bco_buf;</div>
 <div class="line">    <a class="code hl_define" href="bco_8h.html#a95a0b45b11c13b3216be867560da443b">bco_spawn</a>(coro, test, 2, 3);</div>
-<div class="ttc" id="abco_8h_html_a95a0b45b11c13b3216be867560da443b"><div class="ttname"><a href="bco_8h.html#a95a0b45b11c13b3216be867560da443b">bco_spawn</a></div><div class="ttdeci">#define bco_spawn(CORO, NAME,...)</div><div class="ttdoc">Spawn a coroutine.</div><div class="ttdef"><b>Definition</b> bco.h:275</div></div>
-<div class="ttc" id="abco_8h_html_aa3fa918011dfc80578b6328037c5596f"><div class="ttname"><a href="bco_8h.html#aa3fa918011dfc80578b6328037c5596f">bco_t</a></div><div class="ttdeci">struct bco_s bco_t</div><div class="ttdoc">The opaque type for a coroutine's storage.</div><div class="ttdef"><b>Definition</b> bco.h:344</div></div>
-<div class="ttc" id="astructbco__align__t_html"><div class="ttname"><a href="structbco__align__t.html">bco_align_t</a></div><div class="ttdoc">A type that has the same alignment as bco_t.</div><div class="ttdef"><b>Definition</b> bco.h:341</div></div>
+<div class="ttc" id="abco_8h_html_a95a0b45b11c13b3216be867560da443b"><div class="ttname"><a href="bco_8h.html#a95a0b45b11c13b3216be867560da443b">bco_spawn</a></div><div class="ttdeci">#define bco_spawn(CORO, NAME,...)</div><div class="ttdoc">Spawn a coroutine.</div><div class="ttdef"><b>Definition</b> bco.h:278</div></div>
+<div class="ttc" id="abco_8h_html_aa3fa918011dfc80578b6328037c5596f"><div class="ttname"><a href="bco_8h.html#aa3fa918011dfc80578b6328037c5596f">bco_t</a></div><div class="ttdeci">struct bco_s bco_t</div><div class="ttdoc">The opaque type for a coroutine's storage.</div><div class="ttdef"><b>Definition</b> bco.h:351</div></div>
+<div class="ttc" id="astructbco__align__t_html"><div class="ttname"><a href="structbco__align__t.html">bco_align_t</a></div><div class="ttdoc">A type that has the same alignment as bco_t.</div><div class="ttdef"><b>Definition</b> bco.h:344</div></div>
 </div><!-- fragment --> 
 </div>
 </div>
@@ -621,7 +624,7 @@ BCO_API <a class="el" href="bco_8h.html#a002f80be001293f8e6e2134fbe4e8688">bco_s
 </div><div class="memdoc">
 <b>Value:</b><div class="fragment"><div class="line">    <a class="code hl_define" href="bco_8h.html#a82a4c7bebd089137577c0b6a1a36e59c">bco_decl_static</a>(NAME, __VA_ARGS__); \</div>
 <div class="line">    bco_impl(NAME)</div>
-<div class="ttc" id="abco_8h_html_a82a4c7bebd089137577c0b6a1a36e59c"><div class="ttname"><a href="bco_8h.html#a82a4c7bebd089137577c0b6a1a36e59c">bco_decl_static</a></div><div class="ttdeci">#define bco_decl_static(NAME,...)</div><div class="ttdoc">Forward declare a coroutine function with internal linkage.</div><div class="ttdef"><b>Definition</b> bco.h:114</div></div>
+<div class="ttc" id="abco_8h_html_a82a4c7bebd089137577c0b6a1a36e59c"><div class="ttname"><a href="bco_8h.html#a82a4c7bebd089137577c0b6a1a36e59c">bco_decl_static</a></div><div class="ttdeci">#define bco_decl_static(NAME,...)</div><div class="ttdoc">Forward declare a coroutine function with internal linkage.</div><div class="ttdef"><b>Definition</b> bco.h:117</div></div>
 </div><!-- fragment -->
 <p>Declare and implement a coroutine function with internal linkage. </p>
 <p>Same as <a class="el" href="bco_8h.html#a5af8a28dd3de13ac803b77159b8eb1db">bco</a> but the coroutine function is private to the enclosing source file, so its name will not collide with a coroutine of the same name in another one.</p>
@@ -759,7 +762,7 @@ BCO_API <a class="el" href="bco_8h.html#a002f80be001293f8e6e2134fbe4e8688">bco_s
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">BCO_API void bco_copy </td>
+          <td class="memname"><a class="el" href="bco_8h.html#a40e8891bb52264c106441c6eae915ea6">BCO_API</a> void bco_copy </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="bco_8h.html#aa3fa918011dfc80578b6328037c5596f">bco_t</a> *&#160;</td>
           <td class="paramname"><em>dst</em>, </td>
@@ -802,7 +805,7 @@ BCO_API <a class="el" href="bco_8h.html#a002f80be001293f8e6e2134fbe4e8688">bco_s
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">BCO_API void * bco_get_userdata </td>
+          <td class="memname"><a class="el" href="bco_8h.html#a40e8891bb52264c106441c6eae915ea6">BCO_API</a> void * bco_get_userdata </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="bco_8h.html#aa3fa918011dfc80578b6328037c5596f">bco_t</a> *&#160;</td>
           <td class="paramname"><em>coro</em></td><td>)</td>
@@ -830,7 +833,7 @@ BCO_API <a class="el" href="bco_8h.html#a002f80be001293f8e6e2134fbe4e8688">bco_s
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">BCO_API size_t bco_mem_size </td>
+          <td class="memname"><a class="el" href="bco_8h.html#a40e8891bb52264c106441c6eae915ea6">BCO_API</a> size_t bco_mem_size </td>
           <td>(</td>
           <td class="paramtype">size_t&#160;</td>
           <td class="paramname"><em>stack_size</em></td><td>)</td>
@@ -858,7 +861,7 @@ BCO_API <a class="el" href="bco_8h.html#a002f80be001293f8e6e2134fbe4e8688">bco_s
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">BCO_API <a class="el" href="bco_8h.html#a002f80be001293f8e6e2134fbe4e8688">bco_status_t</a> bco_resume </td>
+          <td class="memname"><a class="el" href="bco_8h.html#a40e8891bb52264c106441c6eae915ea6">BCO_API</a> <a class="el" href="bco_8h.html#a002f80be001293f8e6e2134fbe4e8688">bco_status_t</a> bco_resume </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="bco_8h.html#aa3fa918011dfc80578b6328037c5596f">bco_t</a> *&#160;</td>
           <td class="paramname"><em>coro</em></td><td>)</td>
@@ -885,7 +888,7 @@ BCO_API <a class="el" href="bco_8h.html#a002f80be001293f8e6e2134fbe4e8688">bco_s
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">BCO_API void bco_set_userdata </td>
+          <td class="memname"><a class="el" href="bco_8h.html#a40e8891bb52264c106441c6eae915ea6">BCO_API</a> void bco_set_userdata </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="bco_8h.html#aa3fa918011dfc80578b6328037c5596f">bco_t</a> *&#160;</td>
           <td class="paramname"><em>coro</em>, </td>
@@ -926,7 +929,7 @@ BCO_API <a class="el" href="bco_8h.html#a002f80be001293f8e6e2134fbe4e8688">bco_s
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">BCO_API void bco_terminate </td>
+          <td class="memname"><a class="el" href="bco_8h.html#a40e8891bb52264c106441c6eae915ea6">BCO_API</a> void bco_terminate </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="bco_8h.html#aa3fa918011dfc80578b6328037c5596f">bco_t</a> *&#160;</td>
           <td class="paramname"><em>coro</em></td><td>)</td>

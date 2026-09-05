@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['eq_0',['eq',['../structbhash__config__s.html#ada2d1ceb4412c6bca8dc99864c48b627',1,'bhash_config_s']]],
-  ['exclude_1',['exclude',['../structbent__sys__def__t.html#a8ac4995a75939ff1de8d93d2f16bab87',1,'bent_sys_def_t']]]
+  ['def_0',['def',['../structbent__comp__reg__t.html#a310c7a000c533339adf23b5d191e76e3',1,'bent_comp_reg_t::def'],['../structbent__sys__reg__t.html#a5c4adefd2ab3362e8b3f5b07f18828cd',1,'bent_sys_reg_t::def']]]
 ];

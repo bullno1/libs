@@ -90,28 +90,31 @@ $(function() {
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structbspscq__signal__t.html">bspscq_signal_t</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">An internal signal, should be treated as opaque.  <a href="structbspscq__signal__t.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structbspscq__s.html">bspscq_s</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A single producer single consumer queue, should be treated as opaque.  <a href="structbspscq__s.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
 Typedefs</h2></td></tr>
 <tr class="memitem:a5fe965d4a3400633f0fa3d5393fc5ec5" id="r_a5fe965d4a3400633f0fa3d5393fc5ec5"><td class="memItemLeft" align="right" valign="top"><a id="a5fe965d4a3400633f0fa3d5393fc5ec5" name="a5fe965d4a3400633f0fa3d5393fc5ec5"></a>
 typedef struct <a class="el" href="structbspscq__s.html">bspscq_s</a>&#160;</td><td class="memItemRight" valign="bottom"><b>bspscq_t</b></td></tr>
+<tr class="memdesc:a5fe965d4a3400633f0fa3d5393fc5ec5"><td class="mdescLeft">&#160;</td><td class="mdescRight">A single producer single consumer queue, should be treated as opaque. <br /></td></tr>
 <tr class="separator:a5fe965d4a3400633f0fa3d5393fc5ec5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a9e4c39c711b3c3ba9dd56eefe1acef00" id="r_a9e4c39c711b3c3ba9dd56eefe1acef00"><td class="memItemLeft" align="right" valign="top">BSPSCQ_API void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bspscq_8h.html#a9e4c39c711b3c3ba9dd56eefe1acef00">bspscq_init</a> (<a class="el" href="structbspscq__s.html">bspscq_t</a> *queue, void **values, unsigned int size)</td></tr>
+<tr class="memitem:a9e4c39c711b3c3ba9dd56eefe1acef00" id="r_a9e4c39c711b3c3ba9dd56eefe1acef00"><td class="memItemLeft" align="right" valign="top">BSPSCQ_API void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bspscq_8h.html#a9e4c39c711b3c3ba9dd56eefe1acef00">bspscq_init</a> (<a class="el" href="bspscq_8h.html#a5fe965d4a3400633f0fa3d5393fc5ec5">bspscq_t</a> *queue, void **values, unsigned int size)</td></tr>
 <tr class="memdesc:a9e4c39c711b3c3ba9dd56eefe1acef00"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize a queue.  <br /></td></tr>
 <tr class="separator:a9e4c39c711b3c3ba9dd56eefe1acef00"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a03eb2c3fc2920bcca29189b8376883fd" id="r_a03eb2c3fc2920bcca29189b8376883fd"><td class="memItemLeft" align="right" valign="top">BSPSCQ_API void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bspscq_8h.html#a03eb2c3fc2920bcca29189b8376883fd">bspscq_cleanup</a> (<a class="el" href="structbspscq__s.html">bspscq_t</a> *queue)</td></tr>
+<tr class="memitem:a03eb2c3fc2920bcca29189b8376883fd" id="r_a03eb2c3fc2920bcca29189b8376883fd"><td class="memItemLeft" align="right" valign="top">BSPSCQ_API void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bspscq_8h.html#a03eb2c3fc2920bcca29189b8376883fd">bspscq_cleanup</a> (<a class="el" href="bspscq_8h.html#a5fe965d4a3400633f0fa3d5393fc5ec5">bspscq_t</a> *queue)</td></tr>
 <tr class="memdesc:a03eb2c3fc2920bcca29189b8376883fd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clean up a queue.  <br /></td></tr>
 <tr class="separator:a03eb2c3fc2920bcca29189b8376883fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a81dd8c6a12c06f22ff79e45043d82c6e" id="r_a81dd8c6a12c06f22ff79e45043d82c6e"><td class="memItemLeft" align="right" valign="top">BSPSCQ_API bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bspscq_8h.html#a81dd8c6a12c06f22ff79e45043d82c6e">bspscq_produce</a> (<a class="el" href="structbspscq__s.html">bspscq_t</a> *queue, void *item, bool wait)</td></tr>
+<tr class="memitem:a81dd8c6a12c06f22ff79e45043d82c6e" id="r_a81dd8c6a12c06f22ff79e45043d82c6e"><td class="memItemLeft" align="right" valign="top">BSPSCQ_API bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bspscq_8h.html#a81dd8c6a12c06f22ff79e45043d82c6e">bspscq_produce</a> (<a class="el" href="bspscq_8h.html#a5fe965d4a3400633f0fa3d5393fc5ec5">bspscq_t</a> *queue, void *item, bool wait)</td></tr>
 <tr class="memdesc:a81dd8c6a12c06f22ff79e45043d82c6e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Put an item into the queue.  <br /></td></tr>
 <tr class="separator:a81dd8c6a12c06f22ff79e45043d82c6e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad7005c5129f0eaf7f6561cb0652a9c90" id="r_ad7005c5129f0eaf7f6561cb0652a9c90"><td class="memItemLeft" align="right" valign="top">BSPSCQ_API void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bspscq_8h.html#ad7005c5129f0eaf7f6561cb0652a9c90">bspscq_consume</a> (<a class="el" href="structbspscq__s.html">bspscq_t</a> *queue, bool wait)</td></tr>
+<tr class="memitem:ad7005c5129f0eaf7f6561cb0652a9c90" id="r_ad7005c5129f0eaf7f6561cb0652a9c90"><td class="memItemLeft" align="right" valign="top">BSPSCQ_API void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bspscq_8h.html#ad7005c5129f0eaf7f6561cb0652a9c90">bspscq_consume</a> (<a class="el" href="bspscq_8h.html#a5fe965d4a3400633f0fa3d5393fc5ec5">bspscq_t</a> *queue, bool wait)</td></tr>
 <tr class="memdesc:ad7005c5129f0eaf7f6561cb0652a9c90"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get an item from the queue.  <br /></td></tr>
 <tr class="separator:ad7005c5129f0eaf7f6561cb0652a9c90"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
@@ -135,7 +138,7 @@ Functions</h2></td></tr>
         <tr>
           <td class="memname">BSPSCQ_API void bspscq_cleanup </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="structbspscq__s.html">bspscq_t</a> *&#160;</td>
+          <td class="paramtype"><a class="el" href="bspscq_8h.html#a5fe965d4a3400633f0fa3d5393fc5ec5">bspscq_t</a> *&#160;</td>
           <td class="paramname"><em>queue</em></td><td>)</td>
           <td></td>
         </tr>
@@ -162,7 +165,7 @@ Functions</h2></td></tr>
         <tr>
           <td class="memname">BSPSCQ_API void * bspscq_consume </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="structbspscq__s.html">bspscq_t</a> *&#160;</td>
+          <td class="paramtype"><a class="el" href="bspscq_8h.html#a5fe965d4a3400633f0fa3d5393fc5ec5">bspscq_t</a> *&#160;</td>
           <td class="paramname"><em>queue</em>, </td>
         </tr>
         <tr>
@@ -200,7 +203,7 @@ Functions</h2></td></tr>
         <tr>
           <td class="memname">BSPSCQ_API void bspscq_init </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="structbspscq__s.html">bspscq_t</a> *&#160;</td>
+          <td class="paramtype"><a class="el" href="bspscq_8h.html#a5fe965d4a3400633f0fa3d5393fc5ec5">bspscq_t</a> *&#160;</td>
           <td class="paramname"><em>queue</em>, </td>
         </tr>
         <tr>
@@ -247,7 +250,7 @@ Functions</h2></td></tr>
         <tr>
           <td class="memname">BSPSCQ_API bool bspscq_produce </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="structbspscq__s.html">bspscq_t</a> *&#160;</td>
+          <td class="paramtype"><a class="el" href="bspscq_8h.html#a5fe965d4a3400633f0fa3d5393fc5ec5">bspscq_t</a> *&#160;</td>
           <td class="paramname"><em>queue</em>, </td>
         </tr>
         <tr>

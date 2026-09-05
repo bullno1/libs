@@ -16,9 +16,18 @@ var searchData=
   ['bstacktrace_5fresolve_5ffunction_13',['BSTACKTRACE_RESOLVE_FUNCTION',['../bstacktrace_8h.html#a4f015eb091bd17c17f63427ab30f3181a31b3ba9fcdebb3182d28e4924914bed8',1,'bstacktrace.h']]],
   ['bstacktrace_5fresolve_5fline_14',['BSTACKTRACE_RESOLVE_LINE',['../bstacktrace_8h.html#a4f015eb091bd17c17f63427ab30f3181ac6406d0fa5dcda9325e5f3fb5591b140',1,'bstacktrace.h']]],
   ['bstacktrace_5fresolve_5fmodule_15',['BSTACKTRACE_RESOLVE_MODULE',['../bstacktrace_8h.html#a4f015eb091bd17c17f63427ab30f3181a9e6819d12f34586b3e3b7a67fa72d30e',1,'bstacktrace.h']]],
-  ['bsv_5fio_5ferror_16',['BSV_IO_ERROR',['../bsv_8h.html#a504b6095e916b5c1660626f984b1f3e1adca848001ff7b8436fefb0409933ed94',1,'bsv.h']]],
-  ['bsv_5fmalformed_17',['BSV_MALFORMED',['../bsv_8h.html#a504b6095e916b5c1660626f984b1f3e1a4ff4f70dc042a3804f6bf907b52fb51e',1,'bsv.h']]],
-  ['bsv_5fmode_5fread_18',['BSV_MODE_READ',['../bsv_8h.html#a83f356ae7f9a3b01141f7a8d2b47018aa94fd3b074328664f20f18839e385479f',1,'bsv.h']]],
-  ['bsv_5fmode_5fwrite_19',['BSV_MODE_WRITE',['../bsv_8h.html#a83f356ae7f9a3b01141f7a8d2b47018aacde52cd049f7e8d77f73c6d57a1c8351',1,'bsv.h']]],
-  ['bsv_5fok_20',['BSV_OK',['../bsv_8h.html#a504b6095e916b5c1660626f984b1f3e1a5d546f822e1680072dd59f6837af12eb',1,'bsv.h']]]
+  ['bsv_5fexplain_5fadd_16',['BSV_EXPLAIN_ADD',['../bsv_8h.html#a0df52c46242fbd5adf1ce6dee0084740a3b40d8324d5c534c954d26a1a1c700ec',1,'bsv.h']]],
+  ['bsv_5fexplain_5farray_17',['BSV_EXPLAIN_ARRAY',['../bsv_8h.html#a0df52c46242fbd5adf1ce6dee0084740aea3846992161954b3bbf2a081ed40655',1,'bsv.h']]],
+  ['bsv_5fexplain_5fbegin_5fscope_18',['BSV_EXPLAIN_BEGIN_SCOPE',['../bsv_8h.html#a3c8b2d2efbf59374319bd40baa204d53af0d9b3c1f9fe3882b2d50d4e66ebb977',1,'bsv.h']]],
+  ['bsv_5fexplain_5fblk_19',['BSV_EXPLAIN_BLK',['../bsv_8h.html#a0df52c46242fbd5adf1ce6dee0084740a6be431c28c496434bd86f37604a906e9',1,'bsv.h']]],
+  ['bsv_5fexplain_5fend_5fscope_20',['BSV_EXPLAIN_END_SCOPE',['../bsv_8h.html#a3c8b2d2efbf59374319bd40baa204d53ab4a6576aa85530e84d21ec1ac9ae7866',1,'bsv.h']]],
+  ['bsv_5fexplain_5fraw_21',['BSV_EXPLAIN_RAW',['../bsv_8h.html#a0df52c46242fbd5adf1ce6dee0084740aed1ad1d87db56a1bc2cc6ce6fd3b3d94',1,'bsv.h']]],
+  ['bsv_5fexplain_5frem_22',['BSV_EXPLAIN_REM',['../bsv_8h.html#a0df52c46242fbd5adf1ce6dee0084740a0a91281c3b5a6f7ab91611116a34a836',1,'bsv.h']]],
+  ['bsv_5fexplain_5frev_23',['BSV_EXPLAIN_REV',['../bsv_8h.html#a0df52c46242fbd5adf1ce6dee0084740a5c70005b227bad9f17d8cfbde51262d5',1,'bsv.h']]],
+  ['bsv_5fexplain_5froot_24',['BSV_EXPLAIN_ROOT',['../bsv_8h.html#a0df52c46242fbd5adf1ce6dee0084740a9c9a3bc1342c74d335ac3cc6060f2092',1,'bsv.h']]],
+  ['bsv_5fio_5ferror_25',['BSV_IO_ERROR',['../bsv_8h.html#a504b6095e916b5c1660626f984b1f3e1adca848001ff7b8436fefb0409933ed94',1,'bsv.h']]],
+  ['bsv_5fmalformed_26',['BSV_MALFORMED',['../bsv_8h.html#a504b6095e916b5c1660626f984b1f3e1a4ff4f70dc042a3804f6bf907b52fb51e',1,'bsv.h']]],
+  ['bsv_5fmode_5fread_27',['BSV_MODE_READ',['../bsv_8h.html#a83f356ae7f9a3b01141f7a8d2b47018aa94fd3b074328664f20f18839e385479f',1,'bsv.h']]],
+  ['bsv_5fmode_5fwrite_28',['BSV_MODE_WRITE',['../bsv_8h.html#a83f356ae7f9a3b01141f7a8d2b47018aacde52cd049f7e8d77f73c6d57a1c8351',1,'bsv.h']]],
+  ['bsv_5fok_29',['BSV_OK',['../bsv_8h.html#a504b6095e916b5c1660626f984b1f3e1a5d546f822e1680072dd59f6837af12eb',1,'bsv.h']]]
 ];

@@ -188,12 +188,15 @@ Enumerations</h2></td></tr>
 Functions</h2></td></tr>
 <tr class="memitem:a822fa78ec919533cef3bba22de839372" id="r_a822fa78ec919533cef3bba22de839372"><td class="memItemLeft" align="right" valign="top"><a id="a822fa78ec919533cef3bba22de839372" name="a822fa78ec919533cef3bba22de839372"></a>
 static <a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a>&#160;</td><td class="memItemRight" valign="bottom"><b>bserial_read</b> (<a class="el" href="bserial_8h.html#a56d281fa86968526ec136bed52c5bb10">bserial_in_t</a> *in, void *buf, size_t size)</td></tr>
+<tr class="memdesc:a822fa78ec919533cef3bba22de839372"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read exactly <em>size</em> bytes from an input stream. <br /></td></tr>
 <tr class="separator:a822fa78ec919533cef3bba22de839372"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9376a21f9593e5ffc09a6e02ec5bca07" id="r_a9376a21f9593e5ffc09a6e02ec5bca07"><td class="memItemLeft" align="right" valign="top"><a id="a9376a21f9593e5ffc09a6e02ec5bca07" name="a9376a21f9593e5ffc09a6e02ec5bca07"></a>
 static <a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a>&#160;</td><td class="memItemRight" valign="bottom"><b>bserial_skip</b> (<a class="el" href="bserial_8h.html#a56d281fa86968526ec136bed52c5bb10">bserial_in_t</a> *in, size_t size)</td></tr>
+<tr class="memdesc:a9376a21f9593e5ffc09a6e02ec5bca07"><td class="mdescLeft">&#160;</td><td class="mdescRight">Skip exactly <em>size</em> bytes from an input stream. <br /></td></tr>
 <tr class="separator:a9376a21f9593e5ffc09a6e02ec5bca07"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acf68cd7a485f7611dbf2b88bd0b9ac8c" id="r_acf68cd7a485f7611dbf2b88bd0b9ac8c"><td class="memItemLeft" align="right" valign="top"><a id="acf68cd7a485f7611dbf2b88bd0b9ac8c" name="acf68cd7a485f7611dbf2b88bd0b9ac8c"></a>
 static <a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a>&#160;</td><td class="memItemRight" valign="bottom"><b>bserial_write</b> (<a class="el" href="bserial_8h.html#a66fa83c2532e3b9c92287032c61e6232">bserial_out_t</a> *out, const void *buf, size_t size)</td></tr>
+<tr class="memdesc:acf68cd7a485f7611dbf2b88bd0b9ac8c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write exactly <em>size</em> bytes to an output stream. <br /></td></tr>
 <tr class="separator:acf68cd7a485f7611dbf2b88bd0b9ac8c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1b72a83aed522054bdd4bbf61c8b5705" id="r_a1b72a83aed522054bdd4bbf61c8b5705"><td class="memItemLeft" align="right" valign="top"><a id="a1b72a83aed522054bdd4bbf61c8b5705" name="a1b72a83aed522054bdd4bbf61c8b5705"></a>
 <a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a>&#160;</td><td class="memItemRight" valign="bottom"><b>bserial_write_uint</b> (uint64_t x, <a class="el" href="bserial_8h.html#a66fa83c2532e3b9c92287032c61e6232">bserial_out_t</a> *out)</td></tr>
@@ -277,6 +280,7 @@ size_t&#160;</td><td class="memItemRight" valign="bottom"><b>bserial_ctx_mem_siz
 <tr class="separator:afc0cb21e632f15c4f1dd522c8bf03ced"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab135ee976170ef2f25c6f1713e5e5a48" id="r_ab135ee976170ef2f25c6f1713e5e5a48"><td class="memItemLeft" align="right" valign="top"><a id="ab135ee976170ef2f25c6f1713e5e5a48" name="ab135ee976170ef2f25c6f1713e5e5a48"></a>
 <a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a>&#160;</td><td class="memItemRight" valign="bottom"><b>bserial_bool</b> (<a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *ctx, bool *boolean)</td></tr>
+<tr class="memdesc:ab135ee976170ef2f25c6f1713e5e5a48"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/write a boolean. <br /></td></tr>
 <tr class="separator:ab135ee976170ef2f25c6f1713e5e5a48"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad5917f671f6318176d12d195cd39775f" id="r_ad5917f671f6318176d12d195cd39775f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#ad5917f671f6318176d12d195cd39775f">bserial_blob</a> (<a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *ctx, char *buf, uint64_t *len)</td></tr>
 <tr class="memdesc:ad5917f671f6318176d12d195cd39775f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/write a binary blob.  <br /></td></tr>
@@ -662,6 +666,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>bserial_trace</b> (<a
 <p>Instead of combining into one step, one can also use: <a class="el" href="bserial_8h.html#a1e9db74a29c5838f59655bea2fc77c06">bserial_blob_header</a> and <a class="el" href="bserial_8h.html#a59ba430636a464f8d8644792f3d52bc3">bserial_blob_body</a>.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
+    <tr><td class="paramname">ctx</td><td>The serialization context. </td></tr>
     <tr><td class="paramname">buf</td><td>The buffer to read/write. </td></tr>
     <tr><td class="paramname">len</td><td>Size of the buffer. Will be set to the actual size. </td></tr>
   </table>
@@ -699,6 +704,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>bserial_trace</b> (<a
 <p>Read/write a binary blob's header. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
+    <tr><td class="paramname">ctx</td><td>The serialization context. </td></tr>
     <tr><td class="paramname">len</td><td>Maximum size. Will be set to the actual size on read. </td></tr>
   </table>
   </dd>
@@ -832,6 +838,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>bserial_trace</b> (<a
 <p>Therefore, the <a class="el" href="bserial_8h.html#a6b7a06a5232f7be971abccb32123fe39">BSERIAL_KEY</a> macro should be used.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
+    <tr><td class="paramname">ctx</td><td>The serialization context. </td></tr>
     <tr><td class="paramname">name</td><td>Name of the field being serialized. </td></tr>
     <tr><td class="paramname">len</td><td>Length of the field name being serialized. </td></tr>
   </table>
@@ -882,6 +889,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>bserial_trace</b> (<a
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">mem</td><td>Memory for the context. Must have at least as many bytes as returned by <a class="el" href="bserial_8h.html#a1317dc2f8757b4a728a7f7b101c21ff4">bserial_ctx_mem_size</a>. </td></tr>
+    <tr><td class="paramname">config</td><td>The configuration. </td></tr>
     <tr><td class="paramname">in</td><td>(Optional) Input stream. </td></tr>
     <tr><td class="paramname">out</td><td>(Optional) Out stream.</td></tr>
   </table>
@@ -926,6 +934,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>bserial_trace</b> (<a
 <p>Create a memory input stream. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
+    <tr><td class="paramname">bserial_mem</td><td>The stream to initialize. </td></tr>
     <tr><td class="paramname">mem</td><td>The backing memory. </td></tr>
     <tr><td class="paramname">size</td><td>Size of the backing memory. </td></tr>
   </table>
@@ -964,6 +973,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>bserial_trace</b> (<a
 <p>Create a memory output stream. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
+    <tr><td class="paramname">bserial_mem</td><td>The stream to initialize. </td></tr>
     <tr><td class="paramname">memctx</td><td>The allocator context. </td></tr>
   </table>
   </dd>
@@ -1124,6 +1134,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>bserial_trace</b> (<a
 <p>Read/write a symbol. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
+    <tr><td class="paramname">ctx</td><td>The serialization context. </td></tr>
     <tr><td class="paramname">buf</td><td>Pointer to the buffer to read/write. </td></tr>
     <tr><td class="paramname">len</td><td>Size of the buffer. Will be set to the actual size. </td></tr>
   </table>

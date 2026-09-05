@@ -1,7 +1,5 @@
 var searchData=
 [
-  ['fault_5faddr_0',['fault_addr',['../structbcrash__info__t.html#a25579f84c88075d892f493bffd4979a5',1,'bcrash_info_t']]],
-  ['filename_1',['filename',['../structbstacktrace__info__t.html#a613fd9d5c674635373355faab793ba72',1,'bstacktrace_info_t']]],
-  ['flags_2',['flags',['../structbent__sys__def__t.html#ae437146f07ecb71e121cac08f10b226d',1,'bent_sys_def_t']]],
-  ['function_3',['function',['../structbstacktrace__info__t.html#aaaa359ceb3b551c05692d488622633f9',1,'bstacktrace_info_t']]]
+  ['eq_0',['eq',['../structbhash__config__s.html#ada2d1ceb4412c6bca8dc99864c48b627',1,'bhash_config_s']]],
+  ['exclude_1',['exclude',['../structbent__sys__def__t.html#a8ac4995a75939ff1de8d93d2f16bab87',1,'bent_sys_def_t']]]
 ];

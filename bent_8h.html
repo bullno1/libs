@@ -82,7 +82,7 @@ $(function() {
 
 <p>Entity component system with automatic registration and hot reloading suppport.  
 <a href="#details">More...</a></p>
-<div class="textblock"><code>#include &quot;autolist.h&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="autolist_8h_source.html">autolist.h</a>&quot;</code><br />
 <code>#include &lt;stddef.h&gt;</code><br />
 <code>#include &lt;stdint.h&gt;</code><br />
 <code>#include &lt;stdbool.h&gt;</code><br />
@@ -95,6 +95,7 @@ $(function() {
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structbent__bitset__t.html">bent_bitset_t</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A component bitset.  <a href="structbent__bitset__t.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structbent__t.html">bent_t</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Entity handle.  <a href="structbent__t.html#details">More...</a><br /></td></tr>
@@ -130,15 +131,18 @@ Macros</h2></td></tr>
 <tr class="separator:a0af5904b704c31d55fb23cecaab05f9a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0ec1fc2642dedc334657a156fa59d8ad" id="r_a0ec1fc2642dedc334657a156fa59d8ad"><td class="memItemLeft" align="right" valign="top"><a id="a0ec1fc2642dedc334657a156fa59d8ad" name="a0ec1fc2642dedc334657a156fa59d8ad"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>BENT_LOG</b>(...)</td></tr>
+<tr class="memdesc:a0ec1fc2642dedc334657a156fa59d8ad"><td class="mdescLeft">&#160;</td><td class="mdescRight">Customizable log function. <br /></td></tr>
 <tr class="separator:a0ec1fc2642dedc334657a156fa59d8ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1c46e30e0a708f19542a9f7b2d46b111" id="r_a1c46e30e0a708f19542a9f7b2d46b111"><td class="memItemLeft" align="right" valign="top"><a id="a1c46e30e0a708f19542a9f7b2d46b111" name="a1c46e30e0a708f19542a9f7b2d46b111"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>BENT_ASSERT</b>&#160;&#160;&#160;assert</td></tr>
+<tr class="memdesc:a1c46e30e0a708f19542a9f7b2d46b111"><td class="mdescLeft">&#160;</td><td class="mdescRight">Customizable assert function. <br /></td></tr>
 <tr class="separator:a1c46e30e0a708f19542a9f7b2d46b111"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a158769c3d5cb4905b5489418fe4c3bbb" id="r_a158769c3d5cb4905b5489418fe4c3bbb"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bent_8h.html#a158769c3d5cb4905b5489418fe4c3bbb">BENT_MAX_NUM_COMPONENT_TYPES</a>&#160;&#160;&#160;32</td></tr>
 <tr class="memdesc:a158769c3d5cb4905b5489418fe4c3bbb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Maximum number of component types.  <br /></td></tr>
 <tr class="separator:a158769c3d5cb4905b5489418fe4c3bbb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abcd83649e240aa19e105712aa4e75378" id="r_abcd83649e240aa19e105712aa4e75378"><td class="memItemLeft" align="right" valign="top"><a id="abcd83649e240aa19e105712aa4e75378" name="abcd83649e240aa19e105712aa4e75378"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>BENT_BITSET_LEN</b>&#160;&#160;&#160;((<a class="el" href="bent_8h.html#a158769c3d5cb4905b5489418fe4c3bbb">BENT_MAX_NUM_COMPONENT_TYPES</a> + sizeof(<a class="el" href="bent_8h.html#a21e030cf08c3b1500b58273680b5f081">bent_mask_t</a>) * CHAR_BIT - 1) / (sizeof(<a class="el" href="bent_8h.html#a21e030cf08c3b1500b58273680b5f081">bent_mask_t</a>) * CHAR_BIT))</td></tr>
+<tr class="memdesc:abcd83649e240aa19e105712aa4e75378"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of words in a <a class="el" href="structbent__bitset__t.html">bent_bitset_t</a>. <br /></td></tr>
 <tr class="separator:abcd83649e240aa19e105712aa4e75378"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a714cff0c85030e912233e983634a1106" id="r_a714cff0c85030e912233e983634a1106"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bent_8h.html#a714cff0c85030e912233e983634a1106">BENT_DECLARE_COMP</a>(NAME)&#160;&#160;&#160;	extern <a class="el" href="structbent__comp__reg__t.html">bent_comp_reg_t</a> NAME;</td></tr>
 <tr class="memdesc:a714cff0c85030e912233e983634a1106"><td class="mdescLeft">&#160;</td><td class="mdescRight">Forward-declare a component type.  <br /></td></tr>
@@ -265,35 +269,44 @@ Functions</h2></td></tr>
 <tr class="separator:ae8695da91e1342ecb6e183933d39bb58"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa2f45fa50c1c507436d0e67be11a8527" id="r_aa2f45fa50c1c507436d0e67be11a8527"><td class="memItemLeft" align="right" valign="top"><a id="aa2f45fa50c1c507436d0e67be11a8527" name="aa2f45fa50c1c507436d0e67be11a8527"></a>
 static bool&#160;</td><td class="memItemRight" valign="bottom"><b>bent_equal</b> (<a class="el" href="structbent__t.html">bent_t</a> lhs, <a class="el" href="structbent__t.html">bent_t</a> rhs)</td></tr>
+<tr class="memdesc:aa2f45fa50c1c507436d0e67be11a8527"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check whether two entity handles are equal. <br /></td></tr>
 <tr class="separator:aa2f45fa50c1c507436d0e67be11a8527"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a009eda0523a5210e2a0dac5596ef2609" id="r_a009eda0523a5210e2a0dac5596ef2609"><td class="memItemLeft" align="right" valign="top"><a id="a009eda0523a5210e2a0dac5596ef2609" name="a009eda0523a5210e2a0dac5596ef2609"></a>
 static void&#160;</td><td class="memItemRight" valign="bottom"><b>bent_bitset_clear</b> (<a class="el" href="structbent__bitset__t.html">bent_bitset_t</a> *bitset)</td></tr>
+<tr class="memdesc:a009eda0523a5210e2a0dac5596ef2609"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clear all bits in a bitset. <br /></td></tr>
 <tr class="separator:a009eda0523a5210e2a0dac5596ef2609"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6a2b98af9462f7dbff3a56fea398ba75" id="r_a6a2b98af9462f7dbff3a56fea398ba75"><td class="memItemLeft" align="right" valign="top"><a id="a6a2b98af9462f7dbff3a56fea398ba75" name="a6a2b98af9462f7dbff3a56fea398ba75"></a>
 static void&#160;</td><td class="memItemRight" valign="bottom"><b>bent_bitset_set</b> (<a class="el" href="structbent__bitset__t.html">bent_bitset_t</a> *bitset, <a class="el" href="bent_8h.html#aef1f57c00a98e4078b680c9b384bdf54">bent_index_t</a> bit_index)</td></tr>
+<tr class="memdesc:a6a2b98af9462f7dbff3a56fea398ba75"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set a bit in a bitset. <br /></td></tr>
 <tr class="separator:a6a2b98af9462f7dbff3a56fea398ba75"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a914dcb85b0fa2a936f67fe1f7cc48634" id="r_a914dcb85b0fa2a936f67fe1f7cc48634"><td class="memItemLeft" align="right" valign="top"><a id="a914dcb85b0fa2a936f67fe1f7cc48634" name="a914dcb85b0fa2a936f67fe1f7cc48634"></a>
 static void&#160;</td><td class="memItemRight" valign="bottom"><b>bent_bitset_unset</b> (<a class="el" href="structbent__bitset__t.html">bent_bitset_t</a> *bitset, <a class="el" href="bent_8h.html#aef1f57c00a98e4078b680c9b384bdf54">bent_index_t</a> bit_index)</td></tr>
+<tr class="memdesc:a914dcb85b0fa2a936f67fe1f7cc48634"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unset a bit in a bitset. <br /></td></tr>
 <tr class="separator:a914dcb85b0fa2a936f67fe1f7cc48634"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0171ed4e6457b82ea50f9a04fc61774a" id="r_a0171ed4e6457b82ea50f9a04fc61774a"><td class="memItemLeft" align="right" valign="top"><a id="a0171ed4e6457b82ea50f9a04fc61774a" name="a0171ed4e6457b82ea50f9a04fc61774a"></a>
 static void&#160;</td><td class="memItemRight" valign="bottom"><b>bent_bitset_flip</b> (<a class="el" href="structbent__bitset__t.html">bent_bitset_t</a> *bitset)</td></tr>
+<tr class="memdesc:a0171ed4e6457b82ea50f9a04fc61774a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Flip all bits in a bitset. <br /></td></tr>
 <tr class="separator:a0171ed4e6457b82ea50f9a04fc61774a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a59834e7ed4919865fd250dfa28158008" id="r_a59834e7ed4919865fd250dfa28158008"><td class="memItemLeft" align="right" valign="top"><a id="a59834e7ed4919865fd250dfa28158008" name="a59834e7ed4919865fd250dfa28158008"></a>
 static bool&#160;</td><td class="memItemRight" valign="bottom"><b>bent_bitset_check</b> (const <a class="el" href="structbent__bitset__t.html">bent_bitset_t</a> *bitset, <a class="el" href="bent_8h.html#aef1f57c00a98e4078b680c9b384bdf54">bent_index_t</a> bit_index)</td></tr>
+<tr class="memdesc:a59834e7ed4919865fd250dfa28158008"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check whether a bit is set in a bitset. <br /></td></tr>
 <tr class="separator:a59834e7ed4919865fd250dfa28158008"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9b4fa33e7d35f3df9278200fb4f5c8d5" id="r_a9b4fa33e7d35f3df9278200fb4f5c8d5"><td class="memItemLeft" align="right" valign="top"><a id="a9b4fa33e7d35f3df9278200fb4f5c8d5" name="a9b4fa33e7d35f3df9278200fb4f5c8d5"></a>
 static bool&#160;</td><td class="memItemRight" valign="bottom"><b>bent_bitset_any_match</b> (const <a class="el" href="structbent__bitset__t.html">bent_bitset_t</a> *subject, const <a class="el" href="structbent__bitset__t.html">bent_bitset_t</a> *requirement)</td></tr>
+<tr class="memdesc:a9b4fa33e7d35f3df9278200fb4f5c8d5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check whether a bitset has at least one bit of another set. <br /></td></tr>
 <tr class="separator:a9b4fa33e7d35f3df9278200fb4f5c8d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a83783b396cc57599210f88ad4e6ac10e" id="r_a83783b396cc57599210f88ad4e6ac10e"><td class="memItemLeft" align="right" valign="top"><a id="a83783b396cc57599210f88ad4e6ac10e" name="a83783b396cc57599210f88ad4e6ac10e"></a>
 static bool&#160;</td><td class="memItemRight" valign="bottom"><b>bent_bitset_all_match</b> (const <a class="el" href="structbent__bitset__t.html">bent_bitset_t</a> *subject, const <a class="el" href="structbent__bitset__t.html">bent_bitset_t</a> *requirement)</td></tr>
+<tr class="memdesc:a83783b396cc57599210f88ad4e6ac10e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check whether a bitset has all the bits of another set. <br /></td></tr>
 <tr class="separator:a83783b396cc57599210f88ad4e6ac10e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:addcb94bd7a35aff8a5ba9213d0bb71ce" id="r_addcb94bd7a35aff8a5ba9213d0bb71ce"><td class="memItemLeft" align="right" valign="top"><a id="addcb94bd7a35aff8a5ba9213d0bb71ce" name="addcb94bd7a35aff8a5ba9213d0bb71ce"></a>
 static <a class="el" href="structbent__bitset__t.html">bent_bitset_t</a>&#160;</td><td class="memItemRight" valign="bottom"><b>bent_bitset_from_comp_list</b> (<a class="el" href="structbent__comp__reg__t.html">bent_comp_reg_t</a> **comp_list)</td></tr>
+<tr class="memdesc:addcb94bd7a35aff8a5ba9213d0bb71ce"><td class="mdescLeft">&#160;</td><td class="mdescRight">Build a bitset from a NULL-terminated list of components. <br /></td></tr>
 <tr class="separator:addcb94bd7a35aff8a5ba9213d0bb71ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Entity component system with automatic registration and hot reloading suppport. </p>
-<p>Components and systems are automatically registered with the help of autolist.h. When a hot reload solution such as <a href="https://github.com/bullno1/remodule">remodule</a>, is used changes to component or system definitions will be detected and the system will be updated automatically.</p>
+<p>Components and systems are automatically registered with the help of <a class="el" href="autolist_8h.html">autolist.h</a>. When a hot reload solution such as <a href="https://github.com/bullno1/remodule">remodule</a>, is used changes to component or system definitions will be detected and the system will be updated automatically.</p>
 <dl class="section remark"><dt>Remarks</dt><dd>Not all properites can be hot-reloaded. They will be clearly marked as such in the following sections. </dd></dl>
 </div><h2 class="groupheader">Macro Definition Documentation</h2>
 <a id="a9eee6092ac401da9b5274072f292646e" name="a9eee6092ac401da9b5274072f292646e"></a>
@@ -407,7 +420,7 @@ static <a class="el" href="structbent__bitset__t.html">bent_bitset_t</a>&#160;</
 <div class="line">    .size = <span class="keyword">sizeof</span>(transform_t),  <span class="comment">// The most important property</span></div>
 <div class="line">    <span class="comment">/* .init = ... */</span> <span class="comment">// Optionally with callbacks</span></div>
 <div class="line">};</div>
-<div class="ttc" id="abent_8h_html_aa4bae8da5ba5cddef82a407950cff5be"><div class="ttname"><a href="bent_8h.html#aa4bae8da5ba5cddef82a407950cff5be">BENT_DEFINE_COMP</a></div><div class="ttdeci">#define BENT_DEFINE_COMP(NAME)</div><div class="ttdoc">Define a component type.</div><div class="ttdef"><b>Definition</b> bent.h:125</div></div>
+<div class="ttc" id="abent_8h_html_aa4bae8da5ba5cddef82a407950cff5be"><div class="ttname"><a href="bent_8h.html#aa4bae8da5ba5cddef82a407950cff5be">BENT_DEFINE_COMP</a></div><div class="ttdeci">#define BENT_DEFINE_COMP(NAME)</div><div class="ttdoc">Define a component type.</div><div class="ttdef"><b>Definition</b> bent.h:128</div></div>
 </div><!-- fragment --> 
 </div>
 </div>
@@ -482,15 +495,15 @@ static <a class="el" href="structbent__bitset__t.html">bent_bitset_t</a>&#160;</
 <b>Value:</b><div class="fragment"><div class="line">    <span class="keyword">static</span> <span class="keyword">inline</span> COMP_TYPE* bent_add_##NAME(<a class="code hl_typedef" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a>* world, <a class="code hl_struct" href="structbent__t.html">bent_t</a> entity, ARG_TYPE* arg) { \</div>
 <div class="line">        <span class="keywordflow">return</span> <a class="code hl_function" href="bent_8h.html#ae75bedb5a72a29c14e2b3d5b054ce3c7">bent_add</a>(world, entity, NAME, arg); \</div>
 <div class="line">    }</div>
-<div class="ttc" id="abent_8h_html_ad25dcf8369af5e341d68f2a85083f584"><div class="ttname"><a href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a></div><div class="ttdeci">struct bent_world_s bent_world_t</div><div class="ttdoc">Handle to an entity world.</div><div class="ttdef"><b>Definition</b> bent.h:283</div></div>
+<div class="ttc" id="abent_8h_html_ad25dcf8369af5e341d68f2a85083f584"><div class="ttname"><a href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a></div><div class="ttdeci">struct bent_world_s bent_world_t</div><div class="ttdoc">Handle to an entity world.</div><div class="ttdef"><b>Definition</b> bent.h:286</div></div>
 <div class="ttc" id="abent_8h_html_ae75bedb5a72a29c14e2b3d5b054ce3c7"><div class="ttname"><a href="bent_8h.html#ae75bedb5a72a29c14e2b3d5b054ce3c7">bent_add</a></div><div class="ttdeci">void * bent_add(bent_world_t *world, bent_t entity, bent_comp_reg_t comp, void *arg)</div><div class="ttdoc">Add a component to an entity.</div></div>
-<div class="ttc" id="astructbent__t_html"><div class="ttname"><a href="structbent__t.html">bent_t</a></div><div class="ttdoc">Entity handle.</div><div class="ttdef"><b>Definition</b> bent.h:312</div></div>
+<div class="ttc" id="astructbent__t_html"><div class="ttname"><a href="structbent__t.html">bent_t</a></div><div class="ttdoc">Entity handle.</div><div class="ttdef"><b>Definition</b> bent.h:318</div></div>
 </div><!-- fragment -->
 <p>Define a type-safe helper function to add a component. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">NAME</td><td>name of the component type </td></tr>
-    <tr><td class="paramname">COM_TYPE</td><td>type of the component's data </td></tr>
+    <tr><td class="paramname">COMP_TYPE</td><td>type of the component's data </td></tr>
     <tr><td class="paramname">ARG_TYPE</td><td>type of the constructor argument </td></tr>
   </table>
   </dd>
@@ -582,7 +595,7 @@ static <a class="el" href="structbent__bitset__t.html">bent_bitset_t</a>&#160;</
 <div class="line"> </div>
 <div class="line"><span class="comment">// Most components do not have init or cleanup so there is a shortcut</span></div>
 <div class="line"><a class="code hl_define" href="bent_8h.html#aa0fbb0c469d4fe38d754d8ce99bef7dc">BENT_DEFINE_POD_COMP</a>(health, health_t)</div>
-<div class="ttc" id="abent_8h_html_aa0fbb0c469d4fe38d754d8ce99bef7dc"><div class="ttname"><a href="bent_8h.html#aa0fbb0c469d4fe38d754d8ce99bef7dc">BENT_DEFINE_POD_COMP</a></div><div class="ttdeci">#define BENT_DEFINE_POD_COMP(NAME, TYPE)</div><div class="ttdoc">Define a component type, whose data is a POD (plain old data)</div><div class="ttdef"><b>Definition</b> bent.h:143</div></div>
+<div class="ttc" id="abent_8h_html_aa0fbb0c469d4fe38d754d8ce99bef7dc"><div class="ttname"><a href="bent_8h.html#aa0fbb0c469d4fe38d754d8ce99bef7dc">BENT_DEFINE_POD_COMP</a></div><div class="ttdeci">#define BENT_DEFINE_POD_COMP(NAME, TYPE)</div><div class="ttdoc">Define a component type, whose data is a POD (plain old data)</div><div class="ttdef"><b>Definition</b> bent.h:146</div></div>
 </div><!-- fragment --> 
 </div>
 </div>
@@ -648,10 +661,10 @@ static <a class="el" href="structbent__bitset__t.html">bent_bitset_t</a>&#160;</
 <div class="line">    <span class="comment">// And cleaned upp</span></div>
 <div class="line">    <span class="comment">/* .cleanup = health_bar_cleanup */</span></div>
 <div class="line">};</div>
-<div class="ttc" id="abent_8h_html_a21e030cf08c3b1500b58273680b5f081"><div class="ttname"><a href="bent_8h.html#a21e030cf08c3b1500b58273680b5f081">bent_mask_t</a></div><div class="ttdeci">BENT_MASK_TYPE bent_mask_t</div><div class="ttdoc">Bitmask type used in the library.</div><div class="ttdef"><b>Definition</b> bent.h:289</div></div>
-<div class="ttc" id="abent_8h_html_a3080367ffa462dc5a5ae7d2589f1e7ee"><div class="ttname"><a href="bent_8h.html#a3080367ffa462dc5a5ae7d2589f1e7ee">BENT_DEFINE_SYS</a></div><div class="ttdeci">#define BENT_DEFINE_SYS(NAME)</div><div class="ttdoc">Define a system.</div><div class="ttdef"><b>Definition</b> bent.h:196</div></div>
-<div class="ttc" id="abent_8h_html_a9eee6092ac401da9b5274072f292646e"><div class="ttname"><a href="bent_8h.html#a9eee6092ac401da9b5274072f292646e">BENT_COMP_LIST</a></div><div class="ttdeci">#define BENT_COMP_LIST(...)</div><div class="ttdoc">Helper for a null-terminated component list.</div><div class="ttdef"><b>Definition</b> bent.h:228</div></div>
-<div class="ttc" id="abent_8h_html_aef1f57c00a98e4078b680c9b384bdf54"><div class="ttname"><a href="bent_8h.html#aef1f57c00a98e4078b680c9b384bdf54">bent_index_t</a></div><div class="ttdeci">BENT_INDEX_TYPE bent_index_t</div><div class="ttdoc">Index type used in the library.</div><div class="ttdef"><b>Definition</b> bent.h:286</div></div>
+<div class="ttc" id="abent_8h_html_a21e030cf08c3b1500b58273680b5f081"><div class="ttname"><a href="bent_8h.html#a21e030cf08c3b1500b58273680b5f081">bent_mask_t</a></div><div class="ttdeci">BENT_MASK_TYPE bent_mask_t</div><div class="ttdoc">Bitmask type used in the library.</div><div class="ttdef"><b>Definition</b> bent.h:292</div></div>
+<div class="ttc" id="abent_8h_html_a3080367ffa462dc5a5ae7d2589f1e7ee"><div class="ttname"><a href="bent_8h.html#a3080367ffa462dc5a5ae7d2589f1e7ee">BENT_DEFINE_SYS</a></div><div class="ttdeci">#define BENT_DEFINE_SYS(NAME)</div><div class="ttdoc">Define a system.</div><div class="ttdef"><b>Definition</b> bent.h:199</div></div>
+<div class="ttc" id="abent_8h_html_a9eee6092ac401da9b5274072f292646e"><div class="ttname"><a href="bent_8h.html#a9eee6092ac401da9b5274072f292646e">BENT_COMP_LIST</a></div><div class="ttdeci">#define BENT_COMP_LIST(...)</div><div class="ttdoc">Helper for a null-terminated component list.</div><div class="ttdef"><b>Definition</b> bent.h:231</div></div>
+<div class="ttc" id="abent_8h_html_aef1f57c00a98e4078b680c9b384bdf54"><div class="ttname"><a href="bent_8h.html#aef1f57c00a98e4078b680c9b384bdf54">bent_index_t</a></div><div class="ttdeci">BENT_INDEX_TYPE bent_index_t</div><div class="ttdoc">Index type used in the library.</div><div class="ttdef"><b>Definition</b> bent.h:289</div></div>
 </div><!-- fragment --> 
 </div>
 </div>
@@ -713,7 +726,7 @@ static <a class="el" href="structbent__bitset__t.html">bent_bitset_t</a>&#160;</
 <div class="line">            itr.name, itr.comp.id, itr.comp.def-&gt;size</div>
 <div class="line">        );</div>
 <div class="line">    }</div>
-<div class="ttc" id="abent_8h_html_ac3182b22b3afdb8f20dd38f0b3bd5026"><div class="ttname"><a href="bent_8h.html#ac3182b22b3afdb8f20dd38f0b3bd5026">BENT_FOREACH_COMP</a></div><div class="ttdeci">#define BENT_FOREACH_COMP(ITR)</div><div class="ttdoc">Iterate over each component type.</div><div class="ttdef"><b>Definition</b> bent.h:162</div></div>
+<div class="ttc" id="abent_8h_html_ac3182b22b3afdb8f20dd38f0b3bd5026"><div class="ttname"><a href="bent_8h.html#ac3182b22b3afdb8f20dd38f0b3bd5026">BENT_FOREACH_COMP</a></div><div class="ttdeci">#define BENT_FOREACH_COMP(ITR)</div><div class="ttdoc">Iterate over each component type.</div><div class="ttdef"><b>Definition</b> bent.h:165</div></div>
 </div><!-- fragment --> 
 </div>
 </div>
@@ -786,7 +799,7 @@ static <a class="el" href="structbent__bitset__t.html">bent_bitset_t</a>&#160;</
 <div class="line">            itr.name, itr.sys.id, itr.sys.def-&gt;size</div>
 <div class="line">        );</div>
 <div class="line">    }</div>
-<div class="ttc" id="abent_8h_html_a8f67fe2dc2440cc02376c98ae7bae587"><div class="ttname"><a href="bent_8h.html#a8f67fe2dc2440cc02376c98ae7bae587">BENT_FOREACH_SYS</a></div><div class="ttdeci">#define BENT_FOREACH_SYS(ITR)</div><div class="ttdoc">Iterate over each system.</div><div class="ttdef"><b>Definition</b> bent.h:212</div></div>
+<div class="ttc" id="abent_8h_html_a8f67fe2dc2440cc02376c98ae7bae587"><div class="ttname"><a href="bent_8h.html#a8f67fe2dc2440cc02376c98ae7bae587">BENT_FOREACH_SYS</a></div><div class="ttdeci">#define BENT_FOREACH_SYS(ITR)</div><div class="ttdoc">Iterate over each system.</div><div class="ttdef"><b>Definition</b> bent.h:215</div></div>
 </div><!-- fragment --> 
 </div>
 </div>
@@ -835,7 +848,7 @@ static <a class="el" href="structbent__bitset__t.html">bent_bitset_t</a>&#160;</
 <b>Value:</b><div class="fragment"><div class="line">    <a class="code hl_define" href="bent_8h.html#a714cff0c85030e912233e983634a1106">BENT_DECLARE_COMP</a>(NAME) \</div>
 <div class="line">    BENT_DEFINE_COMP_ADDER(NAME, TYPE) \</div>
 <div class="line">    BENT_DEFINE_COMP_GETTER(NAME, TYPE)</div>
-<div class="ttc" id="abent_8h_html_a714cff0c85030e912233e983634a1106"><div class="ttname"><a href="bent_8h.html#a714cff0c85030e912233e983634a1106">BENT_DECLARE_COMP</a></div><div class="ttdeci">#define BENT_DECLARE_COMP(NAME)</div><div class="ttdoc">Forward-declare a component type.</div><div class="ttdef"><b>Definition</b> bent.h:67</div></div>
+<div class="ttc" id="abent_8h_html_a714cff0c85030e912233e983634a1106"><div class="ttname"><a href="bent_8h.html#a714cff0c85030e912233e983634a1106">BENT_DECLARE_COMP</a></div><div class="ttdeci">#define BENT_DECLARE_COMP(NAME)</div><div class="ttdoc">Forward-declare a component type.</div><div class="ttdef"><b>Definition</b> bent.h:70</div></div>
 </div><!-- fragment -->
 <p>Dual use helper for POD component. </p>
 <p>In a header file, it will forward-declare the component and define inline helpers.</p>
@@ -1173,7 +1186,7 @@ static <a class="el" href="structbent__bitset__t.html">bent_bitset_t</a>&#160;</
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">world</td><td>the world </td></tr>
-    <tr><td class="paramname">sys</td><td>the entity </td></tr>
+    <tr><td class="paramname">entity</td><td>the entity </td></tr>
   </table>
   </dd>
 </dl>
@@ -1452,7 +1465,7 @@ static <a class="el" href="structbent__bitset__t.html">bent_bitset_t</a>&#160;</
 <p>This allows systems to use the same memory allocator as the world.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">world_ptr</td><td>pointer to a world </td></tr>
+    <tr><td class="paramname">world</td><td>the world </td></tr>
   </table>
   </dd>
 </dl>
@@ -1540,7 +1553,7 @@ static <a class="el" href="structbent__bitset__t.html">bent_bitset_t</a>&#160;</
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">world</td><td>the world </td></tr>
-    <tr><td class="paramname">mask</td><td>an update mask</td></tr>
+    <tr><td class="paramname">update_mask</td><td>an update mask</td></tr>
   </table>
   </dd>
 </dl>
