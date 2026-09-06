@@ -1,4 +1,5 @@
 #include "../bco.h"
+#include <stdio.h>
 #include <stdlib.h>
 
 // Note: Ignore the `//! [label]` markers, they are for for Doxygen
@@ -82,17 +83,21 @@ int main(int argc, const char* argv[]) {
 	// Or terminated early
 	bco_terminate(coro);
 
-//!                                                                             [bco_relocate]
+//!                                                                             [bco_reloadable]
 	bco_spawn(coro, reloadable, 3);
 	bco_resume(coro);
 	// Before swapping code: every coroutine must be parked at a named point
-	if (bco_reloadable(coro)) {
+	bco_loc_t blocker;
+	if (bco_reloadable(coro, &blocker)) {
 		bco_reload_begin(coro);
 		// ... unload the old code, load the new one, fix up function pointers ...
 		bco_reload_end(coro);
+	} else {
+		// Points at the bco_yield, bco_join or bco_call that needs a bco_at prefix
+		fprintf(stderr, "%s:%d: plain yield blocks reload\n", blocker.file, blocker.line);
 	}
 	bco_terminate(coro);
-//!                                                                             [bco_relocate]
+//!                                                                             [bco_reloadable]
 
 //!                                                                             [bco_mem_size]
 	// The coroutine can be heap-allocated
