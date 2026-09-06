@@ -33,6 +33,7 @@
  * The host then drives a reload as follows:
  *
  * 1. Check every live coroutine with @ref bco_reloadable and postpone if any is not.
+ *    Report the source location of the plain yield that is in the way.
  * 2. Call @ref bco_reload_begin on each one while the old code is still loaded.
  * 3. Swap the code.
  * 4. Call @ref bco_reload_end on each one.
@@ -284,7 +285,7 @@
 #define bco_yield() \
 	do { \
 		_Static_assert(bco__begin_declared == 1 && bco__end_declared == 0, "bco_yield can only be used *between* bco_begin and bco_end"); \
-		bco__on_yield(bco__coro, bco__resume_point); \
+		bco__on_yield(bco__coro, bco__yield_file, bco__resume_point); \
 		return; \
 		case bco__resume_point:; \
 	} while (0)
@@ -536,6 +537,14 @@ bco_set_userdata(bco_t* coro, void* userdata);
 BCO_API void*
 bco_get_userdata(bco_t* coro);
 
+/// A source location
+typedef struct {
+	/// The file name, as given by `__FILE__`
+	const char* file;
+	/// The line number, as given by `__LINE__`
+	int line;
+} bco_loc_t;
+
 /**
  * Check whether a coroutine can survive a code reload
  *
@@ -545,14 +554,25 @@ bco_get_userdata(bco_t* coro);
  * A host that wants to hot reload should postpone until this holds for
  * every live coroutine.
  *
+ * When this does not hold, `blocker` tells where the offending suspension is so
+ * it can be prefixed with @ref bco_at.
+ *
  * @param coro the coroutine
+ * @param blocker may be `NULL`.
+ *   Written only when the function returns false: the location of the plain
+ *   @ref bco_yield, @ref bco_join or @ref bco_call that the coroutine, or one
+ *   of its subcoroutines, is parked at.
  * @return whether it is safe to reload
+ *
+ * Example:
+ *
+ * @snippet samples/bco.c bco_reloadable
  *
  * @see bco_at
  * @see bco_reload_begin
  */
 BCO_API bool
-bco_reloadable(bco_t* coro);
+bco_reloadable(bco_t* coro, bco_loc_t* blocker);
 
 /**
  * Prepare a coroutine for a code reload
@@ -607,6 +627,11 @@ bco_reload_end(bco_t* coro);
 // Only its type is inspected so this stays an integer constant expression and
 // the outer fallback never needs a definition.
 #define bco__resume_point (sizeof(*bco__at) > 1 ? -(int)sizeof(*bco__at) : __LINE__)
+
+// Only a line-based yield records its file: a named one can outlive the build
+// that holds the string literal.
+// bco__resume_point is a constant expression so this folds at compile time.
+#define bco__yield_file (bco__resume_point > 0 ? __FILE__ : NULL)
 
 #define bco__arg_type(NAME) bco__concat(bco__args_, NAME)
 
@@ -665,7 +690,7 @@ BCO_API int
 bco__on_resume(bco_t* coro);
 
 BCO_API void
-bco__on_yield(bco_t* coro, int resume_point);
+bco__on_yield(bco_t* coro, const char* file, int resume_point);
 
 BCO_API void
 bco__on_terminate(bco_t* coro);
@@ -713,6 +738,7 @@ struct bco_s {
 	char* bp;
 	void* userdata;
 	bco_t* subcoro;
+	const char* file;  // Only meaningful at a line-based yield
 	int resume_point;
 	unsigned int named_point;  // Only meaningful between bco_reload_begin and bco_reload_end
 	bool relocating;
@@ -850,7 +876,8 @@ bco__on_resume(bco_t* coro) {
 }
 
 void
-bco__on_yield(bco_t* coro, int resume_point) {
+bco__on_yield(bco_t* coro, const char* file, int resume_point) {
+	coro->file = file;
 	coro->resume_point = resume_point;
 }
 
@@ -913,10 +940,16 @@ bco__relocate(bco_t* coro, const char* names, int count) {
 }
 
 bool
-bco_reloadable(bco_t* coro) {
+bco_reloadable(bco_t* coro, bco_loc_t* blocker) {
 	if (coro->status != BCO_SUSPENDED || coro->resume_point == 0) { return true; }
-	if (!bco__at_named_point(coro)) { return false; }
-	return coro->subcoro == NULL || bco_reloadable(coro->subcoro);
+	if (!bco__at_named_point(coro)) {
+		if (blocker != NULL) {
+			blocker->file = coro->file;
+			blocker->line = coro->resume_point;
+		}
+		return false;
+	}
+	return coro->subcoro == NULL || bco_reloadable(coro->subcoro, blocker);
 }
 
 // Enter the coroutine's function with a relocate request and let bco_begin
@@ -932,7 +965,7 @@ bco__relocate_call(bco_t* coro) {
 
 bool
 bco_reload_begin(bco_t* coro) {
-	if (!bco_reloadable(coro)) { return false; }
+	if (!bco_reloadable(coro, NULL)) { return false; }
 	if (coro->status != BCO_SUSPENDED || coro->resume_point == 0) { return true; }
 	BCO_ASSERT(!coro->relocating, "bco_reload_begin was called twice");
 
