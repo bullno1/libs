@@ -27,13 +27,13 @@ static int parent_line_call_line;
 
 #define EXPECT_BLOCKED_AT(CORO, LINE) \
 	do { \
-		bco_loc_t at = { 0 }; \
-		BTEST_EXPECT(!bco_reloadable(CORO, &at)); \
+		bco_loc_t blocked_at = { 0 }; \
+		BTEST_EXPECT(!bco_reloadable(CORO, &blocked_at)); \
 		BTEST_EXPECT_EX( \
-			at.file != NULL && strcmp(at.file, __FILE__) == 0, \
-			"blocker file is \"%s\", expected \"%s\"", at.file != NULL ? at.file : "(null)", __FILE__ \
+			blocked_at.file != NULL && strcmp(blocked_at.file, __FILE__) == 0, \
+			"blocker file is \"%s\", expected \"%s\"", blocked_at.file != NULL ? blocked_at.file : "(null)", __FILE__ \
 		); \
-		BTEST_EXPECT_EQUAL("%d", LINE, at.line); \
+		BTEST_EXPECT_EQUAL("%d", LINE, blocked_at.line); \
 	} while (0)
 
 bco_decl_static(worker, int n);
