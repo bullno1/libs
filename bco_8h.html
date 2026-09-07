@@ -233,7 +233,7 @@ Functions</h2></td></tr>
 </ul>
 <p>To access arguments, use <a class="el" href="bco_8h.html#a423d1d00af72206b6a9d45322674066b">bco_arg</a> To have local variables that get persisted between runs, use <a class="el" href="bco_8h.html#a8f050128aadebc9a8a6a1313221f8341">bco_vars</a></p>
 <p>Checkout the rest of the documentation for other features such as <a class="el" href="bco_8h.html#a306236fdd099d61cce15b4609ab07ac0">bco_copy</a>, <a class="el" href="bco_8h.html#a56f8de4423ef12ca3942e175bbce1211">bco_terminate</a>...</p>
-<h2><a class="anchor" id="autotoc_md2"></a>
+<h2><a class="anchor" id="autotoc_md3"></a>
 Hot reload</h2>
 <p>A plain <a class="el" href="bco_8h.html#a2baf5f05f2b196742c0bcb92cfdb99b9">bco_yield</a> is identified by its line number, which changes whenever the source is edited. To survive a code reload, park the coroutine at a named point instead: declare the names with <a class="el" href="bco_8h.html#acd40573415af9b5518039f1ec94bba27">bco_yield_points</a> and prefix the <a class="el" href="bco_8h.html#a2baf5f05f2b196742c0bcb92cfdb99b9">bco_yield</a>, <a class="el" href="bco_8h.html#abe1a1b9715da4d39caabc85b243dde34">bco_join</a> or <a class="el" href="bco_8h.html#a06625dcae87fbf16664551b2532f1f0d">bco_call</a> with <a class="el" href="bco_8h.html#ab5f7a234b5b71bba6fd3c0fcbeee8a95">bco_at</a>.</p>
 <p>The host then drives a reload as follows:</p>

@@ -1,8 +1,8 @@
 var searchData=
 [
   ['read_0',['read',['../structbserial__in__s.html#a89f203a4572c9d0ffa30aac6abf7ed22',1,'bserial_in_s::read'],['../structbsv__in__s.html#a699f4885356b909cd0032a2af85dbdab',1,'bsv_in_s::read']]],
-  ['record_1',['Record',['../bserial_8h.html#autotoc_md7',1,'']]],
-  ['reload_2',['Hot reload',['../bco_8h.html#autotoc_md2',1,'']]],
+  ['record_1',['Record',['../bserial_8h.html#autotoc_md8',1,'']]],
+  ['reload_2',['Hot reload',['../bco_8h.html#autotoc_md3',1,'']]],
   ['remove_3',['remove',['../structbent__sys__def__t.html#a746509dc90d5b7d576bebb99a1a47162',1,'bent_sys_def_t']]],
   ['repeatable_4',['repeatable',['../structbarg__opt__t.html#ae49c222cc27823a14a7033ff4902cf3d',1,'barg_opt_t']]],
   ['require_5',['require',['../structbent__sys__def__t.html#ac7cdf1c432817c50caf5f16af20bcbc0',1,'bent_sys_def_t']]],

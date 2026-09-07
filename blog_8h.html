@@ -216,12 +216,15 @@ Functions</h2></td></tr>
 <div class="line">});</div>
 <div class="line"><a class="code hl_define" href="blog_8h.html#a74c42d2c73d7f345c9dbf6130b4944c8">BLOG_INFO</a>(<span class="stringliteral">&quot;Hello %s&quot;</span>, <span class="stringliteral">&quot;world&quot;</span>);  <span class="comment">// [INFO ][src/main.c:12]: Hello world</span></div>
 <div class="ttc" id="ablog_8h_html_a503f903b72cff9477ae0436f69bf4a35"><div class="ttname"><a href="blog_8h.html#a503f903b72cff9477ae0436f69bf4a35">blog_init</a></div><div class="ttdeci">void blog_init(const blog_options_t *options)</div><div class="ttdoc">Initialize the library.</div></div>
-<div class="ttc" id="ablog_8h_html_a74c42d2c73d7f345c9dbf6130b4944c8"><div class="ttname"><a href="blog_8h.html#a74c42d2c73d7f345c9dbf6130b4944c8">BLOG_INFO</a></div><div class="ttdeci">#define BLOG_INFO(...)</div><div class="ttdoc">Log at BLOG_LEVEL_INFO.</div><div class="ttdef"><b>Definition</b> blog.h:90</div></div>
+<div class="ttc" id="ablog_8h_html_a74c42d2c73d7f345c9dbf6130b4944c8"><div class="ttname"><a href="blog_8h.html#a74c42d2c73d7f345c9dbf6130b4944c8">BLOG_INFO</a></div><div class="ttdeci">#define BLOG_INFO(...)</div><div class="ttdoc">Log at BLOG_LEVEL_INFO.</div><div class="ttdef"><b>Definition</b> blog.h:105</div></div>
 <div class="ttc" id="ablog_8h_html_a75c838d169444818707d5347645f07ce"><div class="ttname"><a href="blog_8h.html#a75c838d169444818707d5347645f07ce">blog_add_file_logger</a></div><div class="ttdeci">blog_logger_id_t blog_add_file_logger(blog_level_t min_level, const blog_file_logger_options_t *options)</div><div class="ttdoc">Add a logger writing one line per message to a FILE*.</div></div>
-<div class="ttc" id="ablog_8h_html_a873621186a42e3376aad93fb3ef55ddda0226e25b955596185d696a62c5e8b34e"><div class="ttname"><a href="blog_8h.html#a873621186a42e3376aad93fb3ef55ddda0226e25b955596185d696a62c5e8b34e">BLOG_LEVEL_INFO</a></div><div class="ttdeci">@ BLOG_LEVEL_INFO</div><div class="ttdoc">Normal operation.</div><div class="ttdef"><b>Definition</b> blog.h:115</div></div>
-<div class="ttc" id="astructblog__file__logger__options__t_html"><div class="ttname"><a href="structblog__file__logger__options__t.html">blog_file_logger_options_t</a></div><div class="ttdoc">Options for blog_add_file_logger.</div><div class="ttdef"><b>Definition</b> blog.h:169</div></div>
-<div class="ttc" id="astructblog__options__t_html"><div class="ttname"><a href="structblog__options__t.html">blog_options_t</a></div><div class="ttdoc">Options for blog_init.</div><div class="ttdef"><b>Definition</b> blog.h:148</div></div>
-</div><!-- fragment --><p>Messages longer than <a class="el" href="blog_8h.html#a0403d3f19785e49c1b58d5196cea7f66">BLOG_LINE_BUF_SIZE</a> are truncated. The formatting buffer is shared so the library is not thread-safe.</p>
+<div class="ttc" id="ablog_8h_html_a873621186a42e3376aad93fb3ef55ddda0226e25b955596185d696a62c5e8b34e"><div class="ttname"><a href="blog_8h.html#a873621186a42e3376aad93fb3ef55ddda0226e25b955596185d696a62c5e8b34e">BLOG_LEVEL_INFO</a></div><div class="ttdeci">@ BLOG_LEVEL_INFO</div><div class="ttdoc">Normal operation.</div><div class="ttdef"><b>Definition</b> blog.h:130</div></div>
+<div class="ttc" id="astructblog__file__logger__options__t_html"><div class="ttname"><a href="structblog__file__logger__options__t.html">blog_file_logger_options_t</a></div><div class="ttdoc">Options for blog_add_file_logger.</div><div class="ttdef"><b>Definition</b> blog.h:189</div></div>
+<div class="ttc" id="astructblog__options__t_html"><div class="ttname"><a href="structblog__options__t.html">blog_options_t</a></div><div class="ttdoc">Options for blog_init.</div><div class="ttdef"><b>Definition</b> blog.h:168</div></div>
+</div><!-- fragment --><p>Messages longer than <a class="el" href="blog_8h.html#a0403d3f19785e49c1b58d5196cea7f66">BLOG_LINE_BUF_SIZE</a> are truncated.</p>
+<h2><a class="anchor" id="autotoc_md2"></a>
+Threading</h2>
+<p>Logging is safe from any thread: each thread formats into its own thread-local buffer. Configuration is not: call <a class="el" href="blog_8h.html#a503f903b72cff9477ae0436f69bf4a35">blog_init</a>, add loggers and set their levels once, in the main thread, before other threads start logging. A logger is called on whichever thread logs the message, possibly several at once, so a custom logger must bring its own synchronization. The built-in loggers are thread-safe.</p>
 <p>In <b>exactly one</b> source file, define <code>BLOG_IMPLEMENTATION</code> before including <a class="el" href="blog_8h.html" title="Logging, with short filenames.">blog.h</a>. </p>
 </div><h2 class="groupheader">Macro Definition Documentation</h2>
 <a id="ae417f2d9b5630be80456bcde003fb0d4" name="ae417f2d9b5630be80456bcde003fb0d4"></a>
@@ -238,8 +241,8 @@ Functions</h2></td></tr>
 
 <p>printf format specifier for a <a class="el" href="structblog__str__t.html">blog_str_t</a>. </p>
 <div class="fragment"><div class="line"><a class="code hl_define" href="blog_8h.html#a74c42d2c73d7f345c9dbf6130b4944c8">BLOG_INFO</a>(<span class="stringliteral">&quot;Message: &quot;</span> <a class="code hl_define" href="blog_8h.html#ae417f2d9b5630be80456bcde003fb0d4">BLOG_STR_FMT</a>, <a class="code hl_define" href="blog_8h.html#a7120ffc6964518e4cec47c46ab08f571">BLOG_STR_FMT_ARGS</a>(msg));</div>
-<div class="ttc" id="ablog_8h_html_a7120ffc6964518e4cec47c46ab08f571"><div class="ttname"><a href="blog_8h.html#a7120ffc6964518e4cec47c46ab08f571">BLOG_STR_FMT_ARGS</a></div><div class="ttdeci">#define BLOG_STR_FMT_ARGS(X)</div><div class="ttdoc">printf arguments for a blog_str_t, to go with BLOG_STR_FMT</div><div class="ttdef"><b>Definition</b> blog.h:109</div></div>
-<div class="ttc" id="ablog_8h_html_ae417f2d9b5630be80456bcde003fb0d4"><div class="ttname"><a href="blog_8h.html#ae417f2d9b5630be80456bcde003fb0d4">BLOG_STR_FMT</a></div><div class="ttdeci">#define BLOG_STR_FMT</div><div class="ttdoc">printf format specifier for a blog_str_t.</div><div class="ttdef"><b>Definition</b> blog.h:107</div></div>
+<div class="ttc" id="ablog_8h_html_a7120ffc6964518e4cec47c46ab08f571"><div class="ttname"><a href="blog_8h.html#a7120ffc6964518e4cec47c46ab08f571">BLOG_STR_FMT_ARGS</a></div><div class="ttdeci">#define BLOG_STR_FMT_ARGS(X)</div><div class="ttdoc">printf arguments for a blog_str_t, to go with BLOG_STR_FMT</div><div class="ttdef"><b>Definition</b> blog.h:124</div></div>
+<div class="ttc" id="ablog_8h_html_ae417f2d9b5630be80456bcde003fb0d4"><div class="ttname"><a href="blog_8h.html#ae417f2d9b5630be80456bcde003fb0d4">BLOG_STR_FMT</a></div><div class="ttdeci">#define BLOG_STR_FMT</div><div class="ttdoc">printf format specifier for a blog_str_t.</div><div class="ttdef"><b>Definition</b> blog.h:122</div></div>
 </div><!-- fragment --><dl class="section see"><dt>See also</dt><dd><a class="el" href="blog_8h.html#a7120ffc6964518e4cec47c46ab08f571" title="printf arguments for a blog_str_t, to go with BLOG_STR_FMT">BLOG_STR_FMT_ARGS</a> </dd></dl>
 
 </div>
@@ -296,6 +299,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>A logger. </p>
+<p>It is called on the thread that logs the message. When several threads log at once it is called concurrently, so it must synchronize on its own if it needs to. <code>msg</code> is only valid for the duration of the call.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">ctx</td><td>Where the message comes from. </td></tr>
@@ -366,6 +370,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Add a logger writing to Android's logcat. </p>
+<p>The logger is thread-safe: each message is a single <code>__android_log_print</code> call. Adding it is not, see <a class="el" href="blog_8h.html#a2db95eab99e4191d5d13723cf857648e">blog_add_logger</a>.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">min_level</td><td>Messages below this level are not written. </td></tr>
@@ -404,6 +409,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Add a logger writing one line per message to a <code>FILE*</code>. </p>
+<p>The logger is thread-safe: each message is a single <code>fprintf</code> call and the C library locks the stream for the duration of the call, so lines from different threads do not interleave. Adding it is not, see <a class="el" href="blog_8h.html#a2db95eab99e4191d5d13723cf857648e">blog_add_logger</a>.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">min_level</td><td>Messages below this level are not written. </td></tr>
@@ -448,6 +454,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Add a custom logger. </p>
+<p>Not thread-safe: add loggers once, in the main thread, before other threads start logging.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">min_level</td><td>Messages below this level are not passed to the logger. </td></tr>
@@ -477,7 +484,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Initialize the library. </p>
-<p>Must be called before adding loggers.</p>
+<p>Must be called before adding loggers. Not thread-safe: call it once, in the main thread, before logging starts.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">options</td><td>How to shorten filenames, see <a class="el" href="structblog__options__t.html">blog_options_t</a>. </td></tr>
@@ -514,7 +521,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Change the minimum level of a logger. </p>
-<p>Does nothing for an invalid (negative) id. </p>
+<p>Does nothing for an invalid (negative) id. Not thread-safe with respect to logging: set levels from the main thread before other threads start logging. </p>
 
 </div>
 </div>
@@ -563,6 +570,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Log a message, <code>vprintf</code> style. </p>
+<p>Safe to call from any thread.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">level</td><td>Severity. </td></tr>

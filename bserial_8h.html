@@ -328,7 +328,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>bserial_trace</b> (<a
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Serialization library. </p>
-<h2><a class="anchor" id="autotoc_md3"></a>
+<h2><a class="anchor" id="autotoc_md4"></a>
 Motivation</h2>
 <p>I need a serialization library with the following criteria:</p>
 <ul>
@@ -338,7 +338,7 @@ Motivation</h2>
 <li>Schema evolution: The structure of objects can change. New keys can be added/removed/reordered. Existing keys can have their type changed. Old serialization files must still be compatible with newer versions.</li>
 <li>Fixed allocation: It should allocate a fixed amount of memory upfront. The memory complexity only depends on how deep the object tree can be, not how wide it is. There is always a bound check and invalid data is rejected.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md4"></a>
+<h2><a class="anchor" id="autotoc_md5"></a>
 Design</h2>
 <p>There are several layers:</p>
 <ul>
@@ -352,7 +352,7 @@ Design</h2>
 <p class="startli"><code>bserial_ctx_mem_size</code> is used to retrieve the fixed memory size needed for serialization/deserialization. Then <code>bserial_make_ctx</code> will be used to construct the context. Either an input stream or an output stream must be provided.</p>
 </li>
 </ul>
-<h2><a class="anchor" id="autotoc_md5"></a>
+<h2><a class="anchor" id="autotoc_md6"></a>
 Structured serialization</h2>
 <p>The supported data types are:</p>
 <ul>
@@ -365,12 +365,12 @@ Structured serialization</h2>
 <li>Table: a collection of elements. Unlike array, each element must be a record. All records must have the exact same set of keys. The storage is optimized for storing repeated records of the same type.</li>
 </ul>
 <p>All data types are generally stored as <code>[tag][payload]</code>. Variable length types like array or table are stored as <code>[tag][length][payload]</code>. The type tag is needed to facilitate skipping over unknown data that is not described in the serialization code.</p>
-<h3><a class="anchor" id="autotoc_md6"></a>
+<h3><a class="anchor" id="autotoc_md7"></a>
 Error handling</h3>
 <p><code>BSERIAL_CHECK_STATUS</code> should be used on all functions that returns <code>bserial_status_t</code>. This ensures that the code returns as soon as possible when error is encountered.</p>
 <p>However, error is also "sticky". As soon as a <code>bserial_ctx_t</code> encounters an error, all subsequent operations are noop. This allows user code to trace the error with <code>bserial_trace</code>.</p>
 <p>TODO: Improve <code>bserial_trace</code>.</p>
-<h3><a class="anchor" id="autotoc_md7"></a>
+<h3><a class="anchor" id="autotoc_md8"></a>
 Record</h3>
 <p>Much of this library deals with reading and writing records in a backward compatible manner and allow for structural changes. The serialization code for a struct must have the following form:</p>
 <div class="fragment"><div class="line"><a class="code hl_enumeration" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a></div>
@@ -429,7 +429,7 @@ Record</h3>
 <p>The serialization code cannot be naively executed in order.</p>
 <p>The outer <code>while</code> loop allows the library to run mulitple passes through the structure. This allows it to, for example, store the keys separately from the values.</p>
 <p>The inner <code>if</code> conditions allow the library to conditionally execute the value serialization code. This allows it to reorder and toggle the execution of each field. This can arguably be done with a function table where each key is a field name and each value is a serialization function. However, it is much less ergonomic to do in C. Even in C++, there are concerns about where the captures and the function table itself is allocated. This violates the library's goal of fixed allocation. In the common cases (code and data perfectly matches), the field clauses will most likely be executed in order anyway. Thus there should not be much overhead. Even with some omitted fields (due to newly introduced fields in code), given that all records in a table must have the same schema, the branches should be perfectly predictable. e.g: "foo" is always executed and "bar" is always skipped.</p>
-<h4><a class="anchor" id="autotoc_md8"></a>
+<h4><a class="anchor" id="autotoc_md9"></a>
 Compatible type change</h4>
 <p>The above structure allows us to deal with compatible structural changes:</p>
 <ul>
@@ -443,7 +443,7 @@ Compatible type change</h4>
 <p class="startli">The loop would only have to run more than twice when the program has to read serialized data from a previous version where fields have a different order. This can be somewhat mitigated by only adding code for new fields at the end of the serialization function.</p>
 </li>
 </ul>
-<h4><a class="anchor" id="autotoc_md9"></a>
+<h4><a class="anchor" id="autotoc_md10"></a>
 Incompatible type change</h4>
 <p>Suppose that we have the following struct:</p>
 <div class="fragment"><div class="line"><span class="keyword">typedef</span> <span class="keyword">struct </span>{</div>
@@ -481,7 +481,7 @@ Incompatible type change</h4>
 <div class="ttc" id="abserial_8h_html_a9efe4064847e35223ecbaa17e59da6d1"><div class="ttname"><a href="bserial_8h.html#a9efe4064847e35223ecbaa17e59da6d1">bserial_mode</a></div><div class="ttdeci">bserial_mode_t bserial_mode(bserial_ctx_t *ctx)</div><div class="ttdoc">Get the current serialization mode.</div></div>
 <div class="ttc" id="abserial_8h_html_aa72d84b2b1108e2128281caab136bd8ba7eb9e8a1b996d240a327695da0e6c031"><div class="ttname"><a href="bserial_8h.html#aa72d84b2b1108e2128281caab136bd8ba7eb9e8a1b996d240a327695da0e6c031">BSERIAL_MODE_READ</a></div><div class="ttdeci">@ BSERIAL_MODE_READ</div><div class="ttdoc">Reading.</div><div class="ttdef"><b>Definition</b> bserial.h:475</div></div>
 </div><!-- fragment --><p>Versioning can thus, be done per field instead of per record. This should make backward-compatible schema change relatively painless.</p>
-<h3><a class="anchor" id="autotoc_md10"></a>
+<h3><a class="anchor" id="autotoc_md11"></a>
 Variable length types</h3>
 <p>Beside the initial fixed-size memory buffer passed to <code>bserial_make_ctx</code>, the library does not allocate any more memory. For variable-length data types such as table or array, user code has to make their own decision. In general, fixed allocation is encouraged and it is always important to enforce a hard limit on length. However, when dynamic size is needed something like this can be used:</p>
 <div class="fragment"><div class="line"><a class="code hl_enumeration" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a></div>
@@ -509,11 +509,11 @@ Variable length types</h3>
 <li>If using dynamic memory, resize storage to fit length.</li>
 <li>Loop through elements and serialize them.</li>
 </ol>
-<h3><a class="anchor" id="autotoc_md11"></a>
+<h3><a class="anchor" id="autotoc_md12"></a>
 Table</h3>
 <p><code>bserial_array</code> and <code>bserial_table</code> have the same signature. The only requirement for <code>bserial_table</code> is that all subsequent elements must be records of the same type: same set of keys and values must have the same type. The storage optimization is done automatically.</p>
 <p>Internally, the keys are only written once at the beginning of the table. Then, all values of all rows are stored packed without separators.</p>
-<h3><a class="anchor" id="autotoc_md12"></a>
+<h3><a class="anchor" id="autotoc_md13"></a>
 String encoding validation</h3>
 <p>This is considered to be out of scope. However, it is not difficult to create a helper in user code:</p>
 <div class="fragment"><div class="line"><a class="code hl_enumeration" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a></div>
@@ -533,7 +533,7 @@ String encoding validation</h3>
 <div class="line">}</div>
 <div class="ttc" id="abserial_8h_html_a1e9db74a29c5838f59655bea2fc77c06"><div class="ttname"><a href="bserial_8h.html#a1e9db74a29c5838f59655bea2fc77c06">bserial_blob_header</a></div><div class="ttdeci">bserial_status_t bserial_blob_header(bserial_ctx_t *ctx, uint64_t *len)</div><div class="ttdoc">Read/write a binary blob's header.</div></div>
 <div class="ttc" id="abserial_8h_html_a59ba430636a464f8d8644792f3d52bc3"><div class="ttname"><a href="bserial_8h.html#a59ba430636a464f8d8644792f3d52bc3">bserial_blob_body</a></div><div class="ttdeci">bserial_status_t bserial_blob_body(bserial_ctx_t *ctx, char *buf)</div><div class="ttdoc">Read/write a binary blob's body.</div></div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md13"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md14"></a>
 Variant/tagged union types</h3>
 <p>There is no built-in support for these types. However, they could be emulated with an array where:</p>
 <ul>
@@ -558,7 +558,7 @@ Variant/tagged union types</h3>
 <div class="line">    }</div>
 <div class="line">}</div>
 </div><!-- fragment --><p>Record is not appropriate for this usecase as fields in records are unordered. There is no guarantee that the type field will be read before the payload fields.</p>
-<h3><a class="anchor" id="autotoc_md14"></a>
+<h3><a class="anchor" id="autotoc_md15"></a>
 Associative map</h3>
 <p>Record is optimized for serializing a fixed set of keys and it is not suitable for associative map types such as hashtable. Instead, a table should be used:</p>
 <div class="fragment"><div class="line"><a class="code hl_enumeration" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a></div>
