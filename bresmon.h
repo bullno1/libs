@@ -3,7 +3,15 @@
 
 /**
  * @file
- * @brief A single header library for resource monitoring and reloading.
+ * @brief File watcher designed for hot reloading of resources.
+ *
+ * Each watched file (@ref bresmon_watch) has its own reload callback and
+ * userdata.
+ * Changes are detected with inotify on Linux and `ReadDirectoryChangesW` on
+ * Windows.
+ * Call @ref bresmon_check (or @ref bresmon_should_reload followed by
+ * @ref bresmon_reload) periodically, e.g: once per frame, to invoke the
+ * callbacks of the files that changed.
  *
  * In **exactly one** source file, define `BRESMON_IMPLEMENTATION` before including bresmon.h.
  *

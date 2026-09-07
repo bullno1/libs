@@ -950,6 +950,10 @@ WARN_LOGFILE           =
 # Note: If this tag is empty the current directory is searched.
 
 INPUT                  = README.md \
+	barena.h \
+	mem_layout.h \
+	tlsf.h \
+	xincbin.h \
 	autolist.h \
 	btest.h \
 	bresmon.h \

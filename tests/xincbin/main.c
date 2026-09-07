@@ -1,25 +1,27 @@
 #include "resources.h"
-#include <stdio.h>
+#include "../../btest.h"
 #include <string.h>
 
-int main(int argc, const char* argv[]) {
+static btest_suite_t xincbin_ = {
+	.name = "xincbin",
+};
+
+BTEST(xincbin_, embedded_text) {
 	xincbin_data_t embedded = XINCBIN_GET(embedded);
-	printf("%.*s\n", embedded.size, embedded.data);
+	BTEST_ASSERT(embedded.data != NULL);
+	BTEST_ASSERT(embedded.size > 0);
+	BTEST_EXPECT(strncmp((const char*)embedded.data, "Lorem ipsum", 11) == 0);
+
 	// Resources are implicitly null-terminated without counting the
 	// terminator in the size
-	if (embedded.data[embedded.size] != 0) {
-		fprintf(stderr, "Resource is not null-terminated\n");
-		return 1;
-	}
-	if (strlen((const char*)embedded.data) != embedded.size) {
-		fprintf(stderr, "strlen does not match size\n");
-		return 1;
-	}
+	BTEST_EXPECT_EQUAL("%d", embedded.data[embedded.size], 0);
+	BTEST_EXPECT_EQUAL("%zu", strlen((const char*)embedded.data), (size_t)embedded.size);
+}
+
+BTEST(xincbin_, repeated_retrieval) {
 	// Repeated retrievals return the same resource
+	xincbin_data_t embedded = XINCBIN_GET(embedded);
 	xincbin_data_t embedded2 = XINCBIN_GET(embedded);
-	if (embedded2.data != embedded.data || embedded2.size != embedded.size) {
-		fprintf(stderr, "Repeated retrieval returns a different result\n");
-		return 1;
-	}
-	return 0;
+	BTEST_EXPECT(embedded2.data == embedded.data);
+	BTEST_EXPECT_EQUAL("%u", embedded2.size, embedded.size);
 }

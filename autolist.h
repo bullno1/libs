@@ -4,6 +4,18 @@
 /**
  * @file
  * @brief A list of items collected from all compilation units.
+ *
+ * For when you have a list of things (test cases, metadata...) spread around
+ * in different compilation units and you need to iterate over all of them.
+ *
+ * Any compilation unit can add an entry to a list with @ref AUTOLIST_ENTRY.
+ * Exactly one compilation unit defines the list with @ref AUTOLIST_DEFINE
+ * (or @ref AUTOLIST_DECLARE and @ref AUTOLIST_IMPL separately) and every
+ * unit that includes the declaration can iterate over the collected entries
+ * with @ref AUTOLIST_FOREACH.
+ *
+ * Entries are collected by the linker into a dedicated section so there is
+ * no runtime registration.
  */
 
 #include <stddef.h>
@@ -114,7 +126,28 @@ typedef struct {
 	size_t value_size;
 } autolist_entry_t;
 
-#if defined(_MSC_VER)
+#if defined(DOXYGEN)
+/**
+ * Declare a list so that it can be iterated in the current compilation unit.
+ *
+ * @param NAME name of the list
+ *
+ * @see AUTOLIST_IMPL
+ * @hideinitializer
+ */
+#	define AUTOLIST_DECLARE(NAME)
+/**
+ * Provide the storage for a list.
+ *
+ * This must be done in exactly one compilation unit.
+ *
+ * @param NAME name of the list
+ *
+ * @see AUTOLIST_DECLARE
+ * @hideinitializer
+ */
+#	define AUTOLIST_IMPL(NAME)
+#elif defined(_MSC_VER)
 #	define AUTOLIST_DECLARE(NAME) \
 	extern const autolist_entry_t* const AUTOLIST__CONCAT3(autolist_, NAME, _begin); \
 	extern const autolist_entry_t* const AUTOLIST__CONCAT3(autolist_, NAME, _end);
@@ -157,7 +190,26 @@ typedef struct {
 	AUTOLIST_DECLARE(NAME) \
 	AUTOLIST_IMPL(NAME)
 
-#if defined(_MSC_VER)
+#if defined(DOXYGEN)
+/**
+ * Pointer to the first entry pointer of a list, of type `const autolist_entry_t* const*`.
+ *
+ * @param NAME name of the list
+ *
+ * @see AUTOLIST_FOREACH
+ * @hideinitializer
+ */
+#	define AUTOLIST_BEGIN(NAME)
+/**
+ * Pointer past the last entry pointer of a list.
+ *
+ * @param NAME name of the list
+ *
+ * @see AUTOLIST_BEGIN
+ * @hideinitializer
+ */
+#	define AUTOLIST_END(NAME)
+#elif defined(_MSC_VER)
 #	define AUTOLIST_BEGIN(NAME) (&AUTOLIST__CONCAT3(autolist_, NAME, _begin) + 1)
 #	define AUTOLIST_END(NAME) (&AUTOLIST__CONCAT3(autolist_, NAME, _end))
 #elif defined(__unix__) || defined(__APPLE__)

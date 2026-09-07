@@ -11,7 +11,7 @@ common_fixture_t common_fixture = {
 	},
 };
 
-barena_pool_t pool = { 0 };
+static barena_pool_t pool = { 0 };
 
 void
 common_fixture_init(void) {
@@ -86,3 +86,6 @@ trace_bserial_ctx(int depth, const char* fmt, va_list args, void* userdata) {
 	vprintf(fmt, args);
 	printf("\n");
 }
+
+#define BLIB_IMPLEMENTATION
+#include "../../bserial.h"

@@ -36,9 +36,6 @@ jobs:
           msbuild libs.sln /property:Configuration=Debug /property:Platform=x64
       - name: Test
         run: |
-          bin/Debug/bhash.exe
-          bin/Debug/bserial.exe
-          bin/Debug/bspscq.exe
           bin/Debug/bstacktrace.exe
           bin/Debug/bcrash_handler.exe
           bin/Debug/tests.exe
@@ -65,10 +62,6 @@ jobs:
           make config=debug
       - name: Test
         run: |
-          bin/Debug/bhash
-          bin/Debug/bserial
-          bin/Debug/bspscq
           bin/Debug/bstacktrace
           bin/Debug/bcrash_handler || true
-          bin/Debug/bsfn
           bin/Debug/tests

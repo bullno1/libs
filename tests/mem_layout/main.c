@@ -1,32 +1,31 @@
 #include "../../mem_layout.h"
-#include <stdio.h>
+#include "../../btest.h"
 #include <stdlib.h>
-#include <stddef.h>
 
+static btest_suite_t mem_layout_ = {
+	.name = "mem_layout",
+};
+
+//! [mem_layout_example]
+// A struct with variable-sized members
 typedef struct {
-    int num_ints;
-    int* ints;
+	int num_ints;
+	int* ints;
 
-    int num_floats;
-    float* floats;
+	int num_floats;
+	float* floats;
 } var_struct;
 
-int main(int argc, const char* argv[]) {
-	(void)argc;
-	(void)argv;
-
-	// Suppose we want to init var_struct with these params;
-	int num_ints = 4;
-	int num_floats = 5;
-
+static var_struct*
+var_struct_new(int num_ints, int num_floats) {
 	// Calculate the size of the entire buffer
-	mem_layout_t layout = { 0 };
+	mem_layout_t layout = 0;
 	ptrdiff_t base = mem_layout_reserve(&layout, sizeof(var_struct), _Alignof(var_struct));
 	ptrdiff_t ints = mem_layout_reserve(&layout, sizeof(int) * num_ints, _Alignof(int));
 	ptrdiff_t floats = mem_layout_reserve(&layout, sizeof(float) * num_floats, _Alignof(float));
 	size_t mem_required = mem_layout_size(&layout);
 
-	// Now we can allocate and init the struct
+	// Now we can allocate and init the struct with a single allocation
 	void* buffer = malloc(mem_required);
 	var_struct* vs = mem_layout_locate(buffer, base);
 	vs->num_ints = num_ints;
@@ -34,27 +33,57 @@ int main(int argc, const char* argv[]) {
 	vs->num_floats = num_floats;
 	vs->floats = mem_layout_locate(buffer, floats);
 
-	for (int i = 0; i < num_ints; ++i) {
+	return vs;
+}
+//! [mem_layout_example]
+
+BTEST(mem_layout_, example) {
+	var_struct* vs = var_struct_new(4, 5);
+	BTEST_ASSERT(vs != NULL);
+
+	// The base object sits at the start of the buffer and members do not
+	// overlap
+	BTEST_EXPECT((char*)vs->ints >= (char*)(vs + 1));
+	BTEST_EXPECT((char*)vs->floats >= (char*)(vs->ints + vs->num_ints));
+	BTEST_EXPECT(((uintptr_t)vs->ints % _Alignof(int)) == 0);
+	BTEST_EXPECT(((uintptr_t)vs->floats % _Alignof(float)) == 0);
+
+	for (int i = 0; i < vs->num_ints; ++i) {
 		vs->ints[i] = i;
 	}
-	for (int i = 0; i < num_floats; ++i) {
+	for (int i = 0; i < vs->num_floats; ++i) {
 		vs->floats[i] = (float)i;
 	}
-
-	printf("Size = %zu\n", mem_required);
-	printf("ints =");
-	for (int i = 0; i < num_ints; ++i) {
-		printf(" %d", vs->ints[i]);
+	for (int i = 0; i < vs->num_ints; ++i) {
+		BTEST_EXPECT_EQUAL("%d", vs->ints[i], i);
 	}
-	printf("\n");
-
-	printf("floats =");
-	for (int i = 0; i < num_floats; ++i) {
-		printf(" %f", vs->floats[i]);
+	for (int i = 0; i < vs->num_floats; ++i) {
+		BTEST_EXPECT_EQUAL("%f", vs->floats[i], (float)i);
 	}
-	printf("\n");
 
-	free(buffer);
+	free(vs);
+}
 
-	return 0;
+BTEST(mem_layout_, alignment) {
+	mem_layout_t layout = 0;
+	BTEST_EXPECT_EQUAL("%td", mem_layout_reserve(&layout, 1, 1), 0);
+	BTEST_EXPECT_EQUAL("%zu", mem_layout_size(&layout), 1);
+
+	// Padding is inserted to satisfy alignment
+	BTEST_EXPECT_EQUAL("%td", mem_layout_reserve(&layout, 8, 8), 8);
+	BTEST_EXPECT_EQUAL("%zu", mem_layout_size(&layout), 16);
+
+	// No padding when already aligned
+	BTEST_EXPECT_EQUAL("%td", mem_layout_reserve(&layout, 4, 4), 16);
+	BTEST_EXPECT_EQUAL("%td", mem_layout_reserve(&layout, 3, 1), 20);
+	BTEST_EXPECT_EQUAL("%zu", mem_layout_size(&layout), 23);
+
+	BTEST_EXPECT_EQUAL("%td", mem_layout_reserve(&layout, 1, 64), 64);
+	BTEST_EXPECT_EQUAL("%zu", mem_layout_size(&layout), 65);
+}
+
+BTEST(mem_layout_, locate) {
+	char buffer[64];
+	BTEST_EXPECT(mem_layout_locate(buffer, 0) == buffer);
+	BTEST_EXPECT(mem_layout_locate(buffer, 17) == &buffer[17]);
 }
