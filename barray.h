@@ -3,10 +3,9 @@
 
 /**
  * @file
- * @brief Dynamic array.
+ * @brief stb-style dynamic array.
  *
- * A `barray(T)` is a plain `T*`: elements are indexed with `[]` and the
- * length and capacity live in a header stored right before them.
+ * A `barray(T)` is a plain `T*`: elements are indexed with `[]`.
  * `NULL` is a valid empty array so no initialization is needed:
  *
  * ```c
@@ -48,7 +47,7 @@
 /**
  * Append an element, growing the array if needed.
  *
- * The capacity doubles when exhausted so pushes are amortized constant time.
+ * The capacity doubles when exhausted.
  *
  * @param array the array, reassigned if it grows
  * @param element the element to append
@@ -82,10 +81,6 @@
 /**
  * Remove an element, shifting the following ones down to keep their order.
  *
- * This is linear in the number of elements after `index`, see
- * @ref barray_swap_remove for a constant time alternative.
- * The removed element is not returned.
- *
  * @param array the array
  * @param index index of the element to remove
  *
@@ -99,9 +94,6 @@
 
 /**
  * Remove an element by moving the last one into its place.
- *
- * Constant time but the order of the elements is not preserved.
- * The removed element is not returned.
  *
  * @param array the array
  * @param index index of the element to remove
