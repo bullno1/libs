@@ -3,3 +3,6 @@
 /gmake
 /doc
 /.dmux
+# Written by the test suite into the working directory
+/stdio.bserial
+/bresmon_test.txt

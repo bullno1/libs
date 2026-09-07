@@ -3,30 +3,9 @@
 
 #define BSERIAL_MEM
 #define BSERIAL_STDIO
-#include "../../autolist.h"
 #include "../../bserial.h"
 #include "../../barena.h"
-
-typedef struct {
-	const char* name;
-	void (*init)(void);
-	void (*cleanup)(void);
-} suite_t;
-
-typedef struct {
-	suite_t* suite;
-	const char* name;
-	void (*run)(void);
-} test_t;
-
-#define TEST(SUITE, NAME) \
-	static void SUITE##_##NAME(void); \
-	AUTOLIST_ENTRY(bserial_test, test_t, test_##SUITE##_##NAME) = { \
-		.suite = &SUITE, \
-		.name = #NAME, \
-		.run = SUITE##_##NAME, \
-	}; \
-	static void SUITE##_##NAME(void)
+#include "../../btest.h"
 
 typedef struct {
 	bserial_mem_out_t mem_out;

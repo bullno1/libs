@@ -1,6 +1,49 @@
 #ifndef INCBIN_H
 #define INCBIN_H
 
+/**
+ * @file
+ * @brief Include arbitrary data in the executable.
+ *
+ * Based on [graphitemaster/incbin](https://github.com/graphitemaster/incbin).
+ * With some preprocessor abuse, this also works in MSVC **without** any
+ * additional tool by falling back to Windows resources.
+ *
+ * 1. Declare each resource in a `.rc` file with the @ref XINCBIN macro:
+ *    ```
+ *    #include "xincbin.h"
+ *    XINCBIN(embedded, "test.txt")
+ *    ```
+ *    The file name is resolved against the include paths of the assembler
+ *    (GCC/Clang) or the resource compiler (MSVC).
+ * 2. Create a header that includes the `.rc` file so the declarations are
+ *    visible to C code:
+ *    ```c
+ *    #include "resources.rc"
+ *    ```
+ * 3. In a single source file, define `XINCBIN_IMPLEMENTATION` and include
+ *    all the resource headers.
+ *    On MSVC, the `.rc` file must also be compiled and linked in.
+ * 4. Retrieve a resource anywhere with the @ref XINCBIN_GET macro:
+ *    ```c
+ *    xincbin_data_t embedded = XINCBIN_GET(embedded);
+ *    printf("%.*s\n", embedded.size, embedded.data);
+ *    ```
+ *
+ * Every resource is implicitly null-terminated: `data[size]` is always 0 but
+ * the terminator is not counted in `size`.
+ * Text resources can thus be used as C strings without copying.
+ * On the GNU-style assembly path this costs a single extra byte in `.rodata`.
+ * On the Windows resource path (MSVC), where resources are stored verbatim,
+ * @ref XINCBIN_GET lazily makes a null-terminated copy once and caches it for
+ * the lifetime of the process.
+ *
+ * Each module (executable or shared library) carries its own resources and
+ * looks them up in itself, so several modules can use this library at once.
+ */
+
+/// @cond INTERNAL
+
 /* Stringize */
 #define INCBIN_STR(X) \
     #X
@@ -20,12 +63,14 @@
 #	define XINCBIN_USE_WINRES
 #endif
 
+/// @endcond
 #ifndef RC_INVOKED
+/// @cond INTERNAL
 // Copied from INCBIN
-/**
- * @file incbin.h
- * @author Dale Weiler
- * @brief Utility for including binary files
+/*
+ * incbin.h
+ * Author: Dale Weiler
+ * Utility for including binary files
  *
  * Facilities for including binary files into the current translation unit and
  * making use from them externally in other translation units.
@@ -338,6 +383,8 @@
             INCBIN_TEXT \
     )
 
+/// @endcond
+
 /**
  * @brief An embedded resource.
  *
@@ -346,7 +393,9 @@
  * copying.
  */
 typedef struct xincbin_data_s {
+    /*! Size of the resource in bytes, excluding the implicit null terminator */
     unsigned int size;
+    /*! The content of the resource */
     const unsigned char* data;
 } xincbin_data_t;
 
@@ -414,7 +463,27 @@ xincbin_get(const char* name, xincbin_data_t* cache) {
 }
 
 #else
+/**
+ * @brief Declare an embedded resource.
+ *
+ * Use this in a `.rc` file, see the file description for details.
+ *
+ * @param NAME Name of the resource, must be a valid identifier.
+ * @param FILENAME Path of the file to embed, as a string literal.
+ *
+ * @hideinitializer
+ */
 #	define XINCBIN(NAME, FILENAME) INCBIN_EXTERN(unsigned char, NAME);
+
+/**
+ * @brief Retrieve an embedded resource.
+ *
+ * @param NAME Name of the resource, as declared with @ref XINCBIN.
+ *
+ * @return A @ref xincbin_data_t.
+ *
+ * @hideinitializer
+ */
 #	define XINCBIN_GET(NAME) (xincbin_data_t){ \
 		.size = INCBIN_CONCATENATE(INCBIN_CONCATENATE(INCBIN_PREFIX, NAME), INCBIN_STYLE_IDENT(SIZE)), \
 		.data = INCBIN_CONCATENATE(INCBIN_CONCATENATE(INCBIN_PREFIX, NAME), INCBIN_STYLE_IDENT(DATA)), \

@@ -1,14 +1,13 @@
 #include "common.h"
 #include "record.h"
-#include <assert.h>
 
-suite_t stdio = {
-	.name = "stdio",
-	.init = common_fixture_init,
-	.cleanup = common_fixture_cleanup,
+static btest_suite_t stdio = {
+	.name = "bserial/stdio",
+	.init_per_test = common_fixture_init,
+	.cleanup_per_test = common_fixture_cleanup,
 };
 
-TEST(stdio, round_trip) {
+BTEST(stdio, round_trip) {
 	original_t rec = {
 		.num = -69420,
 		.str = "Hello",
@@ -24,7 +23,7 @@ TEST(stdio, round_trip) {
 
 	{
 		FILE* out_file = fopen("stdio.bserial", "wb");
-		assert(out_file != NULL);
+		BTEST_ASSERT(out_file != NULL);
 
 		bserial_stdio_out_t stdio_out;
 		bserial_ctx_t* out = bserial_make_ctx(
@@ -33,13 +32,13 @@ TEST(stdio, round_trip) {
 			NULL,
 			bserial_stdio_init_out(&stdio_out, out_file)
 		);
-		assert(serialize_original(out, &rec) == BSERIAL_OK);
+		BTEST_ASSERT(serialize_original(out, &rec) == BSERIAL_OK);
 		fclose(out_file);
 	}
 
 	{
 		FILE* in_file = fopen("stdio.bserial", "rb");
-		assert(in_file != NULL);
+		BTEST_ASSERT(in_file != NULL);
 
 		bserial_stdio_in_t stdio_in;
 		bserial_ctx_t* in = bserial_make_ctx(
@@ -50,9 +49,9 @@ TEST(stdio, round_trip) {
 		);
 
 		original_t rec2 = { 0 };
-		assert(serialize_original(in, &rec2) == BSERIAL_OK);
+		BTEST_ASSERT(serialize_original(in, &rec2) == BSERIAL_OK);
 
-		assert(memcmp(&rec, &rec2, sizeof(rec)) == 0);
+		BTEST_ASSERT(memcmp(&rec, &rec2, sizeof(rec)) == 0);
 		fclose(in_file);
 	}
 }

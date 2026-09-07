@@ -1,7 +1,5 @@
-#define BLIB_IMPLEMENTATION
 #include "../../bspscq.h"
-#include <assert.h>
-#include <stdio.h>
+#include "../../btest.h"
 
 typedef struct {
 	bool stop;
@@ -11,29 +9,38 @@ typedef struct {
 typedef struct {
 	bspscq_t* req;
 	bspscq_t* res;
+	// The worker cannot use the (longjmp based) assertions of the test
+	// framework so it records failures for the test thread to check
+	bool failed;
 } worker_context_t;
 
-int worker_thread_entry(void* arg) {
+static btest_suite_t bspscq_ = {
+	.name = "bspscq",
+};
+
+static int
+worker_thread_entry(void* arg) {
 	worker_context_t* ctx = arg;
 
 	while (true) {
 		void* item;
-		assert(bspscq_consume(ctx->req, &item, true));
+		if (!bspscq_consume(ctx->req, &item, true)) {
+			ctx->failed = true;
+			return -1;
+		}
 		message_t* message = item;
 		bool should_stop = message->stop;
 		int content = message->content;
-		assert(bspscq_produce(ctx->res, message, true));
+		if (!bspscq_produce(ctx->res, message, true)) {
+			ctx->failed = true;
+			return -1;
+		}
 
 		if (should_stop) { return content; }
 	}
-
-	return 0;
 }
 
-int main(int argc, const char* argv[]) {
-	(void)argc;
-	(void)argv;
-
+BTEST(bspscq_, request_response) {
 	bspscq_t requests;
 	bspscq_t responses;
 
@@ -53,35 +60,37 @@ int main(int argc, const char* argv[]) {
 		.res = &responses,
 	};
 
-	thrd_create(&thread, worker_thread_entry, &ctx);
+	BTEST_ASSERT_EQUAL("%d", thrd_create(&thread, worker_thread_entry, &ctx), thrd_success);
 
 	for (int i = 0; i < 5; ++i) {
 		message_t* msg = &messages[(message_index++) % 6];
 		msg->content = i;
 		msg->stop = false;
-		assert(bspscq_produce(&requests, msg, true));
+		BTEST_EXPECT(bspscq_produce(&requests, msg, true));
 	}
 	message_t* stop_msg = &messages[(message_index++) % 6];
 	stop_msg->stop = true;
 	stop_msg->content = 69;
-	assert(bspscq_produce(&requests, stop_msg, true));
+	BTEST_EXPECT(bspscq_produce(&requests, stop_msg, true));
 
 	for (int i = 0; i < 5; ++i) {
 		void* item;
-		assert(bspscq_consume(&responses, &item, true));
+		BTEST_EXPECT(bspscq_consume(&responses, &item, true));
 		message_t* msg = item;
-		assert(msg->content == i);
+		BTEST_EXPECT_EQUAL("%d", msg->content, i);
 	}
 	void* stop_response;
-	assert(bspscq_consume(&responses, &stop_response, true));
-	assert(stop_response == stop_msg);
+	BTEST_EXPECT(bspscq_consume(&responses, &stop_response, true));
+	BTEST_EXPECT(stop_response == stop_msg);
 
 	int res;
 	thrd_join(thread, &res);
-	assert(res == 69);
+	BTEST_EXPECT_EQUAL("%d", res, 69);
+	BTEST_EXPECT(!ctx.failed);
 
 	bspscq_cleanup(&responses);
 	bspscq_cleanup(&requests);
-
-	return 0;
 }
+
+#define BLIB_IMPLEMENTATION
+#include "../../bspscq.h"

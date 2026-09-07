@@ -1,33 +1,3 @@
-local function make_project(name)
-  project(name)
-    kind "ConsoleApp"
-    language "C"
-    targetdir "bin/%{cfg.buildcfg}"
-
-    includedirs {
-      "tests/"..name,
-    }
-
-    files {
-      "tests/"..name.."/*.h",
-      "tests/"..name.."/*.c",
-    }
-
-    -- Only include rc as a compilable file in Windows
-    filter { "system:windows" }
-       files {
-         "tests/"..name.."/*.rc",
-       }
-
-    filter "configurations:Debug"
-      defines { "DEBUG" }
-      symbols "On"
-
-    filter "configurations:Release"
-      defines { "NDEBUG" }
-      optimize "On"
-end
-
 local function make_sample(name)
   project(name)
     kind "ConsoleApp"
@@ -75,17 +45,65 @@ workspace "libs"
 
   debugdir "bin/%{cfg.buildcfg}"
 
-make_project "autolist"
-make_project "xincbin"
-make_project "mem_layout"
-make_project "barena"
-make_project "tlsf"
-make_project "bresmon"
-make_project "bhash"
-make_project "bserial"
-make_project "bspscq"
+-- Samples double as documentation snippets and smoke tests.
+-- They stay separate from the test suite: bcrash_handler crashes on purpose.
 make_sample "bstacktrace"
 make_sample "bcrash_handler"
+
+-- Every directory under tests/ is a btest suite linked into a single binary
+local test_dirs = {
+  "autolist",
+  "barena",
+  "barray",
+  "bco",
+  "bent",
+  "bhamt",
+  "bhash",
+  "bresmon",
+  "bscn",
+  "bseg",
+  "bserial",
+  "bspscq",
+  "bstacktrace",
+  "bsv",
+  "mem_layout",
+  "tlsf",
+  "xincbin",
+}
+
+project "tests"
+    kind "ConsoleApp"
+    language "C"
+    targetdir "bin/%{cfg.buildcfg}"
+
+    -- Resources embedded by the xincbin test are resolved against this
+    includedirs {
+      "tests/xincbin",
+    }
+
+    files {
+      "tests/main.c",
+    }
+    for _, dir in ipairs(test_dirs) do
+      files {
+        "tests/"..dir.."/*.h",
+        "tests/"..dir.."/*.c",
+      }
+    end
+
+    -- Only include rc as a compilable file in Windows
+    filter { "system:windows" }
+      files {
+        "tests/xincbin/*.rc",
+      }
+
+    filter "configurations:Debug"
+      defines { "DEBUG" }
+      symbols "On"
+
+    filter "configurations:Release"
+      defines { "NDEBUG" }
+      optimize "On"
 
 -- bsfn only supports Linux: the test dlopens two builds of the same module
 if os.target() == "linux" then
@@ -115,39 +133,12 @@ if os.target() == "linux" then
   make_bsfn_module(1)
   make_bsfn_module(2)
 
-  make_project "bsfn"
+  project "tests"
+    filter {}
+    files {
+      "tests/bsfn/*.h",
+      "tests/bsfn/*.c",
+    }
     links { "dl" }
     dependson { "bsfn_module1", "bsfn_module2" }
 end
-
-project "tests"
-    kind "ConsoleApp"
-    language "C"
-    targetdir "bin/%{cfg.buildcfg}"
-
-    files {
-      "tests/main.c",
-      "tests/barray/*.h",
-      "tests/barray/*.c",
-      "tests/bseg/*.h",
-      "tests/bseg/*.c",
-      "tests/bhamt/*.h",
-      "tests/bhamt/*.c",
-      "tests/bent/*.h",
-      "tests/bent/*.c",
-      "tests/bsv/*.h",
-      "tests/bsv/*.c",
-      "tests/bscn/*.h",
-      "tests/bscn/*.c",
-      "tests/bco/*.h",
-      "tests/bco/*.c",
-      "tests/bstacktrace/*.c",
-    }
-
-    filter "configurations:Debug"
-      defines { "DEBUG" }
-      symbols "On"
-
-    filter "configurations:Release"
-      defines { "NDEBUG" }
-      optimize "On"

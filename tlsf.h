@@ -4,6 +4,24 @@
 
 #pragma once
 
+/**
+ * @file
+ * @brief Two-Level Segregated Fit allocator.
+ *
+ * Adaptation of [jserv/tlsf-bsd](https://github.com/jserv/tlsf-bsd) into a
+ * single-header library that also works on Windows + MSVC.
+ * The address range for the whole allocator is reserved from the OS up front
+ * by @ref tlsf_init and pages are committed on demand.
+ *
+ * In **exactly one** source file, define `TLSF_IMPLEMENTATION` before including tlsf.h.
+ *
+ * Define `TLSF_ENABLE_CHECK` to make @ref tlsf_check verify the allocator's
+ * internal structure, otherwise it is a no-op.
+ *
+ * The original code is distributed under the BSD-3-Clause license, see
+ * `jserv-tlsf-bsd-LICENSE.md` in the repository root.
+ */
+
 /* Inhibit C++ name-mangling for tlsf functions */
 #ifdef __cplusplus
 extern "C" {
@@ -16,6 +34,7 @@ extern "C" {
 #include <stddef.h>
 #include <stdint.h>
 
+/// @cond INTERNAL
 #ifndef TLSF_SHARED
 #    if defined(_WIN32) && !defined(__MINGW32__)
 #        ifdef TLSF_IMPLEMENTATION
@@ -53,9 +72,14 @@ extern "C" {
 #define _TLSF_FL_COUNT 25
 #define _TLSF_FL_MAX 30
 #endif
+/// @endcond
+
+/*! The largest size that can be requested in a single allocation */
 #define TLSF_MAX_SIZE (((size_t) 1 << (_TLSF_FL_MAX - 1)) - sizeof(size_t))
 
+/*! An allocator, treat as opaque */
 typedef struct {
+    /// @cond INTERNAL
     uint32_t fl, sl[_TLSF_FL_COUNT];
     struct tlsf_block *block[_TLSF_FL_COUNT][_TLSF_SL_COUNT];
     size_t size;
@@ -65,27 +89,55 @@ typedef struct {
     size_t page_size;
     size_t resident_size;
     size_t max_size;
+    /// @endcond
 } tlsf_t;
 
+/**
+ * @brief Initialize an allocator.
+ *
+ * @param max_size The maximum amount of memory the allocator can hand out.
+ *   The whole range is reserved immediately but only committed as needed.
+ *   It is rounded down to a multiple of the OS page size.
+ */
 TLSF_API void tlsf_init(tlsf_t*, size_t max_size);
+
+/*! Release all memory of an allocator back to the OS */
 TLSF_API void tlsf_cleanup(tlsf_t*);
-TLSF_API void *tlsf_aalloc(tlsf_t *, size_t, size_t);
 
 /**
- * Allocates the requested @size bytes of memory and returns a pointer to it.
- * On failure, returns NULL.
+ * @brief Allocate memory with an explicit alignment.
+ *
+ * @param align The alignment, must be a power of 2.
+ * @param size Number of bytes.
+ *
+ * @return The allocated memory or NULL on failure.
+ */
+TLSF_API void *tlsf_aalloc(tlsf_t *, size_t align, size_t size);
+
+/**
+ * @brief Allocate memory.
+ *
+ * @param size Number of bytes.
+ *
+ * @return The allocated memory or NULL on failure.
  */
 TLSF_API void *tlsf_malloc(tlsf_t *, size_t size);
-TLSF_API void *tlsf_realloc(tlsf_t *, void *, size_t);
 
 /**
- * Releases the previously allocated memory, given the pointer.
+ * @brief Resize a previous allocation, like `realloc`.
+ *
+ * @return The (possibly moved) memory or NULL on failure.
  */
+TLSF_API void *tlsf_realloc(tlsf_t *, void *, size_t);
+
+/*! Release previously allocated memory */
 void tlsf_free(tlsf_t *, void *);
 
 #ifdef TLSF_ENABLE_CHECK
+/*! Verify the internal structure of the allocator, aborting on corruption */
 TLSF_API void tlsf_check(tlsf_t *);
 #else
+/*! Verify the internal structure of the allocator, a no-op unless `TLSF_ENABLE_CHECK` is defined */
 static inline void tlsf_check(tlsf_t *t)
 {
     (void) t;

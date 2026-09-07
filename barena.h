@@ -1,6 +1,26 @@
 #ifndef BARENA_H
 #define BARENA_H
 
+/**
+ * @file
+ * @brief Arena allocator backed by OS pages.
+ *
+ * Everyone knows [what an arena is](https://en.wikipedia.org/wiki/Nowe_Ateny#Legacy).
+ *
+ * Memory is obtained in chunks directly from the OS (`mmap` on Linux,
+ * `VirtualAlloc` on Windows) through a @ref barena_pool_t.
+ * An arena bumps a pointer through its current chunk and takes a new chunk
+ * from the pool when it runs out.
+ * A request larger than the chunk size gets a dedicated chunk.
+ *
+ * Chunks released by @ref barena_restore or @ref barena_reset go back to
+ * the pool to be reused by any arena sharing it.
+ * A single pool can thus serve many short-lived arenas (e.g: one per frame
+ * or per task) without constantly returning memory to the OS.
+ *
+ * In **exactly one** source file, define `BARENA_IMPLEMENTATION` before including barena.h.
+ */
+
 #if defined(__linux__) && !defined(_DEFAULT_SOURCE)
 #	define _DEFAULT_SOURCE 1
 #endif
@@ -11,42 +31,122 @@
 #define BARENA_API
 #endif
 
+/*! A chunk of memory obtained from the OS, treat as opaque */
 typedef struct barena_chunk_s barena_chunk_t;
 
+/**
+ * @brief A pool of chunks shared between arenas.
+ *
+ * It must be initialized with @ref barena_pool_init and outlive every arena
+ * created from it.
+ */
 typedef struct barena_pool_s {
+	/*! Size of each chunk, rounded up to the OS page size */
 	size_t chunk_size;
+	/*! The OS page size */
 	size_t os_page_size;
+	/*! Chunks released by arenas, waiting to be reused */
 	barena_chunk_t* free_chunks;
 } barena_pool_t;
 
+/*! An arena */
 typedef struct barena_s {
+	/*! The chunk allocations are currently served from, NULL when empty */
 	barena_chunk_t* current_chunk;
+	/*! The pool chunks are taken from */
 	barena_pool_t* pool;
 } barena_t;
 
+/**
+ * @brief A position in an arena.
+ *
+ * @see barena_snapshot
+ * @see barena_restore
+ */
 typedef char* barena_snapshot_t;
 
+/**
+ * @brief Initialize a pool.
+ *
+ * @param pool The pool.
+ * @param chunk_size Size of each chunk.
+ *   It will be rounded up to the OS page size.
+ */
 BARENA_API void
 barena_pool_init(barena_pool_t* pool, size_t chunk_size);
 
+/**
+ * @brief Return all free chunks of a pool to the OS.
+ *
+ * Chunks still held by arenas are not affected.
+ * Reset those arenas with @ref barena_reset first to release everything.
+ */
 BARENA_API void
 barena_pool_cleanup(barena_pool_t* pool);
 
+/**
+ * @brief Initialize an empty arena.
+ *
+ * @param arena The arena.
+ * @param pool The pool to take chunks from.
+ */
 BARENA_API void
 barena_init(barena_t* arena, barena_pool_t* pool);
 
+/**
+ * @brief Allocate memory suitably aligned for any type.
+ *
+ * @param arena The arena.
+ * @param size Number of bytes.
+ *
+ * @return The allocated memory or NULL if `size` is 0.
+ *
+ * @see barena_memalign
+ */
 BARENA_API void*
 barena_malloc(barena_t* arena, size_t size);
 
+/**
+ * @brief Allocate memory with an explicit alignment.
+ *
+ * @param arena The arena.
+ * @param size Number of bytes.
+ * @param alignment The alignment, must be a power of 2.
+ *
+ * @return The allocated memory or NULL if `size` is 0.
+ */
 BARENA_API void*
 barena_memalign(barena_t* arena, size_t size, size_t alignment);
 
+/**
+ * @brief Capture the current position of an arena.
+ *
+ * Everything allocated after this point can be released at once with
+ * @ref barena_restore.
+ *
+ * @return The snapshot, NULL for an empty arena.
+ */
 BARENA_API barena_snapshot_t
 barena_snapshot(barena_t* arena);
 
+/**
+ * @brief Rewind an arena to a snapshot.
+ *
+ * All memory allocated since the snapshot is released and chunks that are no
+ * longer needed are returned to the pool.
+ *
+ * @param arena The arena.
+ * @param snapshot A snapshot previously taken from the same arena.
+ */
 BARENA_API void
 barena_restore(barena_t* arena, barena_snapshot_t snapshot);
 
+/**
+ * @brief Release all memory allocated from an arena.
+ *
+ * Its chunks are returned to the pool.
+ * The arena can be used again immediately.
+ */
 BARENA_API void
 barena_reset(barena_t* arena);
 

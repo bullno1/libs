@@ -3,7 +3,15 @@
 
 /**
  * @file
- * @brief A single header library for resource monitoring and reloading.
+ * @brief File watcher designed for hot reloading of resources.
+ *
+ * Each watched file (@ref bresmon_watch) has its own reload callback and
+ * userdata.
+ * Changes are detected with inotify on Linux and `ReadDirectoryChangesW` on
+ * Windows.
+ * Call @ref bresmon_check (or @ref bresmon_should_reload followed by
+ * @ref bresmon_reload) periodically, e.g: once per frame, to invoke the
+ * callbacks of the files that changed.
  *
  * In **exactly one** source file, define `BRESMON_IMPLEMENTATION` before including bresmon.h.
  *
@@ -237,7 +245,10 @@ typedef struct bresmon_dirmon_s {
 #if defined(__linux__)
 	int watchd;
 #elif defined(_WIN32)
+	// INVALID_HANDLE_VALUE once unwatched, while waiting for the cancelled
+	// read to complete through the completion port
 	HANDLE dir_handle;
+	bool read_pending;
 	OVERLAPPED overlapped;
 	_Alignas(FILE_NOTIFY_INFORMATION) char notification_buf[sizeof(FILE_NOTIFY_INFORMATION) + MAX_PATH];
 #endif
@@ -253,6 +264,8 @@ struct bresmon_s {
 	int inotifyfd;
 #elif defined(_WIN32)
 	HANDLE iocp;
+	// Unwatched directory monitors whose cancelled read has not completed yet
+	int num_closing_dirmons;
 #endif
 };
 
@@ -321,6 +334,28 @@ bresmon_strdup(const char* str, void* ctx) {
 	return dup;
 }
 
+#if defined(_WIN32)
+
+// Queue an asynchronous read of the directory changes.
+// It completes through the completion port with the dirmon as its key.
+static inline void
+bresmon_dirmon_read_changes(bresmon_dirmon_t* dirmon) {
+	dirmon->overlapped = (OVERLAPPED){ 0 };
+	dirmon->read_pending = ReadDirectoryChangesW(
+		dirmon->dir_handle,
+		dirmon->notification_buf,
+		sizeof(dirmon->notification_buf),
+		FALSE,
+		FILE_NOTIFY_CHANGE_FILE_NAME
+		| FILE_NOTIFY_CHANGE_LAST_WRITE,
+		NULL,
+		&dirmon->overlapped,
+		NULL
+	);
+}
+
+#endif
+
 bresmon_t*
 bresmon_create(void* memctx) {
 	bresmon_t* mon = bresmon_malloc(sizeof(bresmon_t), memctx);
@@ -358,6 +393,10 @@ bresmon_destroy(bresmon_t* mon) {
 #if defined(__linux__)
 	close(mon->inotifyfd);
 #elif defined(_WIN32)
+	// Drain the cancelled reads so their dirmons get freed
+	while (mon->num_closing_dirmons > 0) {
+		bresmon_should_reload(mon, true);
+	}
 	CloseHandle(mon->iocp);
 #endif
 
@@ -448,6 +487,9 @@ bresmon_watch(
 	size_t dir_name_len = filename - full_path;
 
 	const char* dir_name = full_path;
+	// Temporarily terminate the directory part in place.
+	// The filename is restored once the directory monitor has been located.
+	char filename_first_char = *filename;
 	*filename = '\0';
 	bresmon_dirmon_t* dirmon = NULL;
 	for (
@@ -490,20 +532,11 @@ bresmon_watch(
 
 			dirmon->dir_handle = dir_handle;
 			CreateIoCompletionPort(dirmon->dir_handle, mon->iocp, (ULONG_PTR)dirmon, 1);
-			dirmon->overlapped = (OVERLAPPED){ 0 };
-			ReadDirectoryChangesW(
-				dirmon->dir_handle,
-				dirmon->notification_buf,
-				sizeof(dirmon->notification_buf),
-				FALSE,
-				FILE_NOTIFY_CHANGE_FILE_NAME
-				| FILE_NOTIFY_CHANGE_LAST_WRITE,
-				NULL,
-				&dirmon->overlapped,
-				NULL
-			);
+			bresmon_dirmon_read_changes(dirmon);
 		}
 	}
+
+	*filename = filename_first_char;
 
 	if (dirmon != NULL) {
 		size_t filename_len = path_buf_size - 1 - dir_name_len;
@@ -559,16 +592,27 @@ bresmon_unwatch(bresmon_watch_t* watch) {
 	if (dirmon->watches.next == &dirmon->watches) {
 		dirmon->link.next->prev = dirmon->link.prev;
 		dirmon->link.prev->next = dirmon->link.next;
+		bool free_dirmon = true;
 
 #if defined(__linux__)
 		inotify_rm_watch(mon->inotifyfd, dirmon->watchd);
 #elif defined(_WIN32)
 		CancelIo(dirmon->dir_handle);
 		CloseHandle(dirmon->dir_handle);
-		bresmon_should_reload(mon, true);
+		dirmon->dir_handle = INVALID_HANDLE_VALUE;
+		if (dirmon->read_pending) {
+			// The cancelled read still completes through the port with this
+			// dirmon as its key.
+			// Keep it allocated until bresmon_should_reload dequeues that
+			// completion and frees it.
+			++mon->num_closing_dirmons;
+			free_dirmon = false;
+		}
 #endif
 
-		bresmon_free(dirmon, mon->memctx);
+		if (free_dirmon) {
+			bresmon_free(dirmon, mon->memctx);
+		}
 	}
 
 	bresmon_free(watch, mon->memctx);
@@ -645,54 +689,69 @@ bresmon_should_reload(bresmon_t* mon, bool wait) {
 		if (!dequeued || num_entries == 0) {
 			// No event
 			break;
-		} else if (
-			overlapped_entry.lpOverlapped == NULL
-			|| overlapped_entry.dwNumberOfBytesTransferred == 0
-		) {
-			// Failed
+		} else if (overlapped_entry.lpOverlapped == NULL) {
+			// Not one of ours
 			continue;
 		}
 
 		bresmon_dirmon_t* dirmon = (bresmon_dirmon_t *)overlapped_entry.lpCompletionKey;
+		dirmon->read_pending = false;
 
-		for (
-			FILE_NOTIFY_INFORMATION* notification_itr = (FILE_NOTIFY_INFORMATION*)dirmon->notification_buf;
-			notification_itr != NULL;
-			notification_itr = notification_itr->NextEntryOffset != 0
-				? (FILE_NOTIFY_INFORMATION*)((char*)notification_itr + notification_itr->NextEntryOffset)
-				: NULL
-		) {
-			if (notification_itr->Action == FILE_ACTION_RENAMED_OLD_NAME) { continue; }
+		if (dirmon->dir_handle == INVALID_HANDLE_VALUE) {
+			// The read cancelled by bresmon_unwatch has completed, the dirmon
+			// is no longer referenced by the port and can go
+			--mon->num_closing_dirmons;
+			bresmon_free(dirmon, mon->memctx);
+			continue;
+		}
 
+		if (overlapped_entry.dwNumberOfBytesTransferred == 0) {
+			// The notification buffer overflowed (or the read failed) and the
+			// changes were lost.
+			// Since there is no telling which files changed, conservatively
+			// treat every watched file in the directory as changed.
 			for (
 				bresmon_watch_link_t* watch_itr = dirmon->watches.next;
 				watch_itr != &dirmon->watches;
 				watch_itr = watch_itr->next
 			) {
 				bresmon_watch_t* watch = (bresmon_watch_t*)((char*)watch_itr - offsetof(bresmon_watch_t, link));
-				if (
-					watch->filename_len == (notification_itr->FileNameLength / sizeof(wchar_t))
-					&& wcsncmp(watch->filename, notification_itr->FileName, watch->filename_len) == 0
+				++watch->latest_version;
+				++num_events;
+			}
+		} else {
+			for (
+				FILE_NOTIFY_INFORMATION* notification_itr = (FILE_NOTIFY_INFORMATION*)dirmon->notification_buf;
+				notification_itr != NULL;
+				notification_itr = notification_itr->NextEntryOffset != 0
+					? (FILE_NOTIFY_INFORMATION*)((char*)notification_itr + notification_itr->NextEntryOffset)
+					: NULL
+			) {
+				if (notification_itr->Action == FILE_ACTION_RENAMED_OLD_NAME) { continue; }
+
+				for (
+					bresmon_watch_link_t* watch_itr = dirmon->watches.next;
+					watch_itr != &dirmon->watches;
+					watch_itr = watch_itr->next
 				) {
-					++watch->latest_version;
-					++num_events;
+					bresmon_watch_t* watch = (bresmon_watch_t*)((char*)watch_itr - offsetof(bresmon_watch_t, link));
+					if (
+						watch->filename_len == (notification_itr->FileNameLength / sizeof(wchar_t))
+						// Windows filesystems are case-insensitive, like the
+						// directory comparison in bresmon_watch
+						&& _wcsnicmp(watch->filename, notification_itr->FileName, watch->filename_len) == 0
+					) {
+						++watch->latest_version;
+						++num_events;
+					}
 				}
 			}
 		}
 
-		// Queue another read
-		dirmon->overlapped = (OVERLAPPED){ 0 };
-		ReadDirectoryChangesW(
-			dirmon->dir_handle,
-			dirmon->notification_buf,
-			sizeof(dirmon->notification_buf),
-			FALSE,
-			FILE_NOTIFY_CHANGE_FILE_NAME
-			| FILE_NOTIFY_CHANGE_LAST_WRITE,
-			NULL,
-			&dirmon->overlapped,
-			NULL
-		);
+		// Queue another read.
+		// If this fails (e.g: the directory was deleted), no further
+		// completion is expected for this dirmon.
+		bresmon_dirmon_read_changes(dirmon);
 	}
 #endif
 

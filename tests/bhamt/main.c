@@ -190,8 +190,8 @@ BTEST(hamt, custom_hash_and_eq) {
 	bhamt_validate(&tbl);
 }
 
+// barena is implemented by tests/barena/main.c
 #define BLIB_IMPLEMENTATION
-#include "../../barena.h"
 // Route all bhamt allocations through the arena passed as memctx
 #define BHAMT_ALLOC(size, align, ctx) barena_memalign((barena_t*)(ctx), (size), (align))
 #include "../../bhamt.h"

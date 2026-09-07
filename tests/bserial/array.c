@@ -1,20 +1,19 @@
 #include "common.h"
-#include <assert.h>
 #include <string.h>
 
-static suite_t array = {
-	.name = "array",
-	.init = common_fixture_init,
-	.cleanup = common_fixture_cleanup,
+static btest_suite_t array = {
+	.name = "bserial/array",
+	.init_per_test = common_fixture_init,
+	.cleanup_per_test = common_fixture_cleanup,
 };
 
-TEST(array, simple) {
+BTEST(array, simple) {
 	int numbers[] = { 1, 2, 3 };
 	bserial_ctx_t* ctx = common_fixture.out_ctx;
 	uint64_t len = sizeof(numbers) / sizeof(numbers[0]);
-	assert(bserial_array(ctx, &len) == BSERIAL_OK);
+	BTEST_ASSERT(bserial_array(ctx, &len) == BSERIAL_OK);
 	for (uint64_t i = 0; i < len; ++i) {
-		assert(bserial_any_int(ctx, &numbers[i]) == BSERIAL_OK);
+		BTEST_ASSERT(bserial_any_int(ctx, &numbers[i]) == BSERIAL_OK);
 	}
 
 	hex_dump(common_fixture.mem_out.mem, common_fixture.mem_out.len);
@@ -22,13 +21,13 @@ TEST(array, simple) {
 
 	int buff[16];
 	len = sizeof(buff) / sizeof(buff[0]);
-	assert(bserial_array(ctx, &len) == BSERIAL_OK);
-	assert(len == 3);
+	BTEST_ASSERT(bserial_array(ctx, &len) == BSERIAL_OK);
+	BTEST_ASSERT(len == 3);
 	for (uint64_t i = 0; i < len; ++i) {
-		assert(bserial_any_int(ctx, &buff[i]) == BSERIAL_OK);
+		BTEST_ASSERT(bserial_any_int(ctx, &buff[i]) == BSERIAL_OK);
 	}
 
-	assert(memcmp(numbers, buff, sizeof(buff[0]) * len) == 0);
+	BTEST_ASSERT(memcmp(numbers, buff, sizeof(buff[0]) * len) == 0);
 }
 
 typedef struct {
@@ -68,7 +67,7 @@ serialize_nested_array(bserial_ctx_t* ctx, nested_array_t* nested_array) {
 	return BSERIAL_OK;
 }
 
-TEST(array, nested) {
+BTEST(array, nested) {
 	nested_array_t src_array = {
 		.len = 2,
 		.values = {
@@ -84,12 +83,12 @@ TEST(array, nested) {
 	};
 
 	bserial_ctx_t* ctx = common_fixture.out_ctx;
-	assert(serialize_nested_array(ctx, &src_array) == BSERIAL_OK);
+	BTEST_ASSERT(serialize_nested_array(ctx, &src_array) == BSERIAL_OK);
 
 	hex_dump(common_fixture.mem_out.mem, common_fixture.mem_out.len);
 	ctx = common_fixture_make_in_ctx();
 
 	nested_array_t array2 = { 0 };
-	assert(serialize_nested_array(ctx, &array2) == BSERIAL_OK);
-	assert(memcmp(&src_array, &array2, sizeof(nested_array_t)) == 0);
+	BTEST_ASSERT(serialize_nested_array(ctx, &array2) == BSERIAL_OK);
+	BTEST_ASSERT(memcmp(&src_array, &array2, sizeof(nested_array_t)) == 0);
 }
