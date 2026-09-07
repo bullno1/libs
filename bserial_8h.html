@@ -328,16 +328,285 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>bserial_trace</b> (<a
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Serialization library. </p>
-<p>There are several API groups:</p>
+<h2><a class="anchor" id="autotoc_md3"></a>
+Motivation</h2>
+<p>I need a serialization library with the following criteria:</p>
 <ul>
-<li>Low level I/O: Read/write data against an abstract stream in an endian-independent way.</li>
-<li>Stream implemenation:<ul>
-<li>BSERIAL_MEM: A memory stream.</li>
-<li>BSERIAL_STDIO: Wrapper for FILE in stdio.h.</li>
+<li>Binary: No text parsing.</li>
+<li>No separate schema file: The serialization code is the schema. There is only a single function for both reading and writing.</li>
+<li>No separate object tree: There is only one phase: read/write data from the program's object directly to the input/output stream. This is different from many other libraries where a separate object tree (e.g: JSON) is created. Then, there is another phase to convert from that tree to internal representation.</li>
+<li>Schema evolution: The structure of objects can change. New keys can be added/removed/reordered. Existing keys can have their type changed. Old serialization files must still be compatible with newer versions.</li>
+<li>Fixed allocation: It should allocate a fixed amount of memory upfront. The memory complexity only depends on how deep the object tree can be, not how wide it is. There is always a bound check and invalid data is rejected.</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md4"></a>
+Design</h2>
+<p>There are several layers:</p>
+<ul>
+<li>Raw unstructed I/O: Functions to read/write varint and float in an endian-independent way. The functions generally have the forms:<ul>
+<li><code>bserial_read_&lt;type&gt;(&lt;type&gt; value, bserial_in_t* in)</code>: Read a value from a stream.</li>
+<li><code>bserial_write_&lt;type&gt;(&lt;type&gt; value, bserial_out_t* out)</code>: Write a value to a stream.</li>
 </ul>
 </li>
-<li>Structured data: Read/write structured data with backward-compatibility. Keys in a record can be added/removed/reordered. </li>
+<li>I/O stream implementations: The above functions work with an abstract input or output stream. Out of the box, there are concrete implementations for stdio <code>FILE</code> and memory stream.</li>
+<li><p class="startli">Structured serialization: The meat of the library. Functions generally have the signature: <code>bserial_&lt;type&gt;(bserial_ctx_t* ctx, &lt;type&gt;* value)</code>. <code>ctx</code> is the current serialization context. Depending on how it was constructed, it will either read or write <code>value</code> to its stream. Thus, the same code can be used for both serialization and deserialization, forming a "schema".</p>
+<p class="startli"><code>bserial_ctx_mem_size</code> is used to retrieve the fixed memory size needed for serialization/deserialization. Then <code>bserial_make_ctx</code> will be used to construct the context. Either an input stream or an output stream must be provided.</p>
+</li>
 </ul>
+<h2><a class="anchor" id="autotoc_md5"></a>
+Structured serialization</h2>
+<p>The supported data types are:</p>
+<ul>
+<li>signed/unsigned integers: They are stored as varint to save space since in practice, most integers are small. Internally, they are always converted into 64 bit. There are also convenient functions that does bound checking on read. e.g: A 8 bit unsgined integer will be checked to be in the range [0, 256]. User code can do further range checking if needed.</li>
+<li>Floating points: Either single or double. IEEE 754 is assumed.</li>
+<li>Blob: An arbitrary binary blob of data. "String" is treated as blob in bserial. The library does not do any encoding validation.</li>
+<li>Symbol: Similar to strings but unique values are only written once. Subsequent occurences are referred to by id. For example, if the symbol <code>foo</code> has been written once as <code>[SYMBOL_DEF][foo]</code>, and then written again. <code>[SYMBOL_REF][0]</code> will be written to the stream instead. This helps to save space when certain sets of symbols are used repeatedly e.g: field names of a struct.</li>
+<li>Record: A collection of key-value pairs. The keys are always symbols. The values can have any types.</li>
+<li>Array: a collection of elements. Each element can have a different type.</li>
+<li>Table: a collection of elements. Unlike array, each element must be a record. All records must have the exact same set of keys. The storage is optimized for storing repeated records of the same type.</li>
+</ul>
+<p>All data types are generally stored as <code>[tag][payload]</code>. Variable length types like array or table are stored as <code>[tag][length][payload]</code>. The type tag is needed to facilitate skipping over unknown data that is not described in the serialization code.</p>
+<h3><a class="anchor" id="autotoc_md6"></a>
+Error handling</h3>
+<p><code>BSERIAL_CHECK_STATUS</code> should be used on all functions that returns <code>bserial_status_t</code>. This ensures that the code returns as soon as possible when error is encountered.</p>
+<p>However, error is also "sticky". As soon as a <code>bserial_ctx_t</code> encounters an error, all subsequent operations are noop. This allows user code to trace the error with <code>bserial_trace</code>.</p>
+<p>TODO: Improve <code>bserial_trace</code>.</p>
+<h3><a class="anchor" id="autotoc_md7"></a>
+Record</h3>
+<p>Much of this library deals with reading and writing records in a backward compatible manner and allow for structural changes. The serialization code for a struct must have the following form:</p>
+<div class="fragment"><div class="line"><a class="code hl_enumeration" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a></div>
+<div class="line">serialize_my_struct(<a class="code hl_typedef" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a>* ctx, my_struct_t* my_struct) {</div>
+<div class="line">    <span class="keywordflow">while</span> (<a class="code hl_function" href="bserial_8h.html#aad47fa4d13bc2d17a6300bdc0e2a7f35">bserial_record</a>(ctx, my_struct)) {</div>
+<div class="line">        <span class="comment">// Serialize field &quot;foo&quot;</span></div>
+<div class="line">        <span class="keywordflow">if</span> (<a class="code hl_function" href="bserial_8h.html#aa263323ebc7bc8fc33a97514821d6b59">bserial_key</a>(ctx, <span class="stringliteral">&quot;foo&quot;</span>, <span class="keyword">sizeof</span>(<span class="stringliteral">&quot;foo&quot;</span>) - 1)) {</div>
+<div class="line">            <a class="code hl_define" href="bserial_8h.html#a96e7bd6b140b4881d2d5757a5bcbffbc">BSERIAL_CHECK_STATUS</a>(<a class="code hl_define" href="bserial_8h.html#a7d488368f2ebd0beefea7801a872f375">bserial_any_int</a>(ctx, &amp;my_struct-&gt;foo));</div>
+<div class="line">        }</div>
+<div class="line"> </div>
+<div class="line">        <span class="comment">// Serialize field &quot;bar&quot;</span></div>
+<div class="line">        <span class="keywordflow">if</span> (<a class="code hl_function" href="bserial_8h.html#aa263323ebc7bc8fc33a97514821d6b59">bserial_key</a>(ctx, <span class="stringliteral">&quot;bar&quot;</span>, <span class="keyword">sizeof</span>(<span class="stringliteral">&quot;bar&quot;</span>) - 1)) {</div>
+<div class="line">            <a class="code hl_define" href="bserial_8h.html#a96e7bd6b140b4881d2d5757a5bcbffbc">BSERIAL_CHECK_STATUS</a>(<a class="code hl_function" href="bserial_8h.html#aadc0750bc75a41f8b32fe9404e6954c2">bserial_f32</a>(ctx, &amp;my_struct-&gt;bar));</div>
+<div class="line">        }</div>
+<div class="line"> </div>
+<div class="line">        <span class="comment">// Other fields...</span></div>
+<div class="line">    }</div>
+<div class="line"> </div>
+<div class="line">    <span class="keywordflow">return</span> <a class="code hl_function" href="bserial_8h.html#a8dc8121519c7732864ca7211088b7776">bserial_status</a>(ctx);</div>
+<div class="line">}</div>
+<div class="ttc" id="abserial_8h_html_a38ebcbf7776e35a4837e45d9fbc96e79"><div class="ttname"><a href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a></div><div class="ttdeci">struct bserial_ctx_s bserial_ctx_t</div><div class="ttdoc">Serialization context.</div><div class="ttdef"><b>Definition</b> bserial.h:483</div></div>
+<div class="ttc" id="abserial_8h_html_a53882609fbb8d070dda12f9a2e501e3b"><div class="ttname"><a href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a></div><div class="ttdeci">bserial_status_t</div><div class="ttdoc">IO status.</div><div class="ttdef"><b>Definition</b> bserial.h:422</div></div>
+<div class="ttc" id="abserial_8h_html_a7d488368f2ebd0beefea7801a872f375"><div class="ttname"><a href="bserial_8h.html#a7d488368f2ebd0beefea7801a872f375">bserial_any_int</a></div><div class="ttdeci">#define bserial_any_int(ctx, integer)</div><div class="ttdoc">Automatically select the right integer serialization function.</div><div class="ttdef"><b>Definition</b> bserial.h:717</div></div>
+<div class="ttc" id="abserial_8h_html_a8dc8121519c7732864ca7211088b7776"><div class="ttname"><a href="bserial_8h.html#a8dc8121519c7732864ca7211088b7776">bserial_status</a></div><div class="ttdeci">bserial_status_t bserial_status(bserial_ctx_t *ctx)</div><div class="ttdoc">Get the current IO status.</div></div>
+<div class="ttc" id="abserial_8h_html_a96e7bd6b140b4881d2d5757a5bcbffbc"><div class="ttname"><a href="bserial_8h.html#a96e7bd6b140b4881d2d5757a5bcbffbc">BSERIAL_CHECK_STATUS</a></div><div class="ttdeci">#define BSERIAL_CHECK_STATUS(OP)</div><div class="ttdoc">Helper macro to check for IO status and return on error.</div><div class="ttdef"><b>Definition</b> bserial.h:415</div></div>
+<div class="ttc" id="abserial_8h_html_aa263323ebc7bc8fc33a97514821d6b59"><div class="ttname"><a href="bserial_8h.html#aa263323ebc7bc8fc33a97514821d6b59">bserial_key</a></div><div class="ttdeci">bool bserial_key(bserial_ctx_t *ctx, const char *name, uint64_t len)</div><div class="ttdoc">Read/write a key.</div></div>
+<div class="ttc" id="abserial_8h_html_aad47fa4d13bc2d17a6300bdc0e2a7f35"><div class="ttname"><a href="bserial_8h.html#aad47fa4d13bc2d17a6300bdc0e2a7f35">bserial_record</a></div><div class="ttdeci">bool bserial_record(bserial_ctx_t *ctx, void *record)</div><div class="ttdoc">Read/write a record.</div></div>
+<div class="ttc" id="abserial_8h_html_aadc0750bc75a41f8b32fe9404e6954c2"><div class="ttname"><a href="bserial_8h.html#aadc0750bc75a41f8b32fe9404e6954c2">bserial_f32</a></div><div class="ttdeci">bserial_status_t bserial_f32(bserial_ctx_t *ctx, float *value)</div><div class="ttdoc">Read/write a single precision float.</div></div>
+</div><!-- fragment --><p>Or with the helper macros:</p>
+<div class="fragment"><div class="line"><a class="code hl_enumeration" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a></div>
+<div class="line">serialize_my_struct(<a class="code hl_typedef" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a>* ctx, my_struct_t* my_struct) {</div>
+<div class="line">    <a class="code hl_define" href="bserial_8h.html#a8a184d63b935571db05fdd40e2c1c671">BSERIAL_RECORD</a>(ctx, my_struct) {</div>
+<div class="line">        <a class="code hl_define" href="bserial_8h.html#a6b7a06a5232f7be971abccb32123fe39">BSERIAL_KEY</a>(ctx, foo) {</div>
+<div class="line">            <a class="code hl_define" href="bserial_8h.html#a96e7bd6b140b4881d2d5757a5bcbffbc">BSERIAL_CHECK_STATUS</a>(<a class="code hl_define" href="bserial_8h.html#a7d488368f2ebd0beefea7801a872f375">bserial_any_int</a>(ctx, &amp;my_struct-&gt;foo));</div>
+<div class="line">        }</div>
+<div class="line"> </div>
+<div class="line">        <span class="comment">// Serialize field &quot;bar&quot;</span></div>
+<div class="line">        <a class="code hl_define" href="bserial_8h.html#a6b7a06a5232f7be971abccb32123fe39">BSERIAL_KEY</a>(ctx, bar) {</div>
+<div class="line">            <a class="code hl_define" href="bserial_8h.html#a96e7bd6b140b4881d2d5757a5bcbffbc">BSERIAL_CHECK_STATUS</a>(<a class="code hl_function" href="bserial_8h.html#aadc0750bc75a41f8b32fe9404e6954c2">bserial_f32</a>(ctx, &amp;my_struct-&gt;bar));</div>
+<div class="line">        }</div>
+<div class="line"> </div>
+<div class="line">        <span class="comment">// Other fields...</span></div>
+<div class="line">    }</div>
+<div class="line"> </div>
+<div class="line">    <span class="keywordflow">return</span> <a class="code hl_function" href="bserial_8h.html#a8dc8121519c7732864ca7211088b7776">bserial_status</a>(ctx);</div>
+<div class="line">}</div>
+<div class="ttc" id="abserial_8h_html_a6b7a06a5232f7be971abccb32123fe39"><div class="ttname"><a href="bserial_8h.html#a6b7a06a5232f7be971abccb32123fe39">BSERIAL_KEY</a></div><div class="ttdeci">#define BSERIAL_KEY(ctx, name)</div><div class="ttdoc">Read/write a key in a record.</div><div class="ttdef"><b>Definition</b> bserial.h:850</div></div>
+<div class="ttc" id="abserial_8h_html_a8a184d63b935571db05fdd40e2c1c671"><div class="ttname"><a href="bserial_8h.html#a8a184d63b935571db05fdd40e2c1c671">BSERIAL_RECORD</a></div><div class="ttdeci">#define BSERIAL_RECORD(ctx, record)</div><div class="ttdoc">Read/write a record&gt;</div><div class="ttdef"><b>Definition</b> bserial.h:841</div></div>
+</div><!-- fragment --><p>The peculiar structure has to do with how the library handles record serialization. Considering that it has to support the following:</p>
+<ul>
+<li>New fields may be added.</li>
+<li>Existing fields may be removed.</li>
+<li>Existing fields may be reordered.</li>
+<li>Existing fields may have their types changed.</li>
+</ul>
+<p>The serialization code cannot be naively executed in order.</p>
+<p>The outer <code>while</code> loop allows the library to run mulitple passes through the structure. This allows it to, for example, store the keys separately from the values.</p>
+<p>The inner <code>if</code> conditions allow the library to conditionally execute the value serialization code. This allows it to reorder and toggle the execution of each field. This can arguably be done with a function table where each key is a field name and each value is a serialization function. However, it is much less ergonomic to do in C. Even in C++, there are concerns about where the captures and the function table itself is allocated. This violates the library's goal of fixed allocation. In the common cases (code and data perfectly matches), the field clauses will most likely be executed in order anyway. Thus there should not be much overhead. Even with some omitted fields (due to newly introduced fields in code), given that all records in a table must have the same schema, the branches should be perfectly predictable. e.g: "foo" is always executed and "bar" is always skipped.</p>
+<h4><a class="anchor" id="autotoc_md8"></a>
+Compatible type change</h4>
+<p>The above structure allows us to deal with compatible structural changes:</p>
+<ul>
+<li>Field reordering: The outer <code>while</code> loop allows field listing in any arbitrary order.</li>
+<li>Addition of new fields: The inner <code>if</code> conditions allow new fields in code but not in data to be toggled off.</li>
+<li><p class="startli">Removal of existing fields: Due to the way data is written, unrecogized fields will be automatically skipped over and not read. Internally, the call to <code>bserial_record</code> will skip to the closest recognized field in the data stream. As an optimization, after a field is read, the same skipping is done again. In the most common case where the data was written and then read by the same piece of code, there would be only two passes through the while loop:</p><ul>
+<li>The first pass is for schema discovery. Each <code>bserial_key</code> call in the code is mapped to a corresponding field in the data. They all return false to skip the value serialization code.</li>
+<li>The second pass is for serialization. Since data was written in order, the first <code>bserial_key</code> call would return true. After the value is read, the library recognizes that the second <code>bserial_key</code> call is also a match in order and return true again, and so on...</li>
+</ul>
+<p class="startli">Thus there would be only two iterations through the <code>while</code>loop. In the case of a table, the schema discovery step only happens once at the beginning. For every row in the table, only a single iteration through the <code>while</code> loop is needed.</p>
+<p class="startli">The loop would only have to run more than twice when the program has to read serialized data from a previous version where fields have a different order. This can be somewhat mitigated by only adding code for new fields at the end of the serialization function.</p>
+</li>
+</ul>
+<h4><a class="anchor" id="autotoc_md9"></a>
+Incompatible type change</h4>
+<p>Suppose that we have the following struct:</p>
+<div class="fragment"><div class="line"><span class="keyword">typedef</span> <span class="keyword">struct </span>{</div>
+<div class="line">    <span class="keywordtype">int</span> foo;</div>
+<div class="line">} my_struct_t;</div>
+</div><!-- fragment --><p>And later we want to change the type into:</p>
+<div class="fragment"><div class="line"><span class="keyword">typedef</span> <span class="keyword">struct </span>{</div>
+<div class="line">    <span class="keywordtype">float</span> foo;</div>
+<div class="line">} my_struct_t;</div>
+</div><!-- fragment --><p>This would be an incompatible change that the library cannot deal with out of the box. However, the following idiom can be used:</p>
+<div class="fragment"><div class="line"><a class="code hl_enumeration" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a></div>
+<div class="line">serialize_my_struct(<a class="code hl_typedef" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a>* ctx, my_struct_t* my_struct) {</div>
+<div class="line">    <a class="code hl_define" href="bserial_8h.html#a8a184d63b935571db05fdd40e2c1c671">BSERIAL_RECORD</a>(ctx, my_struct) {</div>
+<div class="line">        <span class="comment">// Compatibility code path for reading from older versions</span></div>
+<div class="line">        <span class="keywordflow">if</span> (<a class="code hl_function" href="bserial_8h.html#a9efe4064847e35223ecbaa17e59da6d1">bserial_mode</a>(ctx) == <a class="code hl_enumvalue" href="bserial_8h.html#aa72d84b2b1108e2128281caab136bd8ba7eb9e8a1b996d240a327695da0e6c031">BSERIAL_MODE_READ</a>) {</div>
+<div class="line">            <span class="comment">// Read the old field as if it is the old version</span></div>
+<div class="line">            <a class="code hl_define" href="bserial_8h.html#a6b7a06a5232f7be971abccb32123fe39">BSERIAL_KEY</a>(ctx, foo) {</div>
+<div class="line">                <span class="keywordtype">int</span> foo;  <span class="comment">// We know that we are reading so</span></div>
+<div class="line">                          <span class="comment">// `foo = my_struct-&gt;foo` is unnecessary.</span></div>
+<div class="line">                <a class="code hl_define" href="bserial_8h.html#a96e7bd6b140b4881d2d5757a5bcbffbc">BSERIAL_CHECK_STATUS</a>(<a class="code hl_define" href="bserial_8h.html#a7d488368f2ebd0beefea7801a872f375">bserial_any_int</a>(ctx, &amp;foo));</div>
+<div class="line">                <span class="comment">// Convert to the new version</span></div>
+<div class="line">                my_struct-&gt;foo = (float)foo;</div>
+<div class="line">            }</div>
+<div class="line">        }</div>
+<div class="line"> </div>
+<div class="line">        <span class="comment">// For compatibility, when an incompatible change is made, a different</span></div>
+<div class="line">        <span class="comment">// field name must be used in the serialized data.</span></div>
+<div class="line">        <a class="code hl_define" href="bserial_8h.html#a6b7a06a5232f7be971abccb32123fe39">BSERIAL_KEY</a>(ctx, foo_v2) {</div>
+<div class="line">            <span class="comment">// The internal representation can use any field name, thus `foo` is</span></div>
+<div class="line">            <span class="comment">// still legal.</span></div>
+<div class="line">            <a class="code hl_define" href="bserial_8h.html#a96e7bd6b140b4881d2d5757a5bcbffbc">BSERIAL_CHECK_STATUS</a>(bserial_float(ctx, &amp;my_struct-&gt;foo));</div>
+<div class="line">        }</div>
+<div class="line">    }</div>
+<div class="line">}</div>
+<div class="ttc" id="abserial_8h_html_a9efe4064847e35223ecbaa17e59da6d1"><div class="ttname"><a href="bserial_8h.html#a9efe4064847e35223ecbaa17e59da6d1">bserial_mode</a></div><div class="ttdeci">bserial_mode_t bserial_mode(bserial_ctx_t *ctx)</div><div class="ttdoc">Get the current serialization mode.</div></div>
+<div class="ttc" id="abserial_8h_html_aa72d84b2b1108e2128281caab136bd8ba7eb9e8a1b996d240a327695da0e6c031"><div class="ttname"><a href="bserial_8h.html#aa72d84b2b1108e2128281caab136bd8ba7eb9e8a1b996d240a327695da0e6c031">BSERIAL_MODE_READ</a></div><div class="ttdeci">@ BSERIAL_MODE_READ</div><div class="ttdoc">Reading.</div><div class="ttdef"><b>Definition</b> bserial.h:475</div></div>
+</div><!-- fragment --><p>Versioning can thus, be done per field instead of per record. This should make backward-compatible schema change relatively painless.</p>
+<h3><a class="anchor" id="autotoc_md10"></a>
+Variable length types</h3>
+<p>Beside the initial fixed-size memory buffer passed to <code>bserial_make_ctx</code>, the library does not allocate any more memory. For variable-length data types such as table or array, user code has to make their own decision. In general, fixed allocation is encouraged and it is always important to enforce a hard limit on length. However, when dynamic size is needed something like this can be used:</p>
+<div class="fragment"><div class="line"><a class="code hl_enumeration" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a></div>
+<div class="line">serialize_my_array(<a class="code hl_typedef" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a>* ctx, my_array_t* array) {  <span class="comment">// The program&#39;s array type</span></div>
+<div class="line">    uint64_t len = (uint64_t)my_array_len(array);  <span class="comment">// Put length into a variable</span></div>
+<div class="line">    <a class="code hl_define" href="bserial_8h.html#a96e7bd6b140b4881d2d5757a5bcbffbc">BSERIAL_CHECK_STATUS</a>(<a class="code hl_function" href="bserial_8h.html#a120448dc636a70d108a9a76465d81ee3">bserial_array</a>(ctx, &amp;len));  <span class="comment">// Serialize length</span></div>
+<div class="line">    <span class="keywordflow">if</span> (len &gt; MY_ARRAY_MAX_LEN) { <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3ba26a96cefb83bab521b44f029a20fe239">BSERIAL_MALFORMED</a>; }  <span class="comment">// Limit check</span></div>
+<div class="line">    my_array_resize(array, len);  <span class="comment">// Dynamically resize the array to fit</span></div>
+<div class="line"> </div>
+<div class="line">    <span class="comment">// Serialize body</span></div>
+<div class="line">    <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; my_array_len(array); ++i) {</div>
+<div class="line">        <a class="code hl_define" href="bserial_8h.html#a96e7bd6b140b4881d2d5757a5bcbffbc">BSERIAL_CHECK_STATUS</a>(serialize_element(ctx, my_array_element_at(array, i)));</div>
+<div class="line">    }</div>
+<div class="line"> </div>
+<div class="line">    <span class="keywordflow">return</span> <a class="code hl_function" href="bserial_8h.html#a8dc8121519c7732864ca7211088b7776">bserial_status</a>(ctx);</div>
+<div class="line">}</div>
+<div class="ttc" id="abserial_8h_html_a120448dc636a70d108a9a76465d81ee3"><div class="ttname"><a href="bserial_8h.html#a120448dc636a70d108a9a76465d81ee3">bserial_array</a></div><div class="ttdeci">bserial_status_t bserial_array(bserial_ctx_t *ctx, uint64_t *len)</div><div class="ttdoc">Read/write an array.</div></div>
+<div class="ttc" id="abserial_8h_html_a53882609fbb8d070dda12f9a2e501e3ba26a96cefb83bab521b44f029a20fe239"><div class="ttname"><a href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3ba26a96cefb83bab521b44f029a20fe239">BSERIAL_MALFORMED</a></div><div class="ttdeci">@ BSERIAL_MALFORMED</div><div class="ttdoc">Malformed data encountered.</div><div class="ttdef"><b>Definition</b> bserial.h:428</div></div>
+</div><!-- fragment --><p>In the write path, <code>my_array_len_resize</code> should be a noop. In the read path, <code>my_array_len_resize</code> will adjust the array to have the appropriate size.</p>
+<p>In general, variable length type should follow the pattern of:</p>
+<ol type="1">
+<li>Assign length to a variable.</li>
+<li>Read/write length with <code>bserial_array</code> or <code>bserial_table</code>.</li>
+<li>Limit check</li>
+<li>If using dynamic memory, resize storage to fit length.</li>
+<li>Loop through elements and serialize them.</li>
+</ol>
+<h3><a class="anchor" id="autotoc_md11"></a>
+Table</h3>
+<p><code>bserial_array</code> and <code>bserial_table</code> have the same signature. The only requirement for <code>bserial_table</code> is that all subsequent elements must be records of the same type: same set of keys and values must have the same type. The storage optimization is done automatically.</p>
+<p>Internally, the keys are only written once at the beginning of the table. Then, all values of all rows are stored packed without separators.</p>
+<h3><a class="anchor" id="autotoc_md12"></a>
+String encoding validation</h3>
+<p>This is considered to be out of scope. However, it is not difficult to create a helper in user code:</p>
+<div class="fragment"><div class="line"><a class="code hl_enumeration" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a></div>
+<div class="line">serialize_utf8_str(<a class="code hl_typedef" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a>* ctx, my_string_t* str) {  <span class="comment">// The program&#39;s string type</span></div>
+<div class="line">    uint64_t len = (uint64_t)my_string_len(str);  <span class="comment">// Put length into a variable</span></div>
+<div class="line">    <a class="code hl_define" href="bserial_8h.html#a96e7bd6b140b4881d2d5757a5bcbffbc">BSERIAL_CHECK_STATUS</a>(<a class="code hl_function" href="bserial_8h.html#a1e9db74a29c5838f59655bea2fc77c06">bserial_blob_header</a>(ctx, &amp;len));  <span class="comment">// Serialize length</span></div>
+<div class="line">    <span class="keywordflow">if</span> (len &gt; MY_STRING_MAX_LEN) { <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3ba26a96cefb83bab521b44f029a20fe239">BSERIAL_MALFORMED</a>; }  <span class="comment">// Limit check</span></div>
+<div class="line">    my_string_resize(str, len);  <span class="comment">// Dynamically resize the string</span></div>
+<div class="line"> </div>
+<div class="line">    <a class="code hl_define" href="bserial_8h.html#a96e7bd6b140b4881d2d5757a5bcbffbc">BSERIAL_CHECK_STATUS</a>(<a class="code hl_function" href="bserial_8h.html#a59ba430636a464f8d8644792f3d52bc3">bserial_blob_body</a>(ctx, my_string_cstr(str));  <span class="comment">// Serialize string body</span></div>
+<div class="line">    <span class="comment">// Assuming that all internal strings are valid, we only have to validate on read</span></div>
+<div class="line">    <span class="keywordflow">if</span> (<a class="code hl_function" href="bserial_8h.html#a9efe4064847e35223ecbaa17e59da6d1">bserial_mode</a>(ctx) == <a class="code hl_enumvalue" href="bserial_8h.html#aa72d84b2b1108e2128281caab136bd8ba7eb9e8a1b996d240a327695da0e6c031">BSERIAL_MODE_READ</a>) {</div>
+<div class="line">        <span class="keywordflow">if</span> (!validate_utf8(str)) { <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3ba26a96cefb83bab521b44f029a20fe239">BSERIAL_MALFORMED</a>; }</div>
+<div class="line">    }</div>
+<div class="line"> </div>
+<div class="line">    <span class="keywordflow">return</span> <a class="code hl_function" href="bserial_8h.html#a8dc8121519c7732864ca7211088b7776">bserial_status</a>(ctx);</div>
+<div class="line">}</div>
+<div class="ttc" id="abserial_8h_html_a1e9db74a29c5838f59655bea2fc77c06"><div class="ttname"><a href="bserial_8h.html#a1e9db74a29c5838f59655bea2fc77c06">bserial_blob_header</a></div><div class="ttdeci">bserial_status_t bserial_blob_header(bserial_ctx_t *ctx, uint64_t *len)</div><div class="ttdoc">Read/write a binary blob's header.</div></div>
+<div class="ttc" id="abserial_8h_html_a59ba430636a464f8d8644792f3d52bc3"><div class="ttname"><a href="bserial_8h.html#a59ba430636a464f8d8644792f3d52bc3">bserial_blob_body</a></div><div class="ttdeci">bserial_status_t bserial_blob_body(bserial_ctx_t *ctx, char *buf)</div><div class="ttdoc">Read/write a binary blob's body.</div></div>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md13"></a>
+Variant/tagged union types</h3>
+<p>There is no built-in support for these types. However, they could be emulated with an array where:</p>
+<ul>
+<li>The first element is the type tag.</li>
+<li>The second element is the payload.</li>
+</ul>
+<div class="fragment"><div class="line"><a class="code hl_enumeration" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a></div>
+<div class="line">serialize_variant(<a class="code hl_typedef" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a>* ctx, my_variant_t* variant) {</div>
+<div class="line">    uint64_t len = 2;  <span class="comment">// The size is always 2</span></div>
+<div class="line">    <a class="code hl_define" href="bserial_8h.html#a96e7bd6b140b4881d2d5757a5bcbffbc">BSERIAL_CHECK_STATUS</a>(<a class="code hl_function" href="bserial_8h.html#a120448dc636a70d108a9a76465d81ee3">bserial_array</a>(ctx, &amp;len));</div>
+<div class="line">    <span class="keywordflow">if</span> (len != 2) { <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3ba26a96cefb83bab521b44f029a20fe239">BSERIAL_MALFORMED</a>; }</div>
+<div class="line"> </div>
+<div class="line">    <a class="code hl_define" href="bserial_8h.html#a96e7bd6b140b4881d2d5757a5bcbffbc">BSERIAL_CHECK_STATUS</a>(<a class="code hl_define" href="bserial_8h.html#a7d488368f2ebd0beefea7801a872f375">bserial_any_int</a>(ctx, &amp;variant-&gt;type));</div>
+<div class="line">    <span class="keywordflow">switch</span> (variant-&gt;type) {</div>
+<div class="line">        <span class="keywordflow">case</span> MY_VARIANT_TYPE_1:</div>
+<div class="line">            <span class="keywordflow">return</span> serialize_variant_type_1(ctx, &amp;variant-&gt;payload.type1);</div>
+<div class="line">        <span class="keywordflow">case</span> MY_VARIANT_TYPE_2:</div>
+<div class="line">            <span class="keywordflow">return</span> serialize_variant_type_2(ctx, &amp;variant-&gt;payload.type2);</div>
+<div class="line">        <span class="comment">// ...</span></div>
+<div class="line">        <span class="keywordflow">default</span>: <span class="comment">// Always have a default case to guard against invalid data</span></div>
+<div class="line">            <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3ba26a96cefb83bab521b44f029a20fe239">BSERIAL_MALFORMED</a>;</div>
+<div class="line">    }</div>
+<div class="line">}</div>
+</div><!-- fragment --><p>Record is not appropriate for this usecase as fields in records are unordered. There is no guarantee that the type field will be read before the payload fields.</p>
+<h3><a class="anchor" id="autotoc_md14"></a>
+Associative map</h3>
+<p>Record is optimized for serializing a fixed set of keys and it is not suitable for associative map types such as hashtable. Instead, a table should be used:</p>
+<div class="fragment"><div class="line"><a class="code hl_enumeration" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a></div>
+<div class="line">serialize_hashmap(<a class="code hl_typedef" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a>* ctx, my_hashmap_t* hashmap) {</div>
+<div class="line">    uint64_t len = my_hashmap_len(hashmap);</div>
+<div class="line">    <a class="code hl_define" href="bserial_8h.html#a96e7bd6b140b4881d2d5757a5bcbffbc">BSERIAL_CHECK_STATUS</a>(<a class="code hl_function" href="bserial_8h.html#a7fa83533084e02ce3ea80b6723175f6d">bserial_table</a>(ctx, &amp;len));</div>
+<div class="line"> </div>
+<div class="line">    <span class="keywordflow">if</span> (<a class="code hl_function" href="bserial_8h.html#a9efe4064847e35223ecbaa17e59da6d1">bserial_mode</a>(ctx) == <a class="code hl_enumvalue" href="bserial_8h.html#aa72d84b2b1108e2128281caab136bd8ba7eb9e8a1b996d240a327695da0e6c031">BSERIAL_MODE_READ</a>) {</div>
+<div class="line">        <span class="comment">// Optionally, reserve</span></div>
+<div class="line">        my_hashmap_reserve(hashmap, len);</div>
+<div class="line">        <span class="comment">// Typically, on read, the input map should be empty but we can also clear it here</span></div>
+<div class="line">        my_hashmap_clear(hashmap)</div>
+<div class="line"> </div>
+<div class="line">        <span class="keywordflow">for</span> (uint64_t i = 0; i &lt; len; ++i) {</div>
+<div class="line">            my_hashmap_entry_t entry;</div>
+<div class="line">            <a class="code hl_define" href="bserial_8h.html#a96e7bd6b140b4881d2d5757a5bcbffbc">BSERIAL_CHECK_STATUS</a>(serialize_hashmap_entry(ctx, &amp;entry));</div>
+<div class="line">            my_hashmap_put(hashmap, entry.key, entry.value);</div>
+<div class="line">        }</div>
+<div class="line">    } <span class="keywordflow">else</span> {</div>
+<div class="line">        <span class="comment">// Assuming this is the iteration API</span></div>
+<div class="line">        <span class="keywordflow">for</span> (</div>
+<div class="line">            my_hashmap_entry_t* itr = my_hashmap_begin(hashmap);</div>
+<div class="line">            itr != my_hashmap_end(hashmap);</div>
+<div class="line">            itr = my_hasmap_next(itr)</div>
+<div class="line">        ) {</div>
+<div class="line">            <a class="code hl_define" href="bserial_8h.html#a96e7bd6b140b4881d2d5757a5bcbffbc">BSERIAL_CHECK_STATUS</a>(serialize_hashmap_entry(ctx, itr));</div>
+<div class="line">        }</div>
+<div class="line">    }</div>
+<div class="line"> </div>
+<div class="line">    <span class="keywordflow">return</span> <a class="code hl_function" href="bserial_8h.html#a8dc8121519c7732864ca7211088b7776">bserial_status</a>(ctx);</div>
+<div class="line">}</div>
+<div class="ttc" id="abserial_8h_html_a7fa83533084e02ce3ea80b6723175f6d"><div class="ttname"><a href="bserial_8h.html#a7fa83533084e02ce3ea80b6723175f6d">bserial_table</a></div><div class="ttdeci">bserial_status_t bserial_table(bserial_ctx_t *ctx, uint64_t *len)</div><div class="ttdoc">Read/write a table.</div></div>
+</div><!-- fragment --><p>Where <code>serialize_hashmap_entry</code> defines a record:</p>
+<div class="fragment"><div class="line"><a class="code hl_enumeration" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a></div>
+<div class="line">serialize_hashmap_entry(<a class="code hl_typedef" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a>* ctx, my_hashmap_entry_t* entry) {</div>
+<div class="line">    <a class="code hl_define" href="bserial_8h.html#a8a184d63b935571db05fdd40e2c1c671">BSERIAL_RECORD</a>(ctx, entry) {</div>
+<div class="line">        <a class="code hl_define" href="bserial_8h.html#a6b7a06a5232f7be971abccb32123fe39">BSERIAL_KEY</a>(ctx, key) {</div>
+<div class="line">            <a class="code hl_define" href="bserial_8h.html#a96e7bd6b140b4881d2d5757a5bcbffbc">BSERIAL_CHECK_STATUS</a>(serialize_key_type(ctx, &amp;entry-&gt;key));</div>
+<div class="line">        }</div>
+<div class="line"> </div>
+<div class="line">        BSERIAL_VALUE(ctx, value) {</div>
+<div class="line">            <a class="code hl_define" href="bserial_8h.html#a96e7bd6b140b4881d2d5757a5bcbffbc">BSERIAL_CHECK_STATUS</a>(serialize_value_type(ctx, &amp;entry-&gt;value));</div>
+<div class="line">        }</div>
+<div class="line">    }</div>
+<div class="line"> </div>
+<div class="line">    <span class="keywordflow">return</span> <a class="code hl_function" href="bserial_8h.html#a8dc8121519c7732864ca7211088b7776">bserial_status</a>(ctx);</div>
+<div class="line">}</div>
+</div><!-- fragment --><p>The nature of hashmap is such that the write path and the read path have totally different code due to hashing. We cannot quite use the same code for both reading and writing. However, the entry serialization code can still be shared. </p>
 </div><h2 class="groupheader">Macro Definition Documentation</h2>
 <a id="a7d488368f2ebd0beefea7801a872f375" name="a7d488368f2ebd0beefea7801a872f375"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7d488368f2ebd0beefea7801a872f375">&#9670;&#160;</a></span>bserial_any_int</h2>
@@ -408,8 +677,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>bserial_trace</b> (<a
 <div class="line">        <a class="code hl_enumeration" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a> bserial__status = OP; \</div>
 <div class="line">        if (bserial__status != <a class="code hl_enumvalue" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3ba0e569cfcfda76d402f15530cf5278187">BSERIAL_OK</a>) { <span class="keywordflow">return</span> bserial__status; } \</div>
 <div class="line">    } <span class="keywordflow">while</span>(0)</div>
-<div class="ttc" id="abserial_8h_html_a53882609fbb8d070dda12f9a2e501e3b"><div class="ttname"><a href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a></div><div class="ttdeci">bserial_status_t</div><div class="ttdoc">IO status.</div><div class="ttdef"><b>Definition</b> bserial.h:42</div></div>
-<div class="ttc" id="abserial_8h_html_a53882609fbb8d070dda12f9a2e501e3ba0e569cfcfda76d402f15530cf5278187"><div class="ttname"><a href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3ba0e569cfcfda76d402f15530cf5278187">BSERIAL_OK</a></div><div class="ttdeci">@ BSERIAL_OK</div><div class="ttdoc">No error.</div><div class="ttdef"><b>Definition</b> bserial.h:44</div></div>
+<div class="ttc" id="abserial_8h_html_a53882609fbb8d070dda12f9a2e501e3ba0e569cfcfda76d402f15530cf5278187"><div class="ttname"><a href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3ba0e569cfcfda76d402f15530cf5278187">BSERIAL_OK</a></div><div class="ttdeci">@ BSERIAL_OK</div><div class="ttdoc">No error.</div><div class="ttdef"><b>Definition</b> bserial.h:424</div></div>
 </div><!-- fragment -->
 <p>Helper macro to check for IO status and return on error. </p>
 

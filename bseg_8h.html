@@ -154,7 +154,7 @@ Macros</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Segmented array with stable element pointers. </p>
-<p>Unlike barray.h, elements are never relocated when the array grows. Storage is a series of segments, each twice the size of its predecessor. Growing allocates a new segment instead of reallocating, so pointers to existing elements remain valid until the array is freed.</p>
+<p>Unlike <a class="el" href="barray_8h.html">barray.h</a>, elements are never relocated when the array grows. Storage is a series of segments, each twice the size of its predecessor. Growing allocates a new segment instead of reallocating, so pointers to existing elements remain valid until the array is freed.</p>
 <p>The tradeoff is that elements are not contiguous so they can only be accessed through <a class="el" href="bseg_8h.html#adeb0886de9c8d8fe73a5c008074e2d4f">bseg_at</a> / <a class="el" href="bseg_8h.html#a48cd35f3ca5a33bb42e94d2b863bfb2d">bseg_ref</a> instead of plain indexing. Random access is still O(1): locating a segment is a single bit scan.</p>
 <p>Based on: <a href="https://danielchasehooper.com/posts/segment_array/">https://danielchasehooper.com/posts/segment_array/</a></p>
 <p>Usage:</p>

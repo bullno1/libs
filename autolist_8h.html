@@ -103,12 +103,27 @@ Macros</h2></td></tr>
 <tr class="memitem:a66ef1e8015c2d65b6a05a5eb2a49e8b2" id="r_a66ef1e8015c2d65b6a05a5eb2a49e8b2"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="autolist_8h.html#a66ef1e8015c2d65b6a05a5eb2a49e8b2">AUTOLIST_FOREACH</a>(ITR,  LIST_NAME)</td></tr>
 <tr class="memdesc:a66ef1e8015c2d65b6a05a5eb2a49e8b2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Iterate over all entries of a list.  <br /></td></tr>
 <tr class="separator:a66ef1e8015c2d65b6a05a5eb2a49e8b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3c72fb3b8eefcbc54fcb97185590370b" id="r_a3c72fb3b8eefcbc54fcb97185590370b"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="autolist_8h.html#a3c72fb3b8eefcbc54fcb97185590370b">AUTOLIST_DECLARE</a>(NAME)</td></tr>
+<tr class="memdesc:a3c72fb3b8eefcbc54fcb97185590370b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Declare a list so that it can be iterated in the current compilation unit.  <br /></td></tr>
+<tr class="separator:a3c72fb3b8eefcbc54fcb97185590370b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af119aad0b8d99dfda2d4feb0f573835e" id="r_af119aad0b8d99dfda2d4feb0f573835e"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="autolist_8h.html#af119aad0b8d99dfda2d4feb0f573835e">AUTOLIST_IMPL</a>(NAME)</td></tr>
+<tr class="memdesc:af119aad0b8d99dfda2d4feb0f573835e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Provide the storage for a list.  <br /></td></tr>
+<tr class="separator:af119aad0b8d99dfda2d4feb0f573835e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa9df6b27aea4c46e68661763eb779bb0" id="r_aa9df6b27aea4c46e68661763eb779bb0"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="autolist_8h.html#aa9df6b27aea4c46e68661763eb779bb0">AUTOLIST_DEFINE</a>(NAME)</td></tr>
 <tr class="memdesc:aa9df6b27aea4c46e68661763eb779bb0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Define a list.  <br /></td></tr>
 <tr class="separator:aa9df6b27aea4c46e68661763eb779bb0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7bad5e9ff99232ae221fbf8a70f52e55" id="r_a7bad5e9ff99232ae221fbf8a70f52e55"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="autolist_8h.html#a7bad5e9ff99232ae221fbf8a70f52e55">AUTOLIST_BEGIN</a>(NAME)</td></tr>
+<tr class="memdesc:a7bad5e9ff99232ae221fbf8a70f52e55"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pointer to the first entry pointer of a list, of type <code>const autolist_entry_t* const*</code>.  <br /></td></tr>
+<tr class="separator:a7bad5e9ff99232ae221fbf8a70f52e55"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acd2640aeb7e63b0e8e496512c0db370e" id="r_acd2640aeb7e63b0e8e496512c0db370e"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="autolist_8h.html#acd2640aeb7e63b0e8e496512c0db370e">AUTOLIST_END</a>(NAME)</td></tr>
+<tr class="memdesc:acd2640aeb7e63b0e8e496512c0db370e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pointer past the last entry pointer of a list.  <br /></td></tr>
+<tr class="separator:acd2640aeb7e63b0e8e496512c0db370e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A list of items collected from all compilation units. </p>
+<p>For when you have a list of things (test cases, metadata...) spread around in different compilation units and you need to iterate over all of them.</p>
+<p>Any compilation unit can add an entry to a list with <a class="el" href="autolist_8h.html#a1254a83046226e10d4aa104b8f65c15e">AUTOLIST_ENTRY</a>. Exactly one compilation unit defines the list with <a class="el" href="autolist_8h.html#aa9df6b27aea4c46e68661763eb779bb0">AUTOLIST_DEFINE</a> (or <a class="el" href="autolist_8h.html#a3c72fb3b8eefcbc54fcb97185590370b">AUTOLIST_DECLARE</a> and <a class="el" href="autolist_8h.html#af119aad0b8d99dfda2d4feb0f573835e">AUTOLIST_IMPL</a> separately) and every unit that includes the declaration can iterate over the collected entries with <a class="el" href="autolist_8h.html#a66ef1e8015c2d65b6a05a5eb2a49e8b2">AUTOLIST_FOREACH</a>.</p>
+<p>Entries are collected by the linker into a dedicated section so there is no runtime registration. </p>
 </div><h2 class="groupheader">Macro Definition Documentation</h2>
 <a id="aac4924e3938e518e038e25e063afcc7f" name="aac4924e3938e518e038e25e063afcc7f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aac4924e3938e518e038e25e063afcc7f">&#9670;&#160;</a></span>AUTOLIST_ADD_ENTRY</h2>
@@ -154,6 +169,60 @@ Macros</h2></td></tr>
 
 </div>
 </div>
+<a id="a7bad5e9ff99232ae221fbf8a70f52e55" name="a7bad5e9ff99232ae221fbf8a70f52e55"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7bad5e9ff99232ae221fbf8a70f52e55">&#9670;&#160;</a></span>AUTOLIST_BEGIN</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define AUTOLIST_BEGIN</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">NAME</td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Pointer to the first entry pointer of a list, of type <code>const autolist_entry_t* const*</code>. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">NAME</td><td>name of the list</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="autolist_8h.html#a66ef1e8015c2d65b6a05a5eb2a49e8b2" title="Iterate over all entries of a list.">AUTOLIST_FOREACH</a> </dd></dl>
+
+</div>
+</div>
+<a id="a3c72fb3b8eefcbc54fcb97185590370b" name="a3c72fb3b8eefcbc54fcb97185590370b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3c72fb3b8eefcbc54fcb97185590370b">&#9670;&#160;</a></span>AUTOLIST_DECLARE</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define AUTOLIST_DECLARE</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">NAME</td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Declare a list so that it can be iterated in the current compilation unit. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">NAME</td><td>name of the list</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="autolist_8h.html#af119aad0b8d99dfda2d4feb0f573835e" title="Provide the storage for a list.">AUTOLIST_IMPL</a> </dd></dl>
+
+</div>
+</div>
 <a id="aa9df6b27aea4c46e68661763eb779bb0" name="aa9df6b27aea4c46e68661763eb779bb0"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa9df6b27aea4c46e68661763eb779bb0">&#9670;&#160;</a></span>AUTOLIST_DEFINE</h2>
 
@@ -178,6 +247,33 @@ Macros</h2></td></tr>
   </table>
   </dd>
 </dl>
+
+</div>
+</div>
+<a id="acd2640aeb7e63b0e8e496512c0db370e" name="acd2640aeb7e63b0e8e496512c0db370e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acd2640aeb7e63b0e8e496512c0db370e">&#9670;&#160;</a></span>AUTOLIST_END</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define AUTOLIST_END</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">NAME</td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Pointer past the last entry pointer of a list. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">NAME</td><td>name of the list</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="autolist_8h.html#a7bad5e9ff99232ae221fbf8a70f52e55" title="Pointer to the first entry pointer of a list, of type const autolist_entry_t* const*.">AUTOLIST_BEGIN</a> </dd></dl>
 
 </div>
 </div>
@@ -310,6 +406,34 @@ Macros</h2></td></tr>
   </table>
   </dd>
 </dl>
+
+</div>
+</div>
+<a id="af119aad0b8d99dfda2d4feb0f573835e" name="af119aad0b8d99dfda2d4feb0f573835e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af119aad0b8d99dfda2d4feb0f573835e">&#9670;&#160;</a></span>AUTOLIST_IMPL</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define AUTOLIST_IMPL</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">NAME</td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Provide the storage for a list. </p>
+<p>This must be done in exactly one compilation unit.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">NAME</td><td>name of the list</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="autolist_8h.html#a3c72fb3b8eefcbc54fcb97185590370b" title="Declare a list so that it can be iterated in the current compilation unit.">AUTOLIST_DECLARE</a> </dd></dl>
 
 </div>
 </div>
