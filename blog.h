@@ -36,7 +36,16 @@
  * ```
  *
  * Messages longer than @ref BLOG_LINE_BUF_SIZE are truncated.
- * The formatting buffer is shared so the library is not thread-safe.
+ *
+ * ## Threading
+ *
+ * Logging is safe from any thread: each thread formats into its own
+ * thread-local buffer.
+ * Configuration is not: call @ref blog_init, add loggers and set their levels
+ * once, in the main thread, before other threads start logging.
+ * A logger is called on whichever thread logs the message, possibly several
+ * at once, so a custom logger must bring its own synchronization.
+ * The built-in loggers are thread-safe.
  *
  * In **exactly one** source file, define `BLOG_IMPLEMENTATION` before including blog.h.
  */
@@ -66,6 +75,12 @@
 #else
 #	define BLOG_FORMAT_ATTRIBUTE(FMT, VA)
 #	define BLOG_FORMAT_CHECK(...) (void)(sizeof(printf(__VA_ARGS__)))
+#endif
+
+#if defined(_MSC_VER)
+#	define BLOG_THREAD_LOCAL __declspec(thread)
+#else
+#	define BLOG_THREAD_LOCAL _Thread_local
 #endif
 /// @endcond
 
@@ -134,6 +149,11 @@ typedef struct {
 /**
  * @brief A logger.
  *
+ * It is called on the thread that logs the message.
+ * When several threads log at once it is called concurrently, so it must
+ * synchronize on its own if it needs to.
+ * `msg` is only valid for the duration of the call.
+ *
  * @param ctx Where the message comes from.
  * @param msg The formatted message.
  * @param userdata The userdata passed to @ref blog_add_logger.
@@ -185,6 +205,7 @@ typedef struct {
  * @brief Initialize the library.
  *
  * Must be called before adding loggers.
+ * Not thread-safe: call it once, in the main thread, before logging starts.
  *
  * @param options How to shorten filenames, see @ref blog_options_t.
  */
@@ -193,6 +214,9 @@ blog_init(const blog_options_t* options);
 
 /**
  * @brief Add a custom logger.
+ *
+ * Not thread-safe: add loggers once, in the main thread, before other threads
+ * start logging.
  *
  * @param min_level Messages below this level are not passed to the logger.
  * @param fn The logger.
@@ -207,6 +231,11 @@ blog_add_logger(blog_level_t min_level, blog_log_fn_t fn, void* userdata);
 /**
  * @brief Add a logger writing one line per message to a `FILE*`.
  *
+ * The logger is thread-safe: each message is a single `fprintf` call and the
+ * C library locks the stream for the duration of the call, so lines from
+ * different threads do not interleave.
+ * Adding it is not, see @ref blog_add_logger.
+ *
  * @param min_level Messages below this level are not written.
  * @param options Where and how to write, must outlive the logger.
  *
@@ -217,6 +246,10 @@ blog_add_file_logger(blog_level_t min_level, const blog_file_logger_options_t* o
 
 /**
  * @brief Add a logger writing to Android's logcat.
+ *
+ * The logger is thread-safe: each message is a single `__android_log_print`
+ * call.
+ * Adding it is not, see @ref blog_add_logger.
  *
  * @param min_level Messages below this level are not written.
  * @param options The logcat tag, must outlive the logger.
@@ -231,12 +264,16 @@ blog_add_android_logger(blog_level_t min_level, const blog_android_logger_option
  * @brief Change the minimum level of a logger.
  *
  * Does nothing for an invalid (negative) id.
+ * Not thread-safe with respect to logging: set levels from the main thread
+ * before other threads start logging.
  */
 BLOG_API void
 blog_set_min_log_level(blog_logger_id_t logger, blog_level_t min_level);
 
 /**
  * @brief Log a message, `vprintf` style.
+ *
+ * Safe to call from any thread.
  *
  * @param level Severity.
  * @param file Source file, typically `__FILE__`.
@@ -313,12 +350,13 @@ typedef struct {
 
 static struct {
 	blog_logger_t loggers[BLOG_MAX_NUM_LOGGERS];
-	char line_buf[BLOG_LINE_BUF_SIZE];
-	int line_len;
 	int num_loggers;
 	blog_options_t options;
 	int prefix_len;
 } blog_state = { 0 };
+
+// One buffer per thread so that concurrent writes don't garble each other
+static BLOG_THREAD_LOCAL char blog_line_buf[BLOG_LINE_BUF_SIZE];
 
 static void
 blog_file_write(
@@ -447,20 +485,20 @@ blog_vwrite(
 			// Delay formatting until it's actually needed
 			if (msg_len < 0) {
 				msg_len = vsnprintf(
-					blog_state.line_buf, sizeof(blog_state.line_buf),
+					blog_line_buf, sizeof(blog_line_buf),
 					fmt, args
 				);
 				if (msg_len < 0) {
 					msg_len = 0;
-				} else if (msg_len >= (int)sizeof(blog_state.line_buf)) {
-					msg_len = sizeof(blog_state.line_buf) - 1;
+				} else if (msg_len >= (int)sizeof(blog_line_buf)) {
+					msg_len = sizeof(blog_line_buf) - 1;
 				}
-				blog_state.line_buf[msg_len] = '\0';
+				blog_line_buf[msg_len] = '\0';
 			}
 
 			blog_str_t msg = {
 				.len = msg_len,
-				.data = blog_state.line_buf
+				.data = blog_line_buf
 			};
 			logger->fn(&ctx, msg, logger->userdata);
 		}
