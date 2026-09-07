@@ -456,6 +456,9 @@ bresmon_watch(
 	size_t dir_name_len = filename - full_path;
 
 	const char* dir_name = full_path;
+	// Temporarily terminate the directory part in place.
+	// The filename is restored once the directory monitor has been located.
+	char filename_first_char = *filename;
 	*filename = '\0';
 	bresmon_dirmon_t* dirmon = NULL;
 	for (
@@ -512,6 +515,8 @@ bresmon_watch(
 			);
 		}
 	}
+
+	*filename = filename_first_char;
 
 	if (dirmon != NULL) {
 		size_t filename_len = path_buf_size - 1 - dir_name_len;
@@ -680,7 +685,9 @@ bresmon_should_reload(bresmon_t* mon, bool wait) {
 				bresmon_watch_t* watch = (bresmon_watch_t*)((char*)watch_itr - offsetof(bresmon_watch_t, link));
 				if (
 					watch->filename_len == (notification_itr->FileNameLength / sizeof(wchar_t))
-					&& wcsncmp(watch->filename, notification_itr->FileName, watch->filename_len) == 0
+					// Windows filesystems are case-insensitive, like the
+					// directory comparison in bresmon_watch
+					&& _wcsnicmp(watch->filename, notification_itr->FileName, watch->filename_len) == 0
 				) {
 					++watch->latest_version;
 					++num_events;
