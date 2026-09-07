@@ -1,6 +1,36 @@
 #ifndef BARRAY_H
 #define BARRAY_H
 
+/**
+ * @file
+ * @brief Dynamic array.
+ *
+ * A `barray(T)` is a plain `T*`: elements are indexed with `[]` and the
+ * length and capacity live in a header stored right before them.
+ * `NULL` is a valid empty array so no initialization is needed:
+ *
+ * ```c
+ * barray(int) numbers = NULL;
+ * barray_push(numbers, 42, NULL);
+ * for (size_t i = 0; i < barray_len(numbers); ++i) { ... }
+ * barray_free(numbers, NULL);
+ * ```
+ *
+ * The macros that can grow or free the array (@ref barray_push,
+ * @ref barray_reserve, @ref barray_resize, @ref barray_free) reassign the
+ * variable passed to them, so it must be an lvalue.
+ * Elements move when the array grows: pointers into it are only valid until
+ * the next such call.
+ * See @ref bseg.h for an array with stable element pointers.
+ *
+ * Memory is allocated with `BARRAY_REALLOC` (or `BLIB_REALLOC`), which
+ * defaults to libc, and every allocating macro takes a `ctx` argument that
+ * is passed through to it (see @ref allocator).
+ * Elements are aligned to `BARRAY_ALIGN_TYPE`, `max_align_t` by default.
+ *
+ * In **exactly one** source file, define `BARRAY_IMPLEMENTATION` before including barray.h.
+ */
+
 #include <stddef.h>
 #include <string.h>
 
@@ -8,8 +38,24 @@
 #define BARRAY_API
 #endif
 
+/**
+ * The type of a dynamic array of `T`, which is just `T*`.
+ *
+ * @hideinitializer
+ */
 #define barray(T) T*
 
+/**
+ * Append an element, growing the array if needed.
+ *
+ * The capacity doubles when exhausted so pushes are amortized constant time.
+ *
+ * @param array the array, reassigned if it grows
+ * @param element the element to append
+ * @param ctx memory context
+ *
+ * @hideinitializer
+ */
 #define barray_push(array, element, ctx) \
 	do { \
 		size_t barray__new_len; \
@@ -17,36 +63,112 @@
 		(array)[barray__new_len - 1] = element; \
 	} while (0)
 
+/**
+ * Ensure the array can hold at least `new_capacity` elements.
+ *
+ * The length is unchanged and the capacity never shrinks.
+ *
+ * @param array the array, reassigned if it grows
+ * @param new_capacity the minimum capacity
+ * @param ctx memory context
+ *
+ * @hideinitializer
+ */
 #define barray_reserve(array, new_capacity, ctx) \
 	do { \
 		(array) = barray__do_reserve((array), new_capacity, sizeof(*(array)), (ctx)); \
 	} while (0)
 
+/**
+ * Remove an element, shifting the following ones down to keep their order.
+ *
+ * This is linear in the number of elements after `index`, see
+ * @ref barray_swap_remove for a constant time alternative.
+ * The removed element is not returned.
+ *
+ * @param array the array
+ * @param index index of the element to remove
+ *
+ * @hideinitializer
+ */
 #define barray_shift_remove(array, index) \
 	( \
 		memmove(&(array)[index], &(array)[index + 1], ((int)barray_len((array)) - index - 1) * sizeof(*(array))), \
 		barray_pop(array) \
 	)
 
+/**
+ * Remove an element by moving the last one into its place.
+ *
+ * Constant time but the order of the elements is not preserved.
+ * The removed element is not returned.
+ *
+ * @param array the array
+ * @param index index of the element to remove
+ *
+ * @hideinitializer
+ */
 #define barray_swap_remove(array, index) \
 	( \
 		(array)[index] = (array)[barray_len((array)) - 1], \
 		barray_pop(array) \
 	)
 
+/**
+ * Set the length of the array.
+ *
+ * New elements are zero-initialized.
+ * Shrinking keeps the capacity.
+ *
+ * @param array the array, reassigned if it grows
+ * @param new_len the new length
+ * @param ctx memory context
+ *
+ * @hideinitializer
+ */
 #define barray_resize(array, new_len, ctx) \
 	do { \
 		(array) = barray__do_resize((array), new_len, sizeof(*(array)), (ctx)); \
 	} while (0)
 
+/**
+ * Release the array and set the variable to NULL.
+ *
+ * Safe to call on an empty (NULL) array.
+ *
+ * @param array the array
+ * @param ctx memory context
+ *
+ * @hideinitializer
+ */
 #define barray_free(array, ctx) \
 	do { \
 		barray__do_free((array), (ctx)); \
 		(array) = NULL; \
 	} while (0)
 
+/**
+ * Remove the last element and return it.
+ *
+ * The array must not be empty.
+ *
+ * @param array the array
+ *
+ * @hideinitializer
+ */
 #define barray_pop(array) (barray__do_pop((array)), array[barray_len((array))])
 
+/**
+ * Iterate over the array with a pointer to each element.
+ *
+ * The array must not be modified during iteration.
+ * Requires `typeof` (C23, GCC, Clang or MSVC).
+ *
+ * @param REF name of the pointer variable
+ * @param ARRAY the array
+ *
+ * @hideinitializer
+ */
 #define BARRAY_FOREACH_REF(REF, ARRAY) \
 	for ( \
 		struct { size_t index; char once; } barray__itr = { 0 }; \
@@ -59,6 +181,17 @@
 			barray__itr.once = 0 \
 		)
 
+/**
+ * Iterate over the array with a copy of each element.
+ *
+ * The array must not be modified during iteration.
+ * Requires `typeof` (C23, GCC, Clang or MSVC).
+ *
+ * @param VALUE name of the element variable
+ * @param ARRAY the array
+ *
+ * @hideinitializer
+ */
 #define BARRAY_FOREACH_VALUE(VALUE, ARRAY) \
 	for ( \
 		struct { size_t index; char once; } barray__itr = { 0 }; \
@@ -71,12 +204,15 @@
 			barray__itr.once = 0 \
 		)
 
+/*! Number of elements in the array, 0 for NULL */
 BARRAY_API size_t
 barray_len(void* array);
 
+/*! Number of elements the array can hold before growing, 0 for NULL */
 BARRAY_API size_t
 barray_capacity(void* array);
 
+/*! Remove all elements, keeping the capacity */
 BARRAY_API void
 barray_clear(void* array);
 

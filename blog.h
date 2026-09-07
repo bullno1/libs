@@ -1,6 +1,46 @@
 #ifndef BLOG_H
 #define BLOG_H
 
+/**
+ * @file
+ * @brief Logging, with short filenames.
+ *
+ * Messages are written with @ref BLOG_TRACE, @ref BLOG_DEBUG, @ref BLOG_INFO,
+ * @ref BLOG_WARN, @ref BLOG_ERROR and @ref BLOG_FATAL.
+ * They capture the calling file and line and check the printf-style
+ * arguments at compile time.
+ *
+ * A message is formatted once and handed to every registered logger whose
+ * minimum level allows it.
+ * Up to @ref BLOG_MAX_NUM_LOGGERS loggers can be added, either custom ones
+ * with @ref blog_add_logger or the built-in ones: @ref blog_add_file_logger
+ * for any `FILE*` (optionally with ANSI colors) and
+ * @ref blog_add_android_logger for logcat.
+ *
+ * Filenames are shortened relative to the project root.
+ * @ref blog_init is given the `__FILE__` of the calling source file along
+ * with how many directories deep that file sits in the project and strips
+ * the common prefix from every logged path:
+ *
+ * ```c
+ * // In src/main.c, one directory below the project root
+ * blog_init(&(blog_options_t){
+ *     .current_filename = __FILE__,
+ *     .current_depth_in_project = 1,
+ * });
+ * blog_add_file_logger(BLOG_LEVEL_INFO, &(blog_file_logger_options_t){
+ *     .file = stderr,
+ *     .with_colors = true,
+ * });
+ * BLOG_INFO("Hello %s", "world");  // [INFO ][src/main.c:12]: Hello world
+ * ```
+ *
+ * Messages longer than @ref BLOG_LINE_BUF_SIZE are truncated.
+ * The formatting buffer is shared so the library is not thread-safe.
+ *
+ * In **exactly one** source file, define `BLOG_IMPLEMENTATION` before including blog.h.
+ */
+
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdarg.h>
@@ -9,14 +49,17 @@
 #define BLOG_API
 #endif
 
+/*! Maximum number of loggers, can be overridden */
 #ifndef BLOG_MAX_NUM_LOGGERS
 #define BLOG_MAX_NUM_LOGGERS 4
 #endif
 
+/*! Size of the buffer a message is formatted into, can be overridden */
 #ifndef BLOG_LINE_BUF_SIZE
 #define BLOG_LINE_BUF_SIZE 1024
 #endif
 
+/// @cond INTERNAL
 #if defined(__GNUC__) || defined(__clang__)
 #	define BLOG_FORMAT_ATTRIBUTE(FMT, VA) __attribute__((format(printf, FMT, VA)))
 #	define BLOG_FORMAT_CHECK(...) (void)(sizeof(0))
@@ -24,78 +67,184 @@
 #	define BLOG_FORMAT_ATTRIBUTE(FMT, VA)
 #	define BLOG_FORMAT_CHECK(...) (void)(sizeof(printf(__VA_ARGS__)))
 #endif
+/// @endcond
 
+/**
+ * Log a printf-style message at the given level from the current location.
+ *
+ * The level-specific macros below are usually more convenient.
+ *
+ * @param LEVEL a @ref blog_level_t
+ * @param ... format string and arguments
+ *
+ * @hideinitializer
+ */
 #define BLOG_WRITE(LEVEL, ...) \
 	(BLOG_FORMAT_CHECK(__VA_ARGS__), blog_write(LEVEL, __FILE__, __LINE__, __VA_ARGS__))
 
+/*! Log at @ref BLOG_LEVEL_TRACE @hideinitializer */
 #define BLOG_TRACE(...) BLOG_WRITE(BLOG_LEVEL_TRACE, __VA_ARGS__)
+/*! Log at @ref BLOG_LEVEL_DEBUG @hideinitializer */
 #define BLOG_DEBUG(...) BLOG_WRITE(BLOG_LEVEL_DEBUG, __VA_ARGS__)
+/*! Log at @ref BLOG_LEVEL_INFO @hideinitializer */
 #define BLOG_INFO(...)  BLOG_WRITE(BLOG_LEVEL_INFO , __VA_ARGS__)
+/*! Log at @ref BLOG_LEVEL_WARN @hideinitializer */
 #define BLOG_WARN(...)  BLOG_WRITE(BLOG_LEVEL_WARN , __VA_ARGS__)
+/*! Log at @ref BLOG_LEVEL_ERROR @hideinitializer */
 #define BLOG_ERROR(...) BLOG_WRITE(BLOG_LEVEL_ERROR, __VA_ARGS__)
+/*! Log at @ref BLOG_LEVEL_FATAL @hideinitializer */
 #define BLOG_FATAL(...) BLOG_WRITE(BLOG_LEVEL_FATAL, __VA_ARGS__)
 
+/**
+ * printf format specifier for a @ref blog_str_t.
+ *
+ * ```c
+ * BLOG_INFO("Message: " BLOG_STR_FMT, BLOG_STR_FMT_ARGS(msg));
+ * ```
+ *
+ * @see BLOG_STR_FMT_ARGS
+ */
 #define BLOG_STR_FMT "%.*s"
+/*! printf arguments for a @ref blog_str_t, to go with @ref BLOG_STR_FMT @hideinitializer */
 #define BLOG_STR_FMT_ARGS(X) (X).len, (X).data
 
+/*! Severity of a message, in increasing order */
 typedef enum {
-    BLOG_LEVEL_TRACE,
-    BLOG_LEVEL_DEBUG,
-    BLOG_LEVEL_INFO,
-    BLOG_LEVEL_WARN,
-    BLOG_LEVEL_ERROR,
-    BLOG_LEVEL_FATAL,
+    BLOG_LEVEL_TRACE, /*!< Very verbose diagnostics */
+    BLOG_LEVEL_DEBUG, /*!< Diagnostics */
+    BLOG_LEVEL_INFO,  /*!< Normal operation */
+    BLOG_LEVEL_WARN,  /*!< Something unexpected that can be handled */
+    BLOG_LEVEL_ERROR, /*!< A failed operation */
+    BLOG_LEVEL_FATAL, /*!< The program cannot continue */
 } blog_level_t;
 
+/*! A string that is not null-terminated */
 typedef struct {
-	int len;
-	const char* data;
+	int len;          /*!< Length in bytes */
+	const char* data; /*!< The characters */
 } blog_str_t;
 
+/*! Where a message comes from, as seen by a logger */
 typedef struct {
-	blog_level_t level;
-	int line;
-	blog_str_t file;
+	blog_level_t level; /*!< Severity of the message */
+	int line;           /*!< Line in the source file */
+	blog_str_t file;    /*!< Source file, shortened as configured by @ref blog_init */
 } blog_ctx_t;
 
+/**
+ * @brief A logger.
+ *
+ * @param ctx Where the message comes from.
+ * @param msg The formatted message.
+ * @param userdata The userdata passed to @ref blog_add_logger.
+ */
 typedef void (*blog_log_fn_t)(
 	const blog_ctx_t* ctx,
 	blog_str_t msg,
 	void* userdata
 );
 
+/*! Options for @ref blog_init */
 typedef struct {
-	// For shortening path in log
+	/*! `__FILE__` of the source file calling @ref blog_init */
 	const char* current_filename;
+	/*!
+	 * How many directories deep that file is in the project.
+	 *
+	 * 0 for a file in the project root, 1 for `src/main.c`...
+	 * Everything before the project root is stripped from logged filenames.
+	 */
 	int current_depth_in_project;
 } blog_options_t;
 
+/*! Identifier of a logger, negative when it could not be added */
 typedef int blog_logger_id_t;
 
+/**
+ * @brief Options for @ref blog_add_file_logger.
+ *
+ * The struct is referenced, not copied, and must stay valid for as long as
+ * the logger is in use.
+ */
 typedef struct {
-	FILE* file;
-	bool with_colors;
+	FILE* file;       /*!< Where to write, e.g: `stderr` */
+	bool with_colors; /*!< Whether to color the level with ANSI escape codes */
 } blog_file_logger_options_t;
 
+/**
+ * @brief Options for @ref blog_add_android_logger.
+ *
+ * The struct is referenced, not copied, and must stay valid for as long as
+ * the logger is in use.
+ */
 typedef struct {
-	const char* tag;
+	const char* tag; /*!< The logcat tag */
 } blog_android_logger_options_t;
 
+/**
+ * @brief Initialize the library.
+ *
+ * Must be called before adding loggers.
+ *
+ * @param options How to shorten filenames, see @ref blog_options_t.
+ */
 BLOG_API void
 blog_init(const blog_options_t* options);
 
+/**
+ * @brief Add a custom logger.
+ *
+ * @param min_level Messages below this level are not passed to the logger.
+ * @param fn The logger.
+ * @param userdata Passed verbatim to the logger.
+ *
+ * @return The logger's id, or a negative number if @ref BLOG_MAX_NUM_LOGGERS
+ *   loggers were already added.
+ */
 BLOG_API blog_logger_id_t
 blog_add_logger(blog_level_t min_level, blog_log_fn_t fn, void* userdata);
 
+/**
+ * @brief Add a logger writing one line per message to a `FILE*`.
+ *
+ * @param min_level Messages below this level are not written.
+ * @param options Where and how to write, must outlive the logger.
+ *
+ * @return The logger's id, or a negative number if it could not be added.
+ */
 BLOG_API blog_logger_id_t
 blog_add_file_logger(blog_level_t min_level, const blog_file_logger_options_t* options);
 
+/**
+ * @brief Add a logger writing to Android's logcat.
+ *
+ * @param min_level Messages below this level are not written.
+ * @param options The logcat tag, must outlive the logger.
+ *
+ * @return The logger's id, or a negative number if it could not be added.
+ *   On other platforms, nothing is added and -1 is returned.
+ */
 BLOG_API blog_logger_id_t
 blog_add_android_logger(blog_level_t min_level, const blog_android_logger_options_t* options);
 
+/**
+ * @brief Change the minimum level of a logger.
+ *
+ * Does nothing for an invalid (negative) id.
+ */
 BLOG_API void
 blog_set_min_log_level(blog_logger_id_t logger, blog_level_t min_level);
 
+/**
+ * @brief Log a message, `vprintf` style.
+ *
+ * @param level Severity.
+ * @param file Source file, typically `__FILE__`.
+ *   It is shortened as configured by @ref blog_init.
+ * @param line Line in the source file.
+ * @param fmt printf format string.
+ * @param args Arguments for the format string.
+ */
 BLOG_API void
 blog_vwrite(
 	blog_level_t level,
@@ -105,6 +254,13 @@ blog_vwrite(
 	va_list args
 );
 
+/**
+ * @brief Log a message, `printf` style.
+ *
+ * @ref BLOG_WRITE and the level-specific macros fill in `file` and `line`.
+ *
+ * @see blog_vwrite
+ */
 BLOG_FORMAT_ATTRIBUTE(4, 5)
 static inline void
 blog_write(
