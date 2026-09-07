@@ -22,6 +22,7 @@ Collection of miscellaneous single-header libraries.
 |[bspscq.h](bspscq.h)|Single producer single consumer queue|
 |[barg.h](barg.h)|Command line argument parser|
 |[bscn.h](bscn.h)|Text scanner for hand-written parsers|
+|[bsfn.h](bsfn.h)|Stable function pointers for hot-reloadable modules|
 |[bmacro.h](bmacro.h)|Commonly used macros|
 |[bminmax.h](bminmax.h)|Min/Max/Clamp macros using `_Generic`|
 |[blog.h](blog.h)|Logging, with short filenames|
@@ -36,7 +37,6 @@ They depend on other libraries in this repository.
 |-------|-----------|
 |[btest.h](btest.h)|Unit testing framework with automatic test registration|
 |[bent.h](bent.h)|Hot reload aware entity component system|
-|[bsfn.h](bsfn.h)|Stable function pointers for hot-reloadable modules|
 
 Examples for each library live in the corresponding `tests/<name>/` directory.
 
