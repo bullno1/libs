@@ -74,12 +74,12 @@ BTEST(bspscq_, request_response) {
 	BTEST_EXPECT(bspscq_produce(&requests, stop_msg, true));
 
 	for (int i = 0; i < 5; ++i) {
-		void* item;
+		void* item = NULL;
 		BTEST_EXPECT(bspscq_consume(&responses, &item, true));
 		message_t* msg = item;
 		BTEST_EXPECT_EQUAL("%d", msg->content, i);
 	}
-	void* stop_response;
+	void* stop_response = NULL;
 	BTEST_EXPECT(bspscq_consume(&responses, &stop_response, true));
 	BTEST_EXPECT(stop_response == stop_msg);
 
