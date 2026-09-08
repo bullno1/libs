@@ -1,5 +1,31 @@
 #include "../../bseg.h"
 #include "../../btest.h"
+#include <stdlib.h>
+#include <stdint.h>
+
+// Allocation only fails where it can: embedded, or a fixed pool. Desktop is
+// killed or swaps instead, so the refusal path needs an allocator that says no
+// on purpose. A NULL ctx is the ordinary libc one every other test uses.
+typedef struct {
+	int budget;
+} budget_t;
+
+static void*
+test_realloc(void* ptr, size_t size, void* ctx) {
+	budget_t* budget = ctx;
+
+	if (size == 0) {
+		free(ptr);
+		return NULL;
+	}
+
+	if (budget != NULL) {
+		if (budget->budget <= 0) { return NULL; }
+		--budget->budget;
+	}
+
+	return realloc(ptr, size);
+}
 
 static btest_suite_t seg_array = {
 	.name = "bseg",
@@ -158,5 +184,113 @@ BTEST(seg_array, foreach) {
 	bseg_free(seg, NULL);
 }
 
+BTEST(seg_array, push_refuses_without_growing) {
+	bseg(int) seg = { 0 };
+	budget_t budget = { .budget = 0 };
+
+	bseg_push(seg, 42, &budget);
+
+	BTEST_EXPECT_EQUAL("%zu", bseg_len(seg), (size_t)0);
+	BTEST_EXPECT_EQUAL("%zu", bseg_capacity(seg), (size_t)0);
+
+	bseg_free(seg, &budget);
+}
+
+BTEST(seg_array, reserve_keeps_what_it_got) {
+	bseg(int) seg = { 0 };
+	// Enough for the first segment and nothing after it
+	budget_t budget = { .budget = 1 };
+
+	bseg_reserve(seg, 100000, &budget);
+
+	// Less than asked for, but every element of it is real
+	size_t capacity = bseg_capacity(seg);
+	BTEST_ASSERT(capacity > 0);
+	BTEST_EXPECT(capacity < 100000);
+
+	for (size_t i = 0; i < capacity; ++i) {
+		bseg_push(seg, (int)i, &budget);
+	}
+	BTEST_EXPECT_EQUAL("%zu", bseg_len(seg), capacity);
+	for (size_t i = 0; i < capacity; ++i) {
+		BTEST_EXPECT_EQUAL("%d", bseg_at(seg, i), (int)i);
+	}
+
+	// One past it needs a segment the allocator will not give
+	bseg_push(seg, -1, &budget);
+	BTEST_EXPECT_EQUAL("%zu", bseg_len(seg), capacity);
+
+	// Handing the budget back makes it grow again: the refusal left nothing
+	// broken behind
+	budget.budget = 1;
+	bseg_push(seg, -1, &budget);
+	BTEST_EXPECT_EQUAL("%zu", bseg_len(seg), capacity + 1);
+	BTEST_EXPECT_EQUAL("%d", bseg_at(seg, capacity), -1);
+
+	bseg_free(seg, &budget);
+}
+
+BTEST(seg_array, resize_leaves_array_intact) {
+	bseg(int) seg = { 0 };
+	budget_t budget = { .budget = 1 };
+
+	size_t capacity = 0;
+	bseg_reserve(seg, 1, &budget);
+	capacity = bseg_capacity(seg);
+	BTEST_ASSERT(capacity > 0);
+
+	bseg_resize(seg, capacity, &budget);
+	for (size_t i = 0; i < capacity; ++i) {
+		bseg_at(seg, i) = (int)i;
+	}
+
+	// Growing past what is left is a no-op, not a walk through a segment that
+	// was never handed over
+	bseg_resize(seg, capacity + 10000, &budget);
+	BTEST_EXPECT_EQUAL("%zu", bseg_len(seg), capacity);
+	for (size_t i = 0; i < capacity; ++i) {
+		BTEST_EXPECT_EQUAL("%d", bseg_at(seg, i), (int)i);
+	}
+
+	// Shrinking never needs memory, so it still works
+	bseg_resize(seg, 1, &budget);
+	BTEST_EXPECT_EQUAL("%zu", bseg_len(seg), (size_t)1);
+	BTEST_EXPECT_EQUAL("%d", bseg_at(seg, 0), 0);
+
+	bseg_free(seg, &budget);
+}
+
+BTEST(seg_array, huge_request_is_refused) {
+	bseg(int) seg = { 0 };
+	budget_t budget = { .budget = 0 };
+
+	// More than the segment table could ever describe. It has to stop at the
+	// first refusal rather than run the table off its end.
+	bseg_reserve(seg, SIZE_MAX, &budget);
+
+	BTEST_EXPECT_EQUAL("%zu", bseg_capacity(seg), (size_t)0);
+	BTEST_EXPECT_EQUAL("%zu", bseg_len(seg), (size_t)0);
+
+	bseg_free(seg, &budget);
+}
+
+BTEST(seg_array, reusable_after_failure) {
+	bseg(int) seg = { 0 };
+	budget_t budget = { .budget = 0 };
+
+	bseg_push(seg, 1, &budget);
+	BTEST_EXPECT_EQUAL("%zu", bseg_len(seg), (size_t)0);
+
+	bseg_free(seg, &budget);
+
+	// A plain libc ctx: the array survived the refusal well enough to be used
+	bseg_push(seg, 2, NULL);
+	BTEST_EXPECT_EQUAL("%zu", bseg_len(seg), (size_t)1);
+	BTEST_EXPECT_EQUAL("%d", bseg_at(seg, 0), 2);
+
+	bseg_free(seg, NULL);
+}
+
+#define BSEG_REALLOC(ptr, size, ctx) test_realloc(ptr, size, ctx)
 #define BLIB_IMPLEMENTATION
 #include "../../bseg.h"
