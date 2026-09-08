@@ -18,6 +18,14 @@
  * A single pool can thus serve many short-lived arenas (e.g: one per frame
  * or per task) without constantly returning memory to the OS.
  *
+ * A plain bump allocator hides memory errors since the whole chunk is a
+ * single valid allocation as far as any tool is concerned.
+ * When AddressSanitizer is detected, chunks are poisoned and only the exact
+ * bytes handed out are unpoisoned, with a redzone around every block.
+ * Overflowing an allocation or touching memory released by
+ * @ref barena_restore is then reported just like a heap error.
+ * Define `BARENA_ASAN` to 0 to opt out or to 1 to force it on.
+ *
  * In **exactly one** source file, define `BARENA_IMPLEMENTATION` before including barena.h.
  */
 
@@ -160,6 +168,43 @@ barena_reset(barena_t* arena);
 
 #include <stdint.h>
 
+#ifndef BARENA_ASAN
+#	if defined(__SANITIZE_ADDRESS__)  // gcc, msvc
+#		define BARENA_ASAN 1
+#	elif defined(__has_feature)  // clang
+#		if __has_feature(address_sanitizer)
+#			define BARENA_ASAN 1
+#		else
+#			define BARENA_ASAN 0
+#		endif
+#	else
+#		define BARENA_ASAN 0
+#	endif
+#endif
+
+#if BARENA_ASAN
+
+#include <sanitizer/asan_interface.h>
+
+#define BARENA_POISON(ptr, size) __asan_poison_memory_region((ptr), (size))
+#define BARENA_UNPOISON(ptr, size) __asan_unpoison_memory_region((ptr), (size))
+// The shadow map has one byte per 8 bytes of memory so a block must start on
+// an 8 byte boundary, otherwise unpoisoning it would also unpoison the tail of
+// whatever comes before
+#define BARENA_MIN_ALIGNMENT 8
+// Poisoned gap kept before and after every block so that overrunning one is
+// caught instead of silently landing in its neighbour
+#define BARENA_REDZONE_SIZE 8
+
+#else
+
+#define BARENA_POISON(ptr, size) ((void)(ptr), (void)(size))
+#define BARENA_UNPOISON(ptr, size) ((void)(ptr), (void)(size))
+#define BARENA_MIN_ALIGNMENT 1
+#define BARENA_REDZONE_SIZE 0
+
+#endif
+
 #ifdef _MSC_VER
 #	define MAX_ALIGN_TYPE double
 #else
@@ -204,7 +249,10 @@ barena_pool_cleanup(barena_pool_t* pool) {
 		chunk_itr != NULL;
 	) {
 		barena_chunk_t* next = chunk_itr->next;
-		barena_os_page_free(chunk_itr, chunk_itr->end - (char*)chunk_itr);
+		size_t chunk_size = (size_t)(chunk_itr->end - (char*)chunk_itr);
+		// Whatever reuses this memory next must not find our poison in it
+		BARENA_UNPOISON(chunk_itr, chunk_size);
+		barena_os_page_free(chunk_itr, chunk_size);
 		chunk_itr = next;
 	}
 
@@ -229,16 +277,18 @@ barena_alloc_from_chunk(barena_chunk_t* chunk, size_t size, size_t alignment) {
 	if (space_available < size) { return NULL; }
 
 	intptr_t result = barena_align_ptr((intptr_t)chunk->bump_ptr, alignment);
-	intptr_t new_bump_ptr = result + (ptrdiff_t)size;
+	intptr_t new_bump_ptr = result + (ptrdiff_t)size + BARENA_REDZONE_SIZE;
 	if (new_bump_ptr > (intptr_t)chunk->end) { return NULL; }
 
 	chunk->bump_ptr = (char*)new_bump_ptr;
+	BARENA_UNPOISON((void*)result, size);
 	return (void*)result;
 }
 
 void*
 barena_memalign(barena_t* arena, size_t size, size_t alignment) {
 	if (size == 0) { return NULL; }
+	if (alignment < BARENA_MIN_ALIGNMENT) { alignment = BARENA_MIN_ALIGNMENT; }
 
 	barena_chunk_t* current_chunk = arena->current_chunk;
 	void* result = barena_alloc_from_chunk(current_chunk, size, alignment);
@@ -248,7 +298,8 @@ barena_memalign(barena_t* arena, size_t size, size_t alignment) {
 	barena_pool_t* pool = arena->pool;
 	size_t chunk_size = pool->chunk_size;
 	size_t required_size = (size_t)barena_align_ptr(
-		(intptr_t)(sizeof(barena_chunk_t) + size),
+		// A redzone on each side of the block
+		(intptr_t)(sizeof(barena_chunk_t) + BARENA_REDZONE_SIZE + size + BARENA_REDZONE_SIZE),
 		pool->os_page_size
 	);
 	size_t alloc_size = chunk_size >= required_size ? chunk_size : required_size;
@@ -265,9 +316,12 @@ barena_memalign(barena_t* arena, size_t size, size_t alignment) {
 		new_chunk->end = (char*)new_chunk + alloc_size;
 	}
 
-	new_chunk->bump_ptr = new_chunk->begin;
+	// The leading redzone guards the chunk header against an underrun of the
+	// first block
+	new_chunk->bump_ptr = new_chunk->begin + BARENA_REDZONE_SIZE;
 	new_chunk->next = arena->current_chunk;
 	arena->current_chunk = new_chunk;
+	BARENA_POISON(new_chunk->begin, (size_t)(new_chunk->end - new_chunk->begin));
 
 	return barena_alloc_from_chunk(new_chunk, size, alignment);
 }
@@ -289,6 +343,7 @@ barena_restore(barena_t* arena, barena_snapshot_t snapshot) {
 	) {
 		barena_chunk_t* next = itr->next;
 
+		BARENA_POISON(itr->begin, (size_t)(itr->end - itr->begin));
 		itr->next = pool->free_chunks;
 		pool->free_chunks = itr;
 
@@ -296,6 +351,7 @@ barena_restore(barena_t* arena, barena_snapshot_t snapshot) {
 	}
 
 	if (snapshot != NULL) {
+		BARENA_POISON(snapshot, (size_t)(itr->end - snapshot));
 		itr->bump_ptr = snapshot;
 	}
 	arena->current_chunk = itr;
