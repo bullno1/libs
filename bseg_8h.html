@@ -80,6 +80,7 @@ $(function() {
 <p>Segmented array with stable element pointers.  
 <a href="#details">More...</a></p>
 <div class="textblock"><code>#include &lt;stddef.h&gt;</code><br />
+<code>#include &lt;stdbool.h&gt;</code><br />
 </div>
 <p><a href="bseg_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
@@ -129,13 +130,11 @@ Macros</h2></td></tr>
 <tr class="memitem:ab22c8faaddb05005caa19f6570b939ff" id="r_ab22c8faaddb05005caa19f6570b939ff"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bseg_8h.html#ab22c8faaddb05005caa19f6570b939ff">bseg_swap_remove</a>(seg,  index)</td></tr>
 <tr class="memdesc:ab22c8faaddb05005caa19f6570b939ff"><td class="mdescLeft">&#160;</td><td class="mdescRight">Remove the element at <code>index</code> by swapping the last element into its place.  <br /></td></tr>
 <tr class="separator:ab22c8faaddb05005caa19f6570b939ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae5d004db0957052430632d4709f556f6" id="r_ae5d004db0957052430632d4709f556f6"><td class="memItemLeft" align="right" valign="top"><a id="ae5d004db0957052430632d4709f556f6" name="ae5d004db0957052430632d4709f556f6"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>bseg_reserve</b>(seg,  new_capacity,  ctx)&#160;&#160;&#160;	bseg__do_reserve(&amp;(seg).<a class="el" href="bseg_8h.html#a2779146014d115b74fc79931b0ede1ed">bseg</a>, (new_capacity), sizeof(*(seg).bseg__type_hint), (ctx))</td></tr>
-<tr class="memdesc:ae5d004db0957052430632d4709f556f6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Ensure the array can hold at least <code>new_capacity</code> elements. <br /></td></tr>
+<tr class="memitem:ae5d004db0957052430632d4709f556f6" id="r_ae5d004db0957052430632d4709f556f6"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bseg_8h.html#ae5d004db0957052430632d4709f556f6">bseg_reserve</a>(seg,  new_capacity,  ctx)&#160;&#160;&#160;	bseg__do_reserve(&amp;(seg).<a class="el" href="bseg_8h.html#a2779146014d115b74fc79931b0ede1ed">bseg</a>, (new_capacity), sizeof(*(seg).bseg__type_hint), (ctx))</td></tr>
+<tr class="memdesc:ae5d004db0957052430632d4709f556f6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Ensure the array can hold at least <code>new_capacity</code> elements.  <br /></td></tr>
 <tr class="separator:ae5d004db0957052430632d4709f556f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5507128530bd5f0d345916273423e681" id="r_a5507128530bd5f0d345916273423e681"><td class="memItemLeft" align="right" valign="top"><a id="a5507128530bd5f0d345916273423e681" name="a5507128530bd5f0d345916273423e681"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>bseg_resize</b>(seg,  new_len,  ctx)&#160;&#160;&#160;	bseg__do_resize(&amp;(seg).<a class="el" href="bseg_8h.html#a2779146014d115b74fc79931b0ede1ed">bseg</a>, (new_len), sizeof(*(seg).bseg__type_hint), (ctx))</td></tr>
-<tr class="memdesc:a5507128530bd5f0d345916273423e681"><td class="mdescLeft">&#160;</td><td class="mdescRight">Resize the array, zero-initializing any new elements. <br /></td></tr>
+<tr class="memitem:a5507128530bd5f0d345916273423e681" id="r_a5507128530bd5f0d345916273423e681"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bseg_8h.html#a5507128530bd5f0d345916273423e681">bseg_resize</a>(seg,  new_len,  ctx)&#160;&#160;&#160;	bseg__do_resize(&amp;(seg).<a class="el" href="bseg_8h.html#a2779146014d115b74fc79931b0ede1ed">bseg</a>, (new_len), sizeof(*(seg).bseg__type_hint), (ctx))</td></tr>
+<tr class="memdesc:a5507128530bd5f0d345916273423e681"><td class="mdescLeft">&#160;</td><td class="mdescRight">Resize the array, zero-initializing any new elements.  <br /></td></tr>
 <tr class="separator:a5507128530bd5f0d345916273423e681"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7429d1e96d6b636119b122b8552bb1f0" id="r_a7429d1e96d6b636119b122b8552bb1f0"><td class="memItemLeft" align="right" valign="top"><a id="a7429d1e96d6b636119b122b8552bb1f0" name="a7429d1e96d6b636119b122b8552bb1f0"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>bseg_clear</b>(seg)&#160;&#160;&#160;((seg).bseg.len = 0)</td></tr>
@@ -163,11 +162,11 @@ Macros</h2></td></tr>
 <div class="line"><span class="keywordtype">int</span>* first = <a class="code hl_define" href="bseg_8h.html#a48cd35f3ca5a33bb42e94d2b863bfb2d">bseg_ref</a>(numbers, 0);  <span class="comment">// Valid until bseg_free</span></div>
 <div class="line"><a class="code hl_define" href="bseg_8h.html#adeb0886de9c8d8fe73a5c008074e2d4f">bseg_at</a>(numbers, 0) += 1;</div>
 <div class="line"><a class="code hl_define" href="bseg_8h.html#a69ba57e9cf1109273ac905766b07a033">bseg_free</a>(numbers, NULL);</div>
-<div class="ttc" id="abseg_8h_html_a2779146014d115b74fc79931b0ede1ed"><div class="ttname"><a href="bseg_8h.html#a2779146014d115b74fc79931b0ede1ed">bseg</a></div><div class="ttdeci">#define bseg(T)</div><div class="ttdoc">Declare a segmented array of type T.</div><div class="ttdef"><b>Definition</b> bseg.h:70</div></div>
-<div class="ttc" id="abseg_8h_html_a48cd35f3ca5a33bb42e94d2b863bfb2d"><div class="ttname"><a href="bseg_8h.html#a48cd35f3ca5a33bb42e94d2b863bfb2d">bseg_ref</a></div><div class="ttdeci">#define bseg_ref(seg, index)</div><div class="ttdoc">Pointer to the element at index, stable until bseg_free.</div><div class="ttdef"><b>Definition</b> bseg.h:79</div></div>
-<div class="ttc" id="abseg_8h_html_a69ba57e9cf1109273ac905766b07a033"><div class="ttname"><a href="bseg_8h.html#a69ba57e9cf1109273ac905766b07a033">bseg_free</a></div><div class="ttdeci">#define bseg_free(seg, ctx)</div><div class="ttdoc">Free all segments; the array becomes empty and can be reused.</div><div class="ttdef"><b>Definition</b> bseg.h:116</div></div>
-<div class="ttc" id="abseg_8h_html_aaec82ea5b44206091ba8ddb84928759d"><div class="ttname"><a href="bseg_8h.html#aaec82ea5b44206091ba8ddb84928759d">bseg_push</a></div><div class="ttdeci">#define bseg_push(seg, element, ctx)</div><div class="ttdoc">Push an element to the end of the array.</div><div class="ttdef"><b>Definition</b> bseg.h:86</div></div>
-<div class="ttc" id="abseg_8h_html_adeb0886de9c8d8fe73a5c008074e2d4f"><div class="ttname"><a href="bseg_8h.html#adeb0886de9c8d8fe73a5c008074e2d4f">bseg_at</a></div><div class="ttdeci">#define bseg_at(seg, index)</div><div class="ttdoc">The element at index, as an assignable lvalue.</div><div class="ttdef"><b>Definition</b> bseg.h:83</div></div>
+<div class="ttc" id="abseg_8h_html_a2779146014d115b74fc79931b0ede1ed"><div class="ttname"><a href="bseg_8h.html#a2779146014d115b74fc79931b0ede1ed">bseg</a></div><div class="ttdeci">#define bseg(T)</div><div class="ttdoc">Declare a segmented array of type T.</div><div class="ttdef"><b>Definition</b> bseg.h:71</div></div>
+<div class="ttc" id="abseg_8h_html_a48cd35f3ca5a33bb42e94d2b863bfb2d"><div class="ttname"><a href="bseg_8h.html#a48cd35f3ca5a33bb42e94d2b863bfb2d">bseg_ref</a></div><div class="ttdeci">#define bseg_ref(seg, index)</div><div class="ttdoc">Pointer to the element at index, stable until bseg_free.</div><div class="ttdef"><b>Definition</b> bseg.h:80</div></div>
+<div class="ttc" id="abseg_8h_html_a69ba57e9cf1109273ac905766b07a033"><div class="ttname"><a href="bseg_8h.html#a69ba57e9cf1109273ac905766b07a033">bseg_free</a></div><div class="ttdeci">#define bseg_free(seg, ctx)</div><div class="ttdoc">Free all segments; the array becomes empty and can be reused.</div><div class="ttdef"><b>Definition</b> bseg.h:138</div></div>
+<div class="ttc" id="abseg_8h_html_aaec82ea5b44206091ba8ddb84928759d"><div class="ttname"><a href="bseg_8h.html#aaec82ea5b44206091ba8ddb84928759d">bseg_push</a></div><div class="ttdeci">#define bseg_push(seg, element, ctx)</div><div class="ttdoc">Push an element to the end of the array.</div><div class="ttdef"><b>Definition</b> bseg.h:92</div></div>
+<div class="ttc" id="abseg_8h_html_adeb0886de9c8d8fe73a5c008074e2d4f"><div class="ttname"><a href="bseg_8h.html#adeb0886de9c8d8fe73a5c008074e2d4f">bseg_at</a></div><div class="ttdeci">#define bseg_at(seg, index)</div><div class="ttdoc">The element at index, as an assignable lvalue.</div><div class="ttdef"><b>Definition</b> bseg.h:84</div></div>
 </div><!-- fragment --> </div><h2 class="groupheader">Macro Definition Documentation</h2>
 <a id="a2779146014d115b74fc79931b0ede1ed" name="a2779146014d115b74fc79931b0ede1ed"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a2779146014d115b74fc79931b0ede1ed">&#9670;&#160;</a></span>bseg</h2>
@@ -225,7 +224,7 @@ Macros</h2></td></tr>
 <div class="line">            bseg__itr.once; \</div>
 <div class="line">            bseg__itr.once = 0 \</div>
 <div class="line">        )</div>
-<div class="ttc" id="abseg_8h_html_acb827ae8d742acf13a2c0864cd871270"><div class="ttname"><a href="bseg_8h.html#acb827ae8d742acf13a2c0864cd871270">bseg_len</a></div><div class="ttdeci">#define bseg_len(seg)</div><div class="ttdoc">Number of elements in the array.</div><div class="ttdef"><b>Definition</b> bseg.h:73</div></div>
+<div class="ttc" id="abseg_8h_html_acb827ae8d742acf13a2c0864cd871270"><div class="ttname"><a href="bseg_8h.html#acb827ae8d742acf13a2c0864cd871270">bseg_len</a></div><div class="ttdeci">#define bseg_len(seg)</div><div class="ttdoc">Number of elements in the array.</div><div class="ttdef"><b>Definition</b> bseg.h:74</div></div>
 </div><!-- fragment -->
 <p>Iterate through the array, binding a pointer to each element to <code>REF</code>. </p>
 
@@ -323,10 +322,86 @@ Macros</h2></td></tr>
 <div class="line">        BSEG__TYPEOF((seg).bseg__type_hint) bseg__slot = bseg__prepare_push( \</div>
 <div class="line">            &amp;(seg).<a class="code hl_define" href="bseg_8h.html#a2779146014d115b74fc79931b0ede1ed">bseg</a>, <span class="keyword">sizeof</span>(*(seg).bseg__type_hint), (ctx) \</div>
 <div class="line">        ); \</div>
-<div class="line">        *bseg__slot = element; \</div>
+<div class="line">        if (bseg__slot != NULL) { *bseg__slot = element; } \</div>
 <div class="line">    } <span class="keywordflow">while</span> (0)</div>
 </div><!-- fragment -->
 <p>Push an element to the end of the array. </p>
+<p>Does nothing if the array could not grow, so check <a class="el" href="bseg_8h.html#acb827ae8d742acf13a2c0864cd871270">bseg_len</a> if the allocator can fail. See <a class="el" href="bseg_8h.html#ae5d004db0957052430632d4709f556f6">bseg_reserve</a>. </p>
+
+</div>
+</div>
+<a id="ae5d004db0957052430632d4709f556f6" name="ae5d004db0957052430632d4709f556f6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae5d004db0957052430632d4709f556f6">&#9670;&#160;</a></span>bseg_reserve</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define bseg_reserve</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">seg, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">new_capacity, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">ctx&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td>&#160;&#160;&#160;	bseg__do_reserve(&amp;(seg).<a class="el" href="bseg_8h.html#a2779146014d115b74fc79931b0ede1ed">bseg</a>, (new_capacity), sizeof(*(seg).bseg__type_hint), (ctx))</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Ensure the array can hold at least <code>new_capacity</code> elements. </p>
+<p>Growing stops at the first segment the allocator will not hand over, and at <a class="el" href="bseg_8h.html#ae999097435ed486f38a22f33e3c76e7b">BSEG_MAX_SEGMENTS</a>. Either way the array is left exactly as it was: no element is lost and no segment is half-registered.</p>
+<p>On a desktop allocator that never returns NULL this cannot be observed. Where it can (e.g: embedded or fixed pool) the caller decides what to do next, either from its own allocator callback or by comparing <a class="el" href="bseg_8h.html#ad48802b682c1ab91b316d5bbed81b14f">bseg_capacity</a> against what it asked for. </p>
+
+</div>
+</div>
+<a id="a5507128530bd5f0d345916273423e681" name="a5507128530bd5f0d345916273423e681"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5507128530bd5f0d345916273423e681">&#9670;&#160;</a></span>bseg_resize</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define bseg_resize</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">seg, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">new_len, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">ctx&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td>&#160;&#160;&#160;	bseg__do_resize(&amp;(seg).<a class="el" href="bseg_8h.html#a2779146014d115b74fc79931b0ede1ed">bseg</a>, (new_len), sizeof(*(seg).bseg__type_hint), (ctx))</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Resize the array, zero-initializing any new elements. </p>
+<p>Growing does nothing at all if the capacity could not be had, so check <a class="el" href="bseg_8h.html#acb827ae8d742acf13a2c0864cd871270">bseg_len</a> if the allocator can fail. Shrinking always succeeds. </p>
 
 </div>
 </div>
