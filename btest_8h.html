@@ -113,9 +113,16 @@ Macros</h2></td></tr>
 <tr class="memitem:a3c82d5b07c47f298c939cfa526eeba9d" id="r_a3c82d5b07c47f298c939cfa526eeba9d"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="btest_8h.html#a3c82d5b07c47f298c939cfa526eeba9d">BTEST_BREAK</a>()</td></tr>
 <tr class="memdesc:a3c82d5b07c47f298c939cfa526eeba9d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Break into the attached debugger.  <br /></td></tr>
 <tr class="separator:a3c82d5b07c47f298c939cfa526eeba9d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aad142dccb6d2baf92181434eac1fbef9" id="r_aad142dccb6d2baf92181434eac1fbef9"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="btest_8h.html#aad142dccb6d2baf92181434eac1fbef9">BTEST_CHECK</a>(ABORT,  COND, ...)</td></tr>
-<tr class="memdesc:aad142dccb6d2baf92181434eac1fbef9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check a condition and log a custom message on failure.  <br /></td></tr>
-<tr class="separator:aad142dccb6d2baf92181434eac1fbef9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6203f22c64aa383b828a2f807a9f8ff3" id="r_a6203f22c64aa383b828a2f807a9f8ff3"><td class="memItemLeft" align="right" valign="top"><a id="a6203f22c64aa383b828a2f807a9f8ff3" name="a6203f22c64aa383b828a2f807a9f8ff3"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>BTEST_CONTINUE</b>()</td></tr>
+<tr class="memdesc:a6203f22c64aa383b828a2f807a9f8ff3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Failure action for <a class="el" href="btest_8h.html#a1585556dc6c5e6e7a11ba05b6561ac75">BTEST_CHECK</a> that keeps the test running. <br /></td></tr>
+<tr class="separator:a6203f22c64aa383b828a2f807a9f8ff3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1e6345d0bee0c337209550ba91f38a8d" id="r_a1e6345d0bee0c337209550ba91f38a8d"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="btest_8h.html#a1e6345d0bee0c337209550ba91f38a8d">BTEST_ABORT</a>()</td></tr>
+<tr class="memdesc:a1e6345d0bee0c337209550ba91f38a8d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Failure action for <a class="el" href="btest_8h.html#a1585556dc6c5e6e7a11ba05b6561ac75">BTEST_CHECK</a> that stops the test.  <br /></td></tr>
+<tr class="separator:a1e6345d0bee0c337209550ba91f38a8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1585556dc6c5e6e7a11ba05b6561ac75" id="r_a1585556dc6c5e6e7a11ba05b6561ac75"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="btest_8h.html#a1585556dc6c5e6e7a11ba05b6561ac75">BTEST_CHECK</a>(ON_FAILURE,  COND, ...)</td></tr>
+<tr class="memdesc:a1585556dc6c5e6e7a11ba05b6561ac75"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check a condition and log a custom message on failure.  <br /></td></tr>
+<tr class="separator:a1585556dc6c5e6e7a11ba05b6561ac75"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2fb96648886f4efbc0b8679ac7207dd5" id="r_a2fb96648886f4efbc0b8679ac7207dd5"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="btest_8h.html#a2fb96648886f4efbc0b8679ac7207dd5">BTEST_ASSERT_EX</a>(COND,  MSG, ...)</td></tr>
 <tr class="memdesc:a2fb96648886f4efbc0b8679ac7207dd5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assert a condition with a custom message, aborting the test on failure.  <br /></td></tr>
 <tr class="separator:a2fb96648886f4efbc0b8679ac7207dd5"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -147,22 +154,22 @@ Functions</h2></td></tr>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>btest_init</b> (void)</td></tr>
 <tr class="memdesc:a778ea3461addda031d51beafc1011586"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize the test framework, called by <a class="el" href="btest_8h.html#ad57691d514afc01da93e10c2ec4c8807">BTEST_FOREACH</a>. <br /></td></tr>
 <tr class="separator:a778ea3461addda031d51beafc1011586"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a61fb2ee14d78e970fb1f2e23b7cdb54e" id="r_a61fb2ee14d78e970fb1f2e23b7cdb54e"><td class="memItemLeft" align="right" valign="top"><a id="a61fb2ee14d78e970fb1f2e23b7cdb54e" name="a61fb2ee14d78e970fb1f2e23b7cdb54e"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>btest_run</b> (const <a class="el" href="structbtest__case__t.html">btest_case_t</a> *test)</td></tr>
-<tr class="memdesc:a61fb2ee14d78e970fb1f2e23b7cdb54e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Run a single test and return whether it passed. <br /></td></tr>
-<tr class="separator:a61fb2ee14d78e970fb1f2e23b7cdb54e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac3898a316ed22b44a502fb198bfc6be4" id="r_ac3898a316ed22b44a502fb198bfc6be4"><td class="memItemLeft" align="right" valign="top"><a id="ac3898a316ed22b44a502fb198bfc6be4" name="ac3898a316ed22b44a502fb198bfc6be4"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>btest_fail</b> (bool abort)</td></tr>
-<tr class="memdesc:ac3898a316ed22b44a502fb198bfc6be4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mark the current test as failed, optionally aborting it. <br /></td></tr>
-<tr class="separator:ac3898a316ed22b44a502fb198bfc6be4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a135049260541ba4401b4004066007bb6" id="r_a135049260541ba4401b4004066007bb6"><td class="memItemLeft" align="right" valign="top"><a id="a135049260541ba4401b4004066007bb6" name="a135049260541ba4401b4004066007bb6"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>btest_debugger_attached</b> (void)</td></tr>
-<tr class="memdesc:a135049260541ba4401b4004066007bb6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check whether a debugger is currently attached to this process. <br /></td></tr>
-<tr class="separator:a135049260541ba4401b4004066007bb6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a02496d6d5ec8460732b482fc7ebf679b" id="r_a02496d6d5ec8460732b482fc7ebf679b"><td class="memItemLeft" align="right" valign="top"><a id="a02496d6d5ec8460732b482fc7ebf679b" name="a02496d6d5ec8460732b482fc7ebf679b"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>btest_cleanup</b> (void)</td></tr>
 <tr class="memdesc:a02496d6d5ec8460732b482fc7ebf679b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clean up the test framework, called by <a class="el" href="btest_8h.html#ad57691d514afc01da93e10c2ec4c8807">BTEST_FOREACH</a>. <br /></td></tr>
 <tr class="separator:a02496d6d5ec8460732b482fc7ebf679b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a61fb2ee14d78e970fb1f2e23b7cdb54e" id="r_a61fb2ee14d78e970fb1f2e23b7cdb54e"><td class="memItemLeft" align="right" valign="top"><a id="a61fb2ee14d78e970fb1f2e23b7cdb54e" name="a61fb2ee14d78e970fb1f2e23b7cdb54e"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>btest_run</b> (const <a class="el" href="structbtest__case__t.html">btest_case_t</a> *test)</td></tr>
+<tr class="memdesc:a61fb2ee14d78e970fb1f2e23b7cdb54e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Run a single test and return whether it passed. <br /></td></tr>
+<tr class="separator:a61fb2ee14d78e970fb1f2e23b7cdb54e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4cc819f8f4d925b5af85837f9391eb08" id="r_a4cc819f8f4d925b5af85837f9391eb08"><td class="memItemLeft" align="right" valign="top"><a id="a4cc819f8f4d925b5af85837f9391eb08" name="a4cc819f8f4d925b5af85837f9391eb08"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>btest_fail</b> (void)</td></tr>
+<tr class="memdesc:a4cc819f8f4d925b5af85837f9391eb08"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mark the current test as failed, without stopping it. <br /></td></tr>
+<tr class="separator:a4cc819f8f4d925b5af85837f9391eb08"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a135049260541ba4401b4004066007bb6" id="r_a135049260541ba4401b4004066007bb6"><td class="memItemLeft" align="right" valign="top"><a id="a135049260541ba4401b4004066007bb6" name="a135049260541ba4401b4004066007bb6"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>btest_debugger_attached</b> (void)</td></tr>
+<tr class="memdesc:a135049260541ba4401b4004066007bb6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check whether a debugger is currently attached to this process. <br /></td></tr>
+<tr class="separator:a135049260541ba4401b4004066007bb6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A simple test framework based on <a class="el" href="autolist_8h.html">autolist.h</a>. </p>
@@ -204,6 +211,28 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>btest_cleanup</b> (vo
   </table>
   </dd>
 </dl>
+
+</div>
+</div>
+<a id="a1e6345d0bee0c337209550ba91f38a8d" name="a1e6345d0bee0c337209550ba91f38a8d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1e6345d0bee0c337209550ba91f38a8d">&#9670;&#160;</a></span>BTEST_ABORT</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define BTEST_ABORT</td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Failure action for <a class="el" href="btest_8h.html#a1585556dc6c5e6e7a11ba05b6561ac75">BTEST_CHECK</a> that stops the test. </p>
+<p>If <code>setjmp</code>, is available, the current test is aborted, no matter how deep the call stack is.</p>
+<p>Without <code>setjmp</code>, this returns from the calling function.</p>
+<p>Either way this only works in a function returning <code>void</code>. </p>
 
 </div>
 </div>
@@ -392,8 +421,8 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>btest_cleanup</b> (vo
 
 </div>
 </div>
-<a id="aad142dccb6d2baf92181434eac1fbef9" name="aad142dccb6d2baf92181434eac1fbef9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aad142dccb6d2baf92181434eac1fbef9">&#9670;&#160;</a></span>BTEST_CHECK</h2>
+<a id="a1585556dc6c5e6e7a11ba05b6561ac75" name="a1585556dc6c5e6e7a11ba05b6561ac75"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1585556dc6c5e6e7a11ba05b6561ac75">&#9670;&#160;</a></span>BTEST_CHECK</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -402,7 +431,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>btest_cleanup</b> (vo
           <td class="memname">#define BTEST_CHECK</td>
           <td>(</td>
           <td class="paramtype">&#160;</td>
-          <td class="paramname">ABORT, </td>
+          <td class="paramname">ON_FAILURE, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -425,10 +454,10 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>btest_cleanup</b> (vo
 </div><div class="memdoc">
 
 <p>Check a condition and log a custom message on failure. </p>
-<p>When a debugger is attached, this breaks into it (<a class="el" href="btest_8h.html#a3c82d5b07c47f298c939cfa526eeba9d">BTEST_BREAK</a>) before failing the test, regardless of <code>ABORT</code>.</p>
+<p>When a debugger is attached, this breaks into it (<a class="el" href="btest_8h.html#a3c82d5b07c47f298c939cfa526eeba9d">BTEST_BREAK</a>) before running <code>ON_FAILURE</code>.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">ABORT</td><td>whether to abort the test on failure </td></tr>
+    <tr><td class="paramname">ON_FAILURE</td><td>what to do on failure: Either <a class="el" href="btest_8h.html#a6203f22c64aa383b828a2f807a9f8ff3">BTEST_CONTINUE</a> or <a class="el" href="btest_8h.html#a1e6345d0bee0c337209550ba91f38a8d">BTEST_ABORT</a> </td></tr>
     <tr><td class="paramname">COND</td><td>the condition to check </td></tr>
     <tr><td class="paramname">...</td><td>printf-style format string and arguments for the failure message </td></tr>
   </table>
