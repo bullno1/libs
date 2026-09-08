@@ -9,8 +9,7 @@
  * A custom runner can iterate over them with @ref BTEST_FOREACH.
  *
  * When a debugger is attached, a failed check will break into it at the site of
- * the failure instead of merely logging (@ref BTEST_EXPECT) or unwinding the
- * test (@ref BTEST_ASSERT).
+ * the failure.
  * This makes the state that caused the failure available for inspection.
  * See @ref BTEST_BREAK and @ref btest_debugger_attached.
  *
@@ -95,9 +94,6 @@ typedef struct {
 
 /**
  * Break into the attached debugger.
- *
- * This is executed by @ref BTEST_CHECK at the site of a failed check so that
- * the debugger stops in the test itself and not somewhere inside this library.
  *
  * Define it as `((void)0)` to never break, even under a debugger.
  *
@@ -255,17 +251,7 @@ btest_run(const btest_case_t* test);
 void
 btest_fail(bool abort);
 
-/**
- * Check whether a debugger is currently attached to this process.
- *
- * This is queried on every failed check instead of being cached so that
- * attaching a debugger to an already running test binary takes effect.
- *
- * @remarks
- *   On Linux, this reports any tracing process, not just debuggers.
- *   A tracer that does not handle @ref BTEST_BREAK (`strace`...) would let it
- *   kill the test process instead of stopping it.
- */
+/*! Check whether a debugger is currently attached to this process. */
 bool
 btest_debugger_attached(void);
 
