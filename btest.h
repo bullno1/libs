@@ -7,6 +7,15 @@
  *
  * Tests are declared with @ref BTEST and automatically registered.
  * A custom runner can iterate over them with @ref BTEST_FOREACH.
+ *
+ * When a debugger is attached, a failed check will break into it at the site of
+ * the failure.
+ * This makes the state that caused the failure available for inspection.
+ * See @ref BTEST_BREAK and @ref btest_debugger_attached.
+ *
+ * Debugger detection is supported on Windows and Linux.
+ * On every other platform, no debugger is ever reported and the behaviour is
+ * unchanged.
  */
 
 #include "autolist.h"
@@ -84,7 +93,40 @@ typedef struct {
 			for (const btest_case_t* VAR = btest__itr->value_addr; VAR != NULL; VAR = NULL)
 
 /**
+ * Break into the attached debugger.
+ *
+ * Define it as `((void)0)` to never break, even under a debugger.
+ *
+ * @hideinitializer
+ */
+#ifndef BTEST_BREAK
+#	if defined(_MSC_VER)
+#		include <intrin.h>
+#		define BTEST_BREAK() __debugbreak()
+#	elif defined(__has_builtin)
+#		if __has_builtin(__builtin_debugtrap)
+#			define BTEST_BREAK() __builtin_debugtrap()
+#		endif
+#	endif
+#endif
+
+/* No dedicated builtin: trap by hand */
+#ifndef BTEST_BREAK
+#	if defined(__i386__) || defined(__x86_64__)
+#		define BTEST_BREAK() __asm__ volatile("int3")
+#	elif defined(__aarch64__)
+#		define BTEST_BREAK() __asm__ volatile("brk #0")
+#	else
+#		include <signal.h>
+#		define BTEST_BREAK() raise(SIGTRAP)
+#	endif
+#endif
+
+/**
  * Check a condition and log a custom message on failure.
+ *
+ * When a debugger is attached, this breaks into it (@ref BTEST_BREAK) before
+ * failing the test, regardless of @p ABORT.
  *
  * @param ABORT whether to abort the test on failure
  * @param COND the condition to check
@@ -96,6 +138,7 @@ typedef struct {
 	do { \
 		if (!(COND)) { \
 			BTEST_LOG_ERROR(__VA_ARGS__); \
+			if (btest_debugger_attached()) { BTEST_BREAK(); } \
 			btest_fail(ABORT); \
 		} \
 	} while (0)
@@ -208,6 +251,10 @@ btest_run(const btest_case_t* test);
 void
 btest_fail(bool abort);
 
+/*! Check whether a debugger is currently attached to this process. */
+bool
+btest_debugger_attached(void);
+
 /*! Clean up the test framework, called by @ref BTEST_FOREACH */
 void
 btest_cleanup(void);
@@ -269,6 +316,61 @@ btest_fail(bool abort) {
 		longjmp(btest__ctx.return_buf, 1);
 	}
 }
+
+#if defined(_WIN32)
+// Windows {{{
+
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
+
+bool
+btest_debugger_attached(void) {
+	return IsDebuggerPresent() != 0;
+}
+
+// }}}
+#elif defined(__linux__)
+// Linux {{{
+
+#include <fcntl.h>
+#include <unistd.h>
+#include <string.h>
+
+bool
+btest_debugger_attached(void) {
+	// TracerPid is non-zero while a process is being traced.
+	// It sits near the top of the file so a single read always covers it.
+	int fd = open("/proc/self/status", O_RDONLY);
+	if (fd < 0) { return false; }
+
+	char status[1024];
+	ssize_t num_bytes_read = read(fd, status, sizeof(status) - 1);
+	close(fd);
+	if (num_bytes_read <= 0) { return false; }
+	status[num_bytes_read] = '\0';
+
+	const char* tracer_pid = strstr(status, "TracerPid:");
+	if (tracer_pid == NULL) { return false; }
+
+	tracer_pid += sizeof("TracerPid:") - 1;
+	while (*tracer_pid == ' ' || *tracer_pid == '\t') { ++tracer_pid; }
+
+	return *tracer_pid != '0';
+}
+
+// }}}
+#else
+// Unsupported {{{
+
+bool
+btest_debugger_attached(void) {
+	return false;
+}
+
+// }}}
+#endif
 
 void
 btest_cleanup(void) {
