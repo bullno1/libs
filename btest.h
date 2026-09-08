@@ -122,24 +122,61 @@ typedef struct {
 #	endif
 #endif
 
+/* A freestanding implementation does not have to provide `setjmp.h`.
+ * `BTEST_NO_SETJMP` can also be defined manually for a platform where the header
+ * exists but `longjmp` is unusable or unwanted
+ */
+#ifndef BTEST_NO_SETJMP
+#	if defined(__STDC_HOSTED__) && __STDC_HOSTED__ == 0
+#		define BTEST_NO_SETJMP
+#	elif defined(__has_include)
+#		if !__has_include(<setjmp.h>)
+#			define BTEST_NO_SETJMP
+#		endif
+#	endif
+#endif
+
+/**
+ * Failure action for @ref BTEST_CHECK that keeps the test running.
+ *
+ * @hideinitializer
+ */
+#define BTEST_CONTINUE() break
+
+/**
+ * Failure action for @ref BTEST_CHECK that stops the test.
+ *
+ * If `setjmp`, is available, the current test is aborted, no matter how deep
+ * the call stack is.
+ *
+ * Without `setjmp`, this returns from the calling function.
+ *
+ * Either way this only works in a function returning `void`.
+ *
+ * @hideinitializer
+ */
+#define BTEST_ABORT() do { btest__throw(); return; } while (0)
+
 /**
  * Check a condition and log a custom message on failure.
  *
  * When a debugger is attached, this breaks into it (@ref BTEST_BREAK) before
- * failing the test, regardless of @p ABORT.
+ * running @p ON_FAILURE.
  *
- * @param ABORT whether to abort the test on failure
+ * @param ON_FAILURE what to do on failure: Either @ref BTEST_CONTINUE or @ref BTEST_ABORT
  * @param COND the condition to check
  * @param ... printf-style format string and arguments for the failure message
  *
  * @hideinitializer
  */
-#define BTEST_CHECK(ABORT, COND, ...) \
+#define BTEST_CHECK(ON_FAILURE, COND, ...) \
 	do { \
+		if (btest__throwing()) { ON_FAILURE(); } \
 		if (!(COND)) { \
 			BTEST_LOG_ERROR(__VA_ARGS__); \
 			if (btest_debugger_attached()) { BTEST_BREAK(); } \
-			btest_fail(ABORT); \
+			btest_fail(); \
+			ON_FAILURE(); \
 		} \
 	} while (0)
 
@@ -153,7 +190,7 @@ typedef struct {
  * @hideinitializer
  */
 #define BTEST_ASSERT_EX(COND, MSG, ...) \
-	BTEST_CHECK(true, COND, "Assertion failed: %s (" MSG ")", #COND, __VA_ARGS__)
+	BTEST_CHECK(BTEST_ABORT, COND, "Assertion failed: %s (" MSG ")", #COND, __VA_ARGS__)
 
 /**
  * Assert a condition, aborting the test on failure.
@@ -163,7 +200,7 @@ typedef struct {
  * @hideinitializer
  */
 #define BTEST_ASSERT(COND) \
-	BTEST_CHECK(true, COND, "Assertion failed: %s", #COND)
+	BTEST_CHECK(BTEST_ABORT, COND, "Assertion failed: %s", #COND)
 
 /**
  * Assert a relation between an expression and a value, aborting the test on failure.
@@ -200,7 +237,7 @@ typedef struct {
  * @hideinitializer
  */
 #define BTEST_EXPECT_EX(COND, MSG, ...) \
-	BTEST_CHECK(false, COND, "Expectation failed: %s (" MSG ")", #COND, __VA_ARGS__)
+	BTEST_CHECK(BTEST_CONTINUE, COND, "Expectation failed: %s (" MSG ")", #COND, __VA_ARGS__)
 
 /**
  * Same as @ref BTEST_ASSERT but the test continues on failure.
@@ -210,7 +247,7 @@ typedef struct {
  * @hideinitializer
  */
 #define BTEST_EXPECT(COND) \
-	BTEST_CHECK(false, COND, "Expectation failed: %s", #COND)
+	BTEST_CHECK(BTEST_CONTINUE, COND, "Expectation failed: %s", #COND)
 
 /**
  * Same as @ref BTEST_ASSERT_RELATION but the test continues on failure.
@@ -243,21 +280,27 @@ AUTOLIST_DECLARE(btest__tests)
 void
 btest_init(void);
 
+/*! Clean up the test framework, called by @ref BTEST_FOREACH */
+void
+btest_cleanup(void);
+
 /*! Run a single test and return whether it passed */
 bool
 btest_run(const btest_case_t* test);
 
-/*! Mark the current test as failed, optionally aborting it */
+/*! Mark the current test as failed, without stopping it */
 void
-btest_fail(bool abort);
+btest_fail(void);
 
 /*! Check whether a debugger is currently attached to this process. */
 bool
 btest_debugger_attached(void);
 
-/*! Clean up the test framework, called by @ref BTEST_FOREACH */
 void
-btest_cleanup(void);
+btest__throw(void);
+
+bool
+btest__throwing(void);
 
 #endif
 
@@ -265,17 +308,52 @@ btest_cleanup(void);
 #define BTEST_IMPLEMENTATION
 #endif
 
-#ifdef BTEST_IMPLEMENTATION
+#if defined(BTEST_IMPLEMENTATION) && !defined(BTEST_IMPLEMENTED)
+#define BTEST_IMPLEMENTED
 
-#include <setjmp.h>
+AUTOLIST_IMPL(btest__tests)
+
+#ifndef BTEST_NO_SETJMP
+#	include <setjmp.h>
+#endif
 
 static struct {
 	const btest_suite_t* current_suite;
-	jmp_buf return_buf;
 	bool success;
+#ifdef BTEST_NO_SETJMP
+	bool throwing;
+#else
+	jmp_buf return_buf;
+#endif
 } btest__ctx = { 0 };
 
-AUTOLIST_IMPL(btest__tests)
+#ifdef BTEST_NO_SETJMP
+#	define btest_begin_try() (btest__ctx.throwing = false, true)
+#	define btest_end_try() (btest__ctx.throwing = false, false)
+#else
+#	define btest_begin_try() (setjmp(btest__ctx.return_buf) == 0, true)
+#	define btest_end_try() false
+#endif
+
+#define btest_try for (bool btest__try = btest_begin_try(); btest__try; btest__try = btest_end_try())
+
+void
+btest__throw(void) {
+#ifdef BTEST_NO_SETJMP
+	btest__ctx.throwing = true;
+#else
+	longjmp(btest__ctx.return_buf, 1);
+#endif
+}
+
+bool
+btest__throwing(void) {
+#ifdef BTEST_NO_SETJMP
+	return btest__ctx.throwing;
+#else
+	return false;
+#endif
+}
 
 void
 btest_init(void) {
@@ -300,7 +378,7 @@ btest_run(const btest_case_t* test) {
 	}
 
 	btest__ctx.success = true;
-	if (setjmp(btest__ctx.return_buf) == 0) { test->run(); }
+	btest_try { test->run(); }
 
 	if (test->suite->cleanup_per_test != NULL) {
 		test->suite->cleanup_per_test();
@@ -310,11 +388,8 @@ btest_run(const btest_case_t* test) {
 }
 
 void
-btest_fail(bool abort) {
+btest_fail(void) {
 	btest__ctx.success = false;
-	if (abort) {
-		longjmp(btest__ctx.return_buf, 1);
-	}
 }
 
 #if defined(_WIN32)
