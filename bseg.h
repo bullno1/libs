@@ -28,6 +28,7 @@
  */
 
 #include <stddef.h>
+#include <stdbool.h>
 
 #ifndef BSEG_API
 #define BSEG_API
@@ -82,13 +83,18 @@ typedef struct {
 /// The element at @p index, as an assignable lvalue
 #define bseg_at(seg, index) (*bseg_ref(seg, index))
 
-/// Push an element to the end of the array
+/**
+ * @brief Push an element to the end of the array.
+ *
+ * Does nothing if the array could not grow, so check @ref bseg_len if the
+ * allocator can fail. See @ref bseg_reserve.
+ */
 #define bseg_push(seg, element, ctx) \
 	do { \
 		BSEG__TYPEOF((seg).bseg__type_hint) bseg__slot = bseg__prepare_push( \
 			&(seg).bseg, sizeof(*(seg).bseg__type_hint), (ctx) \
 		); \
-		*bseg__slot = element; \
+		if (bseg__slot != NULL) { *bseg__slot = element; } \
 	} while (0)
 
 /// Remove the last element and return it
@@ -101,11 +107,27 @@ typedef struct {
 		bseg_pop(seg) \
 	)
 
-/// Ensure the array can hold at least @p new_capacity elements
+/**
+ * @brief Ensure the array can hold at least @p new_capacity elements.
+ *
+ * Growing stops at the first segment the allocator will not hand over, and at
+ * @ref BSEG_MAX_SEGMENTS. Either way the array is left exactly as it was: no
+ * element is lost and no segment is half-registered.
+ *
+ * On a desktop allocator that never returns NULL this cannot be observed. Where
+ * it can (e.g: embedded or fixed pool) the caller decides what to do next,
+ * either from its own allocator callback or by comparing @ref bseg_capacity
+ * against what it asked for.
+ */
 #define bseg_reserve(seg, new_capacity, ctx) \
 	bseg__do_reserve(&(seg).bseg, (new_capacity), sizeof(*(seg).bseg__type_hint), (ctx))
 
-/// Resize the array, zero-initializing any new elements
+/**
+ * @brief Resize the array, zero-initializing any new elements.
+ *
+ * Growing does nothing at all if the capacity could not be had, so check
+ * @ref bseg_len if the allocator can fail. Shrinking always succeeds.
+ */
 #define bseg_resize(seg, new_len, ctx) \
 	bseg__do_resize(&(seg).bseg, (new_len), sizeof(*(seg).bseg__type_hint), (ctx))
 
@@ -155,7 +177,7 @@ bseg__prepare_push(bseg_t* seg, size_t elem_size, void* ctx);
 BSEG_API void
 bseg__do_pop(bseg_t* seg);
 
-BSEG_API void
+BSEG_API bool
 bseg__do_reserve(bseg_t* seg, size_t new_capacity, size_t elem_size, void* ctx);
 
 BSEG_API void
@@ -259,9 +281,14 @@ bseg__at(const bseg_t* seg, size_t index, size_t elem_size) {
 void*
 bseg__prepare_push(bseg_t* seg, size_t elem_size, void* ctx) {
 	if (seg->len >= bseg__capacity_for(seg->num_segments)) {
-		seg->segments[seg->num_segments] = BSEG_REALLOC(
+		if (seg->num_segments >= BSEG_MAX_SEGMENTS) { return NULL; }
+
+		void* segment = BSEG_REALLOC(
 			NULL, bseg__segment_len(seg->num_segments) * elem_size, ctx
 		);
+		if (segment == NULL) { return NULL; }
+
+		seg->segments[seg->num_segments] = segment;
 		seg->num_segments += 1;
 	}
 
@@ -274,21 +301,28 @@ bseg__do_pop(bseg_t* seg) {
 	seg->len -= 1;
 }
 
-void
+bool
 bseg__do_reserve(bseg_t* seg, size_t new_capacity, size_t elem_size, void* ctx) {
 	while (bseg__capacity_for(seg->num_segments) < new_capacity) {
-		seg->segments[seg->num_segments] = BSEG_REALLOC(
+		if (seg->num_segments >= BSEG_MAX_SEGMENTS) { return false; }
+
+		void* segment = BSEG_REALLOC(
 			NULL, bseg__segment_len(seg->num_segments) * elem_size, ctx
 		);
+		if (segment == NULL) { return false; }
+
+		seg->segments[seg->num_segments] = segment;
 		seg->num_segments += 1;
 	}
+
+	return true;
 }
 
 void
 bseg__do_resize(bseg_t* seg, size_t new_len, size_t elem_size, void* ctx) {
 	size_t old_len = seg->len;
 	if (new_len > old_len) {
-		bseg__do_reserve(seg, new_len, elem_size, ctx);
+		if (!bseg__do_reserve(seg, new_len, elem_size, ctx)) { return; }
 
 		// Zero new elements, one segment at a time
 		size_t begin = old_len;
