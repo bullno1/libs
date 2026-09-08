@@ -284,6 +284,8 @@ btest_cleanup(void) {
 #define BTEST_LOG_DEPTH 2 /* deps/blibs/btest.h */
 #endif
 
+#include <string.h>
+
 int
 main(int argc, const char* argv[]) {
 	const char* suite_filter = NULL;
