@@ -26,6 +26,9 @@
  * @ref barena_restore is then reported just like a heap error.
  * Define `BARENA_ASAN` to 0 to opt out or to 1 to force it on.
  *
+ * To force the use of malloc instead of OS-dependent page allocator, define
+ * `BARENA_USE_MALLOC`.
+ *
  * In **exactly one** source file, define `BARENA_IMPLEMENTATION` before including barena.h.
  */
 
@@ -362,7 +365,7 @@ barena_reset(barena_t* arena) {
 	barena_restore(arena, NULL);
 }
 
-#if defined(__EMSCRIPTEN__)
+#if defined(__EMSCRIPTEN__) || defined(BARENA_USE_MALLOC)
 
 #include <stdlib.h>
 
