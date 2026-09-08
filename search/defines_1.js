@@ -170,13 +170,14 @@ var searchData=
   ['btest_5fassert_5fequal_167',['BTEST_ASSERT_EQUAL',['../btest_8h.html#aa6cef1ebd034ef18cc7f2aa99ed0d139',1,'btest.h']]],
   ['btest_5fassert_5fex_168',['BTEST_ASSERT_EX',['../btest_8h.html#a2fb96648886f4efbc0b8679ac7207dd5',1,'btest.h']]],
   ['btest_5fassert_5frelation_169',['BTEST_ASSERT_RELATION',['../btest_8h.html#a4909929a0b6d2dddcb97dd982f8b072a',1,'btest.h']]],
-  ['btest_5fcheck_170',['BTEST_CHECK',['../btest_8h.html#aad142dccb6d2baf92181434eac1fbef9',1,'btest.h']]],
-  ['btest_5fexpect_171',['BTEST_EXPECT',['../btest_8h.html#adb48ab1bdf06fa8d0cf01b78e87d8b4a',1,'btest.h']]],
-  ['btest_5fexpect_5fequal_172',['BTEST_EXPECT_EQUAL',['../btest_8h.html#ae6222ffd8597138a501ba21874e817ed',1,'btest.h']]],
-  ['btest_5fexpect_5fex_173',['BTEST_EXPECT_EX',['../btest_8h.html#ac9d46d54fed355a9c1642dc213948a1f',1,'btest.h']]],
-  ['btest_5fexpect_5frelation_174',['BTEST_EXPECT_RELATION',['../btest_8h.html#ab8b95dc1217c1d88d3fb4025d33c94af',1,'btest.h']]],
-  ['btest_5fforeach_175',['BTEST_FOREACH',['../btest_8h.html#ad57691d514afc01da93e10c2ec4c8807',1,'btest.h']]],
-  ['btest_5flog_5ferror_176',['BTEST_LOG_ERROR',['../btest_8h.html#add5266c03a03e847f668cdfa2b074b10',1,'btest.h']]],
-  ['btest_5fregister_177',['BTEST_REGISTER',['../btest_8h.html#acc171025b22f8013462c1c112fb1199d',1,'btest.h']]],
-  ['btypeof_178',['BTYPEOF',['../bmacro_8h.html#ab4193639588eb484f5aa0dfa21d768a8',1,'bmacro.h']]]
+  ['btest_5fbreak_170',['BTEST_BREAK',['../btest_8h.html#a3c82d5b07c47f298c939cfa526eeba9d',1,'btest.h']]],
+  ['btest_5fcheck_171',['BTEST_CHECK',['../btest_8h.html#aad142dccb6d2baf92181434eac1fbef9',1,'btest.h']]],
+  ['btest_5fexpect_172',['BTEST_EXPECT',['../btest_8h.html#adb48ab1bdf06fa8d0cf01b78e87d8b4a',1,'btest.h']]],
+  ['btest_5fexpect_5fequal_173',['BTEST_EXPECT_EQUAL',['../btest_8h.html#ae6222ffd8597138a501ba21874e817ed',1,'btest.h']]],
+  ['btest_5fexpect_5fex_174',['BTEST_EXPECT_EX',['../btest_8h.html#ac9d46d54fed355a9c1642dc213948a1f',1,'btest.h']]],
+  ['btest_5fexpect_5frelation_175',['BTEST_EXPECT_RELATION',['../btest_8h.html#ab8b95dc1217c1d88d3fb4025d33c94af',1,'btest.h']]],
+  ['btest_5fforeach_176',['BTEST_FOREACH',['../btest_8h.html#ad57691d514afc01da93e10c2ec4c8807',1,'btest.h']]],
+  ['btest_5flog_5ferror_177',['BTEST_LOG_ERROR',['../btest_8h.html#add5266c03a03e847f668cdfa2b074b10',1,'btest.h']]],
+  ['btest_5fregister_178',['BTEST_REGISTER',['../btest_8h.html#acc171025b22f8013462c1c112fb1199d',1,'btest.h']]],
+  ['btypeof_179',['BTYPEOF',['../bmacro_8h.html#ab4193639588eb484f5aa0dfa21d768a8',1,'bmacro.h']]]
 ];

@@ -82,6 +82,7 @@ $(function() {
 <a href="#details">More...</a></p>
 <div class="textblock"><code>#include &quot;<a class="el" href="autolist_8h_source.html">autolist.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="blog_8h_source.html">blog.h</a>&quot;</code><br />
+<code>#include &lt;signal.h&gt;</code><br />
 </div>
 <p><a href="btest_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
@@ -109,6 +110,9 @@ Macros</h2></td></tr>
 <tr class="memitem:ad57691d514afc01da93e10c2ec4c8807" id="r_ad57691d514afc01da93e10c2ec4c8807"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="btest_8h.html#ad57691d514afc01da93e10c2ec4c8807">BTEST_FOREACH</a>(VAR)</td></tr>
 <tr class="memdesc:ad57691d514afc01da93e10c2ec4c8807"><td class="mdescLeft">&#160;</td><td class="mdescRight">Iterate over all registered tests.  <br /></td></tr>
 <tr class="separator:ad57691d514afc01da93e10c2ec4c8807"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3c82d5b07c47f298c939cfa526eeba9d" id="r_a3c82d5b07c47f298c939cfa526eeba9d"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="btest_8h.html#a3c82d5b07c47f298c939cfa526eeba9d">BTEST_BREAK</a>()</td></tr>
+<tr class="memdesc:a3c82d5b07c47f298c939cfa526eeba9d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Break into the attached debugger.  <br /></td></tr>
+<tr class="separator:a3c82d5b07c47f298c939cfa526eeba9d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aad142dccb6d2baf92181434eac1fbef9" id="r_aad142dccb6d2baf92181434eac1fbef9"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="btest_8h.html#aad142dccb6d2baf92181434eac1fbef9">BTEST_CHECK</a>(ABORT,  COND, ...)</td></tr>
 <tr class="memdesc:aad142dccb6d2baf92181434eac1fbef9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check a condition and log a custom message on failure.  <br /></td></tr>
 <tr class="separator:aad142dccb6d2baf92181434eac1fbef9"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -151,6 +155,10 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>btest_run</b> (const 
 void&#160;</td><td class="memItemRight" valign="bottom"><b>btest_fail</b> (bool abort)</td></tr>
 <tr class="memdesc:ac3898a316ed22b44a502fb198bfc6be4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mark the current test as failed, optionally aborting it. <br /></td></tr>
 <tr class="separator:ac3898a316ed22b44a502fb198bfc6be4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a135049260541ba4401b4004066007bb6" id="r_a135049260541ba4401b4004066007bb6"><td class="memItemLeft" align="right" valign="top"><a id="a135049260541ba4401b4004066007bb6" name="a135049260541ba4401b4004066007bb6"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>btest_debugger_attached</b> (void)</td></tr>
+<tr class="memdesc:a135049260541ba4401b4004066007bb6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check whether a debugger is currently attached to this process. <br /></td></tr>
+<tr class="separator:a135049260541ba4401b4004066007bb6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a02496d6d5ec8460732b482fc7ebf679b" id="r_a02496d6d5ec8460732b482fc7ebf679b"><td class="memItemLeft" align="right" valign="top"><a id="a02496d6d5ec8460732b482fc7ebf679b" name="a02496d6d5ec8460732b482fc7ebf679b"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>btest_cleanup</b> (void)</td></tr>
 <tr class="memdesc:a02496d6d5ec8460732b482fc7ebf679b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clean up the test framework, called by <a class="el" href="btest_8h.html#ad57691d514afc01da93e10c2ec4c8807">BTEST_FOREACH</a>. <br /></td></tr>
@@ -158,7 +166,9 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>btest_cleanup</b> (vo
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A simple test framework based on <a class="el" href="autolist_8h.html">autolist.h</a>. </p>
-<p>Tests are declared with <a class="el" href="btest_8h.html#abfd250b4489dc42d12ae556a1320b0bb">BTEST</a> and automatically registered. A custom runner can iterate over them with <a class="el" href="btest_8h.html#ad57691d514afc01da93e10c2ec4c8807">BTEST_FOREACH</a>. </p>
+<p>Tests are declared with <a class="el" href="btest_8h.html#abfd250b4489dc42d12ae556a1320b0bb">BTEST</a> and automatically registered. A custom runner can iterate over them with <a class="el" href="btest_8h.html#ad57691d514afc01da93e10c2ec4c8807">BTEST_FOREACH</a>.</p>
+<p>When a debugger is attached, a failed check will break into it at the site of the failure. This makes the state that caused the failure available for inspection. See <a class="el" href="btest_8h.html#a3c82d5b07c47f298c939cfa526eeba9d">BTEST_BREAK</a> and <a class="el" href="btest_8h.html#a135049260541ba4401b4004066007bb6">btest_debugger_attached</a>.</p>
+<p>Debugger detection is supported on Windows and Linux. On every other platform, no debugger is ever reported and the behaviour is unchanged. </p>
 </div><h2 class="groupheader">Macro Definition Documentation</h2>
 <a id="abfd250b4489dc42d12ae556a1320b0bb" name="abfd250b4489dc42d12ae556a1320b0bb"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#abfd250b4489dc42d12ae556a1320b0bb">&#9670;&#160;</a></span>BTEST</h2>
@@ -362,6 +372,26 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>btest_cleanup</b> (vo
 
 </div>
 </div>
+<a id="a3c82d5b07c47f298c939cfa526eeba9d" name="a3c82d5b07c47f298c939cfa526eeba9d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3c82d5b07c47f298c939cfa526eeba9d">&#9670;&#160;</a></span>BTEST_BREAK</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define BTEST_BREAK</td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Break into the attached debugger. </p>
+<p>Define it as <code>((void)0)</code> to never break, even under a debugger. </p>
+
+</div>
+</div>
 <a id="aad142dccb6d2baf92181434eac1fbef9" name="aad142dccb6d2baf92181434eac1fbef9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aad142dccb6d2baf92181434eac1fbef9">&#9670;&#160;</a></span>BTEST_CHECK</h2>
 
@@ -395,6 +425,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>btest_cleanup</b> (vo
 </div><div class="memdoc">
 
 <p>Check a condition and log a custom message on failure. </p>
+<p>When a debugger is attached, this breaks into it (<a class="el" href="btest_8h.html#a3c82d5b07c47f298c939cfa526eeba9d">BTEST_BREAK</a>) before failing the test, regardless of <code>ABORT</code>.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">ABORT</td><td>whether to abort the test on failure </td></tr>
