@@ -185,6 +185,15 @@ barena_reset(barena_t* arena);
 #	endif
 #endif
 
+// Some toolchains turn asan on without shipping its interface header, the steam
+// runtime sdk among them
+#if BARENA_ASAN && defined(__has_include)
+#	if !__has_include(<sanitizer/asan_interface.h>)
+#		undef BARENA_ASAN
+#		define BARENA_ASAN 0
+#	endif
+#endif
+
 #if BARENA_ASAN
 
 #include <sanitizer/asan_interface.h>
