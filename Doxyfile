@@ -967,6 +967,7 @@ INPUT                  = README.md \
 	bserial.h \
 	bspscq.h \
 	bseg.h \
+	bhandle.h \
 	bent.h \
 	bsv.h \
 	bscn.h \
