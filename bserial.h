@@ -67,15 +67,15 @@
  * * Record: A collection of key-value pairs.
  *   The keys are always symbols.
  *   The values can have any types.
+ *   The list of keys (the schema) is interned like a symbol.
+ *   The first record with a given schema is written as `[RECORD_DEF][num_keys][keys...][values...]`.
+ *   Later records with the same schema are written as `[RECORD_REF][id][values...]`.
+ *   Repeated records such as array elements thus only pay for their values.
  * * Array: a collection of elements.
  *   Each element can have a different type.
- * * Table: a collection of elements.
- *   Unlike array, each element must be a record.
- *   All records must have the exact same set of keys.
- *   The storage is optimized for storing repeated records of the same type.
  *
  * All data types are generally stored as `[tag][payload]`.
- * Variable length types like array or table are stored as `[tag][length][payload]`.
+ * Variable length types like array are stored as `[tag][length][payload]`.
  * The type tag is needed to facilitate skipping over unknown data that is not described in the serialization code.
  *
  * ### Error handling
@@ -158,7 +158,7 @@
  * This violates the library's goal of fixed allocation.
  * In the common cases (code and data perfectly matches), the field clauses will most likely be executed in order anyway.
  * Thus there should not be much overhead.
- * Even with some omitted fields (due to newly introduced fields in code), given that all records in a table must have the same schema, the branches should be perfectly predictable.
+ * Even with some omitted fields (due to newly introduced fields in code), given that repeated records usually share the same schema, the branches should be perfectly predictable.
  * e.g: "foo" is always executed and "bar" is always skipped.
  *
  * #### Compatible type change
@@ -180,8 +180,8 @@
  *     After the value is read, the library recognizes that the second `bserial_key` call is also a match in order and return true again, and so on...
  *
  *   Thus there would be only two iterations through the `while`loop.
- *   In the case of a table, the schema discovery step only happens once at the beginning.
- *   For every row in the table, only a single iteration through the `while` loop is needed.
+ *   Records with the same set of keys share one schema in the stream.
+ *   The keys are only written for the first one, later ones only refer to the schema by id.
  *
  *   The loop would only have to run more than twice when the program has to read serialized data from a previous version where fields have a different order.
  *   This can be somewhat mitigated by only adding code for new fields at the end of the serialization function.
@@ -286,7 +286,7 @@
  * ### Variable length types
  *
  * Beside the initial fixed-size memory buffer passed to `bserial_make_ctx`, the library does not allocate any more memory.
- * For variable-length data types such as table or array, user code has to make their own decision.
+ * For variable-length data types such as array, user code has to make their own decision.
  * In general, fixed allocation is encouraged and it is always important to enforce a hard limit on length.
  * However, when dynamic size is needed something like this can be used:
  *
@@ -313,7 +313,7 @@
  * In general, variable length type should follow the pattern of:
  *
  * 1. Assign length to a variable.
- * 2. Read/write length with `bserial_array` or `bserial_table`.
+ * 2. Read/write length with `bserial_array`.
  * 3. Limit check
  * 4. If using dynamic memory, resize storage to fit length.
  * 5. Loop through elements and serialize them.
@@ -322,15 +322,6 @@
  * They are widened to 64 bits on the wire.
  * A negative length on write or a length that does not fit in the variable on read is an error.
  * The `_u64` variants such as `bserial_array_u64` are the underlying functions.
- *
- * ### Table
- *
- * `bserial_array` and `bserial_table` have the same signature.
- * The only requirement for `bserial_table` is that all subsequent elements must be records of the same type: same set of keys and values must have the same type.
- * The storage optimization is done automatically.
- *
- * Internally, the keys are only written once at the beginning of the table.
- * Then, all values of all rows are stored packed without separators.
  *
  * ### String encoding validation
  *
@@ -389,13 +380,13 @@
  * ### Associative map
  *
  * Record is optimized for serializing a fixed set of keys and it is not suitable for associative map types such as hashtable.
- * Instead, a table should be used:
+ * Instead, an array of records should be used:
  *
  * ```c
  * bserial_status_t
  * serialize_hashmap(bserial_ctx_t* ctx, my_hashmap_t* hashmap) {
  *     size_t len = my_hashmap_len(hashmap);
- *     BSERIAL_CHECK_STATUS(bserial_table(ctx, &len));
+ *     BSERIAL_CHECK_STATUS(bserial_array(ctx, &len));
  *
  *     if (bserial_mode(ctx) == BSERIAL_MODE_READ) {
  *         // Optionally, reserve
@@ -555,10 +546,17 @@ typedef struct bserial_ctx_config_s {
 	 */
 	uint32_t max_record_fields;
 	/**
+	 * @brief Maximum number of distinct record schemas.
+	 *
+	 * Records with the same set of keys share a schema.
+	 *
+	 * @see bserial_record
+	 */
+	uint32_t max_num_schemas;
+	/**
 	 * @brief Maximum nested depth.
 	 * @see bserial_record
 	 * @see bserial_array
-	 * @see bserial_table
 	 */
 	uint32_t max_depth;
 } bserial_ctx_config_t;
@@ -803,7 +801,6 @@ typedef bserial_status_t (*bserial_len_fn_t)(bserial_ctx_t* ctx, uint64_t* len);
  * read is an error.
  *
  * @see bserial_array
- * @see bserial_table
  * @see bserial_blob_header
  */
 BSERIAL_API bserial_status_t
@@ -897,26 +894,6 @@ bserial_array_u64(bserial_ctx_t* ctx, uint64_t* len);
  */
 #define bserial_array(ctx, len) \
 	bserial_typed_len(ctx, bserial_array_u64, (len), BSERIAL_INT_TYPE(len))
-
-/**
- * @brief Read/write a table.
- *
- * After this call @a len elements are expected.
- *
- * This is a special case of an array where all members must be records of the same type.
- *
- * @see bserial_record
- */
-BSERIAL_API bserial_status_t
-bserial_table_u64(bserial_ctx_t* ctx, uint64_t* len);
-
-/**
- * @brief Read/write a table.
- *
- * Same as @ref bserial_table_u64 but @a len can be a pointer to any integer type.
- */
-#define bserial_table(ctx, len) \
-	bserial_typed_len(ctx, bserial_table_u64, (len), BSERIAL_INT_TYPE(len))
 
 /**
  * @brief Read/write a record.
@@ -1291,15 +1268,14 @@ typedef enum {
 	BSERIAL_SYM_DEF      =  6,
 	BSERIAL_SYM_REF      =  7,
 	BSERIAL_ARRAY        =  8,
-	BSERIAL_TABLE        =  9,
-	BSERIAL_RECORD       = 10,
+	BSERIAL_RECORD_DEF   =  9,
+	BSERIAL_RECORD_REF   = 10,
 } bserial_marker_t;
 
 typedef enum {
 	BSERIAL_SCOPE_ROOT,
 	BSERIAL_SCOPE_BLOB,
 	BSERIAL_SCOPE_ARRAY,
-	BSERIAL_SCOPE_TABLE,
 	BSERIAL_SCOPE_RECORD,
 	BSERIAL_SCOPE_ENUM,
 } bserial_scope_type_t;
@@ -1308,7 +1284,6 @@ typedef enum {
 	BSERIAL_OP_NUMERIC,
 	BSERIAL_OP_BLOB,
 	BSERIAL_OP_SYMBOL,
-	BSERIAL_OP_TABLE,
 	BSERIAL_OP_ARRAY,
 	BSERIAL_OP_RECORD,
 	BSERIAL_OP_ENUM,
@@ -1331,6 +1306,12 @@ typedef struct {
 	const char* field_name;
 } bserial_record_mapping_t;
 
+// An interned list of keys
+typedef struct {
+	bserial_symbol_t* fields;
+	uint32_t num_fields;
+} bserial_schema_t;
+
 typedef struct {
 	bserial_scope_type_t type;
 
@@ -1340,7 +1321,6 @@ typedef struct {
 	bserial_record_mode_t record_mode;
 	bserial_record_mapping_t* record_schema;
 	bserial_record_mapping_t* prev_schema_pool;
-	uint64_t record_width;
 	// Set when bserial_key returns true and cleared by the value op that
 	// follows. Used to tell a nested record apart from the loop head of the
 	// current record.
@@ -1366,7 +1346,12 @@ struct bserial_ctx_s {
 	int32_t symtab_exp;
 	char* strpool;
 
-	int32_t key_exp;
+	bserial_schema_t* schemas;
+	uint32_t num_schemas;
+	int32_t* schema_index;
+	int32_t schema_exp;
+	bserial_symbol_t* schema_fields;
+
 	bserial_scope_t* scope_first;
 	bserial_scope_t* scope;
 	bserial_scope_t* scope_last;
@@ -1400,6 +1385,29 @@ bserial_ctx_mem_layout(void* mem, bserial_ctx_config_t config) {
 		_Alignof(bserial_record_mapping_t)
 	);
 
+	ptrdiff_t schemas = mem_layout_reserve(
+		&layout,
+		sizeof(bserial_schema_t) * config.max_num_schemas,
+		_Alignof(bserial_schema_t)
+	);
+
+	int32_t schema_exp = 2;
+	while (((int32_t)1 << schema_exp) < (int32_t)(config.max_num_schemas * 2)) {
+		++schema_exp;
+	}
+	int32_t schema_index_len = ((int32_t)1 << schema_exp);
+	ptrdiff_t schema_index = mem_layout_reserve(
+		&layout,
+		sizeof(int32_t) * schema_index_len,
+		_Alignof(int32_t)
+	);
+
+	ptrdiff_t schema_fields = mem_layout_reserve(
+		&layout,
+		sizeof(bserial_symbol_t) * config.max_num_schemas * config.max_record_fields,
+		_Alignof(bserial_symbol_t)
+	);
+
 	ptrdiff_t scope = mem_layout_reserve(
 		&layout,
 		sizeof(bserial_scope_t) * config.max_depth,
@@ -1419,6 +1427,12 @@ bserial_ctx_mem_layout(void* mem, bserial_ctx_config_t config) {
 		ctx->symtab_index = mem_layout_locate(mem, symtab_index);
 		ctx->symtab_exp = symtab_exp;
 		memset(ctx->symtab_index, 0, sizeof(*ctx->symtab_index) * symtab_index_len);
+
+		ctx->schemas = mem_layout_locate(mem, schemas);
+		ctx->schema_index = mem_layout_locate(mem, schema_index);
+		ctx->schema_exp = schema_exp;
+		memset(ctx->schema_index, 0, sizeof(*ctx->schema_index) * schema_index_len);
+		ctx->schema_fields = mem_layout_locate(mem, schema_fields);
 
 		ctx->scope_first = ctx->scope = mem_layout_locate(mem, scope);
 		ctx->scope_last = ctx->scope + config.max_depth - 1;
@@ -1485,7 +1499,7 @@ bserial_push_scope(bserial_ctx_t* ctx, bserial_scope_type_t type) {
 		.prev_schema_pool = ctx->schema_pool,
 	};
 
-	if (type == BSERIAL_SCOPE_RECORD || type == BSERIAL_SCOPE_TABLE) {
+	if (type == BSERIAL_SCOPE_RECORD) {
 		ctx->scope->record_schema = ctx->schema_pool;
 		ctx->schema_pool += ctx->config.max_record_fields;
 	}
@@ -1517,13 +1531,6 @@ bserial_begin_op(bserial_ctx_t* ctx, bserial_op_type_t op) {
 		return bserial_malformed(ctx);
 	}
 
-	if (
-		scope_type == BSERIAL_SCOPE_TABLE
-		&& op != BSERIAL_OP_RECORD
-	) {
-		return bserial_malformed(ctx);
-	}
-
 	// An enum only contains the symbol of its active variant
 	if (
 		scope_type == BSERIAL_SCOPE_ENUM
@@ -1533,10 +1540,7 @@ bserial_begin_op(bserial_ctx_t* ctx, bserial_op_type_t op) {
 	}
 
 	// Count the number of elements
-	if (
-		scope_type == BSERIAL_SCOPE_ARRAY
-		|| scope_type == BSERIAL_SCOPE_TABLE
-	) {
+	if (scope_type == BSERIAL_SCOPE_ARRAY) {
 		++scope->iterator;
 	}
 
@@ -1549,8 +1553,6 @@ bserial_begin_op(bserial_ctx_t* ctx, bserial_op_type_t op) {
 		BSERIAL_CHECK_STATUS(bserial_push_scope(ctx, BSERIAL_SCOPE_BLOB));
 	} else if (op == BSERIAL_OP_ARRAY) {
 		BSERIAL_CHECK_STATUS(bserial_push_scope(ctx, BSERIAL_SCOPE_ARRAY));
-	} else if (op == BSERIAL_OP_TABLE) {
-		BSERIAL_CHECK_STATUS(bserial_push_scope(ctx, BSERIAL_SCOPE_TABLE));
 	} else if (op == BSERIAL_OP_RECORD) {
 		BSERIAL_CHECK_STATUS(bserial_push_scope(ctx, BSERIAL_SCOPE_RECORD));
 	} else if (op == BSERIAL_OP_ENUM) {
@@ -1575,11 +1577,10 @@ bserial_end_op(bserial_ctx_t* ctx, bserial_op_type_t op) {
 	}
 
 	// Auto pop when enough ops are executed.
-	// Array and table do not have an "end" function call and the number of
-	// elements are automatically tracked through bserial_end_op.
+	// Array does not have an "end" function call and the number of elements
+	// is automatically tracked through bserial_end_op.
 	while (
-		(ctx->scope->type == BSERIAL_SCOPE_ARRAY
-		 || ctx->scope->type == BSERIAL_SCOPE_TABLE)
+		ctx->scope->type == BSERIAL_SCOPE_ARRAY
 		&& ctx->scope->iterator == ctx->scope->len
 	) {
 		BSERIAL_CHECK_STATUS(bserial_pop_scope(ctx));
@@ -1989,6 +1990,109 @@ bserial_lookup_index(uint64_t hash, int32_t exp, int32_t idx) {
 	return (idx + step) & mask;
 }
 
+static inline bserial_schema_t*
+bserial_alloc_schema(bserial_ctx_t* ctx, uint32_t num_fields) {
+	if (ctx->num_schemas >= ctx->config.max_num_schemas) { return NULL; }
+	if (num_fields > ctx->config.max_record_fields) { return NULL; }
+
+	bserial_schema_t* schema = &ctx->schemas[ctx->num_schemas];
+	schema->fields = ctx->schema_fields + (size_t)ctx->num_schemas * ctx->config.max_record_fields;
+	schema->num_fields = num_fields;
+	ctx->num_schemas += 1;
+	return schema;
+}
+
+// Read a schema definition or reference. The marker has already been read.
+static inline bserial_status_t
+bserial_read_schema(bserial_ctx_t* ctx, uint8_t marker, bserial_schema_t** out) {
+	if (marker == BSERIAL_RECORD_DEF) {
+		uint64_t num_fields;
+		BSERIAL_CHECK_STATUS(ctx->status = bserial_read_uint(&num_fields, ctx->in));
+		if (num_fields > ctx->config.max_record_fields) { return bserial_malformed(ctx); }
+
+		bserial_schema_t* schema = bserial_alloc_schema(ctx, (uint32_t)num_fields);
+		if (schema == NULL) { return bserial_malformed(ctx); }
+
+		for (uint64_t i = 0; i < num_fields; ++i) {
+			const char* symbol;
+			uint64_t symbol_len;
+			BSERIAL_CHECK_STATUS(bserial_symbol(ctx, &symbol, &symbol_len));
+			schema->fields[i] = (bserial_symbol_t){ .buf = (char*)symbol, .len = symbol_len };
+		}
+
+		*out = schema;
+		return BSERIAL_OK;
+	} else if (marker == BSERIAL_RECORD_REF) {
+		uint64_t id;
+		BSERIAL_CHECK_STATUS(ctx->status = bserial_read_uint(&id, ctx->in));
+		if (id >= ctx->num_schemas) { return bserial_malformed(ctx); }
+
+		*out = &ctx->schemas[id];
+		return BSERIAL_OK;
+	} else {
+		return bserial_malformed(ctx);
+	}
+}
+
+static inline uint64_t
+bserial_schema_hash(const bserial_record_mapping_t* keys, uint64_t num_keys) {
+	uint64_t hash = num_keys;
+	for (uint64_t i = 0; i < num_keys; ++i) {
+		uint64_t key_hash = bserial_hash(keys[i].symbol, keys[i].symbol_len);
+		hash ^= key_hash + 0x9e3779b97f4a7c15ull + (hash << 6) + (hash >> 2);
+	}
+	return hash;
+}
+
+static inline bool
+bserial_schema_eq(const bserial_schema_t* schema, const bserial_record_mapping_t* keys, uint64_t num_keys) {
+	if (schema->num_fields != num_keys) { return false; }
+
+	for (uint64_t i = 0; i < num_keys; ++i) {
+		if (
+			schema->fields[i].len != keys[i].symbol_len
+			|| memcmp(schema->fields[i].buf, keys[i].symbol, keys[i].symbol_len) != 0
+		) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+// Write a schema definition the first time a list of keys is seen and a
+// reference afterwards.
+static inline bserial_status_t
+bserial_write_schema(bserial_ctx_t* ctx, const bserial_record_mapping_t* keys, uint64_t num_keys) {
+	uint64_t hash = bserial_schema_hash(keys, num_keys);
+	for (int32_t i = (int32_t)hash;;) {
+		i = bserial_lookup_index(hash, ctx->schema_exp, i);
+		int32_t index = ctx->schema_index[i];
+		if (index == 0) {
+			bserial_schema_t* schema = bserial_alloc_schema(ctx, (uint32_t)num_keys);
+			if (schema == NULL) { return bserial_malformed(ctx); }
+			ctx->schema_index[i] = (int32_t)ctx->num_schemas;  // id + 1
+
+			uint8_t marker = BSERIAL_RECORD_DEF;
+			BSERIAL_CHECK_STATUS(ctx->status = bserial_write(ctx->out, &marker, sizeof(marker)));
+			BSERIAL_CHECK_STATUS(ctx->status = bserial_write_uint(num_keys, ctx->out));
+			for (uint64_t j = 0; j < num_keys; ++j) {
+				const char* symbol = keys[j].symbol;
+				uint64_t symbol_len = keys[j].symbol_len;
+				// This interns the symbol so the pointer is stable afterwards
+				BSERIAL_CHECK_STATUS(bserial_symbol(ctx, &symbol, &symbol_len));
+				schema->fields[j] = (bserial_symbol_t){ .buf = (char*)symbol, .len = symbol_len };
+			}
+
+			return BSERIAL_OK;
+		} else if (bserial_schema_eq(&ctx->schemas[index - 1], keys, num_keys)) {
+			uint8_t marker = BSERIAL_RECORD_REF;
+			BSERIAL_CHECK_STATUS(ctx->status = bserial_write(ctx->out, &marker, sizeof(marker)));
+			return ctx->status = bserial_write_uint((uint64_t)index - 1, ctx->out);
+		}
+	}
+}
+
 static inline bserial_status_t
 bserial_skip_next(bserial_ctx_t* ctx, uint32_t depth) {
 	uint8_t marker;
@@ -2048,46 +2152,18 @@ bserial_skip_next(bserial_ctx_t* ctx, uint32_t depth) {
 				}
 			}
 			break;
-		case BSERIAL_TABLE:
+		case BSERIAL_RECORD_DEF:
+		case BSERIAL_RECORD_REF:
 			{
 				bserial_discard_marker(ctx);
 
-				uint64_t num_rows;
-				BSERIAL_CHECK_STATUS(bserial_read_uint(&num_rows, ctx->in));
-				if (num_rows > 0 && depth == 0) { return bserial_malformed(ctx); }
+				// Definitions must be registered even when skipped so that
+				// later references resolve to the same ids as the writer's.
+				bserial_schema_t* schema;
+				BSERIAL_CHECK_STATUS(bserial_read_schema(ctx, marker, &schema));
+				if (schema->num_fields > 0 && depth == 0) { return bserial_malformed(ctx); }
 
-				if (num_rows > 0) {
-					uint64_t num_cols;
-					BSERIAL_CHECK_STATUS(bserial_read_uint(&num_cols, ctx->in));
-
-					for (uint64_t i = 0; i < num_cols; ++i) {
-						const char* sym;
-						uint64_t sym_len;
-						BSERIAL_CHECK_STATUS(bserial_symbol(ctx, &sym, &sym_len));
-					}
-
-					for (uint64_t i = 0; i < num_rows; ++i) {
-						for (uint64_t j = 0; j < num_cols; ++j) {
-							BSERIAL_CHECK_STATUS(bserial_skip_next(ctx, depth - 1));
-						}
-					}
-				}
-			}
-			break;
-		case BSERIAL_RECORD:
-			{
-				bserial_discard_marker(ctx);
-
-				uint64_t num_cols;
-				BSERIAL_CHECK_STATUS(bserial_read_uint(&num_cols, ctx->in));
-
-				for (uint64_t i = 0; i < num_cols; ++i) {
-					const char* sym;
-					uint64_t sym_len;
-					BSERIAL_CHECK_STATUS(bserial_symbol(ctx, &sym, &sym_len));
-				}
-
-				for (uint64_t i = 0; i < num_cols; ++i) {
+				for (uint32_t i = 0; i < schema->num_fields; ++i) {
 					BSERIAL_CHECK_STATUS(bserial_skip_next(ctx, depth - 1));
 				}
 			}
@@ -2219,19 +2295,6 @@ bserial_array_u64(bserial_ctx_t* ctx, uint64_t* len) {
 	}
 }
 
-bserial_status_t
-bserial_table_u64(bserial_ctx_t* ctx, uint64_t* len) {
-	BSERIAL_CHECK_STATUS(bserial_begin_op(ctx, BSERIAL_OP_TABLE));
-	BSERIAL_CHECK_STATUS(bserial_marker_and_length(ctx, BSERIAL_TABLE, len));
-
-	if (*len > 0) {
-		ctx->scope->len = *len;
-		return BSERIAL_OK;
-	} else {
-		return bserial_end_op(ctx, BSERIAL_OP_TABLE);
-	}
-}
-
 bool
 bserial_record(bserial_ctx_t* ctx) {
 	if (ctx->status != BSERIAL_OK) { return false; }
@@ -2260,80 +2323,56 @@ bserial_record(bserial_ctx_t* ctx) {
 					return false;
 			}
 		} else {
-			bserial_scope_t* parent_scope = scope;
 			if (bserial_begin_op(ctx, BSERIAL_OP_RECORD) != BSERIAL_OK) {
 				return false;
 			}
 			scope = ctx->scope;
 
-			if (parent_scope->type != BSERIAL_SCOPE_TABLE) {
-				uint8_t marker;
-				if ((bserial_read_marker(ctx, &marker)) != BSERIAL_OK) {
-					return false;
-				}
-				if (marker != BSERIAL_RECORD) {
-					bserial_malformed(ctx);
-					return false;
-				}
+			uint8_t marker;
+			if (bserial_read_marker(ctx, &marker) != BSERIAL_OK) {
+				return false;
 			}
 
-			// In case of a table, allocate schema at the table's scope.
-			bserial_scope_t* schema_scope =
-				parent_scope->type == BSERIAL_SCOPE_TABLE
-					? parent_scope
-					: scope;
-
-			// Schema discovery only happens for the first row of a table
-			if (parent_scope->type != BSERIAL_SCOPE_TABLE || parent_scope->iterator == 1) {
-				scope->record_mode = BSERIAL_RECORD_KEY_IO;
-
-				uint64_t num_fields;
-				if ((ctx->status = bserial_read_uint(&num_fields, ctx->in)) != BSERIAL_OK) {
-					return false;
-				}
-				if (num_fields > ctx->config.max_record_fields) {
-					bserial_malformed(ctx);
-					return false;
-				}
-
-				for (uint64_t i = 0; i < num_fields; ++i) {
-					schema_scope->record_schema[i].field_name = NULL;
-				}
-
-				schema_scope->record_width = num_fields;
-				for (uint64_t i = 0; i < num_fields; ++i) {
-					const char* symbol;
-					uint64_t symbol_len;
-					scope->iterator = i;
-					if (bserial_symbol(ctx, &symbol, &symbol_len) != BSERIAL_OK) {
-						return false;
-					}
-
-					schema_scope->record_schema[i].symbol = symbol;
-					schema_scope->record_schema[i].symbol_len = symbol_len;
-				}
-				scope->iterator = 0;
-			} else {
-				scope->record_mode = BSERIAL_RECORD_VALUE_IO;
+			bserial_schema_t* schema;
+			if (bserial_read_schema(ctx, marker, &schema) != BSERIAL_OK) {
+				return false;
 			}
 
-			scope->record_schema = schema_scope->record_schema;
-			scope->len = schema_scope->record_width;
-
-			if (scope->record_mode == BSERIAL_RECORD_VALUE_IO) {
-				return bserial_probe_next_record_field(ctx);
-			} else {
-				return true;
+			// The mapping from keys to code is per record instance since the
+			// same schema can be read by different functions.
+			scope->len = schema->num_fields;
+			for (uint32_t i = 0; i < schema->num_fields; ++i) {
+				scope->record_schema[i] = (bserial_record_mapping_t){
+					.symbol = schema->fields[i].buf,
+					.symbol_len = schema->fields[i].len,
+					.field_name = NULL,
+				};
 			}
+
+			scope->record_mode = BSERIAL_RECORD_KEY_IO;
+			scope->iterator = 0;
+			return true;
 		}
 	} else {
 		if (loop_head) {
 			switch (scope->record_mode) {
 				case BSERIAL_RECORD_MEASURE_WIDTH:
+					if (scope->len > ctx->config.max_record_fields) {
+						bserial_malformed(ctx);
+						return false;
+					}
 					scope->record_mode = BSERIAL_RECORD_KEY_IO;
-					ctx->status = bserial_write_uint(scope->len, ctx->out);
-					return ctx->status == BSERIAL_OK;
+					scope->iterator = 0;
+					return true;
 				case BSERIAL_RECORD_KEY_IO:
+					// The body must declare the same keys in every pass
+					if (scope->iterator != scope->len) {
+						bserial_malformed(ctx);
+						return false;
+					}
+					if (bserial_write_schema(ctx, scope->record_schema, scope->len) != BSERIAL_OK) {
+						return false;
+					}
 					scope->record_mode = BSERIAL_RECORD_VALUE_IO;
 					scope->iterator = 0;
 					return true;
@@ -2345,25 +2384,11 @@ bserial_record(bserial_ctx_t* ctx) {
 					return false;
 			}
 		} else {
-			bserial_scope_t* parent_scope = scope;
 			if (bserial_begin_op(ctx, BSERIAL_OP_RECORD) != BSERIAL_OK) {
 				return false;
 			}
 			scope = ctx->scope;
-
-			if (parent_scope->type != BSERIAL_SCOPE_TABLE || parent_scope->iterator == 1) {
-				scope->record_mode = BSERIAL_RECORD_MEASURE_WIDTH;
-
-				if (parent_scope->type != BSERIAL_SCOPE_TABLE) {
-					uint8_t marker = BSERIAL_RECORD;
-					if ((ctx->status = bserial_write(ctx->out, &marker, sizeof(marker))) != BSERIAL_OK) {
-						return false;
-					}
-				}
-			} else {
-				scope->record_mode = BSERIAL_RECORD_VALUE_IO;
-			}
-
+			scope->record_mode = BSERIAL_RECORD_MEASURE_WIDTH;
 			return true;
 		}
 	}
@@ -2411,8 +2436,16 @@ bserial_key(bserial_ctx_t* ctx, const char* name, uint64_t len) {
 				++scope->len;
 				return false;
 			case BSERIAL_RECORD_KEY_IO:
+				// Collect the keys, the schema is written once all are known
+				if (scope->iterator >= scope->len) {
+					bserial_malformed(ctx);
+					return false;
+				}
+				scope->record_schema[scope->iterator] = (bserial_record_mapping_t){
+					.symbol = name,
+					.symbol_len = len,
+				};
 				++scope->iterator;
-				bserial_symbol(ctx, &name, &len);
 				return false;
 			case BSERIAL_RECORD_VALUE_IO:
 				++scope->iterator;
@@ -2544,12 +2577,6 @@ bserial_trace(bserial_ctx_t* ctx, bserial_tracer_t tracer, void* userdata) {
 				bserial_tracef(
 					tracer, userdata, depth,
 					"Array(%" PRIu64 "/%" PRIu64 ")", scope->iterator, scope->len
-				);
-				break;
-			case BSERIAL_SCOPE_TABLE:
-				bserial_tracef(
-					tracer, userdata, depth,
-					"Table(%" PRIu64 "/%" PRIu64 ")", scope->iterator, scope->len
 				);
 				break;
 			case BSERIAL_SCOPE_RECORD:

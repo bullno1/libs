@@ -8,6 +8,7 @@ common_fixture_t common_fixture = {
 		.max_num_symbols = 64,
 		.max_symbol_len = 32,
 		.max_record_fields = 32,
+		.max_num_schemas = 16,
 	},
 };
 

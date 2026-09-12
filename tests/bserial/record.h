@@ -68,7 +68,7 @@ serialize_original(bserial_ctx_t* ctx, original_t* rec) {
 		}
 
 		BSERIAL_KEY(ctx, table) {
-			BSERIAL_CHECK_STATUS(bserial_table(ctx, &rec->table_len));
+			BSERIAL_CHECK_STATUS(bserial_array(ctx, &rec->table_len));
 			if (rec->table_len >= (int)(sizeof(rec->table) / sizeof(rec->table[0]))) {
 				return BSERIAL_MALFORMED;
 			}
@@ -95,7 +95,7 @@ serialize_original_flipped(bserial_ctx_t* ctx, original_t* rec) {
 
 		BSERIAL_KEY(ctx, table) {
 			uint64_t len = (uint64_t)rec->table_len;
-			BSERIAL_CHECK_STATUS(bserial_table(ctx, &len));
+			BSERIAL_CHECK_STATUS(bserial_array(ctx, &len));
 			if (len >= (sizeof(rec->table) / sizeof(rec->table[0]))) {
 				return BSERIAL_MALFORMED;
 			}
@@ -172,7 +172,7 @@ serialize_original_skip(bserial_ctx_t* ctx, original_t* rec, int selector) {
 		if (selector == 4) {
 			BSERIAL_KEY(ctx, table) {
 				uint64_t len = (uint64_t)rec->table_len;
-				BSERIAL_CHECK_STATUS(bserial_table(ctx, &len));
+				BSERIAL_CHECK_STATUS(bserial_array(ctx, &len));
 				if (len >= (sizeof(rec->table) / sizeof(rec->table[0]))) {
 					return BSERIAL_MALFORMED;
 				}
