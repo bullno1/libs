@@ -237,6 +237,45 @@
  * Versioning can thus, be done per field instead of per record.
  * This should make backward-compatible schema change relatively painless.
  *
+ * ### Enum
+ *
+ * An enum is stored as a symbol: the name of the active variant.
+ * Like record keys, the names are declared in the serialization code and the
+ * library matches the stream against them.
+ * No lookup table is stored in the stream and the numeric values of the C enum
+ * never leave the program, so they can be renumbered or reordered freely.
+ *
+ * ```c
+ * bserial_status_t
+ * serialize_shape_kind(bserial_ctx_t* ctx, int* kind) {
+ *     BSERIAL_ENUM(ctx, kind) {
+ *         BSERIAL_VARIANT(ctx, SHAPE_CIRCLE);
+ *         BSERIAL_VARIANT(ctx, SHAPE_SQUARE);
+ *         BSERIAL_VARIANT(ctx, SHAPE_TRIANGLE);
+ *     }
+ *
+ *     return bserial_status(ctx);
+ * }
+ * ```
+ *
+ * When writing, the variant whose value matches `*kind` writes its name.
+ * When reading, the variant whose name matches the stream stores its value into `*kind`.
+ * A value with no name or a name with no variant is an error.
+ *
+ * Renaming a variant is handled like renaming a record field:
+ * keep the old name as a read-only alias.
+ *
+ * ```c
+ * BSERIAL_ENUM(ctx, kind) {
+ *     if (bserial_mode(ctx) == BSERIAL_MODE_READ) {
+ *         // Data written before the rename
+ *         bserial_variant(ctx, "SHAPE_BOX", sizeof("SHAPE_BOX") - 1, SHAPE_SQUARE);
+ *     }
+ *     BSERIAL_VARIANT(ctx, SHAPE_CIRCLE);
+ *     BSERIAL_VARIANT(ctx, SHAPE_SQUARE);
+ * }
+ * ```
+ *
  * ### Variable length types
  *
  * Beside the initial fixed-size memory buffer passed to `bserial_make_ctx`, the library does not allocate any more memory.
@@ -319,7 +358,7 @@
  *     BSERIAL_CHECK_STATUS(bserial_array(ctx, &len));
  *     if (len != 2) { return BSERIAL_MALFORMED; }
  *
- *     BSERIAL_CHECK_STATUS(bserial_any_int(ctx, &variant->type));
+ *     BSERIAL_CHECK_STATUS(serialize_my_variant_type(ctx, &variant->type));  // An enum
  *     switch (variant->type) {
  *         case MY_VARIANT_TYPE_1:
  *             return serialize_variant_type_1(ctx, &variant->payload.type1);
@@ -848,6 +887,62 @@ bserial_key(bserial_ctx_t* ctx, const char* name, uint64_t len);
  */
 #define BSERIAL_KEY(ctx, name) if (bserial_key(ctx, #name, sizeof(#name) - 1))
 
+/**
+ * @brief Read/write an enum.
+ *
+ * An enum is stored as a symbol: the name of the active variant.
+ *
+ * This should always be called as the condition of a while loop:
+ * `while (bserial_enum(ctx, value)) {`.
+ * Therefore, the macro @ref BSERIAL_ENUM should be used.
+ * The body of the loop must only contain @ref bserial_variant calls.
+ *
+ * When writing, the variant whose value matches `*value` writes its name.
+ * When reading, the variant whose name matches the stream stores its value
+ * into `*value`.
+ * It is an error if no variant matches.
+ *
+ * @param ctx The serialization context.
+ * @param value The enum value.
+ *
+ * @see bserial_variant
+ */
+BSERIAL_API bool
+bserial_enum(bserial_ctx_t* ctx, int* value);
+
+/**
+ * @brief Declare a variant of an enum.
+ *
+ * This can only be called within a @ref BSERIAL_ENUM block.
+ *
+ * @param ctx The serialization context.
+ * @param name Name of the variant.
+ * @param len Length of the name.
+ * @param value Value of the variant.
+ *
+ * @see bserial_enum
+ */
+BSERIAL_API bserial_status_t
+bserial_variant(bserial_ctx_t* ctx, const char* name, uint64_t len, int value);
+
+/**
+ * @brief Read/write an enum.
+ *
+ * @param ctx The serialization context.
+ * @param value Pointer to the enum value.
+ */
+#define BSERIAL_ENUM(ctx, value) while (bserial_enum(ctx, value))
+
+/**
+ * Declare a variant in an enum
+ *
+ * @param ctx The serialization context.
+ * @param name Literal name of an enum variant, without any quote.
+ *   e.g: `FOO` and **not** `"FOO"`.
+ *   It is also used as the value.
+ */
+#define BSERIAL_VARIANT(ctx, name) bserial_variant(ctx, #name, sizeof(#name) - 1, name)
+
 /*! Trace the error context during serialization */
 BSERIAL_API void
 bserial_trace(bserial_ctx_t* ctx, bserial_tracer_t tracer, void* userdata);
@@ -1108,6 +1203,7 @@ typedef enum {
 	BSERIAL_SCOPE_ARRAY,
 	BSERIAL_SCOPE_TABLE,
 	BSERIAL_SCOPE_RECORD,
+	BSERIAL_SCOPE_ENUM,
 } bserial_scope_type_t;
 
 typedef enum {
@@ -1117,6 +1213,7 @@ typedef enum {
 	BSERIAL_OP_TABLE,
 	BSERIAL_OP_ARRAY,
 	BSERIAL_OP_RECORD,
+	BSERIAL_OP_ENUM,
 } bserial_op_type_t;
 
 typedef enum {
@@ -1150,6 +1247,11 @@ typedef struct {
 	// follows. Used to tell a nested record apart from the loop head of the
 	// current record.
 	bool value_pending;
+
+	int* enum_value;
+	const char* enum_symbol;
+	uint64_t enum_symbol_len;
+	bool enum_matched;
 } bserial_scope_t;
 
 struct bserial_ctx_s {
@@ -1323,6 +1425,14 @@ bserial_begin_op(bserial_ctx_t* ctx, bserial_op_type_t op) {
 		return bserial_malformed(ctx);
 	}
 
+	// An enum only contains the symbol of its active variant
+	if (
+		scope_type == BSERIAL_SCOPE_ENUM
+		&& op != BSERIAL_OP_SYMBOL
+	) {
+		return bserial_malformed(ctx);
+	}
+
 	// Count the number of elements
 	if (
 		scope_type == BSERIAL_SCOPE_ARRAY
@@ -1344,6 +1454,8 @@ bserial_begin_op(bserial_ctx_t* ctx, bserial_op_type_t op) {
 		BSERIAL_CHECK_STATUS(bserial_push_scope(ctx, BSERIAL_SCOPE_TABLE));
 	} else if (op == BSERIAL_OP_RECORD) {
 		BSERIAL_CHECK_STATUS(bserial_push_scope(ctx, BSERIAL_SCOPE_RECORD));
+	} else if (op == BSERIAL_OP_ENUM) {
+		BSERIAL_CHECK_STATUS(bserial_push_scope(ctx, BSERIAL_SCOPE_ENUM));
 	}
 
 	return BSERIAL_OK;
@@ -1358,6 +1470,7 @@ bserial_end_op(bserial_ctx_t* ctx, bserial_op_type_t op) {
 	if (
 		(ctx->scope->type == BSERIAL_SCOPE_BLOB && op == BSERIAL_OP_BLOB)
 		|| (ctx->scope->type == BSERIAL_SCOPE_RECORD && op == BSERIAL_OP_RECORD)
+		|| (ctx->scope->type == BSERIAL_SCOPE_ENUM && op == BSERIAL_OP_ENUM)
 	) {
 		BSERIAL_CHECK_STATUS(bserial_pop_scope(ctx));
 	}
@@ -2161,6 +2274,70 @@ bserial_key(bserial_ctx_t* ctx, const char* name, uint64_t len) {
 	}
 }
 
+bool
+bserial_enum(bserial_ctx_t* ctx, int* value) {
+	if (ctx->status != BSERIAL_OK) { return false; }
+
+	bserial_scope_t* scope = ctx->scope;
+
+	// Variants never contain values so an enum scope can only mean the end of
+	// the loop.
+	if (scope->type == BSERIAL_SCOPE_ENUM) {
+		if (!scope->enum_matched) {
+			// Writing a value with no name or reading a name with no variant
+			bserial_malformed(ctx);
+			return false;
+		}
+
+		bserial_end_op(ctx, BSERIAL_OP_ENUM);
+		return false;
+	}
+
+	if (bserial_begin_op(ctx, BSERIAL_OP_ENUM) != BSERIAL_OK) {
+		return false;
+	}
+	scope = ctx->scope;
+	scope->enum_value = value;
+
+	if (bserial_mode(ctx) == BSERIAL_MODE_READ) {
+		if (bserial_symbol(ctx, &scope->enum_symbol, &scope->enum_symbol_len) != BSERIAL_OK) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bserial_status_t
+bserial_variant(bserial_ctx_t* ctx, const char* name, uint64_t len, int value) {
+	BSERIAL_CHECK_STATUS(ctx->status);
+
+	bserial_scope_t* scope = ctx->scope;
+	if (scope->type != BSERIAL_SCOPE_ENUM) {
+		return bserial_malformed(ctx);
+	}
+
+	// Only the first match counts
+	if (scope->enum_matched) { return BSERIAL_OK; }
+
+	if (bserial_mode(ctx) == BSERIAL_MODE_READ) {
+		if (
+			scope->enum_symbol_len == len
+			&& memcmp(scope->enum_symbol, name, len) == 0
+		) {
+			*scope->enum_value = value;
+			scope->enum_matched = true;
+		}
+	} else {
+		if (*scope->enum_value == value) {
+			BSERIAL_CHECK_STATUS(bserial_symbol(ctx, &name, &len));
+			scope->enum_matched = true;
+		}
+	}
+
+	return BSERIAL_OK;
+}
+
 #if defined(__GNUC__) || defined(__clang__)
 __attribute__((format(printf, 4, 5)))
 #endif
@@ -2201,6 +2378,9 @@ bserial_trace(bserial_ctx_t* ctx, bserial_tracer_t tracer, void* userdata) {
 				break;
 			case BSERIAL_SCOPE_BLOB:
 				bserial_tracef(tracer, userdata, depth, "Blob(%" PRIu64 ")", scope->len);
+				break;
+			case BSERIAL_SCOPE_ENUM:
+				bserial_tracef(tracer, userdata, depth, "Enum(%s)", scope->enum_matched ? "matched" : "unmatched");
 				break;
 		}
 	}
