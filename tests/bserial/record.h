@@ -45,20 +45,19 @@ serialize_original(bserial_ctx_t* ctx, original_t* rec) {
 		}
 
 		BSERIAL_KEY(ctx, str) {
-			uint64_t len = strlen(rec->str);
+			// Lengths accept any integer type
+			int len = (int)strlen(rec->str);
 			BSERIAL_CHECK_STATUS(bserial_blob_header(ctx, &len));
-			if (len >= sizeof(rec->str)) { return BSERIAL_MALFORMED; }
+			if (len >= (int)sizeof(rec->str)) { return BSERIAL_MALFORMED; }
 			BSERIAL_CHECK_STATUS(bserial_blob_body(ctx, rec->str));
 			rec->str[len] = '\0';
 		}
 
 		BSERIAL_KEY(ctx, array) {
-			uint64_t len = (uint64_t)rec->array_len;
-			BSERIAL_CHECK_STATUS(bserial_array(ctx, &len));
-			if (len >= (sizeof(rec->array) / sizeof(rec->array[0]))) {
+			BSERIAL_CHECK_STATUS(bserial_array(ctx, &rec->array_len));
+			if (rec->array_len >= (int)(sizeof(rec->array) / sizeof(rec->array[0]))) {
 				return BSERIAL_MALFORMED;
 			}
-			rec->array_len = (int)len;
 			for (int i = 0; i < rec->array_len; ++i) {
 				BSERIAL_CHECK_STATUS(bserial_any_int(ctx, &rec->array[i]));
 			}
@@ -69,12 +68,10 @@ serialize_original(bserial_ctx_t* ctx, original_t* rec) {
 		}
 
 		BSERIAL_KEY(ctx, table) {
-			uint64_t len = (uint64_t)rec->table_len;
-			BSERIAL_CHECK_STATUS(bserial_table(ctx, &len));
-			if (len >= (sizeof(rec->table) / sizeof(rec->table[0]))) {
+			BSERIAL_CHECK_STATUS(bserial_table(ctx, &rec->table_len));
+			if (rec->table_len >= (int)(sizeof(rec->table) / sizeof(rec->table[0]))) {
 				return BSERIAL_MALFORMED;
 			}
-			rec->table_len = (int)len;
 			for (int i = 0; i < rec->table_len; ++i) {
 				BSERIAL_CHECK_STATUS(serialize_vec2f(ctx, &rec->table[i]));
 			}

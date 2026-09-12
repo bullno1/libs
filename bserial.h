@@ -246,9 +246,15 @@
  * never leave the program, so they can be renumbered or reordered freely.
  *
  * ```c
+ * typedef enum {
+ *     SHAPE_CIRCLE,
+ *     SHAPE_SQUARE,
+ *     SHAPE_TRIANGLE,
+ * } shape_kind_t;
+ *
  * bserial_status_t
- * serialize_shape_kind(bserial_ctx_t* ctx, int* kind) {
- *     BSERIAL_ENUM(ctx, kind) {
+ * serialize_shape_kind(bserial_ctx_t* ctx, shape_kind_t* kind) {
+ *     BSERIAL_ENUM(ctx, *kind) {
  *         BSERIAL_VARIANT(ctx, SHAPE_CIRCLE);
  *         BSERIAL_VARIANT(ctx, SHAPE_SQUARE);
  *         BSERIAL_VARIANT(ctx, SHAPE_TRIANGLE);
@@ -258,15 +264,16 @@
  * }
  * ```
  *
- * When writing, the variant whose value matches `*kind` writes its name.
- * When reading, the variant whose name matches the stream stores its value into `*kind`.
+ * `BSERIAL_ENUM` takes an lvalue of any integer or enum type, not a pointer.
+ * When writing, the variant whose value matches it writes its name.
+ * When reading, the variant whose name matches the stream stores its value into it.
  * A value with no name or a name with no variant is an error.
  *
  * Renaming a variant is handled like renaming a record field:
  * keep the old name as a read-only alias.
  *
  * ```c
- * BSERIAL_ENUM(ctx, kind) {
+ * BSERIAL_ENUM(ctx, *kind) {
  *     if (bserial_mode(ctx) == BSERIAL_MODE_READ) {
  *         // Data written before the rename
  *         bserial_variant(ctx, "SHAPE_BOX", sizeof("SHAPE_BOX") - 1, SHAPE_SQUARE);
@@ -286,7 +293,7 @@
  * ```c
  * bserial_status_t
  * serialize_my_array(bserial_ctx_t* ctx, my_array_t* array) {  // The program's array type
- *     uint64_t len = (uint64_t)my_array_len(array);  // Put length into a variable
+ *     int len = my_array_len(array);  // Put length into a variable
  *     BSERIAL_CHECK_STATUS(bserial_array(ctx, &len));  // Serialize length
  *     if (len > MY_ARRAY_MAX_LEN) { return BSERIAL_MALFORMED; }  // Limit check
  *     my_array_resize(array, len);  // Dynamically resize the array to fit
@@ -311,6 +318,11 @@
  * 4. If using dynamic memory, resize storage to fit length.
  * 5. Loop through elements and serialize them.
  *
+ * Lengths, like `bserial_any_int`, accept a pointer to any integer type.
+ * They are widened to 64 bits on the wire.
+ * A negative length on write or a length that does not fit in the variable on read is an error.
+ * The `_u64` variants such as `bserial_array_u64` are the underlying functions.
+ *
  * ### Table
  *
  * `bserial_array` and `bserial_table` have the same signature.
@@ -328,7 +340,7 @@
  * ```c
  * bserial_status_t
  * serialize_utf8_str(bserial_ctx_t* ctx, my_string_t* str) {  // The program's string type
- *     uint64_t len = (uint64_t)my_string_len(str);  // Put length into a variable
+ *     int len = my_string_len(str);  // Put length into a variable
  *     BSERIAL_CHECK_STATUS(bserial_blob_header(ctx, &len));  // Serialize length
  *     if (len > MY_STRING_MAX_LEN) { return BSERIAL_MALFORMED; }  // Limit check
  *     my_string_resize(str, len);  // Dynamically resize the string
@@ -354,7 +366,7 @@
  * ```c
  * bserial_status_t
  * serialize_variant(bserial_ctx_t* ctx, my_variant_t* variant) {
- *     uint64_t len = 2;  // The size is always 2
+ *     int len = 2;  // The size is always 2
  *     BSERIAL_CHECK_STATUS(bserial_array(ctx, &len));
  *     if (len != 2) { return BSERIAL_MALFORMED; }
  *
@@ -382,7 +394,7 @@
  * ```c
  * bserial_status_t
  * serialize_hashmap(bserial_ctx_t* ctx, my_hashmap_t* hashmap) {
- *     uint64_t len = my_hashmap_len(hashmap);
+ *     size_t len = my_hashmap_len(hashmap);
  *     BSERIAL_CHECK_STATUS(bserial_table(ctx, &len));
  *
  *     if (bserial_mode(ctx) == BSERIAL_MODE_READ) {
@@ -718,53 +730,82 @@ bserial_f32(bserial_ctx_t* ctx, float* value);
 BSERIAL_API bserial_status_t
 bserial_f64(bserial_ctx_t* ctx, double* value);
 
-// Int type adapters
-
-/** @see bserial_any_int */
-BSERIAL_API bserial_status_t
-bserial_i8(bserial_ctx_t* ctx, int8_t* i8);
-
-/** @see bserial_any_int */
-BSERIAL_API bserial_status_t
-bserial_i16(bserial_ctx_t* ctx, int16_t* i16);
-
-/** @see bserial_any_int */
-BSERIAL_API bserial_status_t
-bserial_i32(bserial_ctx_t* ctx, int32_t* i32);
-
-/** @see bserial_any_int */
-BSERIAL_API bserial_status_t
-bserial_u8(bserial_ctx_t* ctx, uint8_t* u8);
-
-/** @see bserial_any_int */
-BSERIAL_API bserial_status_t
-bserial_u16(bserial_ctx_t* ctx, uint16_t* u16);
-
-/** @see bserial_any_int */
-BSERIAL_API bserial_status_t
-bserial_u32(bserial_ctx_t* ctx, uint32_t* u32);
-
 /*! @brief Read/write a boolean */
 BSERIAL_API bserial_status_t
 bserial_bool(bserial_ctx_t* ctx, bool* boolean);
 
+// Generic integer adapters
+
 /**
- * @brief Automatically select the right integer serialization function
+ * @brief Description of an integer type.
  *
- * For types smaller than 64 bits, bound check is also performed.
+ * @see BSERIAL_INT_TYPE
+ */
+typedef struct {
+	uint8_t size;
+	bool is_signed;
+} bserial_int_type_t;
+
+/**
+ * @brief Describe the integer type pointed to by @a ptr.
+ *
+ * @a ptr must point to one of the fundamental integer types.
+ * Fixed-width and other typedefs such as `size_t` resolve to one of those.
+ * Any other pointer type is a compile error.
+ */
+#define BSERIAL_INT_TYPE(ptr) \
+	((bserial_int_type_t){ \
+		.size = (uint8_t)sizeof(*(ptr)), \
+		.is_signed = _Generic((ptr), \
+			char*: CHAR_MIN < 0, \
+			signed char*: true, \
+			unsigned char*: false, \
+			short*: true, \
+			unsigned short*: false, \
+			int*: true, \
+			unsigned int*: false, \
+			long*: true, \
+			unsigned long*: false, \
+			long long*: true, \
+			unsigned long long*: false \
+		), \
+	})
+
+/**
+ * @brief Read/write an integer of any type.
+ *
+ * The value is widened to 64 bits for serialization.
+ * On read, a value that does not fit in the type is an error.
+ *
+ * @see bserial_any_int
+ */
+BSERIAL_API bserial_status_t
+bserial_typed_int(bserial_ctx_t* ctx, void* value, bserial_int_type_t type);
+
+/**
+ * @brief Read/write an integer of any type.
+ *
+ * @param ctx The serialization context.
+ * @param integer Pointer to an integer of any fundamental type or a typedef of one.
  */
 #define bserial_any_int(ctx, integer) \
-	_Generic( \
-		integer, \
-		int8_t*: bserial_i8, \
-		int16_t*: bserial_i16, \
-		int32_t*: bserial_i32, \
-		int64_t*: bserial_sint, \
-		uint8_t*: bserial_u8, \
-		uint16_t*: bserial_u16, \
-		uint32_t*: bserial_u32, \
-		uint64_t*: bserial_uint \
-	)(ctx, integer)
+	bserial_typed_int(ctx, (integer), BSERIAL_INT_TYPE(integer))
+
+/*! @brief A length operation on 64 bits. */
+typedef bserial_status_t (*bserial_len_fn_t)(bserial_ctx_t* ctx, uint64_t* len);
+
+/**
+ * @brief Apply a length operation to a length of any integer type.
+ *
+ * A negative length on write or a length that does not fit in the type on
+ * read is an error.
+ *
+ * @see bserial_array
+ * @see bserial_table
+ * @see bserial_blob_header
+ */
+BSERIAL_API bserial_status_t
+bserial_typed_len(bserial_ctx_t* ctx, bserial_len_fn_t fn, void* len, bserial_int_type_t type);
 
 /**
  * @brief Read/write a binary blob
@@ -775,18 +816,46 @@ bserial_bool(bserial_ctx_t* ctx, bool* boolean);
  * @param ctx The serialization context.
  * @param buf The buffer to read/write.
  * @param len Size of the buffer. Will be set to the actual size.
+ *
+ * @see bserial_blob
  */
 BSERIAL_API bserial_status_t
-bserial_blob(bserial_ctx_t* ctx, char* buf, uint64_t* len);
+bserial_blob_u64(bserial_ctx_t* ctx, char* buf, uint64_t* len);
+
+/**
+ * @brief Read/write a binary blob
+ *
+ * Same as @ref bserial_blob_u64 but @a len can be a pointer to any integer type.
+ *
+ * @param ctx The serialization context.
+ * @param buf The buffer to read/write.
+ * @param len Pointer to the size of the buffer. Will be set to the actual size.
+ */
+#define bserial_blob(ctx, buf, len) \
+	bserial_typed_blob(ctx, buf, (len), BSERIAL_INT_TYPE(len))
+
+/*! @see bserial_blob */
+BSERIAL_API bserial_status_t
+bserial_typed_blob(bserial_ctx_t* ctx, char* buf, void* len, bserial_int_type_t type);
 
 /**
  * @brief Read/write a binary blob's header
  *
  * @param ctx The serialization context.
  * @param len Maximum size. Will be set to the actual size on read.
+ *
+ * @see bserial_blob_header
  */
 BSERIAL_API bserial_status_t
-bserial_blob_header(bserial_ctx_t* ctx, uint64_t* len);
+bserial_blob_header_u64(bserial_ctx_t* ctx, uint64_t* len);
+
+/**
+ * @brief Read/write a binary blob's header
+ *
+ * Same as @ref bserial_blob_header_u64 but @a len can be a pointer to any integer type.
+ */
+#define bserial_blob_header(ctx, len) \
+	bserial_typed_len(ctx, bserial_blob_header_u64, (len), BSERIAL_INT_TYPE(len))
 
 /*! @brief Read/write a binary blob's body */
 BSERIAL_API bserial_status_t
@@ -817,7 +886,15 @@ bserial_symbol(bserial_ctx_t* ctx, const char** buf, uint64_t* len);
  * After this call @a len elements are expected.
  */
 BSERIAL_API bserial_status_t
-bserial_array(bserial_ctx_t* ctx, uint64_t* len);
+bserial_array_u64(bserial_ctx_t* ctx, uint64_t* len);
+
+/**
+ * @brief Read/write an array.
+ *
+ * Same as @ref bserial_array_u64 but @a len can be a pointer to any integer type.
+ */
+#define bserial_array(ctx, len) \
+	bserial_typed_len(ctx, bserial_array_u64, (len), BSERIAL_INT_TYPE(len))
 
 /**
  * @brief Read/write a table.
@@ -829,7 +906,15 @@ bserial_array(bserial_ctx_t* ctx, uint64_t* len);
  * @see bserial_record
  */
 BSERIAL_API bserial_status_t
-bserial_table(bserial_ctx_t* ctx, uint64_t* len);
+bserial_table_u64(bserial_ctx_t* ctx, uint64_t* len);
+
+/**
+ * @brief Read/write a table.
+ *
+ * Same as @ref bserial_table_u64 but @a len can be a pointer to any integer type.
+ */
+#define bserial_table(ctx, len) \
+	bserial_typed_len(ctx, bserial_table_u64, (len), BSERIAL_INT_TYPE(len))
 
 /**
  * @brief Read/write a record.
@@ -928,10 +1013,20 @@ bserial_variant(bserial_ctx_t* ctx, const char* name, uint64_t len, int value);
 /**
  * @brief Read/write an enum.
  *
+ * Unlike @ref bserial_enum, this takes an lvalue of any integer or enum type
+ * instead of a pointer.
+ * The value is copied into a temporary `int` for the duration of the loop and
+ * assigned back at the end.
+ *
  * @param ctx The serialization context.
- * @param value Pointer to the enum value.
+ * @param lvalue The enum value.
+ *   It is evaluated twice and must not have side effects.
  */
-#define BSERIAL_ENUM(ctx, value) while (bserial_enum(ctx, value))
+#define BSERIAL_ENUM(ctx, lvalue) \
+	for ( \
+		int bserial__enum_value = (int)(lvalue); \
+		bserial_enum(ctx, &bserial__enum_value) || (((lvalue) = bserial__enum_value), false); \
+	)
 
 /**
  * Declare a variant in an enum
@@ -1555,82 +1650,134 @@ bserial_sint(bserial_ctx_t* ctx, int64_t* value) {
 	return bserial_end_op(ctx, BSERIAL_OP_NUMERIC);
 }
 
-bserial_status_t
-bserial_i8(bserial_ctx_t* ctx, int8_t* i8) {
-	int64_t i64 = *i8;
-	BSERIAL_CHECK_STATUS(bserial_sint(ctx, &i64));
+static inline bool
+bserial_load_sint(const void* value, uint8_t size, int64_t* out) {
+	switch (size) {
+		case 1: { int8_t  v; memcpy(&v, value, sizeof(v)); *out = v; return true; }
+		case 2: { int16_t v; memcpy(&v, value, sizeof(v)); *out = v; return true; }
+		case 4: { int32_t v; memcpy(&v, value, sizeof(v)); *out = v; return true; }
+		case 8: { int64_t v; memcpy(&v, value, sizeof(v)); *out = v; return true; }
+		default: return false;
+	}
+}
 
-	if ((int64_t)INT8_MIN <= i64 && i64 <= (int64_t)INT8_MAX) {
-		*i8 = (int8_t)i64;
-		return BSERIAL_OK;
-	} else {
-		return bserial_malformed(ctx);
+static inline bool
+bserial_load_uint(const void* value, uint8_t size, uint64_t* out) {
+	switch (size) {
+		case 1: { uint8_t  v; memcpy(&v, value, sizeof(v)); *out = v; return true; }
+		case 2: { uint16_t v; memcpy(&v, value, sizeof(v)); *out = v; return true; }
+		case 4: { uint32_t v; memcpy(&v, value, sizeof(v)); *out = v; return true; }
+		case 8: { uint64_t v; memcpy(&v, value, sizeof(v)); *out = v; return true; }
+		default: return false;
+	}
+}
+
+// Store with range check
+static inline bool
+bserial_store_sint(void* value, uint8_t size, int64_t in) {
+	switch (size) {
+		case 1: {
+			if (in < INT8_MIN || in > INT8_MAX) { return false; }
+			int8_t v = (int8_t)in; memcpy(value, &v, sizeof(v)); return true;
+		}
+		case 2: {
+			if (in < INT16_MIN || in > INT16_MAX) { return false; }
+			int16_t v = (int16_t)in; memcpy(value, &v, sizeof(v)); return true;
+		}
+		case 4: {
+			if (in < INT32_MIN || in > INT32_MAX) { return false; }
+			int32_t v = (int32_t)in; memcpy(value, &v, sizeof(v)); return true;
+		}
+		case 8: { memcpy(value, &in, sizeof(in)); return true; }
+		default: return false;
+	}
+}
+
+// Store with range check
+static inline bool
+bserial_store_uint(void* value, uint8_t size, uint64_t in) {
+	switch (size) {
+		case 1: {
+			if (in > UINT8_MAX) { return false; }
+			uint8_t v = (uint8_t)in; memcpy(value, &v, sizeof(v)); return true;
+		}
+		case 2: {
+			if (in > UINT16_MAX) { return false; }
+			uint16_t v = (uint16_t)in; memcpy(value, &v, sizeof(v)); return true;
+		}
+		case 4: {
+			if (in > UINT32_MAX) { return false; }
+			uint32_t v = (uint32_t)in; memcpy(value, &v, sizeof(v)); return true;
+		}
+		case 8: { memcpy(value, &in, sizeof(in)); return true; }
+		default: return false;
 	}
 }
 
 bserial_status_t
-bserial_i16(bserial_ctx_t* ctx, int16_t* i16) {
-	int64_t i64 = *i16;
-	BSERIAL_CHECK_STATUS(bserial_sint(ctx, &i64));
+bserial_typed_int(bserial_ctx_t* ctx, void* value, bserial_int_type_t type) {
+	BSERIAL_CHECK_STATUS(ctx->status);
 
-	if ((int64_t)INT16_MIN <= i64 && i64 <= (int64_t)INT16_MAX) {
-		*i16 = (int16_t)i64;
-		return BSERIAL_OK;
+	if (type.is_signed) {
+		int64_t wide;
+		if (!bserial_load_sint(value, type.size, &wide)) { return bserial_malformed(ctx); }
+		BSERIAL_CHECK_STATUS(bserial_sint(ctx, &wide));
+		if (!bserial_store_sint(value, type.size, wide)) { return bserial_malformed(ctx); }
 	} else {
-		return bserial_malformed(ctx);
+		uint64_t wide;
+		if (!bserial_load_uint(value, type.size, &wide)) { return bserial_malformed(ctx); }
+		BSERIAL_CHECK_STATUS(bserial_uint(ctx, &wide));
+		if (!bserial_store_uint(value, type.size, wide)) { return bserial_malformed(ctx); }
 	}
+
+	return BSERIAL_OK;
+}
+
+// A length is unsigned on the wire but may live in a signed variable
+static inline bserial_status_t
+bserial_load_len(bserial_ctx_t* ctx, const void* len, bserial_int_type_t type, uint64_t* out) {
+	if (type.is_signed) {
+		int64_t wide;
+		if (!bserial_load_sint(len, type.size, &wide)) { return bserial_malformed(ctx); }
+		if (wide < 0) { return bserial_malformed(ctx); }
+		*out = (uint64_t)wide;
+	} else {
+		if (!bserial_load_uint(len, type.size, out)) { return bserial_malformed(ctx); }
+	}
+
+	return BSERIAL_OK;
+}
+
+static inline bserial_status_t
+bserial_store_len(bserial_ctx_t* ctx, void* len, bserial_int_type_t type, uint64_t in) {
+	if (type.is_signed) {
+		if (in > INT64_MAX) { return bserial_malformed(ctx); }
+		if (!bserial_store_sint(len, type.size, (int64_t)in)) { return bserial_malformed(ctx); }
+	} else {
+		if (!bserial_store_uint(len, type.size, in)) { return bserial_malformed(ctx); }
+	}
+
+	return BSERIAL_OK;
 }
 
 bserial_status_t
-bserial_i32(bserial_ctx_t* ctx, int32_t* i32) {
-	int64_t i64 = *i32;
-	BSERIAL_CHECK_STATUS(bserial_sint(ctx, &i64));
+bserial_typed_len(bserial_ctx_t* ctx, bserial_len_fn_t fn, void* len, bserial_int_type_t type) {
+	BSERIAL_CHECK_STATUS(ctx->status);
 
-	if ((int64_t)INT32_MIN <= i64 && i64 <= (int64_t)INT32_MAX) {
-		*i32 = (int32_t)i64;
-		return BSERIAL_OK;
-	} else {
-		return bserial_malformed(ctx);
-	}
+	uint64_t wide;
+	BSERIAL_CHECK_STATUS(bserial_load_len(ctx, len, type, &wide));
+	BSERIAL_CHECK_STATUS(fn(ctx, &wide));
+	return bserial_store_len(ctx, len, type, wide);
 }
 
 bserial_status_t
-bserial_u8(bserial_ctx_t* ctx, uint8_t* u8) {
-	uint64_t u64 = *u8;
-	BSERIAL_CHECK_STATUS(bserial_uint(ctx, &u64));
+bserial_typed_blob(bserial_ctx_t* ctx, char* buf, void* len, bserial_int_type_t type) {
+	BSERIAL_CHECK_STATUS(ctx->status);
 
-	if (u64 <= (uint64_t)UINT8_MAX) {
-		*u8 = (uint8_t)u64;
-		return BSERIAL_OK;
-	} else {
-		return bserial_malformed(ctx);
-	}
-}
-
-bserial_status_t
-bserial_u16(bserial_ctx_t* ctx, uint16_t* u16) {
-	uint64_t u64 = *u16;
-	BSERIAL_CHECK_STATUS(bserial_uint(ctx, &u64));
-
-	if (u64 <= (uint64_t)UINT16_MAX) {
-		*u16 = (uint16_t)u64;
-		return BSERIAL_OK;
-	} else {
-		return bserial_malformed(ctx);
-	}
-}
-
-bserial_status_t
-bserial_u32(bserial_ctx_t* ctx, uint32_t* u32) {
-	uint64_t u64 = *u32;
-	BSERIAL_CHECK_STATUS(bserial_uint(ctx, &u64));
-
-	if (u64 <= (uint64_t)UINT32_MAX) {
-		*u32 = (uint32_t)u64;
-		return BSERIAL_OK;
-	} else {
-		return bserial_malformed(ctx);
-	}
+	uint64_t wide;
+	BSERIAL_CHECK_STATUS(bserial_load_len(ctx, len, type, &wide));
+	BSERIAL_CHECK_STATUS(bserial_blob_u64(ctx, buf, &wide));
+	return bserial_store_len(ctx, len, type, wide);
 }
 
 bserial_status_t
@@ -1703,9 +1850,9 @@ bserial_marker_and_length(bserial_ctx_t* ctx, uint8_t marker, uint64_t* length) 
 }
 
 bserial_status_t
-bserial_blob(bserial_ctx_t* ctx, char* buf, uint64_t* len) {
+bserial_blob_u64(bserial_ctx_t* ctx, char* buf, uint64_t* len) {
 	uint64_t actual_len = *len;
-	BSERIAL_CHECK_STATUS(bserial_blob_header(ctx, &actual_len));
+	BSERIAL_CHECK_STATUS(bserial_blob_header_u64(ctx, &actual_len));
 	if (actual_len > *len) { return bserial_malformed(ctx); }
 	*len = actual_len;
 
@@ -1715,7 +1862,7 @@ bserial_blob(bserial_ctx_t* ctx, char* buf, uint64_t* len) {
 }
 
 bserial_status_t
-bserial_blob_header(bserial_ctx_t* ctx, uint64_t* len) {
+bserial_blob_header_u64(bserial_ctx_t* ctx, uint64_t* len) {
 	BSERIAL_CHECK_STATUS(bserial_begin_op(ctx, BSERIAL_OP_BLOB));
 	BSERIAL_CHECK_STATUS(ctx->status = bserial_marker_and_length(ctx, BSERIAL_BLOB, len));
 
@@ -2056,7 +2203,7 @@ bserial_symbol(bserial_ctx_t* ctx, const char** buf, uint64_t* len) {
 }
 
 bserial_status_t
-bserial_array(bserial_ctx_t* ctx, uint64_t* len) {
+bserial_array_u64(bserial_ctx_t* ctx, uint64_t* len) {
 	BSERIAL_CHECK_STATUS(bserial_begin_op(ctx, BSERIAL_OP_ARRAY));
 	BSERIAL_CHECK_STATUS(bserial_marker_and_length(ctx, BSERIAL_ARRAY, len));
 
@@ -2069,7 +2216,7 @@ bserial_array(bserial_ctx_t* ctx, uint64_t* len) {
 }
 
 bserial_status_t
-bserial_table(bserial_ctx_t* ctx, uint64_t* len) {
+bserial_table_u64(bserial_ctx_t* ctx, uint64_t* len) {
 	BSERIAL_CHECK_STATUS(bserial_begin_op(ctx, BSERIAL_OP_TABLE));
 	BSERIAL_CHECK_STATUS(bserial_marker_and_length(ctx, BSERIAL_TABLE, len));
 

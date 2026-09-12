@@ -16,7 +16,7 @@ enum {
 
 static bserial_status_t
 serialize_shape(bserial_ctx_t* ctx, int* shape) {
-	BSERIAL_ENUM(ctx, shape) {
+	BSERIAL_ENUM(ctx, *shape) {
 		BSERIAL_VARIANT(ctx, SHAPE_CIRCLE);
 		BSERIAL_VARIANT(ctx, SHAPE_SQUARE);
 		BSERIAL_VARIANT(ctx, SHAPE_TRIANGLE);
@@ -34,7 +34,7 @@ enum {
 
 static bserial_status_t
 serialize_shape_renumbered(bserial_ctx_t* ctx, int* shape) {
-	BSERIAL_ENUM(ctx, shape) {
+	BSERIAL_ENUM(ctx, *shape) {
 		bserial_variant(ctx, "SHAPE_CIRCLE", sizeof("SHAPE_CIRCLE") - 1, SHAPE2_CIRCLE);
 		bserial_variant(ctx, "SHAPE_SQUARE", sizeof("SHAPE_SQUARE") - 1, SHAPE2_SQUARE);
 		bserial_variant(ctx, "SHAPE_TRIANGLE", sizeof("SHAPE_TRIANGLE") - 1, SHAPE2_TRIANGLE);
@@ -51,7 +51,7 @@ enum {
 
 static bserial_status_t
 serialize_shape_renamed(bserial_ctx_t* ctx, int* shape) {
-	BSERIAL_ENUM(ctx, shape) {
+	BSERIAL_ENUM(ctx, *shape) {
 		if (bserial_mode(ctx) == BSERIAL_MODE_READ) {
 			bserial_variant(ctx, "SHAPE_SQUARE", sizeof("SHAPE_SQUARE") - 1, SHAPE3_BOX);
 		}
@@ -127,11 +127,28 @@ BTEST(enums, unnamed_value) {
 	BTEST_ASSERT(serialize_shape(ctx, &bogus) == BSERIAL_MALFORMED);
 }
 
+// A real enum type and a narrow storage type both work as lvalues
+typedef enum {
+	KIND_STATIC = 100,
+	KIND_DYNAMIC = 200,
+} kind_t;
+
+static bserial_status_t
+serialize_kind(bserial_ctx_t* ctx, kind_t* kind) {
+	BSERIAL_ENUM(ctx, *kind) {
+		BSERIAL_VARIANT(ctx, KIND_STATIC);
+		BSERIAL_VARIANT(ctx, KIND_DYNAMIC);
+	}
+
+	return bserial_status(ctx);
+}
+
 typedef struct {
 	int shape;
 	vec2f_t pos;
+	kind_t kind;
 	int history_len;
-	int history[4];
+	uint8_t history[4];
 } entity_t;
 
 static bserial_status_t
@@ -145,13 +162,21 @@ serialize_entity(bserial_ctx_t* ctx, entity_t* entity) {
 			BSERIAL_CHECK_STATUS(serialize_vec2f(ctx, &entity->pos));
 		}
 
+		BSERIAL_KEY(ctx, kind) {
+			BSERIAL_CHECK_STATUS(serialize_kind(ctx, &entity->kind));
+		}
+
 		BSERIAL_KEY(ctx, history) {
-			uint64_t len = (uint64_t)entity->history_len;
-			BSERIAL_CHECK_STATUS(bserial_array(ctx, &len));
-			if (len > 4) { return BSERIAL_MALFORMED; }
-			entity->history_len = (int)len;
+			BSERIAL_CHECK_STATUS(bserial_array(ctx, &entity->history_len));
+			if (entity->history_len > 4) { return BSERIAL_MALFORMED; }
 			for (int i = 0; i < entity->history_len; ++i) {
-				BSERIAL_CHECK_STATUS(serialize_shape(ctx, &entity->history[i]));
+				// uint8_t storage for an enum
+				BSERIAL_ENUM(ctx, entity->history[i]) {
+					BSERIAL_VARIANT(ctx, SHAPE_CIRCLE);
+					BSERIAL_VARIANT(ctx, SHAPE_SQUARE);
+					BSERIAL_VARIANT(ctx, SHAPE_TRIANGLE);
+				}
+				BSERIAL_CHECK_STATUS(bserial_status(ctx));
 			}
 		}
 	}
@@ -175,6 +200,7 @@ BTEST(enums, nested) {
 	entity_t entity = {
 		.shape = SHAPE_CIRCLE,
 		.pos = { 1.f, 2.f },
+		.kind = KIND_DYNAMIC,
 		.history_len = 3,
 		.history = { SHAPE_SQUARE, SHAPE_CIRCLE, SHAPE_TRIANGLE },
 	};
@@ -195,6 +221,7 @@ BTEST(enums, nested) {
 	BTEST_ASSERT(entity3.pos.x == 1.f);
 	BTEST_ASSERT(entity3.pos.y == 2.f);
 	BTEST_ASSERT(entity3.shape == 0);
+	BTEST_ASSERT(entity3.kind == 0);
 	BTEST_ASSERT(entity3.history_len == 0);
 }
 
