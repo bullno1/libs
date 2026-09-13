@@ -207,6 +207,36 @@
 #define bco_userdata bco_get_userdata(bco__coro)
 
 /**
+ * The handle of the running coroutine, as it was given to @ref bco_spawn
+ *
+ * From within a subcoroutine this is still the root of the @ref bco_call
+ * chain: the handle the host holds and the only one valid for @ref bco_send,
+ * @ref bco_resume and co.
+ *
+ * The typical use is to register for an event right before waiting for it:
+ * push the handle into a host list, then @ref bco_recv.
+ * Since the coroutine runs on the same thread as the host, there is no window
+ * where a coroutine is registered but not waiting.
+ * The host then broadcasts with @ref bco_send to every entry and clears the
+ * list.
+ * An entry left behind by a coroutine that was terminated in the meantime is
+ * harmless: the send is refused.
+ *
+ * Example:
+ *
+ * @snippet samples/bco.c bco_self
+ *
+ * The host side:
+ *
+ * @snippet samples/bco.c bco_self_host
+ *
+ * @see bco_recv
+ *
+ * @hideinitializer
+ */
+#define bco_self bco__self(bco__coro)
+
+/**
  * Declare coroutine variables
  *
  * They are persisted between runs.
@@ -792,6 +822,9 @@ bco__recv_end(bco_t* coro);
 BCO_API bool
 bco__send(bco_t* coro, const char* type_name, size_t size, const void* value);
 
+BCO_API bco_t*
+bco__self(bco_t* coro);
+
 BCO_API void
 bco__zero_vars(bco_t* coro);
 
@@ -1121,6 +1154,11 @@ bco__send(bco_t* coro, const char* type_name, size_t size, const void* value) {
 	memcpy(root->recv_at, value, size);
 	root->recv_ready = true;
 	return true;
+}
+
+bco_t*
+bco__self(bco_t* coro) {
+	return coro->root;
 }
 
 const char bco__yps[] = "";

@@ -533,3 +533,69 @@ BTEST(recv, a_received_type_may_change_size_across_a_reload) {
 }
 
 #undef hit_t
+
+// --- bco_self: register for one event, then wait for it
+
+typedef struct { int code; } key_press_t;
+
+static bco_t* key_waiters[4];
+static int num_key_waiters;
+
+bco_static(key_waiter, int id) {
+	bco_vars(key_press_t key;)
+	bco_begin
+	key_waiters[num_key_waiters++] = bco_self;
+	bco_recv(key_press_t, key);
+	trace("w%d:key%d", bco_arg(id), bco_var(key).code);
+	bco_end
+}
+
+bco_static(key_waiter_parent, int id) {
+	bco_begin
+	bco_call(key_waiter, bco_arg(id));
+	trace("parent:done");
+	bco_end
+}
+
+static void
+broadcast_key(int code) {
+	for (int i = 0; i < num_key_waiters; ++i) {
+		bco_send(key_waiters[i], key_press_t, { .code = code });
+	}
+	num_key_waiters = 0;
+}
+
+// The host only ever holds root handles, so a subcoroutine registering itself
+// must hand out its root or the broadcast could not reach it.
+BTEST(recv, self_is_the_root_handle) {
+	num_key_waiters = 0;
+	bco_spawn(coro_a(), key_waiter_parent, 1);
+	bco_spawn(coro_b(), key_waiter, 2);
+	bco_resume(coro_a());
+	bco_resume(coro_b());
+
+	BTEST_EXPECT_EQUAL("%d", num_key_waiters, 2);
+	BTEST_EXPECT_EQUAL("%p", (void*)key_waiters[0], (void*)coro_a());
+	BTEST_EXPECT_EQUAL("%p", (void*)key_waiters[1], (void*)coro_b());
+
+	broadcast_key(65);
+	bco_resume(coro_a());
+	bco_resume(coro_b());
+	BCO_EXPECT_TRACE("w1:key65 parent:done w2:key65");
+}
+
+// A coroutine terminated between registering and the broadcast leaves a stale
+// entry behind. The send is refused, nothing else needs to happen.
+BTEST(recv, stale_registration_is_harmless) {
+	num_key_waiters = 0;
+	bco_spawn(coro_a(), key_waiter, 1);
+	bco_spawn(coro_b(), key_waiter, 2);
+	bco_resume(coro_a());
+	bco_resume(coro_b());
+	bco_terminate(coro_a());
+
+	broadcast_key(66);
+	BTEST_EXPECT_EQUAL("%d", num_key_waiters, 0);
+	bco_resume(coro_b());
+	BCO_EXPECT_TRACE("w2:key66");
+}
