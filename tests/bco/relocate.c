@@ -36,15 +36,15 @@ static int parent_line_call_line;
 		BTEST_EXPECT_EQUAL("%d", LINE, blocked_at.line); \
 	} while (0)
 
-bco_decl_static(worker, int n);
+bco_decl_static(void, worker, int n);
 bco_impl(worker) { worker_build(bco__coro, bco__args); }
 
-bco_decl_static(leaf, int n);
+bco_decl_static(void, leaf, int n);
 bco_impl(leaf) { leaf_build(bco__coro, bco__args); }
 
 // --- Build 1
 
-bco_static(worker_v1, int n) {
+bco_static(void, worker_v1, int n) {
 	bco_vars(int i;)
 	bco_yield_points(WAIT_A, WAIT_B)
 	bco_begin
@@ -63,7 +63,7 @@ bco_static(worker_v1, int n) {
 // --- Build 2: names declared in another order, body shifted by new lines and
 // a new point. WAIT_B must still land in front of "v2:c".
 
-bco_static(worker_v2, int n) {
+bco_static(void, worker_v2, int n) {
 	bco_vars(int i;)
 	bco_yield_points(WAIT_C, WAIT_B, WAIT_A)
 	bco_begin
@@ -82,7 +82,7 @@ bco_static(worker_v2, int n) {
 
 // --- Build 3: WAIT_B no longer exists
 
-bco_static(worker_v3, int n) {
+bco_static(void, worker_v3, int n) {
 	bco_yield_points(WAIT_A)
 	bco_begin
 	bco_at(WAIT_A) bco_yield();
@@ -181,7 +181,7 @@ BTEST(relocate, a_vanished_point_terminates_with_cleanup) {
 // --- Subcoroutines: the whole chain has to be at named points and every link
 // is relocated with its own build's table.
 
-bco_static(leaf_v1, int n) {
+bco_static(void, leaf_v1, int n) {
 	bco_yield_points(LEAF_WAIT)
 	bco_begin
 	trace("leaf1:enter");
@@ -192,7 +192,7 @@ bco_static(leaf_v1, int n) {
 	trace("leaf1:cleanup");
 }
 
-bco_static(leaf_v2, int n) {
+bco_static(void, leaf_v2, int n) {
 	bco_yield_points(LEAF_EXTRA, LEAF_WAIT)
 	bco_begin
 	trace("leaf2:enter");
@@ -206,7 +206,7 @@ bco_static(leaf_v2, int n) {
 static void run_leaf_v1(bco_t* coro, void* args) { leaf_v1(coro, args); }
 static void run_leaf_v2(bco_t* coro, void* args) { leaf_v2(coro, args); }
 
-bco_static(parent_v1, int n) {
+bco_static(void, parent_v1, int n) {
 	bco_yield_points(WAIT_LEAF)
 	bco_begin
 	trace("parent:enter");
@@ -216,7 +216,7 @@ bco_static(parent_v1, int n) {
 	trace("parent:cleanup");
 }
 
-bco_static(parent_line, int n) {
+bco_static(void, parent_line, int n) {
 	bco_begin
 	parent_line_call_line = __LINE__; bco_call(leaf, 0);
 	bco_end
@@ -262,7 +262,7 @@ BTEST(relocate, relocates_the_whole_chain) {
 	);
 }
 
-bco_static(joiner_v1, int n) {
+bco_static(void, joiner_v1, int n) {
 	bco_yield_points(WAIT_OTHER)
 	bco_begin
 	trace("joiner:start");
