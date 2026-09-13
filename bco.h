@@ -881,7 +881,6 @@ struct bco_s {
 	void* args;
 	char* sp;
 	char* bp;
-	void* userdata;
 	bco_t* subcoro;
 	const char* file;  // Only meaningful at a line-based yield
 	int resume_point;
@@ -902,6 +901,7 @@ _Static_assert(_Alignof(bco_t) == _Alignof(bco_align_t), "Alignment mismatch");
 // Only the innermost coroutine of a chain can be waiting for a value, the rest
 // are parked in their bco_call, so one wait per root is enough.
 typedef struct {
+	void* userdata;
 	bco_t* receiver; // The receiving coroutine
 	void* recv_at; // The receiving variable, in the receiver's frame
 	const char* recv_type; // Type name literal, NULL after bco_reload_begin hashed it
@@ -1001,15 +1001,12 @@ bco_copy(bco_t* dst, bco_t* src) {
 
 void
 bco_set_userdata(bco_t* coro, void* userdata) {
-	coro->userdata = userdata;
-	if (coro->subcoro != NULL) {
-		bco_set_userdata(coro->subcoro, userdata);
-	}
+	bco__root(coro)->userdata = userdata;
 }
 
 void*
 bco_get_userdata(bco_t* coro) {
-	return coro->userdata;
+	return bco__root(coro)->userdata;
 }
 
 void*
@@ -1032,7 +1029,6 @@ bco__spawn(bco_t* coro, bco_t* parent, bco_fn_t fn, size_t args_size, size_t arg
 	coro->relocating = false;
 	coro->status = BCO_SUSPENDED;
 	coro->subcoro = NULL;
-	coro->userdata = NULL;
 	coro->sp = coro->stack;
 	if (parent == NULL) {
 		coro->root = coro;
