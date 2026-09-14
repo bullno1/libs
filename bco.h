@@ -16,11 +16,31 @@
  * * @ref bco_call : Call into a subcoroutine
  * * @ref bco_return : Early return
  * * @ref bco_join : Wait for another coroutine
+ * * @ref bco_recv : Wait for a value of a given type
  *
  * To access arguments, use @ref bco_arg
  * To have local variables that get persisted between runs, use @ref bco_vars
  *
  * Checkout the rest of the documentation for other features such as @ref bco_copy, @ref bco_terminate...
+ *
+ * ## Messaging
+ *
+ * A coroutine can suspend itself until a value of a given type is handed to it
+ * with @ref bco_recv.
+ * The host, or another coroutine, provides it with @ref bco_send.
+ *
+ * This is a rendezvous, not a mailbox: a send is only accepted while the
+ * coroutine is suspended at a matching @ref bco_recv and nothing has been
+ * delivered yet.
+ * Otherwise @ref bco_send returns false and leaves the value untouched, so the
+ * sender can decide whether to drop it, keep the latest or queue it.
+ * A freshly spawned coroutine has not reached its receive yet, so resume it
+ * once before sending.
+ *
+ * Sending never runs coroutine code.
+ * The value is only picked up on the next @ref bco_resume.
+ * Until then, resuming a waiting coroutine returns @ref BCO_SUSPENDED without
+ * entering it.
  *
  * ## Hot reload
  *
@@ -364,16 +384,7 @@
  *
  * @hideinitializer
  */
-#define bco_spawn(CORO, NAME, ...) \
-	do { \
-		bco__spawn( \
-			CORO, \
-			BCO_WRAPPER(bco__concat(bco__wrapper_, NAME)), \
-			sizeof(bco__arg_type(NAME)), \
-			_Alignof(bco__arg_type(NAME)), \
-			&(bco__arg_type(NAME)){ __VA_ARGS__ } \
-		); \
-	} while (0)
+#define bco_spawn(CORO, NAME, ...) bco__spawn_from(CORO, NULL, NAME, __VA_ARGS__)
 
 /**
  * Spawn a subcoroutine from within a coroutine and transfer control to it
@@ -386,7 +397,7 @@
 #define bco_call(NAME, ...) \
 	do { \
 		_Static_assert(bco__begin_declared == 1 && bco__end_declared == 0, "bco_call can only be used *between* bco_begin and bco_end"); \
-		bco_spawn(bco__alloc_subcoro(bco__coro), NAME, __VA_ARGS__); \
+		bco__spawn_from(bco__alloc_subcoro(bco__coro), bco__coro, NAME, __VA_ARGS__); \
 		bco_set_userdata(bco__subcoro(bco__coro), bco_get_userdata(bco__coro)); \
 		bco_join(bco__subcoro(bco__coro)); \
 		bco__free_subcoro(bco__coro); \
@@ -404,6 +415,79 @@
 		_Static_assert(bco__begin_declared == 1 && bco__end_declared == 0, "bco_join can only be used *between* bco_begin and bco_end"); \
 		while (bco_resume(CORO) != BCO_TERMINATED) { bco_yield(); } \
 	} while (0)
+
+/**
+ * Wait for a value of the given type
+ *
+ * The coroutine is suspended until a matching @ref bco_send is accepted and
+ * the coroutine is resumed.
+ *
+ * `VAR` be a variable name declared with @ref bco_vars and have exactly the type
+ * `TYPE`.
+ * A coroutine cloned with @ref bco_copy will receive the result into its own
+ * variable.
+ *
+ * A type is identified by how it is spelled: `hit_t` and `struct hit` are
+ * different types to this macro, so both sides must use the same spelling.
+ *
+ * Only valid between @ref bco_begin and @ref bco_end.
+ *
+ * @param TYPE the type of the value to wait for
+ * @param VAR name of the coroutine variable to receive the value
+ *
+ * Example:
+ *
+ * @snippet samples/bco.c bco_recv
+ *
+ * @see bco_send
+ *
+ * @hideinitializer
+ */
+#define bco_recv(TYPE, VAR) \
+	do { \
+		_Static_assert(bco__begin_declared == 1 && bco__end_declared == 0, "bco_recv can only be used *between* bco_begin and bco_end"); \
+		_Static_assert(bco__vars_declared == 1, "bco_recv needs a coroutine variable declared with bco_vars"); \
+		_Static_assert( \
+			_Generic(bco__vars->VAR, TYPE: 1, default: 0), \
+			"The coroutine variable given to bco_recv does not have the received type" \
+		); \
+		bco__recv_begin(bco__coro, &bco__vars->VAR, #TYPE, sizeof(TYPE)); \
+		while (!bco__recv_ready(bco__coro)) { bco_yield(); } \
+		bco__recv_end(bco__coro); \
+	} while (0)
+
+/**
+ * Hand a value to a coroutine waiting for it with @ref bco_recv
+ *
+ * The value is only accepted when the coroutine, or the innermost coroutine it
+ * is calling, is suspended at a @ref bco_recv for `TYPE` and nothing has been
+ * delivered to it yet.
+ * In every other case, nothing happens and false is returned.
+ *
+ * The value is copied into the coroutine's stack.
+ *
+ * This **does not** resume the coroutine.
+ * It can be called from the host or from within another coroutine.
+ *
+ * The type may change layout across a hot reload while a coroutine is waiting
+ * on it: the receiver was reloaded along with it and reads whatever the new
+ * build writes.
+ *
+ * @param CORO the coroutine handle given to @ref bco_spawn
+ * @param TYPE the type of the value, spelled the same as in @ref bco_recv
+ * @param ... the value: a variable, an expression or a braced initializer list
+ * @return whether the value was accepted
+ *
+ * Example:
+ *
+ * @snippet samples/bco.c bco_send
+ *
+ * @see bco_recv
+ *
+ * @hideinitializer
+ */
+#define bco_send(CORO, TYPE, ...) \
+	bco__send(CORO, #TYPE, sizeof(TYPE), (TYPE[1]){ __VA_ARGS__ })
 
 /**
  * Early return from the coroutine
@@ -476,6 +560,10 @@ bco_resume(bco_t* coro);
  * be forcefully terminated.
  *
  * Cleanup code after @ref bco_end will be run if the coroutine has started.
+ *
+ * A pending @ref bco_recv is cancelled.
+ * A value that was delivered but not yet consumed is already in its variable,
+ * so the cleanup section sees it, but the body never gets to act on it.
  *
  * @param coro the coroutine to terminate
  *
@@ -635,6 +723,18 @@ bco_reload_end(bco_t* coro);
 
 #define bco__arg_type(NAME) bco__concat(bco__args_, NAME)
 
+#define bco__spawn_from(CORO, PARENT, NAME, ...) \
+	do { \
+		bco__spawn( \
+			CORO, \
+			PARENT, \
+			BCO_WRAPPER(bco__concat(bco__wrapper_, NAME)), \
+			sizeof(bco__arg_type(NAME)), \
+			_Alignof(bco__arg_type(NAME)), \
+			&(bco__arg_type(NAME)){ __VA_ARGS__ } \
+		); \
+	} while (0)
+
 #define bco__fn(NAME) void NAME(bco_t* bco__coro, bco__arg_type(NAME)* bco__args)
 
 #define bco__decl(LINKAGE, NAME, ...) \
@@ -678,7 +778,19 @@ bco_reload_end(bco_t* coro);
 typedef void (*bco_fn_t)(bco_t* coro, void* args);
 
 BCO_API void
-bco__spawn(bco_t* coro, bco_fn_t fn, size_t args_size, size_t args_alignment, void* args);
+bco__spawn(bco_t* coro, bco_t* parent, bco_fn_t fn, size_t args_size, size_t args_alignment, void* args);
+
+BCO_API void
+bco__recv_begin(bco_t* coro, void* dst, const char* type_name, size_t size);
+
+BCO_API bool
+bco__recv_ready(bco_t* coro);
+
+BCO_API void
+bco__recv_end(bco_t* coro);
+
+BCO_API bool
+bco__send(bco_t* coro, const char* type_name, size_t size, const void* value);
 
 BCO_API void
 bco__zero_vars(bco_t* coro);
@@ -744,16 +856,47 @@ struct bco_s {
 	bool relocating;
 	bool relocate_found;
 	bco_status_t status;
+	bco_t* root;  // Self for a root coroutine
 
 	_Alignas(bco_align_t) char stack[];
 };
 
 _Static_assert(_Alignof(bco_t) == _Alignof(bco_align_t), "Alignment mismatch");
 
+// State that only the root of a bco_call chain needs.
+// It sits at the start of the root's stack instead of in every header.
+//
+// Only the innermost coroutine of a chain can be waiting for a value, the rest
+// are parked in their bco_call, so one wait per root is enough.
+typedef struct {
+	bco_t* receiver; // The receiving coroutine
+	void* recv_at; // The receiving variable, in the receiver's frame
+	const char* recv_type; // Type name literal, NULL after bco_reload_begin hashed it
+	unsigned int recv_type_hash; // Only meaningful when name is NULL
+	size_t recv_size;
+	bool recv_ready; // A value has been delivered but not consumed yet
+} bco__root_t;
+
+#define BCO__ROOT_SIZE ((sizeof(bco__root_t) + BCO_MAX_ALIGN - 1) & ~((size_t)BCO_MAX_ALIGN - 1))
+
+static inline bco__root_t*
+bco__root(bco_t* coro) {
+	return (bco__root_t*)coro->root->stack;
+}
+
+static bool
+bco__is_receiving(bco_t* coro) {
+	bco__root_t* root = bco__root(coro);
+	return root->receiver != NULL && !root->recv_ready;
+}
+
 bco_status_t
 bco_resume(bco_t* coro) {
 	if (coro->status != BCO_SUSPENDED) { return coro->status; }
 	BCO_ASSERT(!coro->relocating, "Coroutine was resumed between bco_reload_begin and bco_reload_end");
+	// A chain waiting for a value has nothing to do until it arrives.
+	// Termination still has to get through to run the cleanup section.
+	if (coro->resume_point != -1 && bco__is_receiving(coro)) { return BCO_SUSPENDED; }
 
 	coro->status = BCO_RUNNING;
 	coro->sp = coro->bp;
@@ -764,7 +907,7 @@ bco_resume(bco_t* coro) {
 
 size_t
 bco_mem_size(size_t stack_size) {
-	return sizeof(bco_t) + stack_size;
+	return sizeof(bco_t) + BCO__ROOT_SIZE + stack_size;
 }
 
 bco_status_t
@@ -794,18 +937,32 @@ bco__copy_ptr(bco_t* dst, bco_t* src, void* src_ptr) {
 	return dst->stack + ((char*)src_ptr - src->stack);
 }
 
-void
-bco_copy(bco_t* dst, bco_t* src) {
+static void
+bco__copy(bco_t* dst, bco_t* src, bco_t* dst_root) {
 	*dst = *src;
 	memcpy(dst->stack, src->stack, src->sp - src->stack);
 
+	dst->root = dst_root;
 	dst->bp = bco__copy_ptr(dst, src, src->bp);
 	dst->sp = bco__copy_ptr(dst, src, src->sp);
 	dst->args = bco__copy_ptr(dst, src, src->args);
 
 	if (src->subcoro != NULL) {
 		dst->subcoro = bco__copy_ptr(dst, src, src->subcoro);
-		bco_copy(dst->subcoro, src->subcoro);
+		bco__copy(dst->subcoro, src->subcoro, dst_root);
+	}
+}
+
+void
+bco_copy(bco_t* dst, bco_t* src) {
+	BCO_ASSERT(src->root == src, "bco_copy can only copy a root coroutine");
+	bco__copy(dst, src, dst);
+
+	// The root block came along with the stack, only its pointers need fixing
+	bco__root_t* root = bco__root(dst);
+	if (root->receiver != NULL) {
+		root->receiver = bco__copy_ptr(dst, src, root->receiver);
+		root->recv_at = bco__copy_ptr(dst, src, root->recv_at);
 	}
 }
 
@@ -837,13 +994,20 @@ bco__zero_vars(bco_t* coro) {
 }
 
 void
-bco__spawn(bco_t* coro, bco_fn_t fn, size_t args_size, size_t args_alignment, void* args) {
+bco__spawn(bco_t* coro, bco_t* parent, bco_fn_t fn, size_t args_size, size_t args_alignment, void* args) {
 	coro->resume_point = 0;
 	coro->relocating = false;
 	coro->status = BCO_SUSPENDED;
 	coro->subcoro = NULL;
 	coro->userdata = NULL;
 	coro->sp = coro->stack;
+	if (parent == NULL) {
+		coro->root = coro;
+		bco__root_t* root = bco__alloc(coro, sizeof(bco__root_t), _Alignof(bco__root_t));
+		memset(root, 0, sizeof(*root));
+	} else {
+		coro->root = parent->root;
+	}
 	coro->fn = fn;
 	coro->args = bco__alloc(coro, args_size, args_alignment);
 	coro->bp = coro->sp;
@@ -884,6 +1048,79 @@ bco__on_yield(bco_t* coro, const char* file, int resume_point) {
 void
 bco__on_terminate(bco_t* coro) {
 	coro->resume_point = -1;
+
+	// Every exit path ends here, so this is the one place to cancel a pending
+	// receive. Without it a parent carrying on after its subcoroutine was
+	// terminated by bco_reload_end would leave a stale destination pointer behind.
+	bco__root_t* root = bco__root(coro);
+	if (root->receiver == coro) {
+		root->receiver = NULL;
+		root->recv_ready = false;
+	}
+}
+
+static unsigned int
+bco__hash_str(const char* s) {
+	unsigned int h = 2166136261u;  // FNV-1a
+	for (; *s != '\0'; ++s) {
+		h = (h ^ (unsigned char)*s) * 16777619u;
+	}
+	return h;
+}
+
+void
+bco__recv_begin(bco_t* coro, void* dst, const char* type_name, size_t size) {
+	bco__root_t* root = bco__root(coro);
+	BCO_ASSERT(root->receiver == NULL, "Another coroutine in the chain is already waiting");
+	root->receiver = coro;
+	root->recv_at = dst;
+	root->recv_type = type_name;
+	root->recv_size = size;
+	root->recv_ready = false;
+}
+
+bool
+bco__recv_ready(bco_t* coro) {
+	return bco__root(coro)->recv_ready;
+}
+
+void
+bco__recv_end(bco_t* coro) {
+	bco__root_t* root = bco__root(coro);
+	root->receiver = NULL;
+	root->recv_ready = false;
+}
+
+bool
+bco__send(bco_t* coro, const char* type_name, size_t size, const void* value) {
+	BCO_ASSERT(coro->root == coro, "bco_send must be given the handle passed to bco_spawn");
+	if (coro->status != BCO_SUSPENDED) { return false; }
+
+	bco__root_t* root = bco__root(coro);
+	if (root->receiver == NULL || root->recv_ready) { return false; }
+
+	if (root->recv_type != NULL) {
+		// Both literals usually come from the same build but merging them is
+		// not guaranteed across translation units
+		if (root->recv_type != type_name && strcmp(root->recv_type, type_name) != 0) { return false; }
+		BCO_ASSERT(root->recv_size == size, "Sent type is defined differently from the received one");
+	} else {
+		// The receiver's literal was unloaded by a reload.
+		// Its new build reads whatever the new build of the sender writes, so
+		// the size recorded by the old build no longer applies.
+		if (bco__hash_str(type_name) != root->recv_type_hash) { return false; }
+		root->recv_size = size;
+		root->recv_type = type_name;  // Back on the fast path
+		// The variable may have grown past the frame the old build allocated.
+		// The new build reallocates the frame on the next resume, but a copy
+		// taken before that must already cover the whole value.
+		char* end = (char*)root->recv_at + size;
+		if (end > root->receiver->sp) { root->receiver->sp = end; }
+	}
+
+	memcpy(root->recv_at, value, size);
+	root->recv_ready = true;
+	return true;
 }
 
 const char bco__yps[] = "";
@@ -968,6 +1205,16 @@ bco_reload_begin(bco_t* coro) {
 	if (!bco_reloadable(coro, NULL)) { return false; }
 	if (coro->status != BCO_SUSPENDED || coro->resume_point == 0) { return true; }
 	BCO_ASSERT(!coro->relocating, "bco_reload_begin was called twice");
+
+	// The type name literal of a pending receive is about to be unloaded with
+	// the old code, keep its hash instead. Only the root holds it.
+	if (coro->root == coro) {
+		bco__root_t* root = bco__root(coro);
+		if (root->receiver != NULL && root->recv_type != NULL) {
+			root->recv_type_hash = bco__hash_str(root->recv_type);
+			root->recv_type = NULL;
+		}
+	}
 
 	int resume_point = coro->resume_point;
 	coro->named_point = (unsigned int)resume_point;  // Tell bco__relocate which name to hash

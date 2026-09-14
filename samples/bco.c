@@ -66,6 +66,24 @@ bco(reloadable, int frames) {
 }
 //!                                                                             [bco_yield_points]
 
+//!                                                                             [bco_recv]
+typedef struct { int damage; } hit_t;
+
+// A coroutine that waits for values handed to it from the outside
+bco(listener, int hp) {
+	// A received value lands in a coroutine variable so it survives later suspensions
+	bco_vars(hit_t hit;)
+	bco_yield_points(WAIT_HIT)
+	bco_begin
+	while (bco_arg(hp) > 0) {
+		// Suspend until a hit_t is handed over with bco_send
+		bco_at(WAIT_HIT) bco_recv(hit_t, hit);
+		bco_arg(hp) -= bco_var(hit).damage;
+	}
+	bco_end
+}
+//!                                                                             [bco_recv]
+
 int main(int argc, const char* argv[]) {
 //!                                                                             [bco_spawn]
 //!                                                                             [bco_align_t]
@@ -98,6 +116,21 @@ int main(int argc, const char* argv[]) {
 	}
 	bco_terminate(coro);
 //!                                                                             [bco_reloadable]
+
+//!                                                                             [bco_send]
+	bco_spawn(coro, listener, 10);
+	// Run it up to its bco_recv: a coroutine that has not started is not waiting
+	bco_resume(coro);
+	// Accepted only while the coroutine is parked at a matching bco_recv
+	if (bco_send(coro, hit_t, { .damage = 4 })) {
+		bco_resume(coro);  // Picks the value up and runs to the next bco_recv
+	}
+	// An existing variable works too
+	hit_t hit = { .damage = 6 };
+	bco_send(coro, hit_t, hit);
+	bco_resume(coro);
+	bco_terminate(coro);
+//!                                                                             [bco_send]
 
 //!                                                                             [bco_mem_size]
 	// The coroutine can be heap-allocated
