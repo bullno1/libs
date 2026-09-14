@@ -7,12 +7,12 @@
 
 //!                                                                             [bco_decl]
 // Fordward declare a coroutine
-bco_decl(subcoro, int i);
+bco_decl(void, subcoro, int i);
 //!                                                                             [bco_decl]
 
 //!                                                                             [bco]
 // Define a coroutine inline
-bco(test, int foo, int bar) {
+bco(void, test, int foo, int bar) {
 //!                                                                             [bco_vars]
 	// Optional local variables
 	bco_vars(
@@ -51,7 +51,7 @@ bco_impl(subcoro) {
 
 //!                                                                             [bco_yield_points]
 // A coroutine that can survive a hot reload of its code
-bco(reloadable, int frames) {
+bco(void, reloadable, int frames) {
 	bco_vars(int i;)
 	// Declare the stable names before bco_begin
 	bco_yield_points(WAIT_FRAME, WAIT_SUB)
@@ -70,7 +70,7 @@ bco(reloadable, int frames) {
 typedef struct { int damage; } hit_t;
 
 // A coroutine that waits for values handed to it from the outside
-bco(listener, int hp) {
+bco(void, listener, int hp) {
 	// A received value lands in a coroutine variable so it survives later suspensions
 	bco_vars(hit_t hit;)
 	bco_yield_points(WAIT_HIT)
@@ -91,7 +91,7 @@ typedef struct { int code; } key_press_t;
 static bco_t* key_waiters[8];
 static int num_key_waiters;
 
-bco(wait_for_key, int unused) {
+bco(void, wait_for_key, int unused) {
 	bco_vars(key_press_t key;)
 	bco_begin
 	// Register for one event right before waiting for it.
@@ -102,6 +102,29 @@ bco(wait_for_key, int unused) {
 	bco_end
 }
 //!                                                                             [bco_self]
+
+//!                                                                             [bco_return]
+// A coroutine that returns a value declares its type like a C function
+bco(hit_t, roll_hit, int strength) {
+	bco_begin
+	bco_yield();
+	// Stored for the caller before the cleanup section runs.
+	// A variable, an expression or a braced list all work.
+	bco_return({ .damage = bco_arg(strength) * 2 });
+	bco_end
+}
+//!                                                                             [bco_return]
+
+//!                                                                             [bco_call_result]
+bco(void, attack, int strength) {
+	// The value lands in a coroutine variable, so the next call can use it
+	bco_vars(hit_t hit;)
+	bco_begin
+	bco_call_result(hit, roll_hit, bco_arg(strength));
+	bco_call(subcoro, bco_var(hit).damage);
+	bco_end
+}
+//!                                                                             [bco_call_result]
 
 int main(int argc, const char* argv[]) {
 //!                                                                             [bco_spawn]
@@ -162,6 +185,14 @@ int main(int argc, const char* argv[]) {
 	num_key_waiters = 0;
 	bco_resume(coro);
 //!                                                                             [bco_self_host]
+
+//!                                                                             [bco_result]
+	bco_spawn(coro, roll_hit, 3);
+	while (bco_status(coro) != BCO_TERMINATED) { bco_resume(coro); }
+	// NULL if the coroutine ended without a value
+	hit_t* rolled = bco_result(coro, roll_hit);
+	if (rolled != NULL) { printf("damage %d\n", rolled->damage); }
+//!                                                                             [bco_result]
 
 //!                                                                             [bco_mem_size]
 	// The coroutine can be heap-allocated

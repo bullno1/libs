@@ -9,7 +9,7 @@ static btest_suite_t basic = {
 	.init_per_test = init_per_test,
 };
 
-bco_static(counter, int from, int to) {
+bco_static(void, counter, int from, int to) {
 	bco_vars(int i;)
 	bco_begin
 	for (bco_var(i) = bco_arg(from); bco_var(i) < bco_arg(to); ++bco_var(i)) {
@@ -64,7 +64,7 @@ BTEST(basic, resume_after_termination_is_a_noop) {
 }
 
 // An empty body still has to reach the cleanup section and terminate
-bco_static(basic_empty, int unused) {
+bco_static(void, basic_empty, int unused) {
 	bco_begin
 	bco_end
 	trace("cleanup");
@@ -77,7 +77,7 @@ BTEST(basic, empty_body_terminates_in_one_resume) {
 	BCO_EXPECT_TRACE("cleanup");
 }
 
-bco_static(basic_no_args) {
+bco_static(void, basic_no_args) {
 	bco_begin
 	trace("ran");
 	bco_yield();
@@ -91,7 +91,7 @@ BTEST(basic, coroutine_without_arguments) {
 	BCO_EXPECT_TRACE("ran");
 }
 
-bco_static(basic_no_vars, int a) {
+bco_static(void, basic_no_vars, int a) {
 	bco_begin
 	trace("%d", bco_arg(a));
 	bco_yield();
@@ -123,7 +123,7 @@ BTEST(basic, arguments_are_copied_by_value) {
 static const void* first_var_address;
 static const void* second_var_address;
 
-bco_static(basic_var_address, int unused) {
+bco_static(void, basic_var_address, int unused) {
 	bco_vars(int i;)
 	bco_begin
 	first_var_address = (const void*)&bco_var(i);
@@ -143,7 +143,7 @@ BTEST(basic, vars_keep_the_same_address_across_resumes) {
 	BTEST_EXPECT_EQUAL("%p", second_var_address, first_var_address);
 }
 
-bco_static(basic_var_zeroing, int unused) {
+bco_static(void, basic_var_zeroing, int unused) {
 	bco_vars(int i; void* p; char c;)
 	bco_begin
 	trace("i=%d p=%s c=%d",
@@ -163,7 +163,7 @@ BTEST(basic, vars_are_zero_initialized_on_first_entry) {
 	BCO_EXPECT_TRACE("i=0 p=null c=0");
 }
 
-bco_static(overaligned, int unused) {
+bco_static(void, overaligned, int unused) {
 	bco_vars(_Alignas(16) char blob[16]; int tag;)
 	bco_begin
 	bco_var(tag) = 0x1234;

@@ -14,7 +14,8 @@
  *
  * * @ref bco_yield : Yield back to the caller
  * * @ref bco_call : Call into a subcoroutine
- * * @ref bco_return : Early return
+ * * @ref bco_return : Early return, optionally with a value
+ * * @ref bco_call_result : Call into a subcoroutine and take the value it returns
  * * @ref bco_join : Wait for another coroutine
  * * @ref bco_recv : Wait for a value of a given type
  *
@@ -105,6 +106,7 @@
  * the whole program.
  * Use @ref bco_static for a coroutine that is private to one source file.
  *
+ * @param RET the return type, `void` when the coroutine does not return a value
  * @param NAME the name for the coroutine function
  * @param ... argument list with up to 6 arguments.
  *
@@ -113,9 +115,10 @@
  * @snippet samples/bco.c bco
  *
  * @see bco_static
+ * @see bco_return
  */
-#define bco(NAME, ...) \
-	bco_decl(NAME, __VA_ARGS__); \
+#define bco(RET, NAME, ...) \
+	bco_decl(RET, NAME, __VA_ARGS__); \
 	bco_impl(NAME)
 
 /**
@@ -125,18 +128,20 @@
  * source file, so its name will not collide with a coroutine of the same name
  * in another one.
  *
+ * @param RET the return type, `void` when the coroutine does not return a value
  * @param NAME the name for the coroutine function
  * @param ... argument list with up to 6 arguments.
  *
  * @see bco
  */
-#define bco_static(NAME, ...) \
-	bco_decl_static(NAME, __VA_ARGS__); \
+#define bco_static(RET, NAME, ...) \
+	bco_decl_static(RET, NAME, __VA_ARGS__); \
 	bco_impl(NAME)
 
 /**
  * Forward declare a coroutine function without implementing it
  *
+ * @param RET the return type, `void` when the coroutine does not return a value
  * @param NAME the name for the coroutine function
  * @param ... argument list with up to 6 arguments.
  *
@@ -149,11 +154,12 @@
  *
  * @hideinitializer
  */
-#define bco_decl(NAME, ...) bco__decl(extern, NAME, __VA_ARGS__)
+#define bco_decl(RET, NAME, ...) bco__decl(extern, RET, NAME, __VA_ARGS__)
 
 /**
  * Forward declare a coroutine function with internal linkage
  *
+ * @param RET the return type, `void` when the coroutine does not return a value
  * @param NAME the name for the coroutine function
  * @param ... argument list with up to 6 arguments.
  *
@@ -166,7 +172,7 @@
  *
  * @hideinitializer
  */
-#define bco_decl_static(NAME, ...) bco__decl(static, NAME, __VA_ARGS__)
+#define bco_decl_static(RET, NAME, ...) bco__decl(static, RET, NAME, __VA_ARGS__)
 
 /**
  * Implement a coroutine function that was previously forward declared
@@ -419,8 +425,13 @@
 /**
  * Spawn a subcoroutine from within a coroutine and transfer control to it
  *
+ * The subcoroutine returned value, if any, is discarded.
+ * Use @ref bco_call_result instead if it is of interest.
+ *
  * @param NAME name of the entry function
  * @param ... arguments to pass to the function
+ *
+ * @see bco_call_result
  *
  * @hideinitializer
  */
@@ -430,6 +441,50 @@
 		bco__spawn_from(bco__alloc_subcoro(bco__coro), bco__coro, NAME, __VA_ARGS__); \
 		bco_set_userdata(bco__subcoro(bco__coro), bco_get_userdata(bco__coro)); \
 		bco_join(bco__subcoro(bco__coro)); \
+		bco__free_subcoro(bco__coro); \
+	} while (0)
+
+/**
+ * Call a subcoroutine and take the value it returns
+ *
+ * Same as @ref bco_call, but once the subcoroutine has ended, the value it
+ * returned with @ref bco_return is copied into the coroutine variable `VAR`.
+ *
+ * `VAR` must be declared with @ref bco_vars and have exactly the return
+ * type `NAME` was declared with.
+ *
+ * The subcoroutine must end with @ref bco_return carrying a value.
+ *
+ * Only valid between @ref bco_begin and @ref bco_end.
+ *
+ * @param VAR name of the coroutine variable to receive the value
+ * @param NAME name of the entry function
+ * @param ... arguments to pass to the function
+ *
+ * Example:
+ *
+ * @snippet samples/bco.c bco_call_result
+ *
+ * @see bco_return
+ * @see bco_result
+ *
+ * @hideinitializer
+ */
+#define bco_call_result(VAR, NAME, ...) \
+	do { \
+		_Static_assert(bco__begin_declared == 1 && bco__end_declared == 0, "bco_call_result can only be used *between* bco_begin and bco_end"); \
+		_Static_assert(bco__vars_declared == 1, "bco_call_result needs a coroutine variable declared with bco_vars"); \
+		_Static_assert( \
+			_Generic(((bco__arg_type(NAME)*)0)->bco__ret[0], bco__void_ret_t: 0, default: 1), \
+			"The called coroutine was declared with a void return type" \
+		); \
+		_Static_assert( \
+			_Generic(bco__vars->VAR, bco__ret_type_of(NAME): 1, default: 0), \
+			"The coroutine variable given to bco_call_result does not have the called coroutine's return type" \
+		); \
+		bco__spawn_from(bco__alloc_subcoro(bco__coro), bco__coro, NAME, __VA_ARGS__); \
+		bco_join(bco__subcoro(bco__coro)); \
+		bco__vars->VAR = ((bco__arg_type(NAME)*)bco__take_result(bco__coro))->bco__ret[0]; \
 		bco__free_subcoro(bco__coro); \
 	} while (0)
 
@@ -520,24 +575,38 @@
 	bco__send(CORO, #TYPE, sizeof(TYPE), (TYPE[1]){ __VA_ARGS__ })
 
 /**
- * Early return from the coroutine
+ * Return from the coroutine, optionally with a value
  *
  * Control jumps straight to the cleanup section after @ref bco_end.
  * The coroutine ends up in @ref BCO_TERMINATED.
+ *
+ * With no argument, this is a plain early return.
+ *
+ * With an argument, the value is stored for the caller before the cleanup
+ * section runs.
+ * A parent takes it with @ref bco_call_result and the host with
+ * @ref bco_result.
+ * The value can be given as a variable, an expression or a braced initializer list.
+ *
+ * Falling off the end of the body ends the coroutine without a value.
  *
  * Only valid between @ref bco_begin and @ref bco_end.
  *
  * This is the only correct way to leave a coroutine body early.
  *
+ * @param ... the value to return, if any
+ *
+ * Example:
+ *
+ * @snippet samples/bco.c bco_return
+ *
  * @see bco_end
+ * @see bco_call_result
+ * @see bco_result
  *
  * @hideinitializer
  */
-#define bco_return() \
-	do { \
-		_Static_assert(bco__begin_declared == 1 && bco__end_declared == 0, "bco_return can only be used *between* bco_begin and bco_end"); \
-		goto bco__cleanup; \
-	} while (0)
+#define bco_return(...) bco__concat(bco__return, __VA_OPT__(_value))(__VA_ARGS__)
 
 /**
  * A type that has the same alignment as @ref bco_t
@@ -605,6 +674,33 @@ bco_terminate(bco_t* coro);
 /// Get the status of a coroutine
 BCO_API bco_status_t
 bco_status(bco_t* coro);
+
+/**
+ * Read the value a coroutine returned
+ *
+ * `NAME` must be the entry function the coroutine was spawned with.
+ * The value stays readable until the storage is recycled or overwritten by
+ * @ref bco_copy.
+ *
+ * @param CORO the coroutine handle given to @ref bco_spawn
+ * @param NAME name of the entry function
+ * @return a pointer to the value, or `NULL` if the coroutine has not ended
+ *   with a @ref bco_return carrying a value
+ *
+ * Example:
+ *
+ * @snippet samples/bco.c bco_result
+ *
+ * @see bco_return
+ *
+ * @hideinitializer
+ */
+#define bco_result(CORO, NAME) \
+	((bco__ret_type_of(NAME)*)bco__result( \
+		CORO, \
+		BCO_WRAPPER(bco__concat(bco__wrapper_, NAME)), \
+		offsetof(bco__arg_type(NAME), bco__ret) \
+	))
 
 /**
  * Make a copy of a coroutine
@@ -752,6 +848,13 @@ bco_reload_end(bco_t* coro);
 #define bco__yield_file (bco__resume_point > 0 ? __FILE__ : NULL)
 
 #define bco__arg_type(NAME) bco__concat(bco__args_, NAME)
+#define bco__ret_type_of(NAME) bco__concat(bco__ret_, NAME)
+
+// The argument struct ends with a flexible array member of the return type.
+// It costs nothing in sizeof, lets the body name its own return type through
+// bco__args, and spawn reserves one element after the arguments as the slot.
+// Its sizeof is an upper bound for the offset of that member.
+#define bco__args_storage(NAME) (sizeof(bco__arg_type(NAME)) + sizeof(bco__ret_type_of(NAME)))
 
 #define bco__spawn_from(CORO, PARENT, NAME, ...) \
 	do { \
@@ -760,25 +863,73 @@ bco_reload_end(bco_t* coro);
 			PARENT, \
 			BCO_WRAPPER(bco__concat(bco__wrapper_, NAME)), \
 			sizeof(bco__arg_type(NAME)), \
+			bco__args_storage(NAME), \
 			_Alignof(bco__arg_type(NAME)), \
 			&(bco__arg_type(NAME)){ __VA_ARGS__ } \
 		); \
 	} while (0)
 
+#define bco__return() \
+	do { \
+		_Static_assert(bco__begin_declared == 1 && bco__end_declared == 0, "bco_return can only be used *between* bco_begin and bco_end"); \
+		goto bco__cleanup; \
+	} while (0)
+
+// The array compound literal accepts a variable, an expression or a braced
+// list alike, see bco_send.
+#define bco__return_value(...) \
+	do { \
+		_Static_assert(bco__begin_declared == 1 && bco__end_declared == 0, "bco_return can only be used *between* bco_begin and bco_end"); \
+		_Static_assert( \
+			_Generic(bco__args->bco__ret[0], bco__void_ret_t: 0, default: 1), \
+			"This coroutine was declared with a void return type" \
+		); \
+		bco__args->bco__ret[0] = (bco__typeof(bco__args->bco__ret[0])[1]){ __VA_ARGS__ }[0]; \
+		bco__on_return(bco__coro); \
+		goto bco__cleanup; \
+	} while (0)
+
+#ifndef bco__typeof
+#	define bco__typeof(X) __typeof__(X)
+#endif
+
+// Stands in for `void` as the element type of the return slot
+typedef struct { char bco__dummy; } bco__void_ret_t;
+
+// 1 only for the exact token `void`, so `void*` is not mistaken for it.
+// Pasting onto the return type yields a macro only for `void`. The probe
+// ends in a comma so anything that followed `void` lands in `rest`, which
+// then has to be empty. The extra indirection lets the comma from the
+// expansion split arguments, which it cannot do inside an argument.
+#define bco__void_probe_void ~, 1,
+#define bco__is_void(RET) bco__is_void_(bco__concat(bco__void_probe_, RET))
+#define bco__is_void_(...) bco__is_void__(__VA_ARGS__, 0, )
+#define bco__is_void__(probe, fired, rest, ...) bco__concat(bco__and_, fired)(bco__is_empty(rest))
+#define bco__and_1(x) x
+#define bco__and_0(x) 0
+#define bco__is_empty(...) bco__first(__VA_OPT__(0,) 1)
+#define bco__first(x, ...) x
+
+#define bco__ret_type(RET) bco__concat(bco__ret_type_, bco__is_void(RET))(RET)
+#define bco__ret_type_1(RET) bco__void_ret_t
+#define bco__ret_type_0(RET) RET
+
 #define bco__fn(NAME) void NAME(bco_t* bco__coro, bco__arg_type(NAME)* bco__args)
 
-#define bco__decl(LINKAGE, NAME, ...) \
+#define bco__decl(LINKAGE, RET, NAME, ...) \
 	typedef struct bco__arg_type(NAME) bco__arg_type(NAME); \
+	typedef bco__ret_type(RET) bco__ret_type_of(NAME); \
 	LINKAGE bco__fn(NAME); \
 	static inline void bco__concat(bco__wrapper_, NAME)(bco_t* bco__coro, void* args) { \
 		NAME(bco__coro, args); \
 	} \
 	struct bco__arg_type(NAME) { \
 		bco__struct_fields(__VA_ARGS__ __VA_OPT__(,) -) \
+		bco__ret_type_of(NAME) bco__ret[]; \
 	}; \
 	_Static_assert( \
 		_Alignof(bco__arg_type(NAME)) <= _Alignof(bco_align_t), \
-		"Coroutine arguments contain member(s) with alignment requirement above BCO_MAX_ALIGN" \
+		"Coroutine arguments or return type have alignment requirement above BCO_MAX_ALIGN" \
 	)
 
 #define bco__struct_fields(...) bco__concat(bco__struct_field_, bco__count(__VA_ARGS__))(__VA_ARGS__)
@@ -808,7 +959,16 @@ bco_reload_end(bco_t* coro);
 typedef void (*bco_fn_t)(bco_t* coro, void* args);
 
 BCO_API void
-bco__spawn(bco_t* coro, bco_t* parent, bco_fn_t fn, size_t args_size, size_t args_alignment, void* args);
+bco__spawn(bco_t* coro, bco_t* parent, bco_fn_t fn, size_t args_size, size_t args_storage, size_t args_alignment, void* args);
+
+BCO_API void
+bco__on_return(bco_t* coro);
+
+BCO_API void*
+bco__take_result(bco_t* coro);
+
+BCO_API void*
+bco__result(bco_t* coro, bco_fn_t fn, size_t offset);
 
 BCO_API void
 bco__recv_begin(bco_t* coro, void* dst, const char* type_name, size_t size);
@@ -908,6 +1068,7 @@ typedef struct {
 	unsigned int recv_type_hash; // Only meaningful when name is NULL
 	size_t recv_size;
 	bool recv_ready; // A value has been delivered but not consumed yet
+	bool returned; // The last coroutine returned a value
 } bco__root_t;
 
 #define BCO__ROOT_SIZE ((sizeof(bco__root_t) + BCO_MAX_ALIGN - 1) & ~((size_t)BCO_MAX_ALIGN - 1))
@@ -1024,7 +1185,7 @@ bco__zero_vars(bco_t* coro) {
 }
 
 void
-bco__spawn(bco_t* coro, bco_t* parent, bco_fn_t fn, size_t args_size, size_t args_alignment, void* args) {
+bco__spawn(bco_t* coro, bco_t* parent, bco_fn_t fn, size_t args_size, size_t args_storage, size_t args_alignment, void* args) {
 	coro->resume_point = 0;
 	coro->relocating = false;
 	coro->status = BCO_SUSPENDED;
@@ -1038,7 +1199,7 @@ bco__spawn(bco_t* coro, bco_t* parent, bco_fn_t fn, size_t args_size, size_t arg
 		coro->root = parent->root;
 	}
 	coro->fn = fn;
-	coro->args = bco__alloc(coro, args_size, args_alignment);
+	coro->args = bco__alloc(coro, args_storage, args_alignment);  // Arguments, then the return slot
 	coro->bp = coro->sp;
 	memcpy(coro->args, args, args_size);
 }
@@ -1057,6 +1218,29 @@ void
 bco__free_subcoro(bco_t* coro) {
 	coro->sp = (char*)coro->subcoro;
 	coro->subcoro = NULL;
+	bco__root(coro)->returned = false;  // A value the caller did not take must not reach the host
+}
+
+void
+bco__on_return(bco_t* coro) {
+	bco__root(coro)->returned = true;
+}
+
+void*
+bco__take_result(bco_t* coro) {
+	bco__root_t* root = bco__root(coro);
+	BCO_ASSERT(root->returned, "The subcoroutine ended without returning a value");
+	root->returned = false;
+	// Still intact: nothing has been allocated over the subcoroutine yet
+	return coro->subcoro->args;
+}
+
+void*
+bco__result(bco_t* coro, bco_fn_t fn, size_t offset) {
+	BCO_ASSERT(coro->root == coro, "bco_result must be given the handle passed to bco_spawn");
+	BCO_ASSERT(coro->fn == fn, "bco_result was given a coroutine spawned from another function");
+	if (coro->status != BCO_TERMINATED || !bco__root(coro)->returned) { return NULL; }
+	return (char*)coro->args + offset;
 }
 
 int

@@ -17,7 +17,7 @@ make_hit(int damage) {
 	return (hit_t){ .damage = damage, .kind = 7 };
 }
 
-bco_static(receiver, int rounds) {
+bco_static(void, receiver, int rounds) {
 	bco_vars(int i; hit_t hit;)
 	bco_begin
 	for (bco_var(i) = 0; bco_var(i) < bco_arg(rounds); ++bco_var(i)) {
@@ -110,7 +110,7 @@ BTEST(recv, every_form_of_value_can_be_sent) {
 	BCO_EXPECT_TRACE("wait0 got:1:1 wait1 got:2:7 wait2 got:3:3 cleanup");
 }
 
-bco_static(int_receiver, int unused) {
+bco_static(void, int_receiver, int unused) {
 	bco_vars(int value;)
 	bco_begin
 	bco_recv(int, value);
@@ -129,7 +129,7 @@ BTEST(recv, scalars_work) {
 	BTEST_EXPECT_EQUAL("%d", bco_status(coro_a()), BCO_TERMINATED);
 }
 
-bco_static(var_receiver, int unused) {
+bco_static(void, var_receiver, int unused) {
 	bco_vars(hit_t hit;)
 	bco_begin
 	bco_recv(hit_t, hit);
@@ -164,7 +164,7 @@ BTEST(recv, send_to_a_finished_coroutine_is_refused) {
 	BTEST_EXPECT(!bco_send(coro_b(), hit_t, { .damage = 2, .kind = 2 }));
 }
 
-bco_static(self_sender, int unused) {
+bco_static(void, self_sender, int unused) {
 	bco_begin
 	// A running coroutine cannot be waiting, so this must be refused
 	trace("self:%d", bco_send(coro_a(), hit_t, { .damage = 1, .kind = 1 }));
@@ -178,7 +178,7 @@ BTEST(recv, send_to_a_running_coroutine_is_refused) {
 	BCO_EXPECT_TRACE("self:0");
 }
 
-bco_static(sender, int damage) {
+bco_static(void, sender, int damage) {
 	bco_begin
 	trace("send:%d", bco_send(coro_b(), hit_t, { .damage = bco_arg(damage), .kind = 0 }));
 	bco_yield();
@@ -198,7 +198,7 @@ BTEST(recv, a_coroutine_can_send_to_another) {
 	BCO_EXPECT_TRACE("wait0 send:1 got:9:0 cleanup");
 }
 
-bco_static(parent, int sub_rounds) {
+bco_static(void, parent, int sub_rounds) {
 	bco_vars(hit_t hit;)
 	bco_begin
 	trace("parent:enter");
@@ -255,7 +255,7 @@ BTEST(recv, terminate_drops_a_delivered_value) {
 	BTEST_EXPECT_EQUAL("%d", bco_status(coro_a()), BCO_TERMINATED);
 }
 
-bco_static(cleanup_reader, int unused) {
+bco_static(void, cleanup_reader, int unused) {
 	bco_vars(hit_t hit;)
 	bco_begin
 	bco_recv(hit_t, hit);
@@ -346,13 +346,13 @@ static build_fn_t leaf_build;
 
 static int plain_recv_line;
 
-bco_decl_static(worker, int n);
+bco_decl_static(void, worker, int n);
 bco_impl(worker) { worker_build(bco__coro, bco__args); }
 
-bco_decl_static(leaf, int n);
+bco_decl_static(void, leaf, int n);
 bco_impl(leaf) { leaf_build(bco__coro, bco__args); }
 
-bco_static(worker_v1, int n) {
+bco_static(void, worker_v1, int n) {
 	bco_vars(int i; hit_t hit;)
 	bco_yield_points(WAIT_HIT)
 	bco_begin
@@ -365,7 +365,7 @@ bco_static(worker_v1, int n) {
 }
 
 // Names in another order, an extra point and a shifted body
-bco_static(worker_v2, int n) {
+bco_static(void, worker_v2, int n) {
 	bco_vars(int i; hit_t hit;)
 	bco_yield_points(WAIT_EXTRA, WAIT_HIT)
 	bco_begin
@@ -379,7 +379,7 @@ bco_static(worker_v2, int n) {
 	trace("v2:cleanup");
 }
 
-bco_static(worker_plain, int n) {
+bco_static(void, worker_plain, int n) {
 	bco_vars(hit_t hit;)
 	bco_begin
 	plain_recv_line = __LINE__; bco_recv(hit_t, hit);
@@ -426,7 +426,7 @@ BTEST(recv, a_named_receive_survives_a_reload) {
 	BCO_EXPECT_TRACE("v2:5 v2:6 v2:cleanup");
 }
 
-bco_static(leaf_v1, int n) {
+bco_static(void, leaf_v1, int n) {
 	bco_vars(hit_t hit;)
 	bco_yield_points(LEAF_RECV)
 	bco_begin
@@ -438,7 +438,7 @@ bco_static(leaf_v1, int n) {
 }
 
 // LEAF_RECV no longer exists
-bco_static(leaf_v2, int n) {
+bco_static(void, leaf_v2, int n) {
 	bco_yield_points(LEAF_OTHER)
 	bco_begin
 	bco_at(LEAF_OTHER) bco_yield();
@@ -446,7 +446,7 @@ bco_static(leaf_v2, int n) {
 	trace("leaf2:cleanup");
 }
 
-bco_static(parent_v1, int n) {
+bco_static(void, parent_v1, int n) {
 	bco_yield_points(WAIT_LEAF)
 	bco_begin
 	trace("parent:enter");
@@ -496,7 +496,7 @@ typedef struct { int damage; int kind; int extra; char tag[16]; } hit_v2_t;
 
 #define hit_t hit_v2_t
 
-bco_static(worker_v1_grown, int n) {
+bco_static(void, worker_v1_grown, int n) {
 	bco_vars(int i; hit_t hit;)
 	bco_yield_points(WAIT_HIT)
 	bco_begin
@@ -541,7 +541,7 @@ typedef struct { int code; } key_press_t;
 static bco_t* key_waiters[4];
 static int num_key_waiters;
 
-bco_static(key_waiter, int id) {
+bco_static(void, key_waiter, int id) {
 	bco_vars(key_press_t key;)
 	bco_begin
 	key_waiters[num_key_waiters++] = bco_self;
@@ -550,7 +550,7 @@ bco_static(key_waiter, int id) {
 	bco_end
 }
 
-bco_static(key_waiter_parent, int id) {
+bco_static(void, key_waiter_parent, int id) {
 	bco_begin
 	bco_call(key_waiter, bco_arg(id));
 	trace("parent:done");
