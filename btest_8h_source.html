@@ -277,7 +277,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00331" name="l00331"></a><span class="lineno">  331</span><span class="preprocessor">#   define btest_begin_try() (btest__ctx.throwing = false, true)</span></div>
 <div class="line"><a id="l00332" name="l00332"></a><span class="lineno">  332</span><span class="preprocessor">#   define btest_end_try() (btest__ctx.throwing = false, false)</span></div>
 <div class="line"><a id="l00333" name="l00333"></a><span class="lineno">  333</span><span class="preprocessor">#else</span></div>
-<div class="line"><a id="l00334" name="l00334"></a><span class="lineno">  334</span><span class="preprocessor">#   define btest_begin_try() (setjmp(btest__ctx.return_buf) == 0, true)</span></div>
+<div class="line"><a id="l00334" name="l00334"></a><span class="lineno">  334</span><span class="preprocessor">#   define btest_begin_try() (setjmp(btest__ctx.return_buf) == 0)</span></div>
 <div class="line"><a id="l00335" name="l00335"></a><span class="lineno">  335</span><span class="preprocessor">#   define btest_end_try() false</span></div>
 <div class="line"><a id="l00336" name="l00336"></a><span class="lineno">  336</span><span class="preprocessor">#endif</span></div>
 <div class="line"><a id="l00337" name="l00337"></a><span class="lineno">  337</span> </div>
