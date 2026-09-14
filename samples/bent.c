@@ -66,9 +66,12 @@ health_bar_update(
 	void* userdata,
 	bent_world_t* world,
 	bent_mask_t update_mask,
-	bent_t* entities,
-	bent_index_t num_entities
+	bent_query_t query
 ) {
+	// The matching entities are visited through the query
+	BENT_FOREACH_QUERY(e, world, query) {
+		(void)e;
+	}
 }
 
 // Called when a component is added
@@ -140,6 +143,37 @@ main(int argc, const char* arg[]) {
 	// Update the world in phases
 	bent_run(world, PHASE_UPDATE);
 	bent_run(world, PHASE_RENDER);
+
+	// Entities can also be visited without a system, through a query
+	//!                                                                         [BENT_FOREACH_MATCH]
+	BENT_FOREACH_MATCH(
+		e, world,
+		BENT_COMP_LIST(&transform, &health),  // Required
+		BENT_COMP_LIST(&tag)                  // Excluded, may be NULL
+	) {
+		// The body may freely mutate the world, even the current entity
+		if (bent_get_health(world, e)->hp <= 0) {
+			bent_add_tag(world, e);  // Excluded from now on
+		}
+	}
+	//!                                                                         [BENT_FOREACH_MATCH]
+
+	// The query behind it is a handle that can be kept, e.g: in a system's data.
+	// It is looked up by its masks so this returns the same query every time.
+	bent_query_t alive = bent_query(
+		world, BENT_COMP_LIST(&transform, &health), BENT_COMP_LIST(&tag)
+	);
+
+	// The explicit iterator is for when the loop has to stop early
+	//!                                                                         [bent_query_begin]
+	bent_query_itr_t itr = bent_query_begin(world, alive);
+	while (bent_query_next(world, &itr)) {
+		if (bent_get_health(world, itr.entity)->hp > 500) {
+			bent_query_end(world, &itr);  // Required before leaving early
+			break;
+		}
+	}
+	//!                                                                         [bent_query_begin]
 
 	// Let's destroy an entity
 	bent_destroy(world, ent);

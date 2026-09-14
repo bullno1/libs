@@ -14,6 +14,14 @@
  * @remarks Not all properites can be hot-reloaded.
  *     They will be clearly marked as such in the following sections.
  *
+ * ## Queries
+ *
+ * A @ref bent_query "query" is the list of every live entity that has all of
+ * some components and none of some others, kept up to date by the world.
+ *
+ * Use @ref BENT_FOREACH_MATCH to walk the matching entities without
+ * registering a system.
+ *
  * ## Serialization
  *
  * The library does not pick a format.
@@ -277,19 +285,67 @@
 #define BENT_COMP_LIST(...) (bent_comp_reg_t*[]){ __VA_ARGS__, 0 }
 
 /**
- * Helper to iterate entities.
+ * Iterate the entities matching a query.
+ *
+ * See @ref bent_query_begin for what the body may do.
+ * `break` and `continue` work as usual.
+ * Do not `return` or `goto` out of the loop: the snapshot would not be
+ * released.
+ * Use @ref bent_query_begin directly when that is needed.
+ *
+ * @param VAR name of the variable of type @ref bent_t
+ * @param WORLD the world
+ * @param QUERY a @ref bent_query_t
+ *
+ * @see BENT_FOREACH_MATCH
+ *
+ * @hideinitializer
  */
-#define BENT_FOREACH_ENTITY(VAR, ENTITIES) \
+#define BENT_FOREACH_QUERY(VAR, WORLD, QUERY) \
+	BENT_FOREACH_QUERY_EX(VAR, WORLD, NULL, QUERY)
+
+/**
+ * Same as @ref BENT_FOREACH_QUERY with an explicit @ref bent_query_ctx_t.
+ *
+ * @param VAR name of the variable of type @ref bent_t
+ * @param WORLD the world
+ * @param CTX a @ref bent_query_ctx_t, `NULL` for the world's shared one
+ * @param QUERY a @ref bent_query_t
+ *
+ * @see bent_query_begin_ex
+ *
+ * @hideinitializer
+ */
+#define BENT_FOREACH_QUERY_EX(VAR, WORLD, CTX, QUERY) \
 	for ( \
-		struct { bent_index_t index; char once; } bent__itr = { 0 }; \
-		bent__itr.index < bent__entity_list_len(ENTITIES); \
-		++bent__itr.index \
+		bent_query_itr_t bent__itr_##VAR = bent_query_begin_ex((WORLD), (QUERY), (CTX)); \
+		bent_query_next((WORLD), &bent__itr_##VAR); \
 	) \
 		for ( \
-			bent_t VAR = (bent__itr.once = 1, (ENTITIES)[bent__itr.index]); \
-			bent__itr.once; \
-			bent__itr.once = 0 \
+			bent_t VAR = (bent__itr_##VAR.once = 1, bent__itr_##VAR.entity); \
+			bent__itr_##VAR.once; \
+			bent__itr_##VAR.once = 0 \
 		)
+
+/**
+ * Iterate the entities that have all of some components and none of others.
+ *
+ * Shorthand for @ref BENT_FOREACH_QUERY over @ref bent_query.
+ *
+ * @param VAR name of the variable of type @ref bent_t
+ * @param WORLD the world
+ * @param REQUIRE null-terminated list of required components, may be `NULL`
+ * @param EXCLUDE null-terminated list of excluded components, may be `NULL`
+ *
+ * Example:
+ * @snippet samples/bent.c BENT_FOREACH_MATCH
+ *
+ * @see BENT_COMP_LIST
+ *
+ * @hideinitializer
+ */
+#define BENT_FOREACH_MATCH(VAR, WORLD, REQUIRE, EXCLUDE) \
+	BENT_FOREACH_QUERY(VAR, WORLD, bent_query((WORLD), (REQUIRE), (EXCLUDE)))
 
 /**
  * Iterate every live entity of a world, in index order.
@@ -413,6 +469,50 @@ typedef struct {
 	bent_index_t gen;
 	/// @endcond
 } bent_t;
+
+/**
+ * Handle to a query, see @ref bent_query.
+ *
+ * A zero-initialized handle is the empty query: it matches nothing.
+ * Handles are owned by the world and stay valid for its lifetime, across
+ * hot reloads.
+ */
+typedef struct {
+	/// @cond INTERNAL
+	bent_index_t id;
+	/// @endcond
+} bent_query_t;
+
+/**
+ * Storage for the snapshots taken by query iterators.
+ *
+ * A context is a stack: nested iterations push and pop in order.
+ * It keeps its allocation and only grows past its high-water mark, so once
+ * warm an iteration allocates nothing.
+ * It is not safe to share between threads.
+ * Every world creates one for the calls that do not take a context.
+ *
+ * @see bent_create_query_ctx
+ * @see bent_query_begin_ex
+ */
+typedef struct bent_query_ctx_s bent_query_ctx_t;
+
+/**
+ * Query iterator, see @ref bent_query_begin.
+ */
+typedef struct {
+	/*! The current entity */
+	bent_t entity;
+	/// @cond INTERNAL
+	bent_query_t query;
+	bent_query_ctx_t* ctx;
+	bent_index_t base;
+	bent_index_t pos;
+	bent_index_t end;
+	bool done;
+	char once;
+	/// @endcond
+} bent_query_itr_t;
 
 /*! Serialization context, see @ref BENT_SERIALIZE_CTX */
 typedef BENT_SERIALIZE_CTX bent_serialize_ctx_t;
@@ -572,7 +672,9 @@ typedef enum {
 	/**
 	 * When set, this system will not keep an internal entity list.
 	 *
-	 * Functions @ref bent_get_entity_list will return NULL.
+	 * No @ref bent_query "query" is created for it.
+	 * @ref bent_sys_query returns the empty query and so does the `query`
+	 * argument of @ref bent_sys_def_t::update.
 	 */
 	BENT_SYS_NO_ENTITY_LIST    = 1 << 1,
 } bent_sys_flags_t;
@@ -714,8 +816,8 @@ typedef struct {
 	 * @param userdata system's data
 	 * @param world the world this system belongs to
 	 * @param update_mask the value passed to @ref bent_run
-	 * @param entities an array of entities
-	 * @param num_entities number of entities in the array
+	 * @param query the matching entities, see @ref BENT_FOREACH_QUERY.
+	 *     The empty query with @ref BENT_SYS_NO_ENTITY_LIST.
 	 *
 	 * @see bent_run
 	 */
@@ -723,8 +825,7 @@ typedef struct {
 		void* userdata,
 		bent_world_t* world,
 		bent_mask_t update_mask,
-		bent_t* entities,
-		bent_index_t num_entities
+		bent_query_t query
 	);
 
 	/**
@@ -986,16 +1087,195 @@ bent_match(bent_world_t* world, bent_sys_reg_t sys, bent_t entity);
 BENT_API void
 bent_run(bent_world_t* world, bent_mask_t update_mask);
 
+// Query {{{
+
 /**
- * Retrieve the list of matched entities for a system
+ * Get or create a query.
+ *
+ * A query is the list of every live entity that has all of the required
+ * components and none of the excluded ones.
+ * The world keeps it up to date as components are added and removed and as
+ * entities are created and destroyed.
+ *
+ * Queries are interned: the same pair of masks always returns the same handle
+ * and the list behind it is shared, including with systems.
+ *
+ * A query holds no callback and no code pointer, only the masks, so a handle
+ * stays valid across a hot reload.
  *
  * @param world the world
- * @param sys the system
- * @param num_entities pointer to receive number of entities
- * @return The list of matched entities
+ * @param require null-terminated list of required components, `NULL` is an empty list
+ * @param exclude null-terminated list of excluded components, `NULL` is an empty list
+ * @return the query handle
+ *
+ * @remarks `bent_query(world, NULL, NULL)` matches every live entity.
+ *     This differs from a system, where a `NULL` pair matches nothing.
+ *
+ * @see BENT_COMP_LIST
+ * @see BENT_FOREACH_QUERY
+ * @see BENT_FOREACH_MATCH
  */
-BENT_API bent_t*
-bent_get_entity_list(bent_world_t* world, bent_sys_reg_t sys, bent_index_t* num_entities);
+BENT_API bent_query_t
+bent_query(bent_world_t* world, bent_comp_reg_t** require, bent_comp_reg_t** exclude);
+
+/**
+ * Same as @ref bent_query but from bitsets built at runtime.
+ *
+ * @see bent_bitset_from_comp_list
+ */
+BENT_API bent_query_t
+bent_query_masks(bent_world_t* world, bent_bitset_t require, bent_bitset_t exclude);
+
+/**
+ * Check whether an entity matches a query
+ *
+ * @param world the world
+ * @param query the query
+ * @param entity an entity handle
+ * @return whether the entity is live and matches the query
+ */
+BENT_API bool
+bent_query_match(bent_world_t* world, bent_query_t query, bent_t entity);
+
+/**
+ * Call a function on every entity matching a query.
+ *
+ * The same rules as @ref bent_query_begin apply to the callback.
+ *
+ * @param world the world
+ * @param query the query
+ * @param fn the function to call
+ * @param userdata passed to `fn`
+ */
+BENT_API void
+bent_query_each(
+	bent_world_t* world,
+	bent_query_t query,
+	void (*fn)(void* userdata, bent_world_t* world, bent_t entity),
+	void* userdata
+);
+
+/**
+ * Same as @ref bent_query_each with an explicit @ref bent_query_ctx_t.
+ *
+ * @param world the world
+ * @param query the query
+ * @param ctx the context, `NULL` for the world's shared one
+ * @param fn the function to call
+ * @param userdata passed to `fn`
+ */
+BENT_API void
+bent_query_each_ex(
+	bent_world_t* world,
+	bent_query_t query,
+	bent_query_ctx_t* ctx,
+	void (*fn)(void* userdata, bent_world_t* world, bent_t entity),
+	void* userdata
+);
+
+/**
+ * Create a query context.
+ *
+ * Only needed to iterate from several threads at once: give each thread its
+ * own and pass it to @ref bent_query_begin_ex.
+ *
+ * @param memctx memory allocator context
+ * @return the context
+ *
+ * @see bent_query_ctx_t
+ */
+BENT_API bent_query_ctx_t*
+bent_create_query_ctx(void* memctx);
+
+/**
+ * Destroy a query context.
+ *
+ * No iteration may be in flight on it.
+ * Calling this on `NULL` is safe.
+ *
+ * @param ctx the context
+ */
+BENT_API void
+bent_destroy_query_ctx(bent_query_ctx_t* ctx);
+
+/**
+ * Begin iterating a query.
+ *
+ * The iterator walks a snapshot of the list taken here and checks each entity
+ * against the query again before yielding it, so the body may add or remove
+ * components on any entity and destroy any entity.
+ * An entity that stops matching is skipped, an entity that starts matching is
+ * not visited until the next iteration.
+ * Iterations can be nested.
+ *
+ * The snapshot lives in the world's shared @ref bent_query_ctx_t, see
+ * @ref bent_query_begin_ex to use another one.
+ *
+ * @ref bent_query_next releases the snapshot when it returns `false`.
+ * To leave the loop early, call @ref bent_query_end.
+ *
+ * Example:
+ * @snippet samples/bent.c bent_query_begin
+ *
+ * @param world the world
+ * @param query the query
+ * @return the iterator
+ *
+ * @see BENT_FOREACH_QUERY
+ */
+BENT_API bent_query_itr_t
+bent_query_begin(bent_world_t* world, bent_query_t query);
+
+/**
+ * Same as @ref bent_query_begin with an explicit @ref bent_query_ctx_t.
+ *
+ * @param world the world
+ * @param query the query
+ * @param ctx the context, `NULL` for the world's shared one
+ * @return the iterator
+ *
+ * @see BENT_FOREACH_QUERY_EX
+ */
+BENT_API bent_query_itr_t
+bent_query_begin_ex(bent_world_t* world, bent_query_t query, bent_query_ctx_t* ctx);
+
+/**
+ * Advance an iterator.
+ *
+ * @param world the world
+ * @param itr the iterator
+ * @return whether @ref bent_query_itr_t::entity holds the next entity.
+ *     `false` once the iteration is over.
+ */
+BENT_API bool
+bent_query_next(bent_world_t* world, bent_query_itr_t* itr);
+
+/**
+ * End an iteration early.
+ *
+ * Calling this on a finished iterator is a noop.
+ *
+ * @param world the world
+ * @param itr the iterator
+ */
+BENT_API void
+bent_query_end(bent_world_t* world, bent_query_itr_t* itr);
+
+/**
+ * The query that provides a system's entity list.
+ *
+ * @param world the world
+ * @param sys a system's registration handle
+ * @return the query, or the empty query for a system that matches nothing or
+ *     has @ref BENT_SYS_NO_ENTITY_LIST
+ *
+ * @see bent_sys_def_t::require
+ * @see bent_sys_def_t::exclude
+ */
+BENT_API bent_query_t
+bent_sys_query(bent_world_t* world, bent_sys_reg_t sys);
+
+// }}}
 
 /**
  * Retrieve the component mask of an entity
@@ -1279,9 +1559,6 @@ bent_bitset_from_comp_list(bent_comp_reg_t** comp_list) {
 AUTOLIST_DECLARE(bent__components)
 AUTOLIST_DECLARE(bent__systems)
 
-BENT_API bent_index_t
-bent__entity_list_len(bent_t* entities);
-
 BENT_API bent_t
 bent__next_live(bent_world_t* world, bent_index_t from);
 
@@ -1385,8 +1662,23 @@ typedef struct {
 typedef struct {
 	bent_bitset_t require;
 	bent_bitset_t exclude;
+	// Sparse set of the matching entities, keyed by entity index
 	barray(bent_index_t) sparse;
 	barray(bent_t) dense;
+} bent_query_data_t;
+
+struct bent_query_ctx_s {
+	// Stack of snapshots for the iterations in flight
+	barray(bent_t) entities;
+	void* memctx;
+};
+
+typedef struct {
+	bent_bitset_t require;
+	bent_bitset_t exclude;
+	// The query that provides the entity list.
+	// Empty when there is no filter or with BENT_SYS_NO_ENTITY_LIST.
+	bent_query_t query;
 	const bent_sys_def_t* def;
 	char* name;
 	void* userdata;
@@ -1416,6 +1708,10 @@ struct bent_world_s {
 	bool draining_destroy_queue;
 
 	barray(bent_system_data_t) systems;
+	// Interned by (require, exclude), never removed
+	barray(bent_query_data_t) queries;
+	// For the iterations that do not bring their own
+	bent_query_ctx_t* query_ctx;
 	barray(bent_notification_t) notify_queue;
 	// Which slots are alive, and their generations
 	bhandle_map_t handles;
@@ -1483,6 +1779,81 @@ bent_comp_cleanup(
 
 // }}}
 
+// query {{{
+
+static bool
+bent_query_match_impl(const bent_query_data_t* query, const bent_bitset_t* components) {
+	return bent_bitset_all_match(components, &query->require)  // Match all of the requirements
+		&& !bent_bitset_any_match(components, &query->exclude);  // Match none of the exclusions
+}
+
+static bool
+bent_query_contains(const bent_query_data_t* query, bent_t entity) {
+	if (entity.index >= (bent_index_t)barray_len(query->sparse)) { return false; }
+
+	bent_index_t dense_index = query->sparse[entity.index];
+	return dense_index < (bent_index_t)barray_len(query->dense)
+		&& bent_equal(query->dense[dense_index], entity);
+}
+
+// Idempotent: a query created in the middle of a load or a callback may
+// already hold an entity that is notified later.
+static void
+bent_query_insert(bent_world_t* world, bent_query_data_t* query, bent_t entity) {
+	if (bent_query_contains(query, entity)) { return; }
+
+	bent_index_t sparse_size = (bent_index_t)barray_len(query->sparse);
+	if (entity.index >= sparse_size) {
+		bent_index_t new_sparse_size = sparse_size * 2 > entity.index + 1 ? sparse_size * 2 : entity.index + 1;
+		barray_resize(query->sparse, new_sparse_size, world->memctx);
+	}
+	query->sparse[entity.index] = (bent_index_t)barray_len(query->dense);
+	barray_push(query->dense, entity, world->memctx);
+}
+
+static void
+bent_query_erase(bent_query_data_t* query, bent_t entity) {
+	if (!bent_query_contains(query, entity)) { return; }
+
+	bent_index_t dense_index = query->sparse[entity.index];
+	bent_t last_entity = barray_pop(query->dense);
+	if (dense_index < (bent_index_t)barray_len(query->dense)) {
+		query->dense[dense_index] = last_entity;
+		query->sparse[last_entity.index] = dense_index;
+	}
+}
+
+static void
+bent_query_cleanup(bent_world_t* world, bent_query_data_t* query) {
+	barray_free(query->dense, world->memctx);
+	barray_free(query->sparse, world->memctx);
+}
+
+// Keep every list in sync with an entity's components.
+// A NULL side means the entity does not exist on that side.
+// This also runs while loading so the lists are always current.
+static void
+bent_update_queries(
+	bent_world_t* world,
+	bent_t entity,
+	const bent_bitset_t* old_components,
+	const bent_bitset_t* new_components
+) {
+	bent_index_t num_queries = (bent_index_t)barray_len(world->queries);
+	for (bent_index_t i = 0; i < num_queries; ++i) {
+		bent_query_data_t* query = &world->queries[i];
+		bool was_matching = old_components != NULL && bent_query_match_impl(query, old_components);
+		bool is_matching = new_components != NULL && bent_query_match_impl(query, new_components);
+		if (was_matching && !is_matching) {
+			bent_query_erase(query, entity);
+		} else if (!was_matching && is_matching) {
+			bent_query_insert(world, query, entity);
+		}
+	}
+}
+
+// }}}
+
 // system {{{
 
 typedef bool (*bhash_eq_fn_t)(const void* lhs, const void* rhs, size_t size);
@@ -1501,16 +1872,6 @@ bent_sys_match_impl(const bent_system_data_t* sys, const bent_bitset_t* componen
 
 static void
 bent_sys_add_entity(bent_world_t* world, bent_system_data_t* sys, bent_t entity) {
-	if (!(sys->def->flags & BENT_SYS_NO_ENTITY_LIST)) {
-		bent_index_t sparse_size = (bent_index_t)barray_len(sys->sparse);
-		if (entity.index >= sparse_size) {
-			bent_index_t new_sparse_size = sparse_size * 2 > entity.index + 1 ? sparse_size * 2 : entity.index + 1;
-			barray_resize(sys->sparse, new_sparse_size, world->memctx);
-		}
-		sys->sparse[entity.index] = (bent_index_t)barray_len(sys->dense);
-		barray_push(sys->dense, entity, world->memctx);
-	}
-
 	if (sys->def->add) {
 		sys->def->add(sys->userdata, world, entity);
 	}
@@ -1518,13 +1879,6 @@ bent_sys_add_entity(bent_world_t* world, bent_system_data_t* sys, bent_t entity)
 
 static void
 bent_sys_remove_entity(bent_world_t* world, bent_system_data_t* sys, bent_t entity) {
-	if (!(sys->def->flags & BENT_SYS_NO_ENTITY_LIST)) {
-		bent_index_t dense_index = sys->sparse[entity.index];
-		bent_t last_entity = barray_pop(sys->dense);
-		sys->dense[dense_index] = last_entity;
-		sys->sparse[last_entity.index] = dense_index;
-	}
-
 	if (sys->def->remove) {
 		sys->def->remove(sys->userdata, world, entity);
 	}
@@ -1561,6 +1915,15 @@ bent_sys_init(
 		// Otherwise, each property is defaulted to an empty list
 		sys->require = bent_bitset_from_comp_list(def->require);
 		sys->exclude = bent_bitset_from_comp_list(def->exclude);
+	}
+
+	// The entity list lives in a query, shared with everyone using the same filter
+	sys->query = (bent_query_t){ 0 };
+	if (
+		!(def->flags & BENT_SYS_NO_ENTITY_LIST)
+		&& (def->require != NULL || def->exclude != NULL)
+	) {
+		sys->query = bent_query_masks(world, sys->require, sys->exclude);
 	}
 
 	bool initialized = sys->initialized;
@@ -1618,8 +1981,6 @@ bent_sys_cleanup(bent_world_t* world, bent_system_data_t* sys) {
 		sys->def->cleanup(sys->userdata, world);
 	}
 	BENT_REALLOC(sys->userdata, 0, world->memctx);
-	barray_free(sys->dense, world->memctx);
-	barray_free(sys->sparse, world->memctx);
 
 	BENT_REALLOC(sys->name, 0, world->memctx);
 }
@@ -1631,6 +1992,8 @@ bent_notify_systems_impl(
 	const bent_bitset_t* old_components,
 	const bent_bitset_t* new_components
 ) {
+	bent_update_queries(world, entity, old_components, new_components);
+
 	bent_index_t num_systems = (bent_index_t)barray_len(world->systems);
 	for (bent_index_t i = 0; i < num_systems; ++i) {
 		bent_system_data_t* sys = &world->systems[i];
@@ -1651,6 +2014,8 @@ bent_notify_systems_impl(
 static void
 bent_match_empty_impl(bent_world_t* world, bent_t entity_id) {
 	bent_bitset_t empty = { 0 };
+	bent_update_queries(world, entity_id, NULL, &empty);
+
 	bent_index_t num_systems = (bent_index_t)barray_len(world->systems);
 	for (bent_index_t i = 0; i < num_systems; ++i) {
 		bent_system_data_t* sys = &world->systems[i];
@@ -1706,7 +2071,21 @@ bent_end_notify(bent_world_t* world) {
 // While a callback runs, the notification waits until it is done.
 static void
 bent_notify(bent_world_t* world, bent_notification_t notification) {
-	if (world->loading) { return; }
+	if (world->loading) {
+		// The lists still have to stay current
+		bent_bitset_t empty = { 0 };
+		if (notification.created) {
+			bent_update_queries(world, notification.entity, NULL, &empty);
+		} else {
+			bent_update_queries(
+				world,
+				notification.entity,
+				&notification.old_components,
+				&notification.new_components
+			);
+		}
+		return;
+	}
 
 	if (!bent_begin_notify(world)) {
 		barray_push(world->notify_queue, notification, world->memctx);
@@ -1768,6 +2147,8 @@ bent_destroy_immediately(bent_world_t* world, bent_t entity_id) {
 
 	const bent_bitset_t* components = &entity_data->components;
 
+	bent_update_queries(world, entity_id, components, NULL);
+
 	// While loading, no system has seen the entity yet
 	if (!world->loading) {
 		bool outermost = bent_begin_notify(world);
@@ -1804,6 +2185,7 @@ bent_init(bent_world_t** world_ptr, void* memctx) {
 		world = BENT_REALLOC(NULL, sizeof(bent_world_t), memctx);
 		*world = (bent_world_t){
 			.memctx = memctx,
+			.query_ctx = bent_create_query_ctx(memctx),
 		};
 	}
 
@@ -1915,7 +2297,14 @@ bent_cleanup(bent_world_t** world_ptr) {
 		bent_sys_cleanup(world, &world->systems[i]);
 	}
 
+	bent_index_t num_queries = (bent_index_t)barray_len(world->queries);
+	for (bent_index_t i = 0; i < num_queries; ++i) {
+		bent_query_cleanup(world, &world->queries[i]);
+	}
+
 	barray_free(world->systems, world->memctx);
+	barray_free(world->queries, world->memctx);
+	bent_destroy_query_ctx(world->query_ctx);
 	barray_free(world->notify_queue, world->memctx);
 	bseg_free(world->entities, world->memctx);
 	bhandle_free(&world->handles, world->memctx);
@@ -2065,15 +2454,6 @@ bent_get_sys_name(bent_world_t* world, bent_sys_reg_t sys) {
 	return world->systems[sys.id - 1].name;
 }
 
-bent_t*
-bent_get_entity_list(bent_world_t* world, bent_sys_reg_t sys, bent_index_t* num_entities) {
-	bent_system_data_t* sys_data = &world->systems[sys.id - 1];
-
-	if (num_entities) { *num_entities = (bent_index_t)barray_len(sys_data->dense); }
-
-	return sys_data->dense;
-}
-
 bent_bitset_t
 bent_get_entity_mask(bent_world_t* world, bent_t entity) {
 	const bent_entity_data_t* entity_data = bent_entity_data(world, entity);
@@ -2091,8 +2471,7 @@ bent_run(bent_world_t* world, bent_mask_t update_mask) {
 				sys->userdata,
 				world,
 				update_mask,
-				sys->dense,
-				(bent_index_t)barray_len(sys->dense)
+				sys->query
 			);
 			world->defer_destruction = false;
 
@@ -2110,10 +2489,177 @@ bent_match(bent_world_t* world, bent_sys_reg_t reg, bent_t entity_id) {
 	return bent_sys_match_impl(sys, &entity_data->components);
 }
 
-bent_index_t
-bent__entity_list_len(bent_t* entities) {
-	return (bent_index_t)barray_len(entities);
+// query {{{
+
+bent_query_t
+bent_query_masks(bent_world_t* world, bent_bitset_t require, bent_bitset_t exclude) {
+	bent_index_t num_queries = (bent_index_t)barray_len(world->queries);
+	for (bent_index_t i = 0; i < num_queries; ++i) {
+		const bent_query_data_t* query = &world->queries[i];
+		if (
+			memcmp(&query->require, &require, sizeof(require)) == 0
+			&& memcmp(&query->exclude, &exclude, sizeof(exclude)) == 0
+		) {
+			return (bent_query_t){ .id = i + 1 };
+		}
+	}
+
+	barray_push(world->queries, ((bent_query_data_t){
+		.require = require,
+		.exclude = exclude,
+	}), world->memctx);
+	bent_query_data_t* query = &world->queries[num_queries];
+
+	// Populate from the current state.
+	// A query is only a list so nothing is called back.
+	bent_index_t num_entities = (bent_index_t)bseg_len(world->entities);
+	BHANDLE_FOREACH(handle, &world->handles) {
+		// In the middle of bent_load_handles_begin, the entity table can lag
+		if (handle.index >= num_entities) { continue; }
+
+		const bent_entity_data_t* entity_data = bseg_ref(world->entities, handle.index);
+		if (bent_query_match_impl(query, &entity_data->components)) {
+			bent_query_insert(world, query, bent__from_bhandle(handle));
+		}
+	}
+
+	return (bent_query_t){ .id = num_queries + 1 };
 }
+
+bent_query_t
+bent_query(bent_world_t* world, bent_comp_reg_t** require, bent_comp_reg_t** exclude) {
+	return bent_query_masks(
+		world,
+		bent_bitset_from_comp_list(require),
+		bent_bitset_from_comp_list(exclude)
+	);
+}
+
+bool
+bent_query_match(bent_world_t* world, bent_query_t query, bent_t entity_id) {
+	if (query.id == 0) { return false; }
+
+	const bent_entity_data_t* entity_data = bent_entity_data(world, entity_id);
+	if (entity_data == NULL) { return false; }
+
+	return bent_query_match_impl(&world->queries[query.id - 1], &entity_data->components);
+}
+
+bent_query_ctx_t*
+bent_create_query_ctx(void* memctx) {
+	bent_query_ctx_t* ctx = BENT_REALLOC(NULL, sizeof(bent_query_ctx_t), memctx);
+	*ctx = (bent_query_ctx_t){ .memctx = memctx };
+	return ctx;
+}
+
+void
+bent_destroy_query_ctx(bent_query_ctx_t* ctx) {
+	if (ctx == NULL) { return; }
+
+	barray_free(ctx->entities, ctx->memctx);
+	BENT_REALLOC(ctx, 0, ctx->memctx);
+}
+
+bent_query_itr_t
+bent_query_begin_ex(bent_world_t* world, bent_query_t query, bent_query_ctx_t* ctx) {
+	if (ctx == NULL) { ctx = world->query_ctx; }
+
+	bent_index_t num_entities = 0;
+	bent_t* entities = NULL;
+	if (query.id != 0) {
+		bent_query_data_t* query_data = &world->queries[query.id - 1];
+		num_entities = (bent_index_t)barray_len(query_data->dense);
+		entities = query_data->dense;
+	}
+
+	// Push a snapshot on the context's stack: the live list may be reordered
+	// or reallocated by the body of the loop
+	bent_index_t base = (bent_index_t)barray_len(ctx->entities);
+	if (num_entities > 0) {
+		barray_resize(ctx->entities, base + num_entities, ctx->memctx);
+		memcpy(ctx->entities + base, entities, (size_t)num_entities * sizeof(bent_t));
+	}
+
+	return (bent_query_itr_t){
+		.query = query,
+		.ctx = ctx,
+		.base = base,
+		.pos = base,
+		.end = base + num_entities,
+	};
+}
+
+bent_query_itr_t
+bent_query_begin(bent_world_t* world, bent_query_t query) {
+	return bent_query_begin_ex(world, query, NULL);
+}
+
+void
+bent_query_end(bent_world_t* world, bent_query_itr_t* itr) {
+	(void)world;
+	if (itr->done) { return; }
+	itr->done = true;
+	itr->once = 0;
+
+	// Nested iterations are LIFO so this is the top of the stack
+	bent_query_ctx_t* ctx = itr->ctx;
+	barray_resize(ctx->entities, itr->base, ctx->memctx);
+}
+
+bool
+bent_query_next(bent_world_t* world, bent_query_itr_t* itr) {
+	if (itr->done) { return false; }
+
+	// BENT_FOREACH_QUERY sets `once` before the body and clears it after.
+	// The body left through `break` if it is still set.
+	if (itr->once) {
+		bent_query_end(world, itr);
+		return false;
+	}
+
+	// Skip what no longer matches (or was destroyed) since the snapshot
+	while (itr->pos < itr->end) {
+		bent_t entity = itr->ctx->entities[itr->pos++];
+		if (bent_query_match(world, itr->query, entity)) {
+			itr->entity = entity;
+			return true;
+		}
+	}
+
+	bent_query_end(world, itr);
+	return false;
+}
+
+void
+bent_query_each_ex(
+	bent_world_t* world,
+	bent_query_t query,
+	bent_query_ctx_t* ctx,
+	void (*fn)(void* userdata, bent_world_t* world, bent_t entity),
+	void* userdata
+) {
+	bent_query_itr_t itr = bent_query_begin_ex(world, query, ctx);
+	while (bent_query_next(world, &itr)) {
+		fn(userdata, world, itr.entity);
+	}
+}
+
+void
+bent_query_each(
+	bent_world_t* world,
+	bent_query_t query,
+	void (*fn)(void* userdata, bent_world_t* world, bent_t entity),
+	void* userdata
+) {
+	bent_query_each_ex(world, query, NULL, fn, userdata);
+}
+
+bent_query_t
+bent_sys_query(bent_world_t* world, bent_sys_reg_t sys) {
+	return world->systems[sys.id - 1].query;
+}
+
+// }}}
 
 // serialization support {{{
 
@@ -2221,7 +2767,9 @@ bent_restore(bent_world_t* world, bent_t entity_id, bent_comp_reg_t reg) {
 	if (instance != NULL) {
 		memset(instance, 0, comp_data->def->size);
 	}
+	bent_bitset_t old_components = entity_data->components;
 	bent_bitset_set(&entity_data->components, comp_index);
+	bent_update_queries(world, entity_id, &old_components, &entity_data->components);
 
 	return instance;
 }
