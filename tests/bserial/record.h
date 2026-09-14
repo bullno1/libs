@@ -24,7 +24,7 @@ typedef struct {
 
 static inline bserial_status_t
 serialize_vec2f(bserial_ctx_t* ctx, vec2f_t* rec) {
-	BSERIAL_RECORD(ctx, rec) {
+	BSERIAL_RECORD(ctx) {
 		BSERIAL_KEY(ctx, x) {
 			BSERIAL_CHECK_STATUS(bserial_f32(ctx, &rec->x));
 		}
@@ -39,7 +39,7 @@ serialize_vec2f(bserial_ctx_t* ctx, vec2f_t* rec) {
 
 static inline bserial_status_t
 serialize_original(bserial_ctx_t* ctx, original_t* rec) {
-	BSERIAL_RECORD(ctx, rec) {
+	BSERIAL_RECORD(ctx) {
 		BSERIAL_KEY(ctx, num) {
 			BSERIAL_CHECK_STATUS(bserial_any_int(ctx, &rec->num));
 		}
@@ -87,7 +87,7 @@ serialize_original(bserial_ctx_t* ctx, original_t* rec) {
 static inline bserial_status_t
 serialize_original_flipped(bserial_ctx_t* ctx, original_t* rec) {
 	// Order of keys does not matter
-	BSERIAL_RECORD(ctx, rec) {
+	BSERIAL_RECORD(ctx) {
 		BSERIAL_KEY(ctx, str) {
 			uint64_t len = strlen(rec->str);
 			BSERIAL_CHECK_STATUS(bserial_blob_header(ctx, &len));
@@ -135,7 +135,7 @@ serialize_original_flipped(bserial_ctx_t* ctx, original_t* rec) {
 static inline bserial_status_t
 serialize_original_skip(bserial_ctx_t* ctx, original_t* rec, int selector) {
 	// Depending on the selector, only 1 of the 5 fields will be deserialized.
-	BSERIAL_RECORD(ctx, rec) {
+	BSERIAL_RECORD(ctx) {
 		if (selector == 0) {
 			BSERIAL_KEY(ctx, str) {
 				uint64_t len = strlen(rec->str);
