@@ -84,6 +84,25 @@ bco(listener, int hp) {
 }
 //!                                                                             [bco_recv]
 
+//!                                                                             [bco_self]
+typedef struct { int code; } key_press_t;
+
+// A host list of coroutines waiting for the next key press
+static bco_t* key_waiters[8];
+static int num_key_waiters;
+
+bco(wait_for_key, int unused) {
+	bco_vars(key_press_t key;)
+	bco_begin
+	// Register for one event right before waiting for it.
+	// bco_self is the handle the host holds, even from within a subcoroutine.
+	key_waiters[num_key_waiters++] = bco_self;
+	bco_recv(key_press_t, key);
+	printf("key %d\n", bco_var(key).code);
+	bco_end
+}
+//!                                                                             [bco_self]
+
 int main(int argc, const char* argv[]) {
 //!                                                                             [bco_spawn]
 //!                                                                             [bco_align_t]
@@ -131,6 +150,18 @@ int main(int argc, const char* argv[]) {
 	bco_resume(coro);
 	bco_terminate(coro);
 //!                                                                             [bco_send]
+
+//!                                                                             [bco_self_host]
+	bco_spawn(coro, wait_for_key, 0);
+	bco_resume(coro);  // Registers itself and parks at the receive
+	// A key press: broadcast to everyone waiting for one, then clear the list.
+	// An entry whose coroutine has since been terminated just refuses the send.
+	for (int i = 0; i < num_key_waiters; ++i) {
+		bco_send(key_waiters[i], key_press_t, { .code = 32 });
+	}
+	num_key_waiters = 0;
+	bco_resume(coro);
+//!                                                                             [bco_self_host]
 
 //!                                                                             [bco_mem_size]
 	// The coroutine can be heap-allocated
