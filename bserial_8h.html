@@ -390,9 +390,9 @@ Structured serialization</h2>
 <li>Floating points: Either single or double. IEEE 754 is assumed.</li>
 <li>Blob: An arbitrary binary blob of data. "String" is treated as blob in bserial. The library does not do any encoding validation.</li>
 <li>Symbol: Similar to strings but unique values are only written once. Subsequent occurences are referred to by id. For example, if the symbol <code>foo</code> has been written once as <code>[SYMBOL_DEF][foo]</code>, and then written again. <code>[SYMBOL_REF][0]</code> will be written to the stream instead. This helps to save space when certain sets of symbols are used repeatedly e.g: field names of a struct.</li>
-<li>Record: A collection of key-value pairs. The keys are always symbols. The values can have any types.</li>
+<li>Record: A collection of key-value pairs. The keys are always symbols. The values can have any types. The list of keys (the schema) is interned like a symbol. The first record with a given schema is written as <code>[RECORD_DEF][num_keys][keys...][values...]</code>. Later records with the same schema are written as <code>[RECORD_REF][id][values...]</code>. Repeated records such as array elements thus only pay for their values.</li>
 <li>Array: a collection of elements. Each element can have a different type.</li>
-<li>Table: a collection of elements. Unlike array, each element must be a record. All records must have the exact same set of keys. The storage is optimized for storing repeated records of the same type.</li>
+<li>Table: a collection of elements Unlike array, each element must be a record. All records must have the same schema. The storage is optimized for storing repeated records of the same type.</li>
 </ul>
 <p>All data types are generally stored as <code>[tag][payload]</code>. Variable length types like array or table are stored as <code>[tag][length][payload]</code>. The type tag is needed to facilitate skipping over unknown data that is not described in the serialization code.</p>
 <h3><a class="anchor" id="autotoc_md8"></a>
@@ -421,11 +421,11 @@ Record</h3>
 <div class="line"> </div>
 <div class="line">    <span class="keywordflow">return</span> <a class="code hl_function" href="bserial_8h.html#a8dc8121519c7732864ca7211088b7776">bserial_status</a>(ctx);</div>
 <div class="line">}</div>
-<div class="ttc" id="abserial_8h_html_a38ebcbf7776e35a4837e45d9fbc96e79"><div class="ttname"><a href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a></div><div class="ttdeci">struct bserial_ctx_s bserial_ctx_t</div><div class="ttdoc">Serialization context.</div><div class="ttdef"><b>Definition</b> bserial.h:534</div></div>
-<div class="ttc" id="abserial_8h_html_a53882609fbb8d070dda12f9a2e501e3b"><div class="ttname"><a href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a></div><div class="ttdeci">bserial_status_t</div><div class="ttdoc">IO status.</div><div class="ttdef"><b>Definition</b> bserial.h:473</div></div>
-<div class="ttc" id="abserial_8h_html_a7d488368f2ebd0beefea7801a872f375"><div class="ttname"><a href="bserial_8h.html#a7d488368f2ebd0beefea7801a872f375">bserial_any_int</a></div><div class="ttdeci">#define bserial_any_int(ctx, integer)</div><div class="ttdoc">Read/write an integer of any type.</div><div class="ttdef"><b>Definition</b> bserial.h:793</div></div>
+<div class="ttc" id="abserial_8h_html_a38ebcbf7776e35a4837e45d9fbc96e79"><div class="ttname"><a href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a></div><div class="ttdeci">struct bserial_ctx_s bserial_ctx_t</div><div class="ttdoc">Serialization context.</div><div class="ttdef"><b>Definition</b> bserial.h:538</div></div>
+<div class="ttc" id="abserial_8h_html_a53882609fbb8d070dda12f9a2e501e3b"><div class="ttname"><a href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a></div><div class="ttdeci">bserial_status_t</div><div class="ttdoc">IO status.</div><div class="ttdef"><b>Definition</b> bserial.h:477</div></div>
+<div class="ttc" id="abserial_8h_html_a7d488368f2ebd0beefea7801a872f375"><div class="ttname"><a href="bserial_8h.html#a7d488368f2ebd0beefea7801a872f375">bserial_any_int</a></div><div class="ttdeci">#define bserial_any_int(ctx, integer)</div><div class="ttdoc">Read/write an integer of any type.</div><div class="ttdef"><b>Definition</b> bserial.h:805</div></div>
 <div class="ttc" id="abserial_8h_html_a8dc8121519c7732864ca7211088b7776"><div class="ttname"><a href="bserial_8h.html#a8dc8121519c7732864ca7211088b7776">bserial_status</a></div><div class="ttdeci">bserial_status_t bserial_status(bserial_ctx_t *ctx)</div><div class="ttdoc">Get the current IO status.</div></div>
-<div class="ttc" id="abserial_8h_html_a96e7bd6b140b4881d2d5757a5bcbffbc"><div class="ttname"><a href="bserial_8h.html#a96e7bd6b140b4881d2d5757a5bcbffbc">BSERIAL_CHECK_STATUS</a></div><div class="ttdeci">#define BSERIAL_CHECK_STATUS(OP)</div><div class="ttdoc">Helper macro to check for IO status and return on error.</div><div class="ttdef"><b>Definition</b> bserial.h:466</div></div>
+<div class="ttc" id="abserial_8h_html_a96e7bd6b140b4881d2d5757a5bcbffbc"><div class="ttname"><a href="bserial_8h.html#a96e7bd6b140b4881d2d5757a5bcbffbc">BSERIAL_CHECK_STATUS</a></div><div class="ttdeci">#define BSERIAL_CHECK_STATUS(OP)</div><div class="ttdoc">Helper macro to check for IO status and return on error.</div><div class="ttdef"><b>Definition</b> bserial.h:470</div></div>
 <div class="ttc" id="abserial_8h_html_aa263323ebc7bc8fc33a97514821d6b59"><div class="ttname"><a href="bserial_8h.html#aa263323ebc7bc8fc33a97514821d6b59">bserial_key</a></div><div class="ttdeci">bool bserial_key(bserial_ctx_t *ctx, const char *name, uint64_t len)</div><div class="ttdoc">Read/write a key.</div></div>
 <div class="ttc" id="abserial_8h_html_aadc0750bc75a41f8b32fe9404e6954c2"><div class="ttname"><a href="bserial_8h.html#aadc0750bc75a41f8b32fe9404e6954c2">bserial_f32</a></div><div class="ttdeci">bserial_status_t bserial_f32(bserial_ctx_t *ctx, float *value)</div><div class="ttdoc">Read/write a single precision float.</div></div>
 <div class="ttc" id="abserial_8h_html_ad011a5ec92074186c752409b63f7afbd"><div class="ttname"><a href="bserial_8h.html#ad011a5ec92074186c752409b63f7afbd">bserial_record</a></div><div class="ttdeci">bool bserial_record(bserial_ctx_t *ctx)</div><div class="ttdoc">Read/write a record.</div></div>
@@ -447,8 +447,8 @@ Record</h3>
 <div class="line"> </div>
 <div class="line">    <span class="keywordflow">return</span> <a class="code hl_function" href="bserial_8h.html#a8dc8121519c7732864ca7211088b7776">bserial_status</a>(ctx);</div>
 <div class="line">}</div>
-<div class="ttc" id="abserial_8h_html_a6b7a06a5232f7be971abccb32123fe39"><div class="ttname"><a href="bserial_8h.html#a6b7a06a5232f7be971abccb32123fe39">BSERIAL_KEY</a></div><div class="ttdeci">#define BSERIAL_KEY(ctx, name)</div><div class="ttdoc">Read/write a key in a record.</div><div class="ttdef"><b>Definition</b> bserial.h:975</div></div>
-<div class="ttc" id="abserial_8h_html_af46e2853c8411a1cc72a20f4e45883e4"><div class="ttname"><a href="bserial_8h.html#af46e2853c8411a1cc72a20f4e45883e4">BSERIAL_RECORD</a></div><div class="ttdeci">#define BSERIAL_RECORD(ctx)</div><div class="ttdoc">Read/write a record.</div><div class="ttdef"><b>Definition</b> bserial.h:966</div></div>
+<div class="ttc" id="abserial_8h_html_a6b7a06a5232f7be971abccb32123fe39"><div class="ttname"><a href="bserial_8h.html#a6b7a06a5232f7be971abccb32123fe39">BSERIAL_KEY</a></div><div class="ttdeci">#define BSERIAL_KEY(ctx, name)</div><div class="ttdoc">Read/write a key in a record.</div><div class="ttdef"><b>Definition</b> bserial.h:987</div></div>
+<div class="ttc" id="abserial_8h_html_af46e2853c8411a1cc72a20f4e45883e4"><div class="ttname"><a href="bserial_8h.html#af46e2853c8411a1cc72a20f4e45883e4">BSERIAL_RECORD</a></div><div class="ttdeci">#define BSERIAL_RECORD(ctx)</div><div class="ttdoc">Read/write a record.</div><div class="ttdef"><b>Definition</b> bserial.h:978</div></div>
 </div><!-- fragment --><p>The peculiar structure has to do with how the library handles record serialization. Considering that it has to support the following:</p>
 <ul>
 <li>New fields may be added.</li>
@@ -509,7 +509,7 @@ Incompatible type change</h4>
 <div class="line">    }</div>
 <div class="line">}</div>
 <div class="ttc" id="abserial_8h_html_a9efe4064847e35223ecbaa17e59da6d1"><div class="ttname"><a href="bserial_8h.html#a9efe4064847e35223ecbaa17e59da6d1">bserial_mode</a></div><div class="ttdeci">bserial_mode_t bserial_mode(bserial_ctx_t *ctx)</div><div class="ttdoc">Get the current serialization mode.</div></div>
-<div class="ttc" id="abserial_8h_html_aa72d84b2b1108e2128281caab136bd8ba7eb9e8a1b996d240a327695da0e6c031"><div class="ttname"><a href="bserial_8h.html#aa72d84b2b1108e2128281caab136bd8ba7eb9e8a1b996d240a327695da0e6c031">BSERIAL_MODE_READ</a></div><div class="ttdeci">@ BSERIAL_MODE_READ</div><div class="ttdoc">Reading.</div><div class="ttdef"><b>Definition</b> bserial.h:526</div></div>
+<div class="ttc" id="abserial_8h_html_aa72d84b2b1108e2128281caab136bd8ba7eb9e8a1b996d240a327695da0e6c031"><div class="ttname"><a href="bserial_8h.html#aa72d84b2b1108e2128281caab136bd8ba7eb9e8a1b996d240a327695da0e6c031">BSERIAL_MODE_READ</a></div><div class="ttdeci">@ BSERIAL_MODE_READ</div><div class="ttdoc">Reading.</div><div class="ttdef"><b>Definition</b> bserial.h:530</div></div>
 </div><!-- fragment --><p>Versioning can thus, be done per field instead of per record. This should make backward-compatible schema change relatively painless.</p>
 <h3><a class="anchor" id="autotoc_md12"></a>
 Enum</h3>
@@ -530,8 +530,8 @@ Enum</h3>
 <div class="line"> </div>
 <div class="line">    <span class="keywordflow">return</span> <a class="code hl_function" href="bserial_8h.html#a8dc8121519c7732864ca7211088b7776">bserial_status</a>(ctx);</div>
 <div class="line">}</div>
-<div class="ttc" id="abserial_8h_html_a02aa27ef3ee671f16da3c9ba41b6ab5d"><div class="ttname"><a href="bserial_8h.html#a02aa27ef3ee671f16da3c9ba41b6ab5d">BSERIAL_VARIANT</a></div><div class="ttdeci">#define BSERIAL_VARIANT(ctx, name)</div><div class="ttdoc">Declare a variant in an enum.</div><div class="ttdef"><b>Definition</b> bserial.h:1042</div></div>
-<div class="ttc" id="abserial_8h_html_a852225e32d1fc707767ab38af021f9d2"><div class="ttname"><a href="bserial_8h.html#a852225e32d1fc707767ab38af021f9d2">BSERIAL_ENUM</a></div><div class="ttdeci">#define BSERIAL_ENUM(ctx, value)</div><div class="ttdoc">Read/write an enum.</div><div class="ttdef"><b>Definition</b> bserial.h:1031</div></div>
+<div class="ttc" id="abserial_8h_html_a02aa27ef3ee671f16da3c9ba41b6ab5d"><div class="ttname"><a href="bserial_8h.html#a02aa27ef3ee671f16da3c9ba41b6ab5d">BSERIAL_VARIANT</a></div><div class="ttdeci">#define BSERIAL_VARIANT(ctx, name)</div><div class="ttdoc">Declare a variant in an enum.</div><div class="ttdef"><b>Definition</b> bserial.h:1054</div></div>
+<div class="ttc" id="abserial_8h_html_a852225e32d1fc707767ab38af021f9d2"><div class="ttname"><a href="bserial_8h.html#a852225e32d1fc707767ab38af021f9d2">BSERIAL_ENUM</a></div><div class="ttdeci">#define BSERIAL_ENUM(ctx, value)</div><div class="ttdoc">Read/write an enum.</div><div class="ttdef"><b>Definition</b> bserial.h:1043</div></div>
 </div><!-- fragment --><p><code>BSERIAL_ENUM</code> takes a pointer to an integer or enum of any type. When writing, the variant whose value matches the pointee writes its name. When reading, the variant whose name matches the stream stores its value into the pointee. A value with no name or a name with no variant is an error.</p>
 <p>Renaming a variant is handled like renaming a record field: keep the old name as a read-only alias.</p>
 <div class="fragment"><div class="line"><a class="code hl_define" href="bserial_8h.html#a852225e32d1fc707767ab38af021f9d2">BSERIAL_ENUM</a>(ctx, kind) {</div>
@@ -560,8 +560,8 @@ Variable length types</h3>
 <div class="line"> </div>
 <div class="line">    <span class="keywordflow">return</span> <a class="code hl_function" href="bserial_8h.html#a8dc8121519c7732864ca7211088b7776">bserial_status</a>(ctx);</div>
 <div class="line">}</div>
-<div class="ttc" id="abserial_8h_html_a53882609fbb8d070dda12f9a2e501e3ba26a96cefb83bab521b44f029a20fe239"><div class="ttname"><a href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3ba26a96cefb83bab521b44f029a20fe239">BSERIAL_MALFORMED</a></div><div class="ttdeci">@ BSERIAL_MALFORMED</div><div class="ttdoc">Malformed data encountered.</div><div class="ttdef"><b>Definition</b> bserial.h:479</div></div>
-<div class="ttc" id="abserial_8h_html_afeb26b8c4c541f98593fa2970754a1f3"><div class="ttname"><a href="bserial_8h.html#afeb26b8c4c541f98593fa2970754a1f3">bserial_array</a></div><div class="ttdeci">#define bserial_array(ctx, len)</div><div class="ttdoc">Read/write an array.</div><div class="ttdef"><b>Definition</b> bserial.h:898</div></div>
+<div class="ttc" id="abserial_8h_html_a53882609fbb8d070dda12f9a2e501e3ba26a96cefb83bab521b44f029a20fe239"><div class="ttname"><a href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3ba26a96cefb83bab521b44f029a20fe239">BSERIAL_MALFORMED</a></div><div class="ttdeci">@ BSERIAL_MALFORMED</div><div class="ttdoc">Malformed data encountered.</div><div class="ttdef"><b>Definition</b> bserial.h:483</div></div>
+<div class="ttc" id="abserial_8h_html_afeb26b8c4c541f98593fa2970754a1f3"><div class="ttname"><a href="bserial_8h.html#afeb26b8c4c541f98593fa2970754a1f3">bserial_array</a></div><div class="ttdeci">#define bserial_array(ctx, len)</div><div class="ttdoc">Read/write an array.</div><div class="ttdef"><b>Definition</b> bserial.h:910</div></div>
 </div><!-- fragment --><p>In the write path, <code>my_array_len_resize</code> should be a noop. In the read path, <code>my_array_len_resize</code> will adjust the array to have the appropriate size.</p>
 <p>In general, variable length type should follow the pattern of:</p>
 <ol type="1">
@@ -595,7 +595,7 @@ String encoding validation</h3>
 <div class="line">    <span class="keywordflow">return</span> <a class="code hl_function" href="bserial_8h.html#a8dc8121519c7732864ca7211088b7776">bserial_status</a>(ctx);</div>
 <div class="line">}</div>
 <div class="ttc" id="abserial_8h_html_a59ba430636a464f8d8644792f3d52bc3"><div class="ttname"><a href="bserial_8h.html#a59ba430636a464f8d8644792f3d52bc3">bserial_blob_body</a></div><div class="ttdeci">bserial_status_t bserial_blob_body(bserial_ctx_t *ctx, char *buf)</div><div class="ttdoc">Read/write a binary blob's body.</div></div>
-<div class="ttc" id="abserial_8h_html_a70742ca8ccd51945da6c3fb090da2138"><div class="ttname"><a href="bserial_8h.html#a70742ca8ccd51945da6c3fb090da2138">bserial_blob_header</a></div><div class="ttdeci">#define bserial_blob_header(ctx, len)</div><div class="ttdoc">Read/write a binary blob's header.</div><div class="ttdef"><b>Definition</b> bserial.h:859</div></div>
+<div class="ttc" id="abserial_8h_html_a70742ca8ccd51945da6c3fb090da2138"><div class="ttname"><a href="bserial_8h.html#a70742ca8ccd51945da6c3fb090da2138">bserial_blob_header</a></div><div class="ttdeci">#define bserial_blob_header(ctx, len)</div><div class="ttdoc">Read/write a binary blob's header.</div><div class="ttdef"><b>Definition</b> bserial.h:871</div></div>
 </div><!-- fragment --><h3><a class="anchor" id="autotoc_md16"></a>
 Variant/tagged union types</h3>
 <p>There is no built-in support for these types. However, they could be emulated with an array where:</p>
@@ -653,7 +653,7 @@ Associative map</h3>
 <div class="line"> </div>
 <div class="line">    <span class="keywordflow">return</span> <a class="code hl_function" href="bserial_8h.html#a8dc8121519c7732864ca7211088b7776">bserial_status</a>(ctx);</div>
 <div class="line">}</div>
-<div class="ttc" id="abserial_8h_html_ad7535618a109001ee8e8b9fbd60d14fe"><div class="ttname"><a href="bserial_8h.html#ad7535618a109001ee8e8b9fbd60d14fe">bserial_table</a></div><div class="ttdeci">#define bserial_table(ctx, len)</div><div class="ttdoc">Read/write a table.</div><div class="ttdef"><b>Definition</b> bserial.h:918</div></div>
+<div class="ttc" id="abserial_8h_html_ad7535618a109001ee8e8b9fbd60d14fe"><div class="ttname"><a href="bserial_8h.html#ad7535618a109001ee8e8b9fbd60d14fe">bserial_table</a></div><div class="ttdeci">#define bserial_table(ctx, len)</div><div class="ttdoc">Read/write a table.</div><div class="ttdef"><b>Definition</b> bserial.h:930</div></div>
 </div><!-- fragment --><p>Where <code>serialize_hashmap_entry</code> defines a record:</p>
 <div class="fragment"><div class="line"><a class="code hl_enumeration" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a></div>
 <div class="line">serialize_hashmap_entry(<a class="code hl_typedef" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a>* ctx, my_hashmap_entry_t* entry) {</div>
@@ -834,7 +834,7 @@ Associative map</h3>
 <div class="line">        <a class="code hl_enumeration" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a> bserial__status = OP; \</div>
 <div class="line">        if (bserial__status != <a class="code hl_enumvalue" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3ba0e569cfcfda76d402f15530cf5278187">BSERIAL_OK</a>) { <span class="keywordflow">return</span> bserial__status; } \</div>
 <div class="line">    } <span class="keywordflow">while</span>(0)</div>
-<div class="ttc" id="abserial_8h_html_a53882609fbb8d070dda12f9a2e501e3ba0e569cfcfda76d402f15530cf5278187"><div class="ttname"><a href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3ba0e569cfcfda76d402f15530cf5278187">BSERIAL_OK</a></div><div class="ttdeci">@ BSERIAL_OK</div><div class="ttdoc">No error.</div><div class="ttdef"><b>Definition</b> bserial.h:475</div></div>
+<div class="ttc" id="abserial_8h_html_a53882609fbb8d070dda12f9a2e501e3ba0e569cfcfda76d402f15530cf5278187"><div class="ttname"><a href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3ba0e569cfcfda76d402f15530cf5278187">BSERIAL_OK</a></div><div class="ttdeci">@ BSERIAL_OK</div><div class="ttdoc">No error.</div><div class="ttdef"><b>Definition</b> bserial.h:479</div></div>
 </div><!-- fragment -->
 <p>Helper macro to check for IO status and return on error. </p>
 
@@ -915,7 +915,7 @@ Associative map</h3>
 <div class="line">            default: true \</div>
 <div class="line">        ), \</div>
 <div class="line">    })</div>
-<div class="ttc" id="astructbserial__int__type__t_html"><div class="ttname"><a href="structbserial__int__type__t.html">bserial_int_type_t</a></div><div class="ttdoc">Description of an integer type.</div><div class="ttdef"><b>Definition</b> bserial.h:744</div></div>
+<div class="ttc" id="astructbserial__int__type__t_html"><div class="ttname"><a href="structbserial__int__type__t.html">bserial_int_type_t</a></div><div class="ttdoc">Description of an integer type.</div><div class="ttdef"><b>Definition</b> bserial.h:756</div></div>
 </div><!-- fragment -->
 <p>Describe the integer type pointed to by <em>ptr</em>. </p>
 <p><em>ptr</em> must point to an integer type. Any other pointer type is a compile error. </p>
@@ -1313,7 +1313,7 @@ Associative map</h3>
 <p>Read/write a key. </p>
 <p>This can only be called within a <a class="el" href="bserial_8h.html#af46e2853c8411a1cc72a20f4e45883e4">BSERIAL_RECORD</a> block.</p>
 <p>The input data may have extra keys, missing keys or out of order keys. Therefore, the value serialization code should only be run if this returns true. This function should always be used in a condition: <code>if (bserial_key(ctx, name, len) {</code>.</p>
-<p>Moreover, <em>name</em> should be a constant.</p>
+<p>Moreover, <em>name</em> must be a constant.</p>
 <p>Therefore, the <a class="el" href="bserial_8h.html#a6b7a06a5232f7be971abccb32123fe39">BSERIAL_KEY</a> macro should be used.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">

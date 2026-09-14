@@ -93,6 +93,9 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:aa29473ee73a48871058c9fc2ba14938e" id="r_aa29473ee73a48871058c9fc2ba14938e"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structbserial__ctx__config__s.html#aa29473ee73a48871058c9fc2ba14938e">max_record_fields</a></td></tr>
 <tr class="memdesc:aa29473ee73a48871058c9fc2ba14938e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Maximum number fields per record.  <br /></td></tr>
 <tr class="separator:aa29473ee73a48871058c9fc2ba14938e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5d54013abd025ce10a51202652db3260" id="r_a5d54013abd025ce10a51202652db3260"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structbserial__ctx__config__s.html#a5d54013abd025ce10a51202652db3260">max_num_schemas</a></td></tr>
+<tr class="memdesc:a5d54013abd025ce10a51202652db3260"><td class="mdescLeft">&#160;</td><td class="mdescRight">Maximum number of distinct record schemas.  <br /></td></tr>
+<tr class="separator:a5d54013abd025ce10a51202652db3260"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0bdafbcc10fe2efe9203367f2809e296" id="r_a0bdafbcc10fe2efe9203367f2809e296"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structbserial__ctx__config__s.html#a0bdafbcc10fe2efe9203367f2809e296">max_depth</a></td></tr>
 <tr class="memdesc:a0bdafbcc10fe2efe9203367f2809e296"><td class="mdescLeft">&#160;</td><td class="mdescRight">Maximum nested depth.  <br /></td></tr>
 <tr class="separator:a0bdafbcc10fe2efe9203367f2809e296"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -119,6 +122,24 @@ Public Attributes</h2></td></tr>
 <a class="el" href="bserial_8h.html#afeb26b8c4c541f98593fa2970754a1f3" title="Read/write an array.">bserial_array</a> </dd>
 <dd>
 <a class="el" href="bserial_8h.html#ad7535618a109001ee8e8b9fbd60d14fe" title="Read/write a table.">bserial_table</a> </dd></dl>
+
+</div>
+</div>
+<a id="a5d54013abd025ce10a51202652db3260" name="a5d54013abd025ce10a51202652db3260"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5d54013abd025ce10a51202652db3260">&#9670;&#160;</a></span>max_num_schemas</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint32_t bserial_ctx_config_s::max_num_schemas</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Maximum number of distinct record schemas. </p>
+<p>Records with the same set of keys share a schema.</p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="bserial_8h.html#ad011a5ec92074186c752409b63f7afbd" title="Read/write a record.">bserial_record</a> </dd></dl>
 
 </div>
 </div>
