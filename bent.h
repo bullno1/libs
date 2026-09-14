@@ -318,13 +318,13 @@
  */
 #define BENT_FOREACH_QUERY_EX(VAR, WORLD, CTX, QUERY) \
 	for ( \
-		bent_query_itr_t bent__itr = bent_query_begin_ex((WORLD), (QUERY), (CTX)); \
-		bent_query_next((WORLD), &bent__itr); \
+		bent_query_itr_t bent__itr_##VAR = bent_query_begin_ex((WORLD), (QUERY), (CTX)); \
+		bent_query_next((WORLD), &bent__itr_##VAR); \
 	) \
 		for ( \
-			bent_t VAR = (bent__itr.once = 1, bent__itr.entity); \
-			bent__itr.once; \
-			bent__itr.once = 0 \
+			bent_t VAR = (bent__itr_##VAR.once = 1, bent__itr_##VAR.entity); \
+			bent__itr_##VAR.once; \
+			bent__itr_##VAR.once = 0 \
 		)
 
 /**
