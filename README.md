@@ -16,6 +16,7 @@ Collection of miscellaneous single-header libraries.
 |[bhamt.h](bhamt.h)|Type-safe hash trie, an arena-friendly associative map|
 |[barray.h](barray.h)|Dynamic array|
 |[bseg.h](bseg.h)|Segmented array|
+|[bhandle.h](bhandle.h)|Generational handles|
 |[bco.h](bco.h)|Coroutine|
 |[bserial.h](bserial.h)|Binary serialization|
 |[bsv.h](bsv.h)|Binary serialization with explicit versioning|
