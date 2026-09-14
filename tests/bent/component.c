@@ -129,6 +129,7 @@ BENT_DEFINE_COMP(component_with_callback) = {
 	.size = sizeof(component_with_callback_t),
 	.init = component_with_callback_init,
 	.cleanup = component_with_callback_cleanup,
+	.flags = BENT_COMP_TRANSIENT,
 };
 BENT_DEFINE_COMP_ADDER_EX(component_with_callback, component_with_callback_t, component_with_callback_init_t)
 

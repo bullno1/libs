@@ -13,6 +13,27 @@
  *
  * @remarks Not all properites can be hot-reloaded.
  *     They will be clearly marked as such in the following sections.
+ *
+ * ## Serialization
+ *
+ * The library does not pick a format.
+ * It exposes helpers so the host can use any serialization method:
+ *
+ * - @ref bent_handles and @ref bent_load_handles save and restore the entity
+ *   handles, so a @ref bent_t stored inside a component is valid again after
+ *   a load.
+ * - @ref BENT_FOREACH_SAVED_COMP, @ref BENT_FOREACH_WITH and
+ *   @ref bent_count_with enumerate what to write.
+ * - @ref bent_begin_load, @ref bent_reserve, @ref bent_restore and
+ *   @ref bent_end_load rebuild a world.
+ *   Systems are not notified until @ref bent_end_load, so their callbacks only
+ *   ever see complete entities.
+ *
+ * Each component type declares how it takes part through
+ * @ref bent_comp_def_t::serialize, @ref BENT_COMP_RAW or @ref BENT_COMP_TRANSIENT.
+ * A component with data that declares nothing is a mistake and
+ * @ref bent_unserializable_comp reports it.
+ * A tag component is saved by presence alone.
  */
 
 #include "autolist.h"
@@ -54,6 +75,17 @@
  */
 #ifndef BENT_MAX_NUM_COMPONENT_TYPES
 #define BENT_MAX_NUM_COMPONENT_TYPES 32
+#endif
+
+/**
+ * Type of the context passed to serialization callbacks.
+ *
+ * The library never touches it.
+ * Set it to the serialization library's context type, e.g: `bsv_ctx_t`, so
+ * that callbacks do not need a cast.
+ */
+#ifndef BENT_SERIALIZE_CTX
+#define BENT_SERIALIZE_CTX void
 #endif
 
 /*! Number of words in a @ref bent_bitset_t */
@@ -174,6 +206,20 @@
 		)
 
 /**
+ * Iterate over each component type that appears in a save.
+ *
+ * That is every type whose bent_comp_save_mode() is at least
+ * @ref BENT_COMP_SAVE_PRESENCE, in registration order.
+ *
+ * @param ITR name of the iterator variable of type @ref bent_comp_itr_t
+ *
+ * @hideinitializer
+ */
+#define BENT_FOREACH_SAVED_COMP(ITR) \
+	BENT_FOREACH_COMP(ITR) \
+		if (bent_comp_save_mode(ITR.comp.def) < BENT_COMP_SAVE_PRESENCE) {} else
+
+/**
  * Forward-declare a system.
  *
  * This should be used in a header file.
@@ -245,6 +291,40 @@
 			bent__itr.once = 0 \
 		)
 
+/**
+ * Iterate every live entity of a world, in index order.
+ *
+ * Destroying the current entity inside the loop is safe.
+ * Entities created inside the loop may or may not be visited.
+ *
+ * @param VAR name of the variable of type @ref bent_t
+ * @param WORLD the world
+ *
+ * @hideinitializer
+ */
+#define BENT_FOREACH_LIVE(VAR, WORLD) \
+	for ( \
+		bent_t VAR = bent__next_live((WORLD), 0); \
+		!bent_is_invalid(VAR); \
+		VAR = bent__next_live((WORLD), VAR.index + 1) \
+	)
+
+/**
+ * Iterate every live entity that has a component, in index order.
+ *
+ * @param VAR name of the variable of type @ref bent_t
+ * @param WORLD the world
+ * @param COMP a component's registration handle
+ *
+ * @hideinitializer
+ */
+#define BENT_FOREACH_WITH(VAR, WORLD, COMP) \
+	for ( \
+		bent_t VAR = bent__next_with((WORLD), (COMP), 0); \
+		!bent_is_invalid(VAR); \
+		VAR = bent__next_with((WORLD), (COMP), VAR.index + 1) \
+	)
+
 #ifndef BENT_DEFINE_COMPONENTS
 
 /**
@@ -260,6 +340,12 @@
 	BENT_DECLARE_COMP(NAME) \
 	BENT_DEFINE_COMP_ADDER(NAME, TYPE) \
 	BENT_DEFINE_COMP_GETTER(NAME, TYPE)
+
+/// Same as @ref BENT_POD_COMP but the component is serialized as raw bytes
+#define BENT_RAW_POD_COMP BENT_POD_COMP
+
+/// Same as @ref BENT_POD_COMP but the component is never serialized
+#define BENT_TRANSIENT_POD_COMP BENT_POD_COMP
 
 /**
  * Dual use helper for tag component.
@@ -277,6 +363,10 @@
 #else
 
 #define BENT_POD_COMP(NAME, TYPE) BENT_DEFINE_POD_COMP(NAME, TYPE)
+
+#define BENT_RAW_POD_COMP(NAME, TYPE) BENT_DEFINE_RAW_COMP(NAME, TYPE)
+
+#define BENT_TRANSIENT_POD_COMP(NAME, TYPE) BENT_DEFINE_TRANSIENT_COMP(NAME, TYPE)
 
 #define BENT_TAG_COMP(NAME) BENT_DEFINE_TAG_COMP(NAME)
 
@@ -307,6 +397,8 @@ typedef struct {
  * An entity handle can also be zero-initialized.
  * In which case, it will be considered stale.
  *
+ * Handles survive a save and load unchanged.
+ *
  * Functions will behave in a sensible way when given a stale handle:
  *
  * * (Redudnant) destruction of the entity as well as addition or removal of components become noop.
@@ -316,11 +408,85 @@ typedef struct {
  *   even those without any @ref bent_sys_def_t::require "requirements".
  */
 typedef struct {
-#ifndef DOXYGEN
+	/// @cond INTERNAL
 	bent_index_t index;
 	bent_index_t gen;
-#endif
+	/// @endcond
 } bent_t;
+
+/*! Serialization context, see @ref BENT_SERIALIZE_CTX */
+typedef BENT_SERIALIZE_CTX bent_serialize_ctx_t;
+
+/**
+ * Serialization callback for a component or a system.
+ *
+ * Called in both directions, the direction is known to the context.
+ * On read, `data` is zeroed storage and this callback is the constructor:
+ * @ref bent_comp_def_t::init is not called.
+ *
+ * @param ctx the context the host's serializer passes along
+ * @param data the component's or system's data
+ * @return whether serialization succeeded
+ */
+typedef bool (*bent_serialize_fn_t)(bent_serialize_ctx_t* ctx, void* data);
+
+/**
+ * Component behaviour flags.
+ *
+ * @see bent_comp_def_t::flags
+ */
+typedef enum {
+	/**
+	 * Data is saved and restored as raw bytes.
+	 *
+	 * The size is checked on read.
+	 * This is for plain structs on a single platform: there is no versioning
+	 * and no endianness handling.
+	 */
+	BENT_COMP_RAW       = 1 << 0,
+
+	/**
+	 * Data is neither saved nor restored.
+	 *
+	 * Either a system's @ref bent_sys_def_t::add "add callback" re-creates
+	 * it on load, or it is simply lost.
+	 */
+	BENT_COMP_TRANSIENT = 1 << 1,
+} bent_comp_flags_t;
+
+/**
+ * How a component type takes part in a save.
+ *
+ * @see bent_comp_save_mode()
+ */
+typedef enum {
+	/*! Has data but made no choice, or made contradicting ones. Saving must fail. */
+	BENT_COMP_SAVE_INVALID,
+	/*! Not in the file at all, see @ref BENT_COMP_TRANSIENT */
+	BENT_COMP_SAVE_NONE,
+	/*! A tag: the list of entities that have it */
+	BENT_COMP_SAVE_PRESENCE,
+	/*! The list of entities, each with a size-checked blob, see @ref BENT_COMP_RAW */
+	BENT_COMP_SAVE_RAW,
+	/*! The list of entities, each followed by whatever @ref bent_comp_def_t::serialize writes */
+	BENT_COMP_SAVE_CALLBACK,
+} bent_comp_save_t;
+
+/**
+ * Saved entity handles, a view into the world.
+ *
+ * One generation per slot, an odd generation is a live entity.
+ * Valid until the next call that creates or destroys an entity.
+ *
+ * @see bent_handles
+ * @see bent_load_handles
+ */
+typedef struct {
+	/*! Number of slots */
+	bent_index_t len;
+	/*! One generation per slot */
+	const bent_index_t* gens;
+} bent_handles_t;
 
 /**
  * Component type definition.
@@ -360,6 +526,21 @@ typedef struct {
 	 * it can be recycled.
 	 */
 	void (*cleanup)(void* comp);
+
+	/**
+	 * Component behaviour flags.
+	 *
+	 * A bitwise OR of values from @ref bent_comp_flags_t.
+	 */
+	uint32_t flags;
+
+	/**
+	 * Optional serialization callback.
+	 *
+	 * A component with data must have exactly one of this, @ref BENT_COMP_RAW
+	 * or @ref BENT_COMP_TRANSIENT, see bent_comp_save_mode().
+	 */
+	bent_serialize_fn_t serialize;
 } bent_comp_def_t;
 
 /**
@@ -545,6 +726,14 @@ typedef struct {
 		bent_t* entities,
 		bent_index_t num_entities
 	);
+
+	/**
+	 * Optional serialization callback for the system's data.
+	 *
+	 * Unlike components, a system without one is simply not saved: its data
+	 * is assumed to be derived and rebuilt in @ref bent_sys_def_t::init.
+	 */
+	bent_serialize_fn_t serialize;
 } bent_sys_def_t;
 
 /**
@@ -637,6 +826,8 @@ bent_create(bent_world_t* world);
  *
  * If this is called during an @ref bent_run "update", the destruction will be
  * deferred until the update has finished.
+ * If this is called from a system callback, the destruction will be deferred
+ * until that callback has finished.
  *
  * @param world the world
  * @param entity an entity handle
@@ -816,10 +1007,183 @@ bent_get_entity_list(bent_world_t* world, bent_sys_reg_t sys, bent_index_t* num_
 BENT_API bent_bitset_t
 bent_get_entity_mask(bent_world_t* world, bent_t entity);
 
+// Serialization support {{{
+
+/**
+ * Destroy every entity, running all cleanup callbacks.
+ *
+ * Must not be called from within @ref bent_run.
+ *
+ * @param world the world
+ */
+BENT_API void
+bent_clear(bent_world_t* world);
+
+/**
+ * The state of every entity handle, see @ref bent_handles_t.
+ *
+ * @param world the world
+ */
+BENT_API bent_handles_t
+bent_handles(bent_world_t* world);
+
+/**
+ * Replace the entity handles of an empty world with saved ones.
+ *
+ * Every entity that was alive at save time is alive again, empty, with the
+ * same handle.
+ * Every handle that was stale stays stale.
+ * Outside of a load, systems that match an empty entity are notified.
+ *
+ * @param world the world, must have no entity, see @ref bent_clear
+ * @param handles the saved handles
+ * @return whether memory could be allocated
+ */
+BENT_API bool
+bent_load_handles(bent_world_t* world, bent_handles_t handles);
+
+/**
+ * Zero-copy variant of @ref bent_load_handles.
+ *
+ * Returns a buffer of @p len generations for the host to fill, then
+ * @ref bent_load_handles_end must be called.
+ * Returns `NULL` if memory could not be allocated.
+ *
+ * @param world the world, must have no entity
+ * @param len number of slots
+ */
+BENT_API bent_index_t*
+bent_load_handles_begin(bent_world_t* world, bent_index_t len);
+
+/*! Finish a @ref bent_load_handles_begin */
+BENT_API void
+bent_load_handles_end(bent_world_t* world);
+
+/**
+ * Make a specific handle alive, as an empty entity.
+ *
+ * For loading a file that was saved without @ref bent_handles.
+ * Does nothing if the handle is already alive.
+ * Fails if the handle is null, if its slot is taken by another generation or
+ * if memory could not be allocated.
+ *
+ * Without the saved handles, the generations of slots that were free at save
+ * time are lost, so a stale handle stored in the file can come back to life
+ * once its slot is reused.
+ *
+ * @param world the world
+ * @param entity the handle
+ * @return whether the entity is alive
+ */
+BENT_API bool
+bent_reserve(bent_world_t* world, bent_t entity);
+
+/**
+ * Begin loading a world.
+ *
+ * Until @ref bent_end_load, systems are not notified of anything.
+ * This lets the loader restore an entity one component at a time while
+ * every system callback still only sees complete entities.
+ *
+ * @param world the world, must have no entity, see @ref bent_clear
+ */
+BENT_API void
+bent_begin_load(bent_world_t* world);
+
+/**
+ * Finish loading a world.
+ *
+ * Every entity is matched against every system as if it had just been
+ * created with all of its components.
+ * Callbacks invoked from here may add components to the entity being matched
+ * but must not create entities.
+ *
+ * To abandon a failed load, call @ref bent_clear then this.
+ *
+ * @param world the world
+ */
+BENT_API void
+bent_end_load(bent_world_t* world);
+
+/**
+ * Add a component to an entity without initializing it.
+ *
+ * Only valid between @ref bent_begin_load and @ref bent_end_load.
+ * The entity must be alive, through @ref bent_load_handles or
+ * @ref bent_reserve, and must not have the component yet.
+ * The storage is zeroed and no callback runs: the caller fills it.
+ *
+ * @param world the world
+ * @param entity an entity handle
+ * @param comp a component's registration handle
+ * @return the component's data, or `NULL` for a tag component or when the
+ *     entity is not alive or already has the component
+ */
+BENT_API void*
+bent_restore(bent_world_t* world, bent_t entity, bent_comp_reg_t comp);
+
+/**
+ * Number of live entities that have a component.
+ *
+ * This walks every entity.
+ *
+ * @param world the world
+ * @param comp a component's registration handle
+ */
+BENT_API bent_index_t
+bent_count_with(bent_world_t* world, bent_comp_reg_t comp);
+
+/**
+ * Find a component type by its registered name.
+ *
+ * @return the registration handle, with a `NULL` def if there is none
+ */
+BENT_API bent_comp_reg_t
+bent_find_comp(const char* name);
+
+/**
+ * Find a system by its registered name.
+ *
+ * @return the registration handle, with a `NULL` def if there is none
+ */
+BENT_API bent_sys_reg_t
+bent_find_sys(const char* name);
+
+/**
+ * Name of the first component type whose bent_comp_save_mode() is
+ * @ref BENT_COMP_SAVE_INVALID, or `NULL` if there is none.
+ *
+ * A serializer should check this before saving.
+ */
+BENT_API const char*
+bent_unserializable_comp(void);
+
+/*! How a component type takes part in a save, see @ref bent_comp_save_t */
+static inline bent_comp_save_t
+bent_comp_save_mode(const bent_comp_def_t* def) {
+	int raw = (def->flags & BENT_COMP_RAW) != 0;
+	int transient = (def->flags & BENT_COMP_TRANSIENT) != 0;
+	int callback = def->serialize != NULL;
+	if (raw + transient + callback > 1) { return BENT_COMP_SAVE_INVALID; }
+	if (transient) { return BENT_COMP_SAVE_NONE; }
+	if (callback) { return BENT_COMP_SAVE_CALLBACK; }
+	if (raw) { return BENT_COMP_SAVE_RAW; }
+	if (def->size == 0) { return BENT_COMP_SAVE_PRESENCE; }
+	return BENT_COMP_SAVE_INVALID;
+}
+
+// }}}
+
 /*! Check whether two entity handles are equal */
 static inline bool
 bent_equal(bent_t lhs, bent_t rhs) {
 	return lhs.index == rhs.index && lhs.gen == rhs.gen;
+}
+
+/*! Check whether a handle is invalid */
+static inline bool
+bent_is_invalid(bent_t entity) {
+	return (entity.gen & 1) == 0;
 }
 
 // bitset {{{
@@ -918,6 +1282,12 @@ AUTOLIST_DECLARE(bent__systems)
 BENT_API bent_index_t
 bent__entity_list_len(bent_t* entities);
 
+BENT_API bent_t
+bent__next_live(bent_world_t* world, bent_index_t from);
+
+BENT_API bent_t
+bent__next_with(bent_world_t* world, bent_comp_reg_t comp, bent_index_t from);
+
 #endif
 
 #endif
@@ -972,8 +1342,45 @@ bent__libc_realloc(void* ptr, size_t size, void* ctx) {
 #include "bseg.h"
 #endif
 
+#define BHANDLE_REALLOC BENT_REALLOC
+
+#ifndef BHANDLE_IMPLEMENTATION
+#ifndef BHANDLE_INDEX_TYPE
+#define BHANDLE_INDEX_TYPE BENT_INDEX_TYPE
+#endif
+#define BHANDLE_API static inline
+#define BHANDLE_IMPLEMENTATION
+#include "bhandle.h"
+#endif
+
+// bent_t is a bhandle_t with the fields copied, so the two must agree
+_Static_assert(
+	sizeof(bhandle_index_t) == sizeof(bent_index_t)
+	&& sizeof(bhandle_gen_t) == sizeof(bent_index_t),
+	"BHANDLE_INDEX_TYPE and BHANDLE_GEN_TYPE must match BENT_INDEX_TYPE"
+);
+
+static inline bhandle_t
+bent__to_bhandle(bent_t entity) {
+	return (bhandle_t){ .index = entity.index, .gen = entity.gen };
+}
+
+static inline bent_t
+bent__from_bhandle(bhandle_t handle) {
+	return (bent_t){ .index = handle.index, .gen = handle.gen };
+}
+
 AUTOLIST_IMPL(bent__components)
 AUTOLIST_IMPL(bent__systems)
+
+typedef struct {
+	bent_t entity;
+	// Diff the two, or if `created`, match against systems that accept an
+	// empty entity
+	bent_bitset_t old_components;
+	bent_bitset_t new_components;
+	bool created;
+} bent_notification_t;
 
 typedef struct {
 	bent_bitset_t require;
@@ -995,19 +1402,26 @@ typedef struct {
 
 typedef struct {
 	bent_bitset_t components;
-	bent_index_t generation: (sizeof(bent_index_t) * CHAR_BIT) - 2;
-	bool destroyed: 1;
-	bool destroy_later: 1;
+	bool destroy_later;
 } bent_entity_data_t;
 
 struct bent_world_s {
 	void* memctx;
 	bool defer_destruction;
+	// Between bent_begin_load and bent_end_load: systems are not notified
+	bool loading;
+	// A system callback is running: further notifications are queued so that
+	// every callback sees a membership consistent with what it was told
+	bool notifying;
+	bool draining_destroy_queue;
 
 	barray(bent_system_data_t) systems;
-	// Segmented so that entity data pointers stay valid across user callbacks
+	barray(bent_notification_t) notify_queue;
+	// Which slots are alive, and their generations
+	bhandle_map_t handles;
+	// One per slot, segmented so that entity data pointers stay valid across
+	// user callbacks
 	bseg(bent_entity_data_t) entities;
-	barray(bent_index_t) free_indices;
 	barray(bent_t) destroy_queue;
 	bent_component_data_t components[BENT_MAX_NUM_COMPONENT_TYPES];
 	bent_index_t num_components;
@@ -1074,6 +1488,12 @@ bent_comp_cleanup(
 typedef bool (*bhash_eq_fn_t)(const void* lhs, const void* rhs, size_t size);
 
 static bool
+bent_begin_notify(bent_world_t* world);
+
+static void
+bent_end_notify(bent_world_t* world);
+
+static bool
 bent_sys_match_impl(const bent_system_data_t* sys, const bent_bitset_t* components) {
 	return bent_bitset_all_match(components, &sys->require)  // Match all of the requirements
 		&& !bent_bitset_any_match(components, &sys->exclude);  // Match none of the exclusions
@@ -1083,11 +1503,11 @@ static void
 bent_sys_add_entity(bent_world_t* world, bent_system_data_t* sys, bent_t entity) {
 	if (!(sys->def->flags & BENT_SYS_NO_ENTITY_LIST)) {
 		bent_index_t sparse_size = (bent_index_t)barray_len(sys->sparse);
-		if (entity.index - 1 >= sparse_size) {
-			bent_index_t new_sparse_size = sparse_size * 2 > entity.index ? sparse_size * 2 : entity.index;
+		if (entity.index >= sparse_size) {
+			bent_index_t new_sparse_size = sparse_size * 2 > entity.index + 1 ? sparse_size * 2 : entity.index + 1;
 			barray_resize(sys->sparse, new_sparse_size, world->memctx);
 		}
-		sys->sparse[entity.index - 1] = (bent_index_t)barray_len(sys->dense);
+		sys->sparse[entity.index] = (bent_index_t)barray_len(sys->dense);
 		barray_push(sys->dense, entity, world->memctx);
 	}
 
@@ -1099,10 +1519,10 @@ bent_sys_add_entity(bent_world_t* world, bent_system_data_t* sys, bent_t entity)
 static void
 bent_sys_remove_entity(bent_world_t* world, bent_system_data_t* sys, bent_t entity) {
 	if (!(sys->def->flags & BENT_SYS_NO_ENTITY_LIST)) {
-		bent_index_t dense_index = sys->sparse[entity.index - 1];
+		bent_index_t dense_index = sys->sparse[entity.index];
 		bent_t last_entity = barray_pop(sys->dense);
 		sys->dense[dense_index] = last_entity;
-		sys->sparse[last_entity.index - 1] = dense_index;
+		sys->sparse[last_entity.index] = dense_index;
 	}
 
 	if (sys->def->remove) {
@@ -1162,37 +1582,29 @@ bent_sys_init(
 		.require = old_require,
 		.exclude = old_exclude,
 	};
-	bent_index_t num_entities = (bent_index_t)bseg_len(world->entities);
-	for (bent_index_t i = 0; i < num_entities; ++i) {
-		const bent_entity_data_t* entity = bseg_ref(world->entities, i);
-		if (entity->destroyed) { continue; }
-
+	bool outermost = bent_begin_notify(world);
+	BHANDLE_FOREACH(handle, &world->handles) {
+		const bent_entity_data_t* entity = bseg_ref(world->entities, handle.index);
 		const bent_bitset_t* components = &entity->components;
+		bent_t entity_id = bent__from_bhandle(handle);
+
 		if (sys->initialized) {  // Existing system, do diff
 			if (bent_sys_match_impl(&old_sys, components)) {
 				if (!bent_sys_match_impl(sys, components)) {
-					bent_sys_remove_entity(world, sys, (bent_t){
-						.index = i + 1,
-						.gen = entity->generation,
-					});
+					bent_sys_remove_entity(world, sys, entity_id);
 				}
 			} else {
 				if (bent_sys_match_impl(sys, components)) {
-					bent_sys_add_entity(world, sys, (bent_t){
-						.index = i + 1,
-						.gen = entity->generation,
-					});
+					bent_sys_add_entity(world, sys, entity_id);
 				}
 			}
 		} else {  // Newly registered system, try to match existing entities
 			if (bent_sys_match_impl(sys, components)) {
-				bent_sys_add_entity(world, sys, (bent_t){
-					.index = i + 1,
-					.gen = entity->generation,
-				});
+				bent_sys_add_entity(world, sys, entity_id);
 			}
 		}
 	}
+	if (outermost) { bent_end_notify(world); }
 #endif
 
 	sys->initialized = true;
@@ -1213,7 +1625,7 @@ bent_sys_cleanup(bent_world_t* world, bent_system_data_t* sys) {
 }
 
 static void
-bent_notify_systems(
+bent_notify_systems_impl(
 	bent_world_t* world,
 	bent_t entity,
 	const bent_bitset_t* old_components,
@@ -1234,20 +1646,139 @@ bent_notify_systems(
 	}
 }
 
-// }}}
-
+// Systems that match an empty entity get every new entity.
+// This is for completeness sake and also for consistent reload behavior.
 static void
-bent_destroy_immediately(bent_world_t* world, bent_t entity_id) {
-	bent_entity_data_t* entity_data = bseg_ref(world->entities, entity_id.index - 1);
-
-	const bent_bitset_t* components = &entity_data->components;
-
+bent_match_empty_impl(bent_world_t* world, bent_t entity_id) {
+	bent_bitset_t empty = { 0 };
 	bent_index_t num_systems = (bent_index_t)barray_len(world->systems);
 	for (bent_index_t i = 0; i < num_systems; ++i) {
 		bent_system_data_t* sys = &world->systems[i];
-		if (bent_sys_match_impl(sys, components)) {
-			bent_sys_remove_entity(world, sys, entity_id);
+		if (bent_sys_match_impl(sys, &empty)) {
+			bent_sys_add_entity(world, sys, entity_id);
 		}
+	}
+}
+
+static void
+bent_dispatch_notification(bent_world_t* world, const bent_notification_t* notification) {
+	if (notification->created) {
+		bent_match_empty_impl(world, notification->entity);
+	} else {
+		bent_notify_systems_impl(
+			world,
+			notification->entity,
+			&notification->old_components,
+			&notification->new_components
+		);
+	}
+}
+
+static void
+bent_drain_destroy_queue(bent_world_t* world);
+
+// Returns whether this is the outermost notification.
+// A nested one must be queued instead, see bent_notify.
+static bool
+bent_begin_notify(bent_world_t* world) {
+	if (world->notifying) { return false; }
+	world->notifying = true;
+	return true;
+}
+
+// Deliver whatever the callbacks queued, then the entities they destroyed
+static void
+bent_end_notify(bent_world_t* world) {
+	// Callbacks may queue more while draining
+	for (bent_index_t i = 0; i < (bent_index_t)barray_len(world->notify_queue); ++i) {
+		bent_notification_t notification = world->notify_queue[i];
+		bent_dispatch_notification(world, &notification);
+	}
+	barray_clear(world->notify_queue);
+	world->notifying = false;
+
+	if (!world->defer_destruction) {
+		bent_drain_destroy_queue(world);
+	}
+}
+
+// While loading, systems are only told about entities in bent_end_load.
+// While a callback runs, the notification waits until it is done.
+static void
+bent_notify(bent_world_t* world, bent_notification_t notification) {
+	if (world->loading) { return; }
+
+	if (!bent_begin_notify(world)) {
+		barray_push(world->notify_queue, notification, world->memctx);
+		return;
+	}
+
+	bent_dispatch_notification(world, &notification);
+	bent_end_notify(world);
+}
+
+static void
+bent_notify_systems(
+	bent_world_t* world,
+	bent_t entity,
+	const bent_bitset_t* old_components,
+	const bent_bitset_t* new_components
+) {
+	bent_notify(world, (bent_notification_t){
+		.entity = entity,
+		.old_components = *old_components,
+		.new_components = *new_components,
+	});
+}
+
+static void
+bent_match_empty(bent_world_t* world, bent_t entity_id) {
+	bent_notify(world, (bent_notification_t){
+		.entity = entity_id,
+		.created = true,
+	});
+}
+
+// }}}
+
+static bent_entity_data_t*
+bent_entity_data(bent_world_t* world, bent_t entity_id) {
+	ptrdiff_t index = bhandle_index(&world->handles, bent__to_bhandle(entity_id));
+	if (index < 0) { return NULL; }
+
+	return bseg_ref(world->entities, (size_t)index);
+}
+
+// Fresh entity data for a slot that was just made alive
+static void
+bent_reset_entity_data(bent_world_t* world, bent_index_t index) {
+	bent_index_t capacity = bhandle_capacity(&world->handles);
+	if (bseg_len(world->entities) < capacity) {
+		bseg_resize(world->entities, capacity, world->memctx);
+	}
+
+	bent_entity_data_t* entity_data = bseg_ref(world->entities, index);
+	*entity_data = (bent_entity_data_t){ 0 };
+}
+
+static void
+bent_destroy_immediately(bent_world_t* world, bent_t entity_id) {
+	bent_entity_data_t* entity_data = bent_entity_data(world, entity_id);
+	if (entity_data == NULL) { return; }
+
+	const bent_bitset_t* components = &entity_data->components;
+
+	// While loading, no system has seen the entity yet
+	if (!world->loading) {
+		bool outermost = bent_begin_notify(world);
+		bent_index_t num_systems = (bent_index_t)barray_len(world->systems);
+		for (bent_index_t i = 0; i < num_systems; ++i) {
+			bent_system_data_t* sys = &world->systems[i];
+			if (bent_sys_match_impl(sys, components)) {
+				bent_sys_remove_entity(world, sys, entity_id);
+			}
+		}
+		if (outermost) { bent_end_notify(world); }
 	}
 
 	bent_index_t num_components = world->num_components;
@@ -1258,24 +1789,11 @@ bent_destroy_immediately(bent_world_t* world, bent_t entity_id) {
 			&&
 			comp->def->cleanup
 		) {
-			comp->def->cleanup(bent_comp_instance(comp, entity_id.index - 1));
+			comp->def->cleanup(bent_comp_instance(comp, entity_id.index));
 		}
 	}
 
-	entity_data->destroyed = true;
-	++entity_data->generation;
-	barray_push(world->free_indices, entity_id.index - 1, world->memctx);
-}
-
-static bent_entity_data_t*
-bent_entity_data(bent_world_t* world, bent_t entity_id) {
-	bent_index_t index = entity_id.index - 1;  // 0 wraps around
-	if (index >= (bent_index_t)bseg_len(world->entities)) { return NULL; }
-
-	bent_entity_data_t* entity_data = bseg_ref(world->entities, index);
-	if (entity_data->generation != entity_id.gen) { return NULL; }
-
-	return entity_data;
+	bhandle_destroy(&world->handles, bent__to_bhandle(entity_id));
 }
 
 bool
@@ -1385,16 +1903,7 @@ bent_cleanup(bent_world_t** world_ptr) {
 	world = *world_ptr;
 #endif
 
-	bent_index_t num_entities = (bent_index_t)bseg_len(world->entities);
-	for (bent_index_t i = 0; i < num_entities; ++i) {
-		const bent_entity_data_t* entity = bseg_ref(world->entities, i);
-		if (!entity->destroyed) {
-			bent_destroy_immediately(world, (bent_t){
-				.index = i + 1,
-				.gen = entity->generation,
-			});
-		}
-	}
+	bent_clear(world);
 
 	bent_index_t num_components = world->num_components;
 	for (bent_index_t i = 0; i < num_components; ++i) {
@@ -1407,8 +1916,9 @@ bent_cleanup(bent_world_t** world_ptr) {
 	}
 
 	barray_free(world->systems, world->memctx);
+	barray_free(world->notify_queue, world->memctx);
 	bseg_free(world->entities, world->memctx);
-	barray_free(world->free_indices, world->memctx);
+	bhandle_free(&world->handles, world->memctx);
 	barray_free(world->destroy_queue, world->memctx);
 	BENT_REALLOC(world, 0, world->memctx);
 
@@ -1422,37 +1932,29 @@ bent_memctx(bent_world_t* world) {
 
 bent_t
 bent_create(bent_world_t* world) {
-	bent_index_t index;
-	bent_entity_data_t* entity_data;
-	if (barray_len(world->free_indices) > 0) {
-		index = barray_pop(world->free_indices);
-		entity_data = bseg_ref(world->entities, index);
-		entity_data->destroyed = false;
-		entity_data->destroy_later = false;
-		bent_bitset_clear(&entity_data->components);
-	} else {
-		index = (bent_index_t)bseg_len(world->entities);
-		bseg_push(world->entities, (bent_entity_data_t){ 0 }, world->memctx);
-		entity_data = bseg_ref(world->entities, index);
-	}
+	bhandle_t handle = bhandle_new(&world->handles, world->memctx);
+	BENT_ASSERT(!bhandle_is_null(handle));
+	bent_reset_entity_data(world, handle.index);
 
-	bent_t entity_id = {
-		.index = index + 1,
-		.gen = entity_data->generation,
-	};
-
-	// For completeness sake and also for consistent reload behavior, an empty
-	// entity can match some systems if they have no requirement
-	bent_bitset_t empty = { 0 };
-	bent_index_t num_systems = (bent_index_t)barray_len(world->systems);
-	for (bent_index_t i = 0; i < num_systems; ++i) {
-		bent_system_data_t* sys = &world->systems[i];
-		if (bent_sys_match_impl(sys, &empty)) {
-			bent_sys_add_entity(world, sys, entity_id);
-		}
-	}
-
+	bent_t entity_id = bent__from_bhandle(handle);
+	bent_match_empty(world, entity_id);
 	return entity_id;
+}
+
+static void
+bent_drain_destroy_queue(bent_world_t* world) {
+	if (world->draining_destroy_queue) { return; }
+	world->draining_destroy_queue = true;
+
+	// Check queue length every iteration since destruction could lead to more
+	// destruction
+	for (bent_index_t i = 0; i < (bent_index_t)barray_len(world->destroy_queue); ++i) {
+		bent_t entity = world->destroy_queue[i];
+		bent_destroy_immediately(world, entity);
+	}
+	barray_clear(world->destroy_queue);
+
+	world->draining_destroy_queue = false;
 }
 
 void
@@ -1460,7 +1962,7 @@ bent_destroy(bent_world_t* world, bent_t entity_id) {
 	bent_entity_data_t* entity_data = bent_entity_data(world, entity_id);
 	if (entity_data == NULL) { return; }
 
-	if (world->defer_destruction) {
+	if (world->defer_destruction || world->notifying) {
 		if (!entity_data->destroy_later) {
 			barray_push(world->destroy_queue, entity_id, world->memctx);
 			entity_data->destroy_later = true;
@@ -1487,7 +1989,7 @@ bent_add(bent_world_t* world, bent_t entity_id, bent_comp_reg_t reg, void* arg) 
 	if (!bent_bitset_check(&entity_data->components, comp_index)) {
 		// New component
 		void* instance = bent_comp_ensure_instance(
-			comp_data, entity_id.index - 1, world->memctx
+			comp_data, entity_id.index, world->memctx
 		);
 		if (comp_data->def->init) {
 			comp_data->def->init(instance, arg);
@@ -1501,12 +2003,13 @@ bent_add(bent_world_t* world, bent_t entity_id, bent_comp_reg_t reg, void* arg) 
 
 		bent_bitset_t old_components = entity_data->components;
 		bent_bitset_set(&entity_data->components, comp_index);
-		bent_notify_systems(world, entity_id, &old_components, &entity_data->components);
+		bent_bitset_t new_components = entity_data->components;
+		bent_notify_systems(world, entity_id, &old_components, &new_components);
 
 		return instance;
 	} else {
 		// Already added, return existing data
-		return bent_comp_instance(comp_data, entity_id.index - 1);
+		return bent_comp_instance(comp_data, entity_id.index);
 	}
 }
 
@@ -1524,7 +2027,7 @@ bent_remove(bent_world_t* world, bent_t entity_id, bent_comp_reg_t reg) {
 	bent_notify_systems(world, entity_id, &old_components, &new_components);
 
 	bent_component_data_t* comp_data = &world->components[comp_index];
-	void* instance = bent_comp_instance(comp_data, entity_id.index - 1);
+	void* instance = bent_comp_instance(comp_data, entity_id.index);
 	if (comp_data->def->cleanup) {
 		comp_data->def->cleanup(instance);
 	}
@@ -1540,7 +2043,7 @@ bent_get(bent_world_t* world, bent_t entity_id, bent_comp_reg_t reg) {
 	if (!bent_bitset_check(&entity_data->components, comp_index)) { return NULL; }
 
 	bent_component_data_t* comp_data = &world->components[comp_index];
-	return bent_comp_instance(comp_data, entity_id.index - 1);
+	return bent_comp_instance(comp_data, entity_id.index);
 }
 
 bool
@@ -1593,12 +2096,7 @@ bent_run(bent_world_t* world, bent_mask_t update_mask) {
 			);
 			world->defer_destruction = false;
 
-			// Check queue length every iteration since destruction could lead
-			// to more destruction
-			for (bent_index_t queue_index = 0; queue_index < (bent_index_t)barray_len(world->destroy_queue); ++queue_index) {
-				bent_destroy_immediately(world, world->destroy_queue[queue_index]);
-			}
-			barray_clear(world->destroy_queue);
+			bent_drain_destroy_queue(world);
 		}
 	}
 }
@@ -1616,5 +2114,180 @@ bent_index_t
 bent__entity_list_len(bent_t* entities) {
 	return (bent_index_t)barray_len(entities);
 }
+
+// serialization support {{{
+
+void
+bent_clear(bent_world_t* world) {
+	BENT_ASSERT(!world->defer_destruction);
+
+	BHANDLE_FOREACH(handle, &world->handles) {
+		bent_destroy_immediately(world, bent__from_bhandle(handle));
+	}
+	barray_clear(world->destroy_queue);
+}
+
+bent_handles_t
+bent_handles(bent_world_t* world) {
+	bhandle_state_t state = bhandle_save(&world->handles);
+	return (bent_handles_t){ .len = state.len, .gens = state.gens };
+}
+
+bent_index_t*
+bent_load_handles_begin(bent_world_t* world, bent_index_t len) {
+	BENT_ASSERT(bhandle_count(&world->handles) == 0);
+	return bhandle_load_begin(&world->handles, len, world->memctx);
+}
+
+void
+bent_load_handles_end(bent_world_t* world) {
+	bhandle_load_end(&world->handles);
+
+	// Every slot starts over, alive ones as empty entities
+	bseg_clear(world->entities);
+	bseg_resize(world->entities, bhandle_capacity(&world->handles), world->memctx);
+
+	BHANDLE_FOREACH(handle, &world->handles) {
+		bent_match_empty(world, bent__from_bhandle(handle));
+	}
+}
+
+bool
+bent_load_handles(bent_world_t* world, bent_handles_t handles) {
+	bent_index_t* gens = bent_load_handles_begin(world, handles.len);
+	if (gens == NULL && handles.len > 0) { return false; }
+
+	if (handles.len > 0) {
+		memcpy(gens, handles.gens, (size_t)handles.len * sizeof(bent_index_t));
+	}
+	bent_load_handles_end(world);
+	return true;
+}
+
+bool
+bent_reserve(bent_world_t* world, bent_t entity_id) {
+	bhandle_t handle = bent__to_bhandle(entity_id);
+	if (bhandle_is_valid(&world->handles, handle)) { return true; }
+	if (bhandle_reserve(&world->handles, handle, world->memctx) < 0) { return false; }
+
+	bent_reset_entity_data(world, handle.index);
+	bent_match_empty(world, entity_id);
+	return true;
+}
+
+void
+bent_begin_load(bent_world_t* world) {
+	BENT_ASSERT(!world->loading);
+	BENT_ASSERT(!world->defer_destruction);
+	BENT_ASSERT(bhandle_count(&world->handles) == 0);
+	world->loading = true;
+}
+
+void
+bent_end_load(bent_world_t* world) {
+	BENT_ASSERT(world->loading);
+
+	world->loading = false;
+
+	BHANDLE_FOREACH(handle, &world->handles) {
+		const bent_entity_data_t* entity_data = bseg_ref(world->entities, handle.index);
+		bent_t entity_id = bent__from_bhandle(handle);
+
+		// Replay creation and then the addition of every loaded component as
+		// one step. Whatever the callbacks add on top is queued and applied
+		// once the membership for the loaded set is established.
+		bent_bitset_t empty = { 0 };
+		bent_bitset_t loaded = entity_data->components;
+		bool outermost = bent_begin_notify(world);
+		BENT_ASSERT(outermost);
+		bent_match_empty_impl(world, entity_id);
+		bent_notify_systems_impl(world, entity_id, &empty, &loaded);
+		bent_end_notify(world);
+	}
+}
+
+void*
+bent_restore(bent_world_t* world, bent_t entity_id, bent_comp_reg_t reg) {
+	BENT_ASSERT(world->loading);
+
+	bent_entity_data_t* entity_data = bent_entity_data(world, entity_id);
+	if (entity_data == NULL) { return NULL; }
+
+	bent_index_t comp_index = reg.id - 1;
+	if (bent_bitset_check(&entity_data->components, comp_index)) { return NULL; }
+
+	bent_component_data_t* comp_data = &world->components[comp_index];
+	void* instance = bent_comp_ensure_instance(comp_data, entity_id.index, world->memctx);
+	if (instance != NULL) {
+		memset(instance, 0, comp_data->def->size);
+	}
+	bent_bitset_set(&entity_data->components, comp_index);
+
+	return instance;
+}
+
+bent_index_t
+bent_count_with(bent_world_t* world, bent_comp_reg_t reg) {
+	bent_index_t comp_index = reg.id - 1;
+	bent_index_t count = 0;
+	BHANDLE_FOREACH(handle, &world->handles) {
+		const bent_entity_data_t* entity_data = bseg_ref(world->entities, handle.index);
+		if (bent_bitset_check(&entity_data->components, comp_index)) { ++count; }
+	}
+	return count;
+}
+
+bent_comp_reg_t
+bent_find_comp(const char* name) {
+	AUTOLIST_FOREACH(itr, bent__components) {
+		if (strcmp(itr->name, name) == 0) {
+			return *(const bent_comp_reg_t*)itr->value_addr;
+		}
+	}
+	return (bent_comp_reg_t){ 0 };
+}
+
+bent_sys_reg_t
+bent_find_sys(const char* name) {
+	AUTOLIST_FOREACH(itr, bent__systems) {
+		if (strcmp(itr->name, name) == 0) {
+			return *(const bent_sys_reg_t*)itr->value_addr;
+		}
+	}
+	return (bent_sys_reg_t){ 0 };
+}
+
+const char*
+bent_unserializable_comp(void) {
+	BENT_FOREACH_COMP(itr) {
+		if (bent_comp_save_mode(itr.comp.def) == BENT_COMP_SAVE_INVALID) {
+			return itr.name;
+		}
+	}
+	return NULL;
+}
+
+bent_t
+bent__next_live(bent_world_t* world, bent_index_t from) {
+	return bent__from_bhandle(bhandle__next_live(&world->handles, from));
+}
+
+bent_t
+bent__next_with(bent_world_t* world, bent_comp_reg_t reg, bent_index_t from) {
+	bent_index_t comp_index = reg.id - 1;
+	for (
+		bhandle_t handle = bhandle__next_live(&world->handles, from);
+		!bhandle_is_null(handle);
+		handle = bhandle__next_live(&world->handles, handle.index + 1)
+	) {
+		const bent_entity_data_t* entity_data = bseg_ref(world->entities, handle.index);
+		if (bent_bitset_check(&entity_data->components, comp_index)) {
+			return bent__from_bhandle(handle);
+		}
+	}
+	return (bent_t){ 0 };
+}
+
+// }}}
 
 #endif

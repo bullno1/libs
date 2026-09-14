@@ -168,7 +168,7 @@ BTEST(system, dont_care) {
 }
 
 BENT_DECLARE_COMP(comp_to_be_removed)
-BENT_DEFINE_POD_COMP(comp_to_be_removed, int)
+BENT_DEFINE_COMP(comp_to_be_removed) = { .size = sizeof(int), .flags = BENT_COMP_RAW };
 
 static void
 entity_still_has_component_on_sys_remove_callback(void* data, bent_world_t* world, bent_t entity) {
@@ -233,7 +233,7 @@ BTEST(system, system_has_no_entity_list) {
 }
 
 BENT_DECLARE_COMP(comp_spawner)
-BENT_DEFINE_POD_COMP(comp_spawner, int)
+BENT_DEFINE_COMP(comp_spawner) = { .size = sizeof(int), .flags = BENT_COMP_RAW };
 
 static void
 spawn_entities_on_sys_remove_callback(void* data, bent_world_t* world, bent_t entity) {
