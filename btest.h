@@ -335,7 +335,9 @@ static struct {
 #	define btest_end_try() false
 #endif
 
-#define btest_try for (bool btest__try = btest_begin_try(); btest__try; btest__try = btest_end_try())
+#define btest_try \
+	for (bool btest__try = true; btest__try; btest__try = btest_end_try()) \
+		if (btest_begin_try())
 
 void
 btest__throw(void) {
