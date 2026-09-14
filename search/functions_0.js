@@ -130,7 +130,7 @@ var searchData=
   ['bserial_5fread_5fsint_127',['bserial_read_sint',['../bserial_8h.html#a05f0af33baa77c6c2e231ea9f56b28f7',1,'bserial.h']]],
   ['bserial_5fread_5fstr_128',['bserial_read_str',['../bserial_8h.html#a5917114dde398505d0458e5cc832d68e',1,'bserial.h']]],
   ['bserial_5fread_5fuint_129',['bserial_read_uint',['../bserial_8h.html#a0f31febcfa1658954a532dbc0b277419',1,'bserial.h']]],
-  ['bserial_5frecord_130',['bserial_record',['../bserial_8h.html#aad47fa4d13bc2d17a6300bdc0e2a7f35',1,'bserial.h']]],
+  ['bserial_5frecord_130',['bserial_record',['../bserial_8h.html#ad011a5ec92074186c752409b63f7afbd',1,'bserial.h']]],
   ['bserial_5fsint_131',['bserial_sint',['../bserial_8h.html#a5870bbbab52ea349e6c104401de6a4cf',1,'bserial.h']]],
   ['bserial_5fskip_132',['bserial_skip',['../bserial_8h.html#a9376a21f9593e5ffc09a6e02ec5bca07',1,'bserial.h']]],
   ['bserial_5fstatus_133',['bserial_status',['../bserial_8h.html#a8dc8121519c7732864ca7211088b7776',1,'bserial.h']]],

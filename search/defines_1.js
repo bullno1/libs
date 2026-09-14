@@ -148,7 +148,7 @@ var searchData=
   ['bserial_5fany_5fint_145',['bserial_any_int',['../bserial_8h.html#a7d488368f2ebd0beefea7801a872f375',1,'bserial.h']]],
   ['bserial_5fcheck_5fstatus_146',['BSERIAL_CHECK_STATUS',['../bserial_8h.html#a96e7bd6b140b4881d2d5757a5bcbffbc',1,'bserial.h']]],
   ['bserial_5fkey_147',['BSERIAL_KEY',['../bserial_8h.html#a6b7a06a5232f7be971abccb32123fe39',1,'bserial.h']]],
-  ['bserial_5frecord_148',['BSERIAL_RECORD',['../bserial_8h.html#a8a184d63b935571db05fdd40e2c1c671',1,'bserial.h']]],
+  ['bserial_5frecord_148',['BSERIAL_RECORD',['../bserial_8h.html#af46e2853c8411a1cc72a20f4e45883e4',1,'bserial.h']]],
   ['bserial_5fskip_5fblksize_149',['BSERIAL_SKIP_BLKSIZE',['../bserial_8h.html#a9313ba0b2588a5549289e63d2ec1f42b',1,'bserial.h']]],
   ['bsfn_150',['BSFN',['../bsfn_8h.html#aca3d3f34199c8b533c3a118a41322ecc',1,'bsfn.h']]],
   ['bstacktrace_5fapi_151',['BSTACKTRACE_API',['../bstacktrace_8h.html#ade745dbc2ee1a340a29993e7303bffb5',1,'bstacktrace.h']]],

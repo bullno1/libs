@@ -127,9 +127,9 @@ Macros</h2></td></tr>
 <tr class="memitem:a7d488368f2ebd0beefea7801a872f375" id="r_a7d488368f2ebd0beefea7801a872f375"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#a7d488368f2ebd0beefea7801a872f375">bserial_any_int</a>(ctx,  integer)</td></tr>
 <tr class="memdesc:a7d488368f2ebd0beefea7801a872f375"><td class="mdescLeft">&#160;</td><td class="mdescRight">Automatically select the right integer serialization function.  <br /></td></tr>
 <tr class="separator:a7d488368f2ebd0beefea7801a872f375"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8a184d63b935571db05fdd40e2c1c671" id="r_a8a184d63b935571db05fdd40e2c1c671"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#a8a184d63b935571db05fdd40e2c1c671">BSERIAL_RECORD</a>(ctx,  record)&#160;&#160;&#160;while (<a class="el" href="bserial_8h.html#aad47fa4d13bc2d17a6300bdc0e2a7f35">bserial_record</a>(ctx, record))</td></tr>
-<tr class="memdesc:a8a184d63b935571db05fdd40e2c1c671"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/write a record&gt;  <br /></td></tr>
-<tr class="separator:a8a184d63b935571db05fdd40e2c1c671"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af46e2853c8411a1cc72a20f4e45883e4" id="r_af46e2853c8411a1cc72a20f4e45883e4"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#af46e2853c8411a1cc72a20f4e45883e4">BSERIAL_RECORD</a>(ctx)&#160;&#160;&#160;while (<a class="el" href="bserial_8h.html#ad011a5ec92074186c752409b63f7afbd">bserial_record</a>(ctx))</td></tr>
+<tr class="memdesc:af46e2853c8411a1cc72a20f4e45883e4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/write a record.  <br /></td></tr>
+<tr class="separator:af46e2853c8411a1cc72a20f4e45883e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6b7a06a5232f7be971abccb32123fe39" id="r_a6b7a06a5232f7be971abccb32123fe39"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#a6b7a06a5232f7be971abccb32123fe39">BSERIAL_KEY</a>(ctx,  name)&#160;&#160;&#160;if (<a class="el" href="bserial_8h.html#aa263323ebc7bc8fc33a97514821d6b59">bserial_key</a>(ctx, #name, sizeof(#name) - 1))</td></tr>
 <tr class="memdesc:a6b7a06a5232f7be971abccb32123fe39"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/write a key in a record.  <br /></td></tr>
 <tr class="separator:a6b7a06a5232f7be971abccb32123fe39"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -301,9 +301,9 @@ size_t&#160;</td><td class="memItemRight" valign="bottom"><b>bserial_ctx_mem_siz
 <tr class="memitem:a7fa83533084e02ce3ea80b6723175f6d" id="r_a7fa83533084e02ce3ea80b6723175f6d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#a7fa83533084e02ce3ea80b6723175f6d">bserial_table</a> (<a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *ctx, uint64_t *len)</td></tr>
 <tr class="memdesc:a7fa83533084e02ce3ea80b6723175f6d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/write a table.  <br /></td></tr>
 <tr class="separator:a7fa83533084e02ce3ea80b6723175f6d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aad47fa4d13bc2d17a6300bdc0e2a7f35" id="r_aad47fa4d13bc2d17a6300bdc0e2a7f35"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#aad47fa4d13bc2d17a6300bdc0e2a7f35">bserial_record</a> (<a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *ctx, void *record)</td></tr>
-<tr class="memdesc:aad47fa4d13bc2d17a6300bdc0e2a7f35"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/write a record.  <br /></td></tr>
-<tr class="separator:aad47fa4d13bc2d17a6300bdc0e2a7f35"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad011a5ec92074186c752409b63f7afbd" id="r_ad011a5ec92074186c752409b63f7afbd"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#ad011a5ec92074186c752409b63f7afbd">bserial_record</a> (<a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *ctx)</td></tr>
+<tr class="memdesc:ad011a5ec92074186c752409b63f7afbd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/write a record.  <br /></td></tr>
+<tr class="separator:ad011a5ec92074186c752409b63f7afbd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa263323ebc7bc8fc33a97514821d6b59" id="r_aa263323ebc7bc8fc33a97514821d6b59"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#aa263323ebc7bc8fc33a97514821d6b59">bserial_key</a> (<a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *ctx, const char *name, uint64_t len)</td></tr>
 <tr class="memdesc:aa263323ebc7bc8fc33a97514821d6b59"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/write a key.  <br /></td></tr>
 <tr class="separator:aa263323ebc7bc8fc33a97514821d6b59"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -375,7 +375,7 @@ Record</h3>
 <p>Much of this library deals with reading and writing records in a backward compatible manner and allow for structural changes. The serialization code for a struct must have the following form:</p>
 <div class="fragment"><div class="line"><a class="code hl_enumeration" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a></div>
 <div class="line">serialize_my_struct(<a class="code hl_typedef" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a>* ctx, my_struct_t* my_struct) {</div>
-<div class="line">    <span class="keywordflow">while</span> (<a class="code hl_function" href="bserial_8h.html#aad47fa4d13bc2d17a6300bdc0e2a7f35">bserial_record</a>(ctx, my_struct)) {</div>
+<div class="line">    <span class="keywordflow">while</span> (<a class="code hl_function" href="bserial_8h.html#ad011a5ec92074186c752409b63f7afbd">bserial_record</a>(ctx)) {</div>
 <div class="line">        <span class="comment">// Serialize field &quot;foo&quot;</span></div>
 <div class="line">        <span class="keywordflow">if</span> (<a class="code hl_function" href="bserial_8h.html#aa263323ebc7bc8fc33a97514821d6b59">bserial_key</a>(ctx, <span class="stringliteral">&quot;foo&quot;</span>, <span class="keyword">sizeof</span>(<span class="stringliteral">&quot;foo&quot;</span>) - 1)) {</div>
 <div class="line">            <a class="code hl_define" href="bserial_8h.html#a96e7bd6b140b4881d2d5757a5bcbffbc">BSERIAL_CHECK_STATUS</a>(<a class="code hl_define" href="bserial_8h.html#a7d488368f2ebd0beefea7801a872f375">bserial_any_int</a>(ctx, &amp;my_struct-&gt;foo));</div>
@@ -397,12 +397,12 @@ Record</h3>
 <div class="ttc" id="abserial_8h_html_a8dc8121519c7732864ca7211088b7776"><div class="ttname"><a href="bserial_8h.html#a8dc8121519c7732864ca7211088b7776">bserial_status</a></div><div class="ttdeci">bserial_status_t bserial_status(bserial_ctx_t *ctx)</div><div class="ttdoc">Get the current IO status.</div></div>
 <div class="ttc" id="abserial_8h_html_a96e7bd6b140b4881d2d5757a5bcbffbc"><div class="ttname"><a href="bserial_8h.html#a96e7bd6b140b4881d2d5757a5bcbffbc">BSERIAL_CHECK_STATUS</a></div><div class="ttdeci">#define BSERIAL_CHECK_STATUS(OP)</div><div class="ttdoc">Helper macro to check for IO status and return on error.</div><div class="ttdef"><b>Definition</b> bserial.h:415</div></div>
 <div class="ttc" id="abserial_8h_html_aa263323ebc7bc8fc33a97514821d6b59"><div class="ttname"><a href="bserial_8h.html#aa263323ebc7bc8fc33a97514821d6b59">bserial_key</a></div><div class="ttdeci">bool bserial_key(bserial_ctx_t *ctx, const char *name, uint64_t len)</div><div class="ttdoc">Read/write a key.</div></div>
-<div class="ttc" id="abserial_8h_html_aad47fa4d13bc2d17a6300bdc0e2a7f35"><div class="ttname"><a href="bserial_8h.html#aad47fa4d13bc2d17a6300bdc0e2a7f35">bserial_record</a></div><div class="ttdeci">bool bserial_record(bserial_ctx_t *ctx, void *record)</div><div class="ttdoc">Read/write a record.</div></div>
 <div class="ttc" id="abserial_8h_html_aadc0750bc75a41f8b32fe9404e6954c2"><div class="ttname"><a href="bserial_8h.html#aadc0750bc75a41f8b32fe9404e6954c2">bserial_f32</a></div><div class="ttdeci">bserial_status_t bserial_f32(bserial_ctx_t *ctx, float *value)</div><div class="ttdoc">Read/write a single precision float.</div></div>
+<div class="ttc" id="abserial_8h_html_ad011a5ec92074186c752409b63f7afbd"><div class="ttname"><a href="bserial_8h.html#ad011a5ec92074186c752409b63f7afbd">bserial_record</a></div><div class="ttdeci">bool bserial_record(bserial_ctx_t *ctx)</div><div class="ttdoc">Read/write a record.</div></div>
 </div><!-- fragment --><p>Or with the helper macros:</p>
 <div class="fragment"><div class="line"><a class="code hl_enumeration" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a></div>
 <div class="line">serialize_my_struct(<a class="code hl_typedef" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a>* ctx, my_struct_t* my_struct) {</div>
-<div class="line">    <a class="code hl_define" href="bserial_8h.html#a8a184d63b935571db05fdd40e2c1c671">BSERIAL_RECORD</a>(ctx, my_struct) {</div>
+<div class="line">    <a class="code hl_define" href="bserial_8h.html#af46e2853c8411a1cc72a20f4e45883e4">BSERIAL_RECORD</a>(ctx) {</div>
 <div class="line">        <a class="code hl_define" href="bserial_8h.html#a6b7a06a5232f7be971abccb32123fe39">BSERIAL_KEY</a>(ctx, foo) {</div>
 <div class="line">            <a class="code hl_define" href="bserial_8h.html#a96e7bd6b140b4881d2d5757a5bcbffbc">BSERIAL_CHECK_STATUS</a>(<a class="code hl_define" href="bserial_8h.html#a7d488368f2ebd0beefea7801a872f375">bserial_any_int</a>(ctx, &amp;my_struct-&gt;foo));</div>
 <div class="line">        }</div>
@@ -417,8 +417,8 @@ Record</h3>
 <div class="line"> </div>
 <div class="line">    <span class="keywordflow">return</span> <a class="code hl_function" href="bserial_8h.html#a8dc8121519c7732864ca7211088b7776">bserial_status</a>(ctx);</div>
 <div class="line">}</div>
-<div class="ttc" id="abserial_8h_html_a6b7a06a5232f7be971abccb32123fe39"><div class="ttname"><a href="bserial_8h.html#a6b7a06a5232f7be971abccb32123fe39">BSERIAL_KEY</a></div><div class="ttdeci">#define BSERIAL_KEY(ctx, name)</div><div class="ttdoc">Read/write a key in a record.</div><div class="ttdef"><b>Definition</b> bserial.h:850</div></div>
-<div class="ttc" id="abserial_8h_html_a8a184d63b935571db05fdd40e2c1c671"><div class="ttname"><a href="bserial_8h.html#a8a184d63b935571db05fdd40e2c1c671">BSERIAL_RECORD</a></div><div class="ttdeci">#define BSERIAL_RECORD(ctx, record)</div><div class="ttdoc">Read/write a record&gt;</div><div class="ttdef"><b>Definition</b> bserial.h:841</div></div>
+<div class="ttc" id="abserial_8h_html_a6b7a06a5232f7be971abccb32123fe39"><div class="ttname"><a href="bserial_8h.html#a6b7a06a5232f7be971abccb32123fe39">BSERIAL_KEY</a></div><div class="ttdeci">#define BSERIAL_KEY(ctx, name)</div><div class="ttdoc">Read/write a key in a record.</div><div class="ttdef"><b>Definition</b> bserial.h:849</div></div>
+<div class="ttc" id="abserial_8h_html_af46e2853c8411a1cc72a20f4e45883e4"><div class="ttname"><a href="bserial_8h.html#af46e2853c8411a1cc72a20f4e45883e4">BSERIAL_RECORD</a></div><div class="ttdeci">#define BSERIAL_RECORD(ctx)</div><div class="ttdoc">Read/write a record.</div><div class="ttdef"><b>Definition</b> bserial.h:840</div></div>
 </div><!-- fragment --><p>The peculiar structure has to do with how the library handles record serialization. Considering that it has to support the following:</p>
 <ul>
 <li>New fields may be added.</li>
@@ -456,7 +456,7 @@ Incompatible type change</h4>
 </div><!-- fragment --><p>This would be an incompatible change that the library cannot deal with out of the box. However, the following idiom can be used:</p>
 <div class="fragment"><div class="line"><a class="code hl_enumeration" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a></div>
 <div class="line">serialize_my_struct(<a class="code hl_typedef" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a>* ctx, my_struct_t* my_struct) {</div>
-<div class="line">    <a class="code hl_define" href="bserial_8h.html#a8a184d63b935571db05fdd40e2c1c671">BSERIAL_RECORD</a>(ctx, my_struct) {</div>
+<div class="line">    <a class="code hl_define" href="bserial_8h.html#af46e2853c8411a1cc72a20f4e45883e4">BSERIAL_RECORD</a>(ctx) {</div>
 <div class="line">        <span class="comment">// Compatibility code path for reading from older versions</span></div>
 <div class="line">        <span class="keywordflow">if</span> (<a class="code hl_function" href="bserial_8h.html#a9efe4064847e35223ecbaa17e59da6d1">bserial_mode</a>(ctx) == <a class="code hl_enumvalue" href="bserial_8h.html#aa72d84b2b1108e2128281caab136bd8ba7eb9e8a1b996d240a327695da0e6c031">BSERIAL_MODE_READ</a>) {</div>
 <div class="line">            <span class="comment">// Read the old field as if it is the old version</span></div>
@@ -594,12 +594,12 @@ Associative map</h3>
 </div><!-- fragment --><p>Where <code>serialize_hashmap_entry</code> defines a record:</p>
 <div class="fragment"><div class="line"><a class="code hl_enumeration" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a></div>
 <div class="line">serialize_hashmap_entry(<a class="code hl_typedef" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a>* ctx, my_hashmap_entry_t* entry) {</div>
-<div class="line">    <a class="code hl_define" href="bserial_8h.html#a8a184d63b935571db05fdd40e2c1c671">BSERIAL_RECORD</a>(ctx, entry) {</div>
+<div class="line">    <a class="code hl_define" href="bserial_8h.html#af46e2853c8411a1cc72a20f4e45883e4">BSERIAL_RECORD</a>(ctx) {</div>
 <div class="line">        <a class="code hl_define" href="bserial_8h.html#a6b7a06a5232f7be971abccb32123fe39">BSERIAL_KEY</a>(ctx, key) {</div>
 <div class="line">            <a class="code hl_define" href="bserial_8h.html#a96e7bd6b140b4881d2d5757a5bcbffbc">BSERIAL_CHECK_STATUS</a>(serialize_key_type(ctx, &amp;entry-&gt;key));</div>
 <div class="line">        }</div>
 <div class="line"> </div>
-<div class="line">        BSERIAL_VALUE(ctx, value) {</div>
+<div class="line">        <a class="code hl_define" href="bserial_8h.html#a6b7a06a5232f7be971abccb32123fe39">BSERIAL_KEY</a>(ctx, value) {</div>
 <div class="line">            <a class="code hl_define" href="bserial_8h.html#a96e7bd6b140b4881d2d5757a5bcbffbc">BSERIAL_CHECK_STATUS</a>(serialize_value_type(ctx, &amp;entry-&gt;value));</div>
 <div class="line">        }</div>
 <div class="line">    }</div>
@@ -720,8 +720,8 @@ Associative map</h3>
 
 </div>
 </div>
-<a id="a8a184d63b935571db05fdd40e2c1c671" name="a8a184d63b935571db05fdd40e2c1c671"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8a184d63b935571db05fdd40e2c1c671">&#9670;&#160;</a></span>BSERIAL_RECORD</h2>
+<a id="af46e2853c8411a1cc72a20f4e45883e4" name="af46e2853c8411a1cc72a20f4e45883e4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af46e2853c8411a1cc72a20f4e45883e4">&#9670;&#160;</a></span>BSERIAL_RECORD</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -730,27 +730,16 @@ Associative map</h3>
           <td class="memname">#define BSERIAL_RECORD</td>
           <td>(</td>
           <td class="paramtype">&#160;</td>
-          <td class="paramname">ctx, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname">record&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td>&#160;&#160;&#160;while (<a class="el" href="bserial_8h.html#aad47fa4d13bc2d17a6300bdc0e2a7f35">bserial_record</a>(ctx, record))</td>
+          <td class="paramname">ctx</td><td>)</td>
+          <td>&#160;&#160;&#160;while (<a class="el" href="bserial_8h.html#ad011a5ec92074186c752409b63f7afbd">bserial_record</a>(ctx))</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>Read/write a record&gt; </p>
+<p>Read/write a record. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">ctx</td><td>The serialization context. </td></tr>
-    <tr><td class="paramname">record</td><td>Address of the record being serialized. This is needed to differentiate between nested records. </td></tr>
   </table>
   </dd>
 </dl>
@@ -1100,7 +1089,7 @@ Associative map</h3>
 </div><div class="memdoc">
 
 <p>Read/write a key. </p>
-<p>This can only be called within a <a class="el" href="bserial_8h.html#a8a184d63b935571db05fdd40e2c1c671">BSERIAL_RECORD</a> block.</p>
+<p>This can only be called within a <a class="el" href="bserial_8h.html#af46e2853c8411a1cc72a20f4e45883e4">BSERIAL_RECORD</a> block.</p>
 <p>The input data may have extra keys, missing keys or out of order keys. Therefore, the value serialization code should only be run if this returns true. This function should always be used in a condition: <code>if (bserial_key(ctx, name, len) {</code>.</p>
 <p>Moreover, <em>name</em> should be a constant.</p>
 <p>Therefore, the <a class="el" href="bserial_8h.html#a6b7a06a5232f7be971abccb32123fe39">BSERIAL_KEY</a> macro should be used.</p>
@@ -1296,8 +1285,8 @@ Associative map</h3>
 
 </div>
 </div>
-<a id="aad47fa4d13bc2d17a6300bdc0e2a7f35" name="aad47fa4d13bc2d17a6300bdc0e2a7f35"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aad47fa4d13bc2d17a6300bdc0e2a7f35">&#9670;&#160;</a></span>bserial_record()</h2>
+<a id="ad011a5ec92074186c752409b63f7afbd" name="ad011a5ec92074186c752409b63f7afbd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad011a5ec92074186c752409b63f7afbd">&#9670;&#160;</a></span>bserial_record()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1306,29 +1295,19 @@ Associative map</h3>
           <td class="memname">bool bserial_record </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *&#160;</td>
-          <td class="paramname"><em>ctx</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
+          <td class="paramname"><em>ctx</em></td><td>)</td>
           <td></td>
-          <td class="paramtype">void *&#160;</td>
-          <td class="paramname"><em>record</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 <p>Read/write a record. </p>
 <p>A record is a collection of key/value pairs.</p>
-<p>The library needs to make several passes over the structure of the record. This should always be called as the condition of a while loop: <code>while (bserial_record(ctx, record)) {</code>. Therefore, the macro <a class="el" href="bserial_8h.html#a8a184d63b935571db05fdd40e2c1c671">BSERIAL_RECORD</a> should be used.</p>
+<p>The library needs to make several passes over the structure of the record. This should always be called as the condition of a while loop: <code>while (bserial_record(ctx)) {</code>. Therefore, the macro <a class="el" href="bserial_8h.html#af46e2853c8411a1cc72a20f4e45883e4">BSERIAL_RECORD</a> should be used.</p>
+<p>A nested record must be serialized inside a <a class="el" href="bserial_8h.html#aa263323ebc7bc8fc33a97514821d6b59">bserial_key</a> block, like any other value.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">ctx</td><td>The serialization context. </td></tr>
-    <tr><td class="paramname">record</td><td>Address of the record being serialized. This is needed to differentiate between nested records.</td></tr>
+    <tr><td class="paramname">ctx</td><td>The serialization context.</td></tr>
   </table>
   </dd>
 </dl>
@@ -1443,7 +1422,7 @@ Associative map</h3>
 <p>Read/write a table. </p>
 <p>After this call <em>len</em> elements are expected.</p>
 <p>This is a special case of an array where all members must be records of the same type.</p>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="bserial_8h.html#aad47fa4d13bc2d17a6300bdc0e2a7f35" title="Read/write a record.">bserial_record</a> </dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="bserial_8h.html#ad011a5ec92074186c752409b63f7afbd" title="Read/write a record.">bserial_record</a> </dd></dl>
 
 </div>
 </div>
