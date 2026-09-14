@@ -1302,10 +1302,10 @@ typedef enum {
 	BSERIAL_BLOB         =  5,
 	BSERIAL_SYM_DEF      =  6,
 	BSERIAL_SYM_REF      =  7,
-	BSERIAL_RECORD_DEF   =  8,
-	BSERIAL_RECORD_REF   =  9,
-	BSERIAL_ARRAY        = 10,
-	BSERIAL_TABLE        = 11,
+	BSERIAL_ARRAY        =  8,
+	BSERIAL_TABLE        =  9,
+	BSERIAL_RECORD_DEF   = 10,
+	BSERIAL_RECORD_REF   = 11,
 } bserial_marker_t;
 
 typedef enum {
