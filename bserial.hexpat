@@ -110,6 +110,8 @@ namespace impl {
       return std::format("RECORD(#{})", element.value.id);
     } else if (type == Type::ARRAY) {
       return std::format("ARRAY({})", element.value.len);
+    } else if (type == Type::TABLE) {
+      return std::format("TABLE({})", element.value.len);
     }
   };
 }
@@ -122,9 +124,10 @@ enum Type: u8 {
   BLOB       =  5,
   SYM_DEF    =  6,
   SYM_REF    =  7,
-  ARRAY      =  8,
   RECORD_DEF =  9,
-  RECORD_REF = 10,
+  RECORD_REF =  9,
+  ARRAY      = 10,
+  TABLE      = 11,
 };
 
 struct IntBase {
@@ -182,6 +185,28 @@ struct RecordRef {
   Element values[impl::schema_width(id)];
 };
 
+struct Row<auto Width> {
+  Element values[Width];
+};
+
+// The schema is stored once with the first row.
+// The remaining rows only contain values.
+struct Table {
+  UInt len;
+  if (len > 0) {
+    Type schema_type;
+    if (schema_type == Type::RECORD_DEF) {
+      UInt width;
+      Symbol keys[width];
+      impl::register_Schema(width);
+      Row<width> rows[len];
+    } else if (schema_type == Type::RECORD_REF) {
+      UInt id;
+      Row<impl::schema_width(id)> rows[len];
+    }
+  }
+};
+
 struct Element {
   Type type;
   
@@ -206,6 +231,8 @@ struct Element {
     RecordRef value [[inline]];
   } else if (type == Type::ARRAY) {
     Array value [[inline]];
+  } else if (type == Type::TABLE) {
+    Table value [[inline]];
   }
 } [[format("impl::format_Element")]];
 

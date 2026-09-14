@@ -73,6 +73,10 @@
  *   Repeated records such as array elements thus only pay for their values.
  * * Array: a collection of elements.
  *   Each element can have a different type.
+ * * Table: a collection of elements
+ *   Unlike array, each element must be a record.
+ *   All records must have the same schema.
+ *   The storage is optimized for storing repeated records of the same type.
  *
  * All data types are generally stored as `[tag][payload]`.
  * Variable length types like array are stored as `[tag][length][payload]`.
@@ -322,6 +326,31 @@
  * They are widened to 64 bits on the wire.
  * A negative length on write or a length that does not fit in the variable on read is an error.
  * The `_u64` variants such as `bserial_array_u64` are the underlying functions.
+ *
+ * ### Table
+ *
+ * A table is a special case of array where all records have the same schema.
+ * The schema is written with the first row and the remaining rows only contain their values, saving 2 bytes per row.
+ *
+ * ```c
+ * bserial_status_t
+ * serialize_my_table(bserial_ctx_t* ctx, my_table_t* table) {
+ *     int len = my_table_len(table);  // Put length into a variable
+ *     BSERIAL_CHECK_STATUS(bserial_table(ctx, &len));  // Serialize length
+ *     if (len > MY_TABLE_MAX_LEN) { return BSERIAL_MALFORMED; }  // Limit check
+ *     my_table_resize(table, len);  // Dynamically resize the table to fit
+ *
+ *     // Serialize rows
+ *     for (int i = 0; i < my_table_len(table); ++i) {
+ *         BSERIAL_CHECK_STATUS(serialize_my_struct(ctx, my_table_row_at(table, i)));
+ *     }
+ *
+ *     return bserial_status(ctx);
+ * }
+ * ```
+ *
+ * Every row must be a record and all rows must have the same set of keys.
+ * Writing a row with a different set of keys is an error.
  *
  * ### String encoding validation
  *
@@ -896,6 +925,26 @@ bserial_array_u64(bserial_ctx_t* ctx, uint64_t* len);
 	bserial_typed_len(ctx, bserial_array_u64, (len), BSERIAL_INT_TYPE(len))
 
 /**
+ * @brief Read/write a table.
+ *
+ * A table is an array of records with the same schema.
+ * After this call @a len records are expected.
+ * Every row must have the same set of keys.
+ *
+ * @see bserial_record
+ */
+BSERIAL_API bserial_status_t
+bserial_table_u64(bserial_ctx_t* ctx, uint64_t* len);
+
+/**
+ * @brief Read/write a table.
+ *
+ * Same as @ref bserial_table_u64 but @a len can be a pointer to any integer type.
+ */
+#define bserial_table(ctx, len) \
+	bserial_typed_len(ctx, bserial_table_u64, (len), BSERIAL_INT_TYPE(len))
+
+/**
  * @brief Read/write a record.
  *
  * A record is a collection of key/value pairs.
@@ -1267,15 +1316,17 @@ typedef enum {
 	BSERIAL_BLOB         =  5,
 	BSERIAL_SYM_DEF      =  6,
 	BSERIAL_SYM_REF      =  7,
-	BSERIAL_ARRAY        =  8,
-	BSERIAL_RECORD_DEF   =  9,
-	BSERIAL_RECORD_REF   = 10,
+	BSERIAL_RECORD_DEF   =  8,
+	BSERIAL_RECORD_REF   =  9,
+	BSERIAL_ARRAY        = 10,
+	BSERIAL_TABLE        = 11,
 } bserial_marker_t;
 
 typedef enum {
 	BSERIAL_SCOPE_ROOT,
 	BSERIAL_SCOPE_BLOB,
 	BSERIAL_SCOPE_ARRAY,
+	BSERIAL_SCOPE_TABLE,
 	BSERIAL_SCOPE_RECORD,
 	BSERIAL_SCOPE_ENUM,
 } bserial_scope_type_t;
@@ -1285,6 +1336,7 @@ typedef enum {
 	BSERIAL_OP_BLOB,
 	BSERIAL_OP_SYMBOL,
 	BSERIAL_OP_ARRAY,
+	BSERIAL_OP_TABLE,
 	BSERIAL_OP_RECORD,
 	BSERIAL_OP_ENUM,
 } bserial_op_type_t;
@@ -1325,6 +1377,9 @@ typedef struct {
 	// follows. Used to tell a nested record apart from the loop head of the
 	// current record.
 	bool value_pending;
+
+	// The schema shared by all rows of a table, set by the first row
+	bserial_schema_t* table_schema;
 
 	void* enum_value;
 	bserial_int_type_t enum_type;
@@ -1544,6 +1599,14 @@ bserial_begin_op(bserial_ctx_t* ctx, bserial_op_type_t op) {
 		++scope->iterator;
 	}
 
+	// A table only contains records
+	if (scope_type == BSERIAL_SCOPE_TABLE) {
+		if (op != BSERIAL_OP_RECORD) {
+			return bserial_malformed(ctx);
+		}
+		++scope->iterator;
+	}
+
 	// The value following a key is being consumed
 	if (scope_type == BSERIAL_SCOPE_RECORD) {
 		scope->value_pending = false;
@@ -1553,6 +1616,8 @@ bserial_begin_op(bserial_ctx_t* ctx, bserial_op_type_t op) {
 		BSERIAL_CHECK_STATUS(bserial_push_scope(ctx, BSERIAL_SCOPE_BLOB));
 	} else if (op == BSERIAL_OP_ARRAY) {
 		BSERIAL_CHECK_STATUS(bserial_push_scope(ctx, BSERIAL_SCOPE_ARRAY));
+	} else if (op == BSERIAL_OP_TABLE) {
+		BSERIAL_CHECK_STATUS(bserial_push_scope(ctx, BSERIAL_SCOPE_TABLE));
 	} else if (op == BSERIAL_OP_RECORD) {
 		BSERIAL_CHECK_STATUS(bserial_push_scope(ctx, BSERIAL_SCOPE_RECORD));
 	} else if (op == BSERIAL_OP_ENUM) {
@@ -1577,10 +1642,10 @@ bserial_end_op(bserial_ctx_t* ctx, bserial_op_type_t op) {
 	}
 
 	// Auto pop when enough ops are executed.
-	// Array does not have an "end" function call and the number of elements
-	// is automatically tracked through bserial_end_op.
+	// Array and table do not have an "end" function call and the number of
+	// elements is automatically tracked through bserial_end_op.
 	while (
-		ctx->scope->type == BSERIAL_SCOPE_ARRAY
+		(ctx->scope->type == BSERIAL_SCOPE_ARRAY || ctx->scope->type == BSERIAL_SCOPE_TABLE)
 		&& ctx->scope->iterator == ctx->scope->len
 	) {
 		BSERIAL_CHECK_STATUS(bserial_pop_scope(ctx));
@@ -2063,7 +2128,12 @@ bserial_schema_eq(const bserial_schema_t* schema, const bserial_record_mapping_t
 // Write a schema definition the first time a list of keys is seen and a
 // reference afterwards.
 static inline bserial_status_t
-bserial_write_schema(bserial_ctx_t* ctx, const bserial_record_mapping_t* keys, uint64_t num_keys) {
+bserial_write_schema(
+	bserial_ctx_t* ctx,
+	const bserial_record_mapping_t* keys,
+	uint64_t num_keys,
+	bserial_schema_t** out
+) {
 	uint64_t hash = bserial_schema_hash(keys, num_keys);
 	for (int32_t i = (int32_t)hash;;) {
 		i = bserial_lookup_index(hash, ctx->schema_exp, i);
@@ -2084,11 +2154,15 @@ bserial_write_schema(bserial_ctx_t* ctx, const bserial_record_mapping_t* keys, u
 				schema->fields[j] = (bserial_symbol_t){ .buf = (char*)symbol, .len = symbol_len };
 			}
 
+			*out = schema;
 			return BSERIAL_OK;
 		} else if (bserial_schema_eq(&ctx->schemas[index - 1], keys, num_keys)) {
 			uint8_t marker = BSERIAL_RECORD_REF;
 			BSERIAL_CHECK_STATUS(ctx->status = bserial_write(ctx->out, &marker, sizeof(marker)));
-			return ctx->status = bserial_write_uint((uint64_t)index - 1, ctx->out);
+			BSERIAL_CHECK_STATUS(ctx->status = bserial_write_uint((uint64_t)index - 1, ctx->out));
+
+			*out = &ctx->schemas[index - 1];
+			return BSERIAL_OK;
 		}
 	}
 }
@@ -2127,7 +2201,7 @@ bserial_skip_next(bserial_ctx_t* ctx, uint32_t depth) {
 			{
 				bserial_discard_marker(ctx);
 				uint64_t len;
-				BSERIAL_CHECK_STATUS(bserial_read_uint(&len, ctx->in));
+				BSERIAL_CHECK_STATUS(ctx->status = bserial_read_uint(&len, ctx->in));
 				BSERIAL_CHECK_STATUS(ctx->status = bserial_skip(ctx->in, len));
 			}
 			break;
@@ -2144,11 +2218,36 @@ bserial_skip_next(bserial_ctx_t* ctx, uint32_t depth) {
 				bserial_discard_marker(ctx);
 
 				uint64_t len;
-				BSERIAL_CHECK_STATUS(bserial_read_uint(&len, ctx->in));
+				BSERIAL_CHECK_STATUS(ctx->status = bserial_read_uint(&len, ctx->in));
 				if (len > 0 && depth == 0) { return bserial_malformed(ctx); }
 
 				for (uint64_t i = 0; i < len; ++i) {
 					BSERIAL_CHECK_STATUS(bserial_skip_next(ctx, depth - 1));
+				}
+			}
+			break;
+		case BSERIAL_TABLE:
+			{
+				bserial_discard_marker(ctx);
+
+				uint64_t len;
+				BSERIAL_CHECK_STATUS(ctx->status = bserial_read_uint(&len, ctx->in));
+				if (len > 0) {
+					// Every row is a record nested in the table
+					if (depth < 2) { return bserial_malformed(ctx); }
+
+					// The schema is stored once with the first row and must
+					// be registered like any other definition.
+					uint8_t schema_marker;
+					BSERIAL_CHECK_STATUS(bserial_read_marker(ctx, &schema_marker));
+					bserial_schema_t* schema;
+					BSERIAL_CHECK_STATUS(bserial_read_schema(ctx, schema_marker, &schema));
+
+					for (uint64_t i = 0; i < len; ++i) {
+						for (uint32_t j = 0; j < schema->num_fields; ++j) {
+							BSERIAL_CHECK_STATUS(bserial_skip_next(ctx, depth - 2));
+						}
+					}
 				}
 			}
 			break;
@@ -2295,6 +2394,34 @@ bserial_array_u64(bserial_ctx_t* ctx, uint64_t* len) {
 	}
 }
 
+bserial_status_t
+bserial_table_u64(bserial_ctx_t* ctx, uint64_t* len) {
+	BSERIAL_CHECK_STATUS(bserial_begin_op(ctx, BSERIAL_OP_TABLE));
+	BSERIAL_CHECK_STATUS(bserial_marker_and_length(ctx, BSERIAL_TABLE, len));
+
+	if (*len > 0) {
+		ctx->scope->len = *len;
+		return BSERIAL_OK;
+	} else {
+		return bserial_end_op(ctx, BSERIAL_OP_TABLE);
+	}
+}
+
+// The table that a record is a row of, if any.
+// The first row carries the schema of the whole table.
+static inline bserial_scope_t*
+bserial_row_table(bserial_scope_t* record_scope) {
+	// A record is never the root so it always has a parent
+	bserial_scope_t* parent = record_scope - 1;
+	return parent->type == BSERIAL_SCOPE_TABLE ? parent : NULL;
+}
+
+static inline bool
+bserial_is_first_row(bserial_scope_t* table_scope) {
+	// bserial_begin_op has already counted the current row
+	return table_scope->iterator == 1;
+}
+
 bool
 bserial_record(bserial_ctx_t* ctx) {
 	if (ctx->status != BSERIAL_OK) { return false; }
@@ -2328,14 +2455,24 @@ bserial_record(bserial_ctx_t* ctx) {
 			}
 			scope = ctx->scope;
 
-			uint8_t marker;
-			if (bserial_read_marker(ctx, &marker) != BSERIAL_OK) {
-				return false;
-			}
-
 			bserial_schema_t* schema;
-			if (bserial_read_schema(ctx, marker, &schema) != BSERIAL_OK) {
-				return false;
+			bserial_scope_t* table = bserial_row_table(scope);
+			if (table != NULL && !bserial_is_first_row(table)) {
+				// Later rows of a table only contain values
+				schema = table->table_schema;
+			} else {
+				uint8_t marker;
+				if (bserial_read_marker(ctx, &marker) != BSERIAL_OK) {
+					return false;
+				}
+
+				if (bserial_read_schema(ctx, marker, &schema) != BSERIAL_OK) {
+					return false;
+				}
+
+				if (table != NULL) {
+					table->table_schema = schema;
+				}
 			}
 
 			// The mapping from keys to code is per record instance since the
@@ -2370,8 +2507,24 @@ bserial_record(bserial_ctx_t* ctx) {
 						bserial_malformed(ctx);
 						return false;
 					}
-					if (bserial_write_schema(ctx, scope->record_schema, scope->len) != BSERIAL_OK) {
-						return false;
+					{
+						bserial_scope_t* table = bserial_row_table(scope);
+						if (table != NULL && !bserial_is_first_row(table)) {
+							// Later rows of a table must match the first
+							if (!bserial_schema_eq(table->table_schema, scope->record_schema, scope->len)) {
+								bserial_malformed(ctx);
+								return false;
+							}
+						} else {
+							bserial_schema_t* schema;
+							if (bserial_write_schema(ctx, scope->record_schema, scope->len, &schema) != BSERIAL_OK) {
+								return false;
+							}
+
+							if (table != NULL) {
+								table->table_schema = schema;
+							}
+						}
 					}
 					scope->record_mode = BSERIAL_RECORD_VALUE_IO;
 					scope->iterator = 0;
@@ -2577,6 +2730,12 @@ bserial_trace(bserial_ctx_t* ctx, bserial_tracer_t tracer, void* userdata) {
 				bserial_tracef(
 					tracer, userdata, depth,
 					"Array(%" PRIu64 "/%" PRIu64 ")", scope->iterator, scope->len
+				);
+				break;
+			case BSERIAL_SCOPE_TABLE:
+				bserial_tracef(
+					tracer, userdata, depth,
+					"Table(%" PRIu64 "/%" PRIu64 ")", scope->iterator, scope->len
 				);
 				break;
 			case BSERIAL_SCOPE_RECORD:
