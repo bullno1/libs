@@ -29,8 +29,7 @@ sys_update(
 	void* userdata,
 	bent_world_t* world,
 	bent_mask_t update_mask,
-	bent_t* entities,
-	bent_index_t num_entities
+	bent_query_t query
 ) {
 	simple_system_t* sys = userdata;
 	++sys->num_updates;
@@ -198,18 +197,10 @@ sys_update_empty_list(
 	void* userdata,
 	bent_world_t* world,
 	bent_mask_t update_mask,
-	bent_t* entities,
-	bent_index_t num_entities
+	bent_query_t query
 ) {
-	BTEST_EXPECT(entities == NULL);
-	BTEST_EXPECT_EQUAL("%d", num_entities, 0);
-
-	int num_iterations = 0;
-	BENT_FOREACH_ENTITY(entity, entities) {
-		(void)entity;
-		++num_iterations;
-	}
-	BTEST_EXPECT_EQUAL("%d", num_iterations, 0);
+	BTEST_EXPECT_EQUAL("%d", query.id, 0);
+	BTEST_EXPECT_EQUAL("%d", count_query(world, query), 0);
 }
 
 BENT_DEFINE_SYS(no_entity_list_system) = {
@@ -224,10 +215,9 @@ BTEST(system, system_has_no_entity_list) {
 	bent_t ent = bent_create(world);
 	bent_add(world, ent, basic_component, NULL);
 
-	bent_index_t num_entities;
-	bent_t* list = bent_get_entity_list(world, no_entity_list_system, &num_entities);
-	BTEST_EXPECT(list == NULL);
-	BTEST_EXPECT_EQUAL("%d", num_entities, 0);
+	bent_query_t query = bent_sys_query(world, no_entity_list_system);
+	BTEST_EXPECT_EQUAL("%d", query.id, 0);
+	BTEST_EXPECT_EQUAL("%d", count_query(world, query), 0);
 
 	bent_run(world, UPDATE_PHASE_A);
 }

@@ -29,4 +29,14 @@ cleanup_per_test(void) {
 	bent_cleanup(&fixture.world);
 }
 
+static inline int
+count_query(bent_world_t* world, bent_query_t query) {
+	int count = 0;
+	BENT_FOREACH_QUERY(entity, world, query) {
+		(void)entity;
+		++count;
+	}
+	return count;
+}
+
 #endif

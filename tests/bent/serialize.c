@@ -261,9 +261,7 @@ BTEST(serialize, clear) {
 	BTEST_EXPECT_EQUAL("%d", num_cache_cleanups, 2);
 	BTEST_EXPECT_EQUAL("%d", users->num_removes, 2);
 
-	bent_index_t num_entities;
-	bent_get_entity_list(world, cache_user, &num_entities);
-	BTEST_EXPECT_EQUAL("%d", (int)num_entities, 0);
+	BTEST_EXPECT_EQUAL("%d", count_query(world, bent_sys_query(world, cache_user)), 0);
 
 	// Old handles stay stale after the slots are reused
 	bent_t c = bent_create(world);
@@ -514,13 +512,9 @@ BTEST(serialize, world_round_trip) {
 	BTEST_EXPECT(bent_has(world, target, cache));
 	BTEST_EXPECT(bent_has(world, lone, cache));
 
-	bent_index_t num_entities;
-	bent_get_entity_list(world, cache_user, &num_entities);
-	BTEST_EXPECT_EQUAL("%d", (int)num_entities, 2);
-	bent_get_entity_list(world, cache_hater, &num_entities);
-	BTEST_EXPECT_EQUAL("%d", (int)num_entities, 0);
-	bent_get_entity_list(world, link_sys, &num_entities);
-	BTEST_EXPECT_EQUAL("%d", (int)num_entities, 1);
+	BTEST_EXPECT_EQUAL("%d", count_query(world, bent_sys_query(world, cache_user)), 2);
+	BTEST_EXPECT_EQUAL("%d", count_query(world, bent_sys_query(world, cache_hater)), 0);
+	BTEST_EXPECT_EQUAL("%d", count_query(world, bent_sys_query(world, link_sys)), 1);
 
 	// And it keeps working as a regular world
 	bent_remove(world, target, position);
