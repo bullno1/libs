@@ -1418,7 +1418,7 @@ struct bent_world_s {
 	barray(bent_system_data_t) systems;
 	barray(bent_notification_t) notify_queue;
 	// Which slots are alive, and their generations
-	bhandle_mgr_t handles;
+	bhandle_map_t handles;
 	// One per slot, segmented so that entity data pointers stay valid across
 	// user callbacks
 	bseg(bent_entity_data_t) entities;

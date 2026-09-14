@@ -48,7 +48,7 @@ owns(const clone_env_t* env, const void* p) {
 	return addr >= base && addr < base + env->size;
 }
 
-bco_static(counter, int to) {
+bco_static(void, counter, int to) {
 	bco_vars(int i;)
 	bco_begin
 	for (bco_var(i) = 0; bco_var(i) < bco_arg(to); ++bco_var(i)) {
@@ -121,7 +121,7 @@ BTEST(clone, copy_of_a_never_resumed_coroutine) {
 	);
 }
 
-bco_static(clone_sub, int rounds) {
+bco_static(void, clone_sub, int rounds) {
 	bco_vars(int i;)
 	bco_begin
 	for (bco_var(i) = 0; bco_var(i) < bco_arg(rounds); ++bco_var(i)) {
@@ -133,7 +133,7 @@ bco_static(clone_sub, int rounds) {
 	trace("%s:sub:cleanup", ((const clone_env_t*)bco_userdata)->name);
 }
 
-bco_static(clone_outer, int rounds) {
+bco_static(void, clone_outer, int rounds) {
 	bco_vars(int marker;)
 	bco_begin
 	bco_var(marker) = 0xf00;
@@ -174,7 +174,7 @@ BTEST(clone, copy_taken_while_inside_a_subcall) {
 	);
 }
 
-bco_static(overaligned, int unused) {
+bco_static(void, overaligned, int unused) {
 	bco_vars(_Alignas(16) char blob[16]; int tag;)
 	bco_begin
 	bco_var(tag) = 0x2222;

@@ -10,6 +10,24 @@ namespace impl {
   std::mem::Section symtab = std::mem::create_section("symtab");
   u32 num_symbols = 0;
 
+  // Record schemas are interned like symbols. Only the width is needed to
+  // parse a reference.
+  std::mem::Section schematab = std::mem::create_section("schematab");
+  u32 num_schemas = 0;
+
+  fn register_Schema(auto width) {
+    u32 section_addr = num_schemas * sizeof(u32);
+    u32 width_copy @ section_addr in schematab;
+    width_copy = width;
+    num_schemas += 1;
+  };
+
+  fn schema_width(auto id) {
+    u32 section_addr = id * sizeof(u32);
+    u32 width @ section_addr in schematab;
+    return width;
+  };
+
   fn format_SymbolDef(ref auto sym) {
     return std::format("\"{}\"", sym.content);
   };
@@ -86,27 +104,30 @@ namespace impl {
       return std::format("SYMBOL({})", impl::format_SymbolDef(element.value));
     } else if (type == Type::SYM_REF) {
       return std::format("SYMBOL({})", impl::format_SymbolRef(element.value));
-    } else if (type == Type::RECORD) {
+    } else if (type == Type::RECORD_DEF) {
       return std::format("RECORD({})", element.value.width);
+    } else if (type == Type::RECORD_REF) {
+      return std::format("RECORD(#{})", element.value.id);
     } else if (type == Type::ARRAY) {
       return std::format("ARRAY({})", element.value.len);
     } else if (type == Type::TABLE) {
-      return std::format("TABLE({}, {})", element.value.num_columns, element.value.num_rows);
+      return std::format("TABLE({})", element.value.len);
     }
   };
 }
 
 enum Type: u8 {
-  UINT    =  1,
-  SINT    =  2,
-  F32     =  3,
-  F64     =  4,
-  BLOB    =  5,
-  SYM_DEF =  6,
-  SYM_REF =  7,
-  ARRAY   =  8,
-  TABLE   =  9,
-  RECORD  = 10,
+  UINT       =  1,
+  SINT       =  2,
+  F32        =  3,
+  F64        =  4,
+  BLOB       =  5,
+  SYM_DEF    =  6,
+  SYM_REF    =  7,
+  ARRAY      =  8,
+  TABLE      =  9,
+  RECORD_DEF = 10,
+  RECORD_REF = 11,
 };
 
 struct IntBase {
@@ -152,21 +173,38 @@ struct Array {
   Element elements[len];
 };
 
-struct Record {
+struct RecordDef {
   UInt width;
   Symbol keys[width];
+  impl::register_Schema(width);
   Element values[width];
 };
 
-struct Row<auto num_columns> {
-  Element cells[num_columns] [[inline]];
+struct RecordRef {
+  UInt id;
+  Element values[impl::schema_width(id)];
 };
 
+struct Row<auto Width> {
+  Element values[Width];
+};
+
+// The schema is stored once with the first row.
+// The remaining rows only contain values.
 struct Table {
-  UInt num_rows;
-  UInt num_columns;
-  Symbol columns[num_columns];
-  Row<num_columns> rows[num_rows];
+  UInt len;
+  if (len > 0) {
+    Type schema_type;
+    if (schema_type == Type::RECORD_DEF) {
+      UInt width;
+      Symbol keys[width];
+      impl::register_Schema(width);
+      Row<width> rows[len];
+    } else if (schema_type == Type::RECORD_REF) {
+      UInt id;
+      Row<impl::schema_width(id)> rows[len];
+    }
+  }
 };
 
 struct Element {
@@ -187,8 +225,10 @@ struct Element {
     SymbolDef value [[inline]];
   } else if (type == Type::SYM_REF) {
     SymbolRef value [[inline]];
-  } else if (type == Type::RECORD) {
-    Record value [[inline]];
+  } else if (type == Type::RECORD_DEF) {
+    RecordDef value [[inline]];
+  } else if (type == Type::RECORD_REF) {
+    RecordRef value [[inline]];
   } else if (type == Type::ARRAY) {
     Array value [[inline]];
   } else if (type == Type::TABLE) {

@@ -20,7 +20,7 @@ static btest_suite_t cleanup = {
  * The `acquired` var doubles as the guard the cleanup section reads, which is
  * exactly the pattern that only works because vars are zeroed on first entry.
  */
-bco_static(cleanup_resource, int yield_before_acquire) {
+bco_static(void, cleanup_resource, int yield_before_acquire) {
 	bco_vars(int acquired;)
 	bco_begin
 	if (bco_arg(yield_before_acquire)) { bco_yield(); }
@@ -102,7 +102,7 @@ BTEST(cleanup, terminate_after_completion_does_nothing) {
 	BTEST_EXPECT_EQUAL("%d", live_resources, 0);
 }
 
-bco_static(cleanup_early_return, int stop_at) {
+bco_static(void, cleanup_early_return, int stop_at) {
 	bco_vars(int i;)
 	bco_begin
 	for (bco_var(i) = 0; bco_var(i) < 5; ++bco_var(i)) {
@@ -142,7 +142,7 @@ BTEST(cleanup, early_return_on_the_very_first_resume) {
 	BCO_EXPECT_TRACE("cleanup:0");
 }
 
-bco_static(cleanup_context, int tag) {
+bco_static(void, cleanup_context, int tag) {
 	bco_begin
 	bco_yield();
 	bco_end

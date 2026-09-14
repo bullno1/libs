@@ -6,7 +6,7 @@ static btest_suite_t subcoro = {
 	.init_per_test = init_per_test,
 };
 
-bco_static(subcoro_leaf, int id, int steps) {
+bco_static(void, subcoro_leaf, int id, int steps) {
 	bco_vars(int i; int seen;)
 	bco_begin
 	// `seen` proves each invocation gets a freshly zeroed frame even though
@@ -22,7 +22,7 @@ bco_static(subcoro_leaf, int id, int steps) {
 	trace("leaf%d:cleanup", bco_arg(id));
 }
 
-bco_static(subcoro_parent, int calls, int steps) {
+bco_static(void, subcoro_parent, int calls, int steps) {
 	bco_vars(int k;)
 	bco_begin
 	trace("parent:enter");
@@ -70,7 +70,7 @@ BTEST(subcoro, each_invocation_gets_a_fresh_frame) {
 	);
 }
 
-bco_static(subcoro_depth3, int depth) {
+bco_static(void, subcoro_depth3, int depth) {
 	bco_begin
 	trace("d%d:enter", bco_arg(depth));
 	bco_yield();
@@ -112,7 +112,7 @@ BTEST(subcoro, terminate_unwinds_the_whole_chain) {
 #pragma warning(disable : 4702) // unreachable code
 #endif
 
-bco_static(subcoro_returning_leaf, int id) {
+bco_static(void, subcoro_returning_leaf, int id) {
 	bco_begin
 	trace("leaf%d:enter", bco_arg(id));
 	bco_return();
@@ -125,7 +125,7 @@ bco_static(subcoro_returning_leaf, int id) {
 #pragma warning(pop)
 #endif
 
-bco_static(subcoro_return_parent, int calls) {
+bco_static(void, subcoro_return_parent, int calls) {
 	bco_vars(int k;)
 	bco_begin
 	for (bco_var(k) = 0; bco_var(k) < bco_arg(calls); ++bco_var(k)) {
@@ -147,14 +147,14 @@ BTEST(subcoro, early_return_in_a_sub_resumes_the_parent) {
 	BTEST_EXPECT_EQUAL("%d", bco_status(coro_a()), BCO_TERMINATED);
 }
 
-bco_static(subcoro_userdata_leaf, int depth) {
+bco_static(void, subcoro_userdata_leaf, int depth) {
 	bco_begin
 	trace("d%d:%d", bco_arg(depth), *(const int*)bco_userdata);
 	bco_yield();
 	bco_end
 }
 
-bco_static(subcoro_userdata_parent, int unused) {
+bco_static(void, subcoro_userdata_parent, int unused) {
 	bco_begin
 	trace("parent:%d", *(const int*)bco_userdata);
 	bco_call(subcoro_userdata_leaf, 1);
@@ -187,7 +187,7 @@ BTEST(subcoro, set_userdata_propagates_to_a_live_sub) {
 	BTEST_EXPECT_EQUAL("%d", bco_status(coro_a()), BCO_TERMINATED);
 }
 
-bco_static(subcoro_joiner, int unused) {
+bco_static(void, subcoro_joiner, int unused) {
 	bco_begin
 	trace("joiner:start");
 	bco_join(coro_b());
