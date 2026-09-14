@@ -190,12 +190,14 @@ BTEST(schema, nested_shares_schema) {
 	BTEST_ASSERT(serialize_tree(ctx, &tree) == BSERIAL_OK);
 	hex_dump(common_fixture.mem_out.mem, common_fixture.mem_out.len);
 
-	// Only one definition in the whole stream
-	int num_defs = 0;
-	for (size_t i = 0; i < common_fixture.mem_out.len; ++i) {
-		if ((unsigned char)common_fixture.mem_out.mem[i] == 9) { ++num_defs; }
-	}
-	BTEST_ASSERT(num_defs == 1);
+	// Only one definition in the whole stream:
+	// [RECORD_DEF][2][SYM_DEF "value"][SYM_DEF "children"]
+	size_t def_size = 1 + 1 + (1 + 1 + 5) + (1 + 1 + 8);
+	// [SINT 1][ARRAY 3]
+	size_t tree_body_size = 2 + 2;
+	// [RECORD_REF][0][SINT n][ARRAY 0]
+	size_t leaf_size = 2 + 2 + 2;
+	BTEST_ASSERT(common_fixture.mem_out.len == def_size + tree_body_size + leaf_size * 3);
 
 	ctx = common_fixture_make_in_ctx();
 	tree_t tree2 = { 0 };

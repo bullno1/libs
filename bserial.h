@@ -79,7 +79,7 @@
  *   The storage is optimized for storing repeated records of the same type.
  *
  * All data types are generally stored as `[tag][payload]`.
- * Variable length types like array are stored as `[tag][length][payload]`.
+ * Variable length types like array or table are stored as `[tag][length][payload]`.
  * The type tag is needed to facilitate skipping over unknown data that is not described in the serialization code.
  *
  * ### Error handling
@@ -162,7 +162,7 @@
  * This violates the library's goal of fixed allocation.
  * In the common cases (code and data perfectly matches), the field clauses will most likely be executed in order anyway.
  * Thus there should not be much overhead.
- * Even with some omitted fields (due to newly introduced fields in code), given that repeated records usually share the same schema, the branches should be perfectly predictable.
+ * Even with some omitted fields (due to newly introduced fields in code), given that all records in a table must have the same schema, the branches should be perfectly predictable.
  * e.g: "foo" is always executed and "bar" is always skipped.
  *
  * #### Compatible type change
@@ -184,8 +184,8 @@
  *     After the value is read, the library recognizes that the second `bserial_key` call is also a match in order and return true again, and so on...
  *
  *   Thus there would be only two iterations through the `while`loop.
- *   Records with the same set of keys share one schema in the stream.
- *   The keys are only written for the first one, later ones only refer to the schema by id.
+ *   In the case of a table, the schema discovery step only happens once at the beginning.
+ *   For every row in the table, only a single iteration through the `while` loop is needed.
  *
  *   The loop would only have to run more than twice when the program has to read serialized data from a previous version where fields have a different order.
  *   This can be somewhat mitigated by only adding code for new fields at the end of the serialization function.
@@ -290,7 +290,7 @@
  * ### Variable length types
  *
  * Beside the initial fixed-size memory buffer passed to `bserial_make_ctx`, the library does not allocate any more memory.
- * For variable-length data types such as array, user code has to make their own decision.
+ * For variable-length data types such as table or array, user code has to make their own decision.
  * In general, fixed allocation is encouraged and it is always important to enforce a hard limit on length.
  * However, when dynamic size is needed something like this can be used:
  *
@@ -317,7 +317,7 @@
  * In general, variable length type should follow the pattern of:
  *
  * 1. Assign length to a variable.
- * 2. Read/write length with `bserial_array`.
+ * 2. Read/write length with `bserial_array` or `bserial_table`.
  * 3. Limit check
  * 4. If using dynamic memory, resize storage to fit length.
  * 5. Loop through elements and serialize them.
@@ -329,28 +329,12 @@
  *
  * ### Table
  *
- * A table is a special case of array where all records have the same schema.
- * The schema is written with the first row and the remaining rows only contain their values, saving 2 bytes per row.
+ * `bserial_array` and `bserial_table` have the same signature.
+ * The only requirement for `bserial_table` is that all subsequent elements must be records of the same type: same set of keys and values must have the same type.
+ * The storage optimization is done automatically.
  *
- * ```c
- * bserial_status_t
- * serialize_my_table(bserial_ctx_t* ctx, my_table_t* table) {
- *     int len = my_table_len(table);  // Put length into a variable
- *     BSERIAL_CHECK_STATUS(bserial_table(ctx, &len));  // Serialize length
- *     if (len > MY_TABLE_MAX_LEN) { return BSERIAL_MALFORMED; }  // Limit check
- *     my_table_resize(table, len);  // Dynamically resize the table to fit
- *
- *     // Serialize rows
- *     for (int i = 0; i < my_table_len(table); ++i) {
- *         BSERIAL_CHECK_STATUS(serialize_my_struct(ctx, my_table_row_at(table, i)));
- *     }
- *
- *     return bserial_status(ctx);
- * }
- * ```
- *
- * Every row must be a record and all rows must have the same set of keys.
- * Writing a row with a different set of keys is an error.
+ * Internally, the keys are only written once at the beginning of the table.
+ * Then, all values of all rows are stored packed without separators.
  *
  * ### String encoding validation
  *
@@ -409,13 +393,13 @@
  * ### Associative map
  *
  * Record is optimized for serializing a fixed set of keys and it is not suitable for associative map types such as hashtable.
- * Instead, an array of records should be used:
+ * Instead, a table should be used:
  *
  * ```c
  * bserial_status_t
  * serialize_hashmap(bserial_ctx_t* ctx, my_hashmap_t* hashmap) {
  *     size_t len = my_hashmap_len(hashmap);
- *     BSERIAL_CHECK_STATUS(bserial_array(ctx, &len));
+ *     BSERIAL_CHECK_STATUS(bserial_table(ctx, &len));
  *
  *     if (bserial_mode(ctx) == BSERIAL_MODE_READ) {
  *         // Optionally, reserve
@@ -586,6 +570,7 @@ typedef struct bserial_ctx_config_s {
 	 * @brief Maximum nested depth.
 	 * @see bserial_record
 	 * @see bserial_array
+	 * @see bserial_table
 	 */
 	uint32_t max_depth;
 } bserial_ctx_config_t;
@@ -830,6 +815,7 @@ typedef bserial_status_t (*bserial_len_fn_t)(bserial_ctx_t* ctx, uint64_t* len);
  * read is an error.
  *
  * @see bserial_array
+ * @see bserial_table
  * @see bserial_blob_header
  */
 BSERIAL_API bserial_status_t
@@ -927,9 +913,9 @@ bserial_array_u64(bserial_ctx_t* ctx, uint64_t* len);
 /**
  * @brief Read/write a table.
  *
- * A table is an array of records with the same schema.
- * After this call @a len records are expected.
- * Every row must have the same set of keys.
+ * After this call @a len elements are expected.
+ *
+ * This is a special case of an array where all members must be records of the same type.
  *
  * @see bserial_record
  */

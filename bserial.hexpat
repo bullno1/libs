@@ -124,7 +124,7 @@ enum Type: u8 {
   BLOB       =  5,
   SYM_DEF    =  6,
   SYM_REF    =  7,
-  RECORD_DEF =  9,
+  RECORD_DEF =  8,
   RECORD_REF =  9,
   ARRAY      = 10,
   TABLE      = 11,
