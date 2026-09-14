@@ -136,6 +136,9 @@ Macros</h2></td></tr>
 <tr class="memitem:a43d08beacd766b14002d1f5832bbaaec" id="r_a43d08beacd766b14002d1f5832bbaaec"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bco_8h.html#a43d08beacd766b14002d1f5832bbaaec">bco_userdata</a></td></tr>
 <tr class="memdesc:a43d08beacd766b14002d1f5832bbaaec"><td class="mdescLeft">&#160;</td><td class="mdescRight">Access the associated user data from a coroutine's body.  <br /></td></tr>
 <tr class="separator:a43d08beacd766b14002d1f5832bbaaec"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a820231e0db47a56c3db3fb6db897f2be" id="r_a820231e0db47a56c3db3fb6db897f2be"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bco_8h.html#a820231e0db47a56c3db3fb6db897f2be">bco_self</a></td></tr>
+<tr class="memdesc:a820231e0db47a56c3db3fb6db897f2be"><td class="mdescLeft">&#160;</td><td class="mdescRight">The handle of the running coroutine, as it was given to <a class="el" href="bco_8h.html#a95a0b45b11c13b3216be867560da443b">bco_spawn</a>.  <br /></td></tr>
+<tr class="separator:a820231e0db47a56c3db3fb6db897f2be"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8f050128aadebc9a8a6a1313221f8341" id="r_a8f050128aadebc9a8a6a1313221f8341"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bco_8h.html#a8f050128aadebc9a8a6a1313221f8341">bco_vars</a>(...)</td></tr>
 <tr class="memdesc:a8f050128aadebc9a8a6a1313221f8341"><td class="mdescLeft">&#160;</td><td class="mdescRight">Declare coroutine variables.  <br /></td></tr>
 <tr class="separator:a8f050128aadebc9a8a6a1313221f8341"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -321,14 +324,14 @@ Hot reload</h2>
 <div class="line">    <span class="comment">// as the coroutine has started</span></div>
 <div class="line">    free(<a class="code hl_define" href="bco_8h.html#acd5a413669eacaf6151e74a5dc101b18">bco_var</a>(scratch_buffer));</div>
 <div class="line">}</div>
-<div class="ttc" id="abco_8h_html_a030c8ca86fc9e9e345a14c25c1e35a3b"><div class="ttname"><a href="bco_8h.html#a030c8ca86fc9e9e345a14c25c1e35a3b">bco_begin</a></div><div class="ttdeci">#define bco_begin</div><div class="ttdoc">Mark the beginning of a coroutine body.</div><div class="ttdef"><b>Definition</b> bco.h:259</div></div>
-<div class="ttc" id="abco_8h_html_a06625dcae87fbf16664551b2532f1f0d"><div class="ttname"><a href="bco_8h.html#a06625dcae87fbf16664551b2532f1f0d">bco_call</a></div><div class="ttdeci">#define bco_call(NAME,...)</div><div class="ttdoc">Spawn a subcoroutine from within a coroutine and transfer control to it.</div><div class="ttdef"><b>Definition</b> bco.h:397</div></div>
-<div class="ttc" id="abco_8h_html_a2baf5f05f2b196742c0bcb92cfdb99b9"><div class="ttname"><a href="bco_8h.html#a2baf5f05f2b196742c0bcb92cfdb99b9">bco_yield</a></div><div class="ttdeci">#define bco_yield()</div><div class="ttdoc">Yield the currently running coroutine.</div><div class="ttdef"><b>Definition</b> bco.h:305</div></div>
+<div class="ttc" id="abco_8h_html_a030c8ca86fc9e9e345a14c25c1e35a3b"><div class="ttname"><a href="bco_8h.html#a030c8ca86fc9e9e345a14c25c1e35a3b">bco_begin</a></div><div class="ttdeci">#define bco_begin</div><div class="ttdoc">Mark the beginning of a coroutine body.</div><div class="ttdef"><b>Definition</b> bco.h:289</div></div>
+<div class="ttc" id="abco_8h_html_a06625dcae87fbf16664551b2532f1f0d"><div class="ttname"><a href="bco_8h.html#a06625dcae87fbf16664551b2532f1f0d">bco_call</a></div><div class="ttdeci">#define bco_call(NAME,...)</div><div class="ttdoc">Spawn a subcoroutine from within a coroutine and transfer control to it.</div><div class="ttdef"><b>Definition</b> bco.h:427</div></div>
+<div class="ttc" id="abco_8h_html_a2baf5f05f2b196742c0bcb92cfdb99b9"><div class="ttname"><a href="bco_8h.html#a2baf5f05f2b196742c0bcb92cfdb99b9">bco_yield</a></div><div class="ttdeci">#define bco_yield()</div><div class="ttdoc">Yield the currently running coroutine.</div><div class="ttdef"><b>Definition</b> bco.h:335</div></div>
 <div class="ttc" id="abco_8h_html_a423d1d00af72206b6a9d45322674066b"><div class="ttname"><a href="bco_8h.html#a423d1d00af72206b6a9d45322674066b">bco_arg</a></div><div class="ttdeci">#define bco_arg(NAME)</div><div class="ttdoc">Access an argument from a coroutine's body.</div><div class="ttdef"><b>Definition</b> bco.h:195</div></div>
 <div class="ttc" id="abco_8h_html_a5af8a28dd3de13ac803b77159b8eb1db"><div class="ttname"><a href="bco_8h.html#a5af8a28dd3de13ac803b77159b8eb1db">bco</a></div><div class="ttdeci">#define bco(NAME,...)</div><div class="ttdoc">Declare and implement a coroutine function.</div><div class="ttdef"><b>Definition</b> bco.h:117</div></div>
-<div class="ttc" id="abco_8h_html_a5eccac09e99e2c67746cd1ffc0563000"><div class="ttname"><a href="bco_8h.html#a5eccac09e99e2c67746cd1ffc0563000">bco_end</a></div><div class="ttdeci">#define bco_end</div><div class="ttdoc">Mark the end of a coroutine body.</div><div class="ttdef"><b>Definition</b> bco.h:288</div></div>
-<div class="ttc" id="abco_8h_html_a8f050128aadebc9a8a6a1313221f8341"><div class="ttname"><a href="bco_8h.html#a8f050128aadebc9a8a6a1313221f8341">bco_vars</a></div><div class="ttdeci">#define bco_vars(...)</div><div class="ttdoc">Declare coroutine variables.</div><div class="ttdef"><b>Definition</b> bco.h:225</div></div>
-<div class="ttc" id="abco_8h_html_acd5a413669eacaf6151e74a5dc101b18"><div class="ttname"><a href="bco_8h.html#acd5a413669eacaf6151e74a5dc101b18">bco_var</a></div><div class="ttdeci">#define bco_var(NAME)</div><div class="ttdoc">Access a coroutine variable.</div><div class="ttdef"><b>Definition</b> bco.h:247</div></div>
+<div class="ttc" id="abco_8h_html_a5eccac09e99e2c67746cd1ffc0563000"><div class="ttname"><a href="bco_8h.html#a5eccac09e99e2c67746cd1ffc0563000">bco_end</a></div><div class="ttdeci">#define bco_end</div><div class="ttdoc">Mark the end of a coroutine body.</div><div class="ttdef"><b>Definition</b> bco.h:318</div></div>
+<div class="ttc" id="abco_8h_html_a8f050128aadebc9a8a6a1313221f8341"><div class="ttname"><a href="bco_8h.html#a8f050128aadebc9a8a6a1313221f8341">bco_vars</a></div><div class="ttdeci">#define bco_vars(...)</div><div class="ttdoc">Declare coroutine variables.</div><div class="ttdef"><b>Definition</b> bco.h:255</div></div>
+<div class="ttc" id="abco_8h_html_acd5a413669eacaf6151e74a5dc101b18"><div class="ttname"><a href="bco_8h.html#acd5a413669eacaf6151e74a5dc101b18">bco_var</a></div><div class="ttdeci">#define bco_var(NAME)</div><div class="ttdoc">Access a coroutine variable.</div><div class="ttdef"><b>Definition</b> bco.h:277</div></div>
 </div><!-- fragment --><dl class="section see"><dt>See also</dt><dd><a class="el" href="bco_8h.html#a35ceb81228858eebab066ec696052340" title="Declare and implement a coroutine function with internal linkage.">bco_static</a> </dd></dl>
 
 </div>
@@ -368,8 +371,8 @@ Hot reload</h2>
 <div class="line">    <a class="code hl_define" href="bco_8h.html#ab5f7a234b5b71bba6fd3c0fcbeee8a95">bco_at</a>(WAIT_SUB) <a class="code hl_define" href="bco_8h.html#a06625dcae87fbf16664551b2532f1f0d">bco_call</a>(subcoro, 0);</div>
 <div class="line">    <a class="code hl_define" href="bco_8h.html#a5eccac09e99e2c67746cd1ffc0563000">bco_end</a></div>
 <div class="line">}</div>
-<div class="ttc" id="abco_8h_html_ab5f7a234b5b71bba6fd3c0fcbeee8a95"><div class="ttname"><a href="bco_8h.html#ab5f7a234b5b71bba6fd3c0fcbeee8a95">bco_at</a></div><div class="ttdeci">#define bco_at(NAME)</div><div class="ttdoc">Suspend at a named point so the coroutine survives a code reload.</div><div class="ttdef"><b>Definition</b> bco.h:365</div></div>
-<div class="ttc" id="abco_8h_html_acd40573415af9b5518039f1ec94bba27"><div class="ttname"><a href="bco_8h.html#acd40573415af9b5518039f1ec94bba27">bco_yield_points</a></div><div class="ttdeci">#define bco_yield_points(...)</div><div class="ttdoc">Declare the named yield points of a coroutine.</div><div class="ttdef"><b>Definition</b> bco.h:336</div></div>
+<div class="ttc" id="abco_8h_html_ab5f7a234b5b71bba6fd3c0fcbeee8a95"><div class="ttname"><a href="bco_8h.html#ab5f7a234b5b71bba6fd3c0fcbeee8a95">bco_at</a></div><div class="ttdeci">#define bco_at(NAME)</div><div class="ttdoc">Suspend at a named point so the coroutine survives a code reload.</div><div class="ttdef"><b>Definition</b> bco.h:395</div></div>
+<div class="ttc" id="abco_8h_html_acd40573415af9b5518039f1ec94bba27"><div class="ttname"><a href="bco_8h.html#acd40573415af9b5518039f1ec94bba27">bco_yield_points</a></div><div class="ttdeci">#define bco_yield_points(...)</div><div class="ttdoc">Declare the named yield points of a coroutine.</div><div class="ttdef"><b>Definition</b> bco.h:366</div></div>
 </div><!-- fragment --><dl class="section see"><dt>See also</dt><dd><a class="el" href="bco_8h.html#acd40573415af9b5518039f1ec94bba27" title="Declare the named yield points of a coroutine.">bco_yield_points</a> </dd></dl>
 
 </div>
@@ -658,7 +661,7 @@ Hot reload</h2>
 <div class="line">    }</div>
 <div class="line">    <a class="code hl_define" href="bco_8h.html#a5eccac09e99e2c67746cd1ffc0563000">bco_end</a></div>
 <div class="line">}</div>
-<div class="ttc" id="abco_8h_html_a6761d943e8c1594f8335525d36942f26"><div class="ttname"><a href="bco_8h.html#a6761d943e8c1594f8335525d36942f26">bco_recv</a></div><div class="ttdeci">#define bco_recv(TYPE, VAR)</div><div class="ttdoc">Wait for a value of the given type.</div><div class="ttdef"><b>Definition</b> bco.h:446</div></div>
+<div class="ttc" id="abco_8h_html_a6761d943e8c1594f8335525d36942f26"><div class="ttname"><a href="bco_8h.html#a6761d943e8c1594f8335525d36942f26">bco_recv</a></div><div class="ttdeci">#define bco_recv(TYPE, VAR)</div><div class="ttdoc">Wait for a value of the given type.</div><div class="ttdef"><b>Definition</b> bco.h:476</div></div>
 </div><!-- fragment --><dl class="section see"><dt>See also</dt><dd><a class="el" href="bco_8h.html#acddc261b5f0441ff6fb1ba9edc02bc38" title="Hand a value to a coroutine waiting for it with bco_recv.">bco_send</a> </dd></dl>
 
 </div>
@@ -683,6 +686,57 @@ Hot reload</h2>
 <p>Only valid between <a class="el" href="bco_8h.html#a030c8ca86fc9e9e345a14c25c1e35a3b">bco_begin</a> and <a class="el" href="bco_8h.html#a5eccac09e99e2c67746cd1ffc0563000">bco_end</a>.</p>
 <p>This is the only correct way to leave a coroutine body early.</p>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="bco_8h.html#a5eccac09e99e2c67746cd1ffc0563000" title="Mark the end of a coroutine body.">bco_end</a> </dd></dl>
+
+</div>
+</div>
+<a id="a820231e0db47a56c3db3fb6db897f2be" name="a820231e0db47a56c3db3fb6db897f2be"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a820231e0db47a56c3db3fb6db897f2be">&#9670;&#160;</a></span>bco_self</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define bco_self</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The handle of the running coroutine, as it was given to <a class="el" href="bco_8h.html#a95a0b45b11c13b3216be867560da443b">bco_spawn</a>. </p>
+<p>From within a subcoroutine this is still the root of the <a class="el" href="bco_8h.html#a06625dcae87fbf16664551b2532f1f0d">bco_call</a> chain: the handle the host holds and the only one valid for <a class="el" href="bco_8h.html#acddc261b5f0441ff6fb1ba9edc02bc38">bco_send</a>, <a class="el" href="bco_8h.html#ab4aaf11162454e43a2c420ac98b04b5b">bco_resume</a> and co.</p>
+<p>The typical use is to register for an event right before waiting for it: push the handle into a host list, then <a class="el" href="bco_8h.html#a6761d943e8c1594f8335525d36942f26">bco_recv</a>. Since the coroutine runs on the same thread as the host, there is no window where a coroutine is registered but not waiting. The host then broadcasts with <a class="el" href="bco_8h.html#acddc261b5f0441ff6fb1ba9edc02bc38">bco_send</a> to every entry and clears the list. An entry left behind by a coroutine that was terminated in the meantime is harmless: the send is refused.</p>
+<p>Example:</p>
+<div class="fragment"><div class="line"><span class="keyword">typedef</span> <span class="keyword">struct </span>{ <span class="keywordtype">int</span> code; } key_press_t;</div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// A host list of coroutines waiting for the next key press</span></div>
+<div class="line"><span class="keyword">static</span> <a class="code hl_typedef" href="bco_8h.html#aa3fa918011dfc80578b6328037c5596f">bco_t</a>* key_waiters[8];</div>
+<div class="line"><span class="keyword">static</span> <span class="keywordtype">int</span> num_key_waiters;</div>
+<div class="line"> </div>
+<div class="line"><a class="code hl_define" href="bco_8h.html#a5af8a28dd3de13ac803b77159b8eb1db">bco</a>(wait_for_key, <span class="keywordtype">int</span> unused) {</div>
+<div class="line">    <a class="code hl_define" href="bco_8h.html#a8f050128aadebc9a8a6a1313221f8341">bco_vars</a>(key_press_t key;)</div>
+<div class="line">    <a class="code hl_define" href="bco_8h.html#a030c8ca86fc9e9e345a14c25c1e35a3b">bco_begin</a></div>
+<div class="line">    <span class="comment">// Register for one event right before waiting for it.</span></div>
+<div class="line">    <span class="comment">// bco_self is the handle the host holds, even from within a subcoroutine.</span></div>
+<div class="line">    key_waiters[num_key_waiters++] = <a class="code hl_define" href="bco_8h.html#a820231e0db47a56c3db3fb6db897f2be">bco_self</a>;</div>
+<div class="line">    <a class="code hl_define" href="bco_8h.html#a6761d943e8c1594f8335525d36942f26">bco_recv</a>(key_press_t, key);</div>
+<div class="line">    printf(<span class="stringliteral">&quot;key %d\n&quot;</span>, <a class="code hl_define" href="bco_8h.html#acd5a413669eacaf6151e74a5dc101b18">bco_var</a>(key).code);</div>
+<div class="line">    <a class="code hl_define" href="bco_8h.html#a5eccac09e99e2c67746cd1ffc0563000">bco_end</a></div>
+<div class="line">}</div>
+<div class="ttc" id="abco_8h_html_a820231e0db47a56c3db3fb6db897f2be"><div class="ttname"><a href="bco_8h.html#a820231e0db47a56c3db3fb6db897f2be">bco_self</a></div><div class="ttdeci">#define bco_self</div><div class="ttdoc">The handle of the running coroutine, as it was given to bco_spawn.</div><div class="ttdef"><b>Definition</b> bco.h:237</div></div>
+<div class="ttc" id="abco_8h_html_aa3fa918011dfc80578b6328037c5596f"><div class="ttname"><a href="bco_8h.html#aa3fa918011dfc80578b6328037c5596f">bco_t</a></div><div class="ttdeci">struct bco_s bco_t</div><div class="ttdoc">The opaque type for a coroutine's storage.</div><div class="ttdef"><b>Definition</b> bco.h:554</div></div>
+</div><!-- fragment --><p>The host side:</p>
+<div class="fragment"><div class="line">    <a class="code hl_define" href="bco_8h.html#a95a0b45b11c13b3216be867560da443b">bco_spawn</a>(coro, wait_for_key, 0);</div>
+<div class="line">    <a class="code hl_function" href="bco_8h.html#ab4aaf11162454e43a2c420ac98b04b5b">bco_resume</a>(coro);  <span class="comment">// Registers itself and parks at the receive</span></div>
+<div class="line">    <span class="comment">// A key press: broadcast to everyone waiting for one, then clear the list.</span></div>
+<div class="line">    <span class="comment">// An entry whose coroutine has since been terminated just refuses the send.</span></div>
+<div class="line">    <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; num_key_waiters; ++i) {</div>
+<div class="line">        <a class="code hl_define" href="bco_8h.html#acddc261b5f0441ff6fb1ba9edc02bc38">bco_send</a>(key_waiters[i], key_press_t, { .code = 32 });</div>
+<div class="line">    }</div>
+<div class="line">    num_key_waiters = 0;</div>
+<div class="line">    <a class="code hl_function" href="bco_8h.html#ab4aaf11162454e43a2c420ac98b04b5b">bco_resume</a>(coro);</div>
+<div class="ttc" id="abco_8h_html_a95a0b45b11c13b3216be867560da443b"><div class="ttname"><a href="bco_8h.html#a95a0b45b11c13b3216be867560da443b">bco_spawn</a></div><div class="ttdeci">#define bco_spawn(CORO, NAME,...)</div><div class="ttdoc">Spawn a coroutine.</div><div class="ttdef"><b>Definition</b> bco.h:417</div></div>
+<div class="ttc" id="abco_8h_html_ab4aaf11162454e43a2c420ac98b04b5b"><div class="ttname"><a href="bco_8h.html#ab4aaf11162454e43a2c420ac98b04b5b">bco_resume</a></div><div class="ttdeci">BCO_API bco_status_t bco_resume(bco_t *coro)</div><div class="ttdoc">Resume a coroutine.</div></div>
+<div class="ttc" id="abco_8h_html_acddc261b5f0441ff6fb1ba9edc02bc38"><div class="ttname"><a href="bco_8h.html#acddc261b5f0441ff6fb1ba9edc02bc38">bco_send</a></div><div class="ttdeci">#define bco_send(CORO, TYPE,...)</div><div class="ttdoc">Hand a value to a coroutine waiting for it with bco_recv.</div><div class="ttdef"><b>Definition</b> bco.h:519</div></div>
+</div><!-- fragment --><dl class="section see"><dt>See also</dt><dd><a class="el" href="bco_8h.html#a6761d943e8c1594f8335525d36942f26" title="Wait for a value of the given type.">bco_recv</a> </dd></dl>
 
 </div>
 </div>
@@ -746,9 +800,6 @@ Hot reload</h2>
 <div class="line">    <a class="code hl_function" href="bco_8h.html#ab4aaf11162454e43a2c420ac98b04b5b">bco_resume</a>(coro);</div>
 <div class="line">    <a class="code hl_function" href="bco_8h.html#a56f8de4423ef12ca3942e175bbce1211">bco_terminate</a>(coro);</div>
 <div class="ttc" id="abco_8h_html_a56f8de4423ef12ca3942e175bbce1211"><div class="ttname"><a href="bco_8h.html#a56f8de4423ef12ca3942e175bbce1211">bco_terminate</a></div><div class="ttdeci">BCO_API void bco_terminate(bco_t *coro)</div><div class="ttdoc">Force terminate a coroutine.</div></div>
-<div class="ttc" id="abco_8h_html_a95a0b45b11c13b3216be867560da443b"><div class="ttname"><a href="bco_8h.html#a95a0b45b11c13b3216be867560da443b">bco_spawn</a></div><div class="ttdeci">#define bco_spawn(CORO, NAME,...)</div><div class="ttdoc">Spawn a coroutine.</div><div class="ttdef"><b>Definition</b> bco.h:387</div></div>
-<div class="ttc" id="abco_8h_html_ab4aaf11162454e43a2c420ac98b04b5b"><div class="ttname"><a href="bco_8h.html#ab4aaf11162454e43a2c420ac98b04b5b">bco_resume</a></div><div class="ttdeci">BCO_API bco_status_t bco_resume(bco_t *coro)</div><div class="ttdoc">Resume a coroutine.</div></div>
-<div class="ttc" id="abco_8h_html_acddc261b5f0441ff6fb1ba9edc02bc38"><div class="ttname"><a href="bco_8h.html#acddc261b5f0441ff6fb1ba9edc02bc38">bco_send</a></div><div class="ttdeci">#define bco_send(CORO, TYPE,...)</div><div class="ttdoc">Hand a value to a coroutine waiting for it with bco_recv.</div><div class="ttdef"><b>Definition</b> bco.h:489</div></div>
 </div><!-- fragment --><dl class="section see"><dt>See also</dt><dd><a class="el" href="bco_8h.html#a6761d943e8c1594f8335525d36942f26" title="Wait for a value of the given type.">bco_recv</a> </dd></dl>
 
 </div>
@@ -803,8 +854,7 @@ Hot reload</h2>
 <div class="line">    _Alignas(<a class="code hl_struct" href="structbco__align__t.html">bco_align_t</a>) <span class="keywordtype">char</span> bco_buf[1024];</div>
 <div class="line">    <a class="code hl_typedef" href="bco_8h.html#aa3fa918011dfc80578b6328037c5596f">bco_t</a>* coro = (<span class="keywordtype">void</span>*)bco_buf;</div>
 <div class="line">    <a class="code hl_define" href="bco_8h.html#a95a0b45b11c13b3216be867560da443b">bco_spawn</a>(coro, test, 2, 3);</div>
-<div class="ttc" id="abco_8h_html_aa3fa918011dfc80578b6328037c5596f"><div class="ttname"><a href="bco_8h.html#aa3fa918011dfc80578b6328037c5596f">bco_t</a></div><div class="ttdeci">struct bco_s bco_t</div><div class="ttdoc">The opaque type for a coroutine's storage.</div><div class="ttdef"><b>Definition</b> bco.h:524</div></div>
-<div class="ttc" id="astructbco__align__t_html"><div class="ttname"><a href="structbco__align__t.html">bco_align_t</a></div><div class="ttdoc">A type that has the same alignment as bco_t.</div><div class="ttdef"><b>Definition</b> bco.h:517</div></div>
+<div class="ttc" id="astructbco__align__t_html"><div class="ttname"><a href="structbco__align__t.html">bco_align_t</a></div><div class="ttdoc">A type that has the same alignment as bco_t.</div><div class="ttdef"><b>Definition</b> bco.h:547</div></div>
 </div><!-- fragment --> 
 </div>
 </div>
@@ -1250,9 +1300,9 @@ Hot reload</h2>
 <div class="ttc" id="abco_8h_html_a3472bc434c0d49a0378aa2d47243a334"><div class="ttname"><a href="bco_8h.html#a3472bc434c0d49a0378aa2d47243a334">bco_reload_end</a></div><div class="ttdeci">BCO_API bool bco_reload_end(bco_t *coro)</div><div class="ttdoc">Finish relocating a coroutine after a code reload.</div></div>
 <div class="ttc" id="abco_8h_html_a9ec291f3bfb470f5d67e32fdcd6c2abd"><div class="ttname"><a href="bco_8h.html#a9ec291f3bfb470f5d67e32fdcd6c2abd">bco_reload_begin</a></div><div class="ttdeci">BCO_API bool bco_reload_begin(bco_t *coro)</div><div class="ttdoc">Prepare a coroutine for a code reload.</div></div>
 <div class="ttc" id="abco_8h_html_ab88d4e3fe5df80fd1d7da7253aa45b15"><div class="ttname"><a href="bco_8h.html#ab88d4e3fe5df80fd1d7da7253aa45b15">bco_reloadable</a></div><div class="ttdeci">BCO_API bool bco_reloadable(bco_t *coro, bco_loc_t *blocker)</div><div class="ttdoc">Check whether a coroutine can survive a code reload.</div></div>
-<div class="ttc" id="astructbco__loc__t_html"><div class="ttname"><a href="structbco__loc__t.html">bco_loc_t</a></div><div class="ttdoc">A source location.</div><div class="ttdef"><b>Definition</b> bco.h:629</div></div>
-<div class="ttc" id="astructbco__loc__t_html_ac4ee3d81a7c57dc1d37193c14a6152d3"><div class="ttname"><a href="structbco__loc__t.html#ac4ee3d81a7c57dc1d37193c14a6152d3">bco_loc_t::line</a></div><div class="ttdeci">int line</div><div class="ttdoc">The line number, as given by __LINE__</div><div class="ttdef"><b>Definition</b> bco.h:633</div></div>
-<div class="ttc" id="astructbco__loc__t_html_ac8c5a86cbb65e9fcbaa98c668a031c0f"><div class="ttname"><a href="structbco__loc__t.html#ac8c5a86cbb65e9fcbaa98c668a031c0f">bco_loc_t::file</a></div><div class="ttdeci">const char * file</div><div class="ttdoc">The file name, as given by __FILE__</div><div class="ttdef"><b>Definition</b> bco.h:631</div></div>
+<div class="ttc" id="astructbco__loc__t_html"><div class="ttname"><a href="structbco__loc__t.html">bco_loc_t</a></div><div class="ttdoc">A source location.</div><div class="ttdef"><b>Definition</b> bco.h:659</div></div>
+<div class="ttc" id="astructbco__loc__t_html_ac4ee3d81a7c57dc1d37193c14a6152d3"><div class="ttname"><a href="structbco__loc__t.html#ac4ee3d81a7c57dc1d37193c14a6152d3">bco_loc_t::line</a></div><div class="ttdeci">int line</div><div class="ttdoc">The line number, as given by __LINE__</div><div class="ttdef"><b>Definition</b> bco.h:663</div></div>
+<div class="ttc" id="astructbco__loc__t_html_ac8c5a86cbb65e9fcbaa98c668a031c0f"><div class="ttname"><a href="structbco__loc__t.html#ac8c5a86cbb65e9fcbaa98c668a031c0f">bco_loc_t::file</a></div><div class="ttdeci">const char * file</div><div class="ttdoc">The file name, as given by __FILE__</div><div class="ttdef"><b>Definition</b> bco.h:661</div></div>
 </div><!-- fragment --><dl class="section see"><dt>See also</dt><dd><a class="el" href="bco_8h.html#ab5f7a234b5b71bba6fd3c0fcbeee8a95" title="Suspend at a named point so the coroutine survives a code reload.">bco_at</a> </dd>
 <dd>
 <a class="el" href="bco_8h.html#a9ec291f3bfb470f5d67e32fdcd6c2abd" title="Prepare a coroutine for a code reload.">bco_reload_begin</a> </dd></dl>
