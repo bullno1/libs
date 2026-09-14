@@ -331,7 +331,7 @@ static struct {
 #	define btest_begin_try() (btest__ctx.throwing = false, true)
 #	define btest_end_try() (btest__ctx.throwing = false, false)
 #else
-#	define btest_begin_try() (setjmp(btest__ctx.return_buf) == 0, true)
+#	define btest_begin_try() (setjmp(btest__ctx.return_buf) == 0)
 #	define btest_end_try() false
 #endif
 
