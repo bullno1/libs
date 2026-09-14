@@ -120,6 +120,9 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a9864d9f7aa9b4111ecde60b19254b308" id="r_a9864d9f7aa9b4111ecde60b19254b308"><td class="memItemLeft" align="right" valign="top"><a class="el" href="bent_8h.html#a4b8437eaa533ce84ee9c09707c3f6016">bent_serialize_fn_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structbent__sys__def__t.html#a9864d9f7aa9b4111ecde60b19254b308">serialize</a></td></tr>
 <tr class="memdesc:a9864d9f7aa9b4111ecde60b19254b308"><td class="mdescLeft">&#160;</td><td class="mdescRight">Optional serialization callback for the system's data.  <br /></td></tr>
 <tr class="separator:a9864d9f7aa9b4111ecde60b19254b308"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae6835226d1eebedcd76bc0ae551fa9e9" id="r_ae6835226d1eebedcd76bc0ae551fa9e9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structbent__msg__handler__t.html">bent_msg_handler_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structbent__sys__def__t.html#ae6835226d1eebedcd76bc0ae551fa9e9">handlers</a></td></tr>
+<tr class="memdesc:ae6835226d1eebedcd76bc0ae551fa9e9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Optional null-terminated list of message handlers.  <br /></td></tr>
+<tr class="separator:ae6835226d1eebedcd76bc0ae551fa9e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>System definition. </p>
@@ -211,6 +214,26 @@ Public Attributes</h2></td></tr>
 
 <p>System behaviour flags. </p>
 <p>A bitwise OR of values from <a class="el" href="bent_8h.html#ae97b5bf4222c2b44b069ca8e760dff2d">bent_sys_flags_t</a>. </p>
+
+</div>
+</div>
+<a id="ae6835226d1eebedcd76bc0ae551fa9e9" name="ae6835226d1eebedcd76bc0ae551fa9e9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae6835226d1eebedcd76bc0ae551fa9e9">&#9670;&#160;</a></span>handlers</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structbent__msg__handler__t.html">bent_msg_handler_t</a>* bent_sys_def_t::handlers</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Optional null-terminated list of message handlers. </p>
+<p>A handler is called for a message sent to an entity this system <a class="el" href="bent_8h.html#ab3ddf58289789dd8b1127a0a7f188d0b">matches</a>. The same rules as <a class="el" href="structbent__sys__def__t.html#aa5c77de73693ff51502fab17f389fd8d">bent_sys_def_t::add</a> apply to what it may do.</p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="bent_8h.html#ace6229b585dd520b4a0dc86f68cdd2f1" title="Helper for a null-terminated message handler list.">BENT_MSG_HANDLERS</a> </dd>
+<dd>
+<a class="el" href="bent_8h.html#a50fa5fd16ac57909d2002e9d044234da" title="Send a message to an entity.">bent_send</a> </dd></dl>
 
 </div>
 </div>

@@ -16,6 +16,8 @@ var searchData=
   ['mem_5flayout_5ft_13',['mem_layout_t',['../mem__layout_8h.html#af0b2d20edd47223d01abb113ec2c8a35',1,'mem_layout.h']]],
   ['memctx_14',['memctx',['../structbhash__config__s.html#acba711c5e549436a3f74e3234c6530c9',1,'bhash_config_s']]],
   ['message_15',['message',['../structbarg__result__t.html#a4806f7dfda4984f85722608d2814d02c',1,'barg_result_t']]],
-  ['messaging_16',['Messaging',['../bco_8h.html#autotoc_md3',1,'']]],
-  ['motivation_17',['Motivation',['../bserial_8h.html#autotoc_md5',1,'']]]
+  ['messages_16',['Messages',['../bent_8h.html#autotoc_md21',1,'']]],
+  ['messaging_17',['Messaging',['../bco_8h.html#autotoc_md3',1,'']]],
+  ['motivation_18',['Motivation',['../bserial_8h.html#autotoc_md5',1,'']]],
+  ['msg_19',['msg',['../structbent__msg__handler__t.html#a449d4261ffea6eaa619ac336f065280b',1,'bent_msg_handler_t']]]
 ];
