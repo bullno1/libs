@@ -186,6 +186,12 @@
 #define BENT_DEFINE_POD_COMP(NAME, TYPE) \
 	BENT_DEFINE_COMP(NAME) = { .size = sizeof(TYPE) };
 
+#define BENT_DEFINE_RAW_COMP(NAME, TYPE) \
+	BENT_DEFINE_COMP(NAME) = { .size = sizeof(TYPE), .flags = BENT_COMP_RAW };
+
+#define BENT_DEFINE_TRANSIENT_COMP(NAME, TYPE) \
+	BENT_DEFINE_COMP(NAME) = { .size = sizeof(TYPE), .flags = BENT_COMP_TRANSIENT };
+
 /**
  * Define a component type with zero size.
  */
