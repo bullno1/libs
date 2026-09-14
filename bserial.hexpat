@@ -2,6 +2,7 @@
 
 import type.leb128;
 import std.io;
+import std.core;
 
 using Type;
 using SymbolDef;
@@ -10,22 +11,91 @@ namespace impl {
   std::mem::Section symtab = std::mem::create_section("symtab");
   u32 num_symbols = 0;
 
-  // Record schemas are interned like symbols. Only the width is needed to
-  // parse a reference.
+  // Record schemas are interned like symbols.
+  // schematab holds [width, first key index] per schema and schemakeys holds
+  // the address of the SymbolDef of every key so that a reference can be
+  // displayed with its key names.
   std::mem::Section schematab = std::mem::create_section("schematab");
+  std::mem::Section schemakeys = std::mem::create_section("schemakeys");
   u32 num_schemas = 0;
+  u32 num_schema_keys = 0;
 
-  fn register_Schema(auto width) {
-    u32 section_addr = num_schemas * sizeof(u32);
-    u32 width_copy @ section_addr in schematab;
+  fn symbol_def_addr(ref auto sym) {
+    if (sym.type == Type::SYM_DEF) {
+      return addressof(sym.value);
+    } else {
+      u32 section_addr = sym.value.id * sizeof(u32);
+      u32 addr @ section_addr in symtab;
+      return addr;
+    }
+  };
+
+  // Returns the id of the new schema
+  fn register_Schema(ref auto keys, auto width) {
+    u32 id = num_schemas;
+    u32 width_copy @ (id * 2 * sizeof(u32)) in schematab;
     width_copy = width;
+    u32 first_key_copy @ ((id * 2 + 1) * sizeof(u32)) in schematab;
+    first_key_copy = num_schema_keys;
+
+    for (u32 i = 0, i < width, i += 1) {
+      u32 addr_copy @ (num_schema_keys * sizeof(u32)) in schemakeys;
+      addr_copy = impl::symbol_def_addr(keys[i]);
+      num_schema_keys += 1;
+    }
+
     num_schemas += 1;
+    return id;
   };
 
   fn schema_width(auto id) {
-    u32 section_addr = id * sizeof(u32);
-    u32 width @ section_addr in schematab;
+    u32 width @ (id * 2 * sizeof(u32)) in schematab;
     return width;
+  };
+
+  fn schema_key_addr(auto id, auto index) {
+    u32 first_key @ ((id * 2 + 1) * sizeof(u32)) in schematab;
+    u32 addr @ ((first_key + index) * sizeof(u32)) in schemakeys;
+    return addr;
+  };
+
+  fn schema_key_name(auto id, auto index) {
+    SymbolDef def @ impl::schema_key_addr(id, index);
+    return def.content;
+  };
+
+  // "{x, y}"
+  fn format_Schema(auto id) {
+    str keys = "";
+    u32 width = impl::schema_width(id);
+    for (u32 i = 0, i < width, i += 1) {
+      if (i > 0) {
+        keys = std::format("{}, ", keys);
+      }
+      keys = std::format("{}{}", keys, impl::schema_key_name(id, i));
+    }
+    return std::format("{{{}}}", keys);
+  };
+
+  // "{x: F32(1), y: F32(2)}"
+  fn format_Fields(auto id, ref auto fields) {
+    str body = "";
+    u32 width = impl::schema_width(id);
+    for (u32 i = 0, i < width, i += 1) {
+      if (i > 0) {
+        body = std::format("{}, ", body);
+      }
+      body = std::format("{}{}: {}", body, impl::schema_key_name(id, i), impl::format_Element(fields[i].value));
+    }
+    return std::format("{{{}}}", body);
+  };
+
+  fn format_Row(ref auto row) {
+    return impl::format_Fields(row.schema_id, row.values);
+  };
+
+  fn format_Field(ref auto field) {
+    return impl::format_Element(field.value);
   };
 
   fn format_SymbolDef(ref auto sym) {
@@ -88,31 +158,48 @@ namespace impl {
     return std::format("{} ({:#x})", res, res);
   };
   
+  // Nested records are formatted recursively. Each branch returns on its own
+  // instead of chaining else-if so that the nesting stays within the
+  // evaluation depth limit.
   fn format_Element(ref auto element) {
     auto type = element.type;
     if (type == Type::UINT) {
       return std::format("UINT({})", element.value);
-    } else if (type == Type::SINT) {
-      return std::format("SINT({})", element.value);
-    } else if (type == Type::F32) {
-      return std::format("F32({:G})", element.value);
-    } else if (type == Type::F64) {
-      return std::format("F64({:G})", element.value);
-    } else if (type == Type::BLOB) {
-      return std::format("BLOB({})", element.value.len);
-    } else if (type == Type::SYM_DEF) {
-      return std::format("SYMBOL({})", impl::format_SymbolDef(element.value));
-    } else if (type == Type::SYM_REF) {
-      return std::format("SYMBOL({})", impl::format_SymbolRef(element.value));
-    } else if (type == Type::RECORD_DEF) {
-      return std::format("RECORD({})", element.value.width);
-    } else if (type == Type::RECORD_REF) {
-      return std::format("RECORD(#{})", element.value.id);
-    } else if (type == Type::ARRAY) {
-      return std::format("ARRAY({})", element.value.len);
-    } else if (type == Type::TABLE) {
-      return std::format("TABLE({})", element.value.len);
     }
+    if (type == Type::SINT) {
+      return std::format("SINT({})", element.value);
+    }
+    if (type == Type::F32) {
+      return std::format("F32({:G})", element.value);
+    }
+    if (type == Type::F64) {
+      return std::format("F64({:G})", element.value);
+    }
+    if (type == Type::BLOB) {
+      return std::format("BLOB({})", element.value.len);
+    }
+    if (type == Type::SYM_DEF) {
+      return std::format("SYMBOL({})", impl::format_SymbolDef(element.value));
+    }
+    if (type == Type::SYM_REF) {
+      return std::format("SYMBOL({})", impl::format_SymbolRef(element.value));
+    }
+    if (type == Type::RECORD_DEF) {
+      return std::format("RECORD{}", impl::format_Fields(element.value.schema_id, element.value.values));
+    }
+    if (type == Type::RECORD_REF) {
+      return std::format("RECORD{}", impl::format_Fields(element.value.id, element.value.values));
+    }
+    if (type == Type::ARRAY) {
+      return std::format("ARRAY({})", element.value.len);
+    }
+    if (type == Type::TABLE) {
+      if (element.value.len > 0) {
+        return std::format("TABLE({}) {}", element.value.len, impl::format_Schema(element.value.schema_id));
+      }
+      return "TABLE(0)";
+    }
+    return "?";
   };
 }
 
@@ -173,21 +260,30 @@ struct Array {
   Element elements[len];
 };
 
+// A value named after its key.
+// The key is shown where its symbol was defined so that interned records
+// still display their keys.
+struct Field<auto SchemaId> {
+  SymbolDef key @ impl::schema_key_addr(SchemaId, std::core::array_index());
+  Element value;
+} [[name(key.content), format("impl::format_Field")]];
+
 struct RecordDef {
   UInt width;
   Symbol keys[width];
-  impl::register_Schema(width);
-  Element values[width];
+  u32 schema_id = impl::register_Schema(keys, width);
+  Field<schema_id> values[width];
 };
 
 struct RecordRef {
   UInt id;
-  Element values[impl::schema_width(id)];
+  Field<id> values[impl::schema_width(id)];
 };
 
-struct Row<auto Width> {
-  Element values[Width];
-};
+struct Row<auto SchemaId> {
+  u32 schema_id = SchemaId;
+  Field<SchemaId> values[impl::schema_width(SchemaId)];
+} [[format("impl::format_Row")]];
 
 // The schema is stored once with the first row.
 // The remaining rows only contain values.
@@ -197,13 +293,12 @@ struct Table {
     Type schema_type;
     if (schema_type == Type::RECORD_DEF) {
       UInt width;
-      Symbol keys[width];
-      impl::register_Schema(width);
-      Row<width> rows[len];
+      Symbol header[width];
+      u32 schema_id = impl::register_Schema(header, width);
     } else if (schema_type == Type::RECORD_REF) {
-      UInt id;
-      Row<impl::schema_width(id)> rows[len];
+      UInt schema_id;
     }
+    Row<schema_id> rows[len];
   }
 };
 
