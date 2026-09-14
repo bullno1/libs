@@ -1,3 +1,6 @@
+// This sample is a single file so it also implements the dual use
+// declarations (BENT_MSG, BENT_POD_COMP...), see BENT_POD_COMP
+#define BENT_DEFINE_COMPONENTS
 #include "../bent.h"
 #include <assert.h>
 #include <stdio.h>
@@ -101,6 +104,32 @@ BENT_DEFINE_SYS(health_bar) = {
 };
 //!                                                                             [BENT_DEFINE_SYS]
 
+// Systems can talk to each other through messages
+//!                                                                             [BENT_MSG]
+// A message is a plain struct.
+// This defines `struct damage_msg`, the typedef `damage_msg_t` and the
+// registration `damage_msg` whose address identifies the message type.
+BENT_MSG(damage_msg) {
+	bent_t source;
+	int amount;
+};
+
+// A system receives a message by listing a handler for it.
+// The handler is only called for entities the system matches.
+static void
+health_on_damage(void* userdata, bent_world_t* world, bent_t entity, const void* msg) {
+	const damage_msg_t* damage = msg;  // The payload
+	bent_get_health(world, entity)->hp -= damage->amount;
+}
+
+BENT_DEFINE_SYS(damage_taker) = {
+	.require = BENT_COMP_LIST(&health),
+	.handlers = BENT_MSG_HANDLERS(
+		{ &damage_msg, health_on_damage }
+	),
+};
+//!                                                                             [BENT_MSG]
+
 // See it in action
 int
 main(int argc, const char* arg[]) {
@@ -143,6 +172,20 @@ main(int argc, const char* arg[]) {
 	// Update the world in phases
 	bent_run(world, PHASE_UPDATE);
 	bent_run(world, PHASE_RENDER);
+
+	// Send a message to an entity.
+	// Every system that handles it and matches the entity receives it.
+	// The sender does not need to know which systems those are.
+	//!                                                                         [bent_send]
+	bent_send(world, ent, damage_msg, { .source = ent, .amount = 10 });
+	assert(bent_get_health(world, ent)->hp == 989);
+
+	// A message can also be built first, e.g: to send to both sides of a pair
+	damage_msg_t splash = bent_msg(damage_msg){ .amount = 5 };
+	bent_send(world, ent, damage_msg, splash);
+	bent_send(world, ent, damage_msg, splash);
+	assert(bent_get_health(world, ent)->hp == 979);
+	//!                                                                         [bent_send]
 
 	// Entities can also be visited without a system, through a query
 	//!                                                                         [BENT_FOREACH_MATCH]
