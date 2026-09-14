@@ -1,11 +1,9 @@
 var searchData=
 [
-  ['read_0',['read',['../structbserial__in__s.html#a89f203a4572c9d0ffa30aac6abf7ed22',1,'bserial_in_s::read'],['../structbsv__in__s.html#a699f4885356b909cd0032a2af85dbdab',1,'bsv_in_s::read']]],
-  ['record_1',['Record',['../bserial_8h.html#autotoc_md9',1,'']]],
-  ['reload_2',['Hot reload',['../bco_8h.html#autotoc_md4',1,'']]],
-  ['remove_3',['remove',['../structbent__sys__def__t.html#a746509dc90d5b7d576bebb99a1a47162',1,'bent_sys_def_t']]],
-  ['repeatable_4',['repeatable',['../structbarg__opt__t.html#ae49c222cc27823a14a7033ff4902cf3d',1,'barg_opt_t']]],
-  ['require_5',['require',['../structbent__sys__def__t.html#ac7cdf1c432817c50caf5f16af20bcbc0',1,'bent_sys_def_t']]],
-  ['root_6',['root',['../structbhamt__sample__t.html#a9b0baf9cc474117b7b883d416bca8a4f',1,'bhamt_sample_t']]],
-  ['run_7',['run',['../structbtest__case__t.html#a39031630b32c8d7fb6dab402ccfa3206',1,'btest_case_t']]]
+  ['parse_0',['parse',['../structbarg__opt__parser__t.html#ad2a7523de33b99d52c542566d07ebbcb',1,'barg_opt_parser_t']]],
+  ['parser_1',['parser',['../structbarg__opt__t.html#a33e13b76e77e4373dac96120e453f916',1,'barg_opt_t']]],
+  ['pc_2',['pc',['../structbcrash__info__t.html#a78a798ded6b72aab5782ab499e39af3e',1,'bcrash_info_t']]],
+  ['pool_3',['pool',['../structbarena__s.html#aa0d7a768ed4d5503bb62150d673a0011',1,'barena_s']]],
+  ['post_5finit_4',['post_init',['../structbent__sys__def__t.html#a4f6b033d888975357d549dd6667d8652',1,'bent_sys_def_t']]],
+  ['put_5fonly_5',['put_only',['../structbhash__config__s.html#aab796bb9cb8f6f076c2f6fb9d57e336a',1,'bhash_config_s']]]
 ];

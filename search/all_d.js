@@ -1,9 +1,8 @@
 var searchData=
 [
-  ['parse_0',['parse',['../structbarg__opt__parser__t.html#ad2a7523de33b99d52c542566d07ebbcb',1,'barg_opt_parser_t']]],
-  ['parser_1',['parser',['../structbarg__opt__t.html#a33e13b76e77e4373dac96120e453f916',1,'barg_opt_t']]],
-  ['pc_2',['pc',['../structbcrash__info__t.html#a78a798ded6b72aab5782ab499e39af3e',1,'bcrash_info_t']]],
-  ['pool_3',['pool',['../structbarena__s.html#aa0d7a768ed4d5503bb62150d673a0011',1,'barena_s']]],
-  ['post_5finit_4',['post_init',['../structbent__sys__def__t.html#a4f6b033d888975357d549dd6667d8652',1,'bent_sys_def_t']]],
-  ['put_5fonly_5',['put_only',['../structbhash__config__s.html#aab796bb9cb8f6f076c2f6fb9d57e336a',1,'bhash_config_s']]]
+  ['offset_0',['offset',['../structbscn__pos__t.html#a8430813e0072998b2ee0b507abcfafa7',1,'bscn_pos_t']]],
+  ['on_20allocator_1',['On allocator',['../index.html#autotoc_md1',1,'']]],
+  ['opts_2',['opts',['../structbarg__t.html#aa1158a4e0b810a521e1c05fb3697e8c8',1,'barg_t']]],
+  ['os_5fpage_5fsize_3',['os_page_size',['../structbarena__pool__s.html#a40496e6a0c2184576189e3ecc4bb6b6f',1,'barena_pool_s']]],
+  ['out_4',['out',['../structbsv__ctx__s.html#a1e1bee113c0c92fc084db2e792de3150',1,'bsv_ctx_s']]]
 ];

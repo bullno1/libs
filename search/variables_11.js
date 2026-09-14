@@ -1,7 +1,6 @@
 var searchData=
 [
-  ['update_0',['update',['../structbent__sys__def__t.html#acaba5a2f6982bb3b9405d7b5d1dc8dd4',1,'bent_sys_def_t']]],
-  ['update_5fmask_1',['update_mask',['../structbent__sys__def__t.html#a9c28a9adfb7d2b205fc9ae5e7f017ba9',1,'bent_sys_def_t']]],
-  ['usage_2',['usage',['../structbarg__t.html#a45aa390880713b26f7de34bf1d48de82',1,'barg_t']]],
-  ['userdata_3',['userdata',['../structbarg__opt__parser__t.html#aaef9971585950cfd406b5c164835db00',1,'barg_opt_parser_t']]]
+  ['tag_0',['tag',['../structblog__android__logger__options__t.html#a513e101be47e617370a5a0fbea2b3a84',1,'blog_android_logger_options_t']]],
+  ['tombstone_5fpercent_1',['tombstone_percent',['../structbhash__config__s.html#a13c890115c6fdef37f5f758bfbea0c82',1,'bhash_config_s']]],
+  ['type_2',['type',['../structbsv__explain__s.html#a1fa75d7592aa83bceff2bf43d3e411d5',1,'bsv_explain_s']]]
 ];

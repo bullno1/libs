@@ -1,20 +1,9 @@
 var searchData=
 [
-  ['map_0',['Associative map',['../bserial_8h.html#autotoc_md17',1,'']]],
-  ['max_5fdepth_1',['max_depth',['../structbserial__ctx__config__s.html#a0bdafbcc10fe2efe9203367f2809e296',1,'bserial_ctx_config_s']]],
-  ['max_5fnum_5felements_2',['max_num_elements',['../structbarg__array__opts__t.html#a99a7aac6e912beec05e8fee63b0eaf42',1,'barg_array_opts_t']]],
-  ['max_5fnum_5fsymbols_3',['max_num_symbols',['../structbserial__ctx__config__s.html#a509414de6fe3ff31f286111e1cd5f0c7',1,'bserial_ctx_config_s']]],
-  ['max_5frecord_5ffields_4',['max_record_fields',['../structbserial__ctx__config__s.html#aa29473ee73a48871058c9fc2ba14938e',1,'bserial_ctx_config_s']]],
-  ['max_5fsymbol_5flen_5',['max_symbol_len',['../structbserial__ctx__config__s.html#ae37023ca788c1eec8646a0bfc4d7efca',1,'bserial_ctx_config_s']]],
-  ['mem_6',['mem',['../structbserial__mem__out__s.html#ac0780627d1b426df74314d41c4a6e2b5',1,'bserial_mem_out_s']]],
-  ['mem_5flayout_2eh_7',['mem_layout.h',['../mem__layout_8h.html',1,'']]],
-  ['mem_5flayout_5falign_5fptr_8',['mem_layout_align_ptr',['../mem__layout_8h.html#aa8b13556a2a9ba90658ab1a638a41993',1,'mem_layout.h']]],
-  ['mem_5flayout_5flocate_9',['mem_layout_locate',['../mem__layout_8h.html#a09eec8e7ab2719e5c0f3e938d86fb27d',1,'mem_layout.h']]],
-  ['mem_5flayout_5freserve_10',['mem_layout_reserve',['../mem__layout_8h.html#a8f850d40316843512600f6b7dbc09816',1,'mem_layout.h']]],
-  ['mem_5flayout_5fsize_11',['mem_layout_size',['../mem__layout_8h.html#a8ee52b2aa0886b6ba32ccc10e198eb13',1,'mem_layout.h']]],
-  ['mem_5flayout_5ft_12',['mem_layout_t',['../mem__layout_8h.html#af0b2d20edd47223d01abb113ec2c8a35',1,'mem_layout.h']]],
-  ['memctx_13',['memctx',['../structbhash__config__s.html#acba711c5e549436a3f74e3234c6530c9',1,'bhash_config_s']]],
-  ['message_14',['message',['../structbarg__result__t.html#a4806f7dfda4984f85722608d2814d02c',1,'barg_result_t']]],
-  ['messaging_15',['Messaging',['../bco_8h.html#autotoc_md3',1,'']]],
-  ['motivation_16',['Motivation',['../bserial_8h.html#autotoc_md5',1,'']]]
+  ['len_0',['len',['../structblog__str__t.html#ae91ce40f4a584cc5ab68f1f3218685b0',1,'blog_str_t::len'],['../structbserial__mem__out__s.html#aeb4b0d7a69b4a03de2abfbd99e7bb701',1,'bserial_mem_out_s::len'],['../structbhandle__state__t.html#acee654f33cc1b955b87dc51529c4a4c3',1,'bhandle_state_t::len']]],
+  ['length_20types_1',['Variable length types',['../bserial_8h.html#autotoc_md13',1,'']]],
+  ['level_2',['level',['../structblog__ctx__t.html#aa1904a01f1ca401425414f6bc5b7427a',1,'blog_ctx_t']]],
+  ['line_3',['line',['../structblog__ctx__t.html#a831ab21211ab328b4be692f05c7f0d18',1,'blog_ctx_t::line'],['../structbco__loc__t.html#ac4ee3d81a7c57dc1d37193c14a6152d3',1,'bco_loc_t::line'],['../structbsv__explain__s.html#a1102497157e378f45a7b9eb9cd8ccc3d',1,'bsv_explain_s::line'],['../structbscn__pos__t.html#ae52d9c9132348b42adc736117992ddf0',1,'bscn_pos_t::line'],['../structbstacktrace__info__t.html#a0a600aaf892ebf40d71e784657827981',1,'bstacktrace_info_t::line']]],
+  ['load_5fpercent_4',['load_percent',['../structbhash__config__s.html#a8724f4ebc00faf5c8e2e93091757d56c',1,'bhash_config_s']]],
+  ['loading_5',['Saving and loading',['../bhandle_8h.html#autotoc_md18',1,'']]]
 ];

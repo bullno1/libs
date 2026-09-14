@@ -1,14 +1,11 @@
 var searchData=
 [
-  ['scope_0',['scope',['../structbsv__explain__s.html#a9daac56bdfccf52e6f9992bb29e208d8',1,'bsv_explain_s']]],
-  ['serialization_1',['Structured serialization',['../bserial_8h.html#autotoc_md7',1,'']]],
-  ['short_5fname_2',['short_name',['../structbarg__opt__t.html#a95528275c81bdb13e2a05fd2ae5083e6',1,'barg_opt_t']]],
-  ['size_3',['size',['../structxincbin__data__s.html#a77d07f2168707bb70b15f4428a642039',1,'xincbin_data_s::size'],['../structbent__comp__def__t.html#a7eb491f6b49353bcc3104e3954be7e2a',1,'bent_comp_def_t::size'],['../structbent__sys__def__t.html#ab8f8abac04fba85d1ab34ad92c8c45ca',1,'bent_sys_def_t::size']]],
-  ['skip_4',['skip',['../structbserial__in__s.html#afc4f1ccfe48b553643a460d1ad456204',1,'bserial_in_s']]],
-  ['status_5',['status',['../structbarg__result__t.html#a4c33e4a9d533ab4c3dc84ea318461c6f',1,'barg_result_t']]],
-  ['string_20encoding_20validation_6',['String encoding validation',['../bserial_8h.html#autotoc_md15',1,'']]],
-  ['structured_20serialization_7',['Structured serialization',['../bserial_8h.html#autotoc_md7',1,'']]],
-  ['suite_8',['suite',['../structbtest__case__t.html#a82b35ef984121ba3602a6616b615f8bf',1,'btest_case_t']]],
-  ['summary_9',['summary',['../structbarg__opt__t.html#acc1d8647862b3cbf140c7773a807f3a9',1,'barg_opt_t::summary'],['../structbarg__t.html#a6697e200906f04e6f53c2721753021f6',1,'barg_t::summary']]],
-  ['sys_10',['sys',['../structbent__sys__itr__t.html#aa15cd245ba92bf2b1c7a7d9d888e484d',1,'bent_sys_itr_t']]]
+  ['read_0',['read',['../structbserial__in__s.html#a89f203a4572c9d0ffa30aac6abf7ed22',1,'bserial_in_s::read'],['../structbsv__in__s.html#a699f4885356b909cd0032a2af85dbdab',1,'bsv_in_s::read']]],
+  ['record_1',['Record',['../bserial_8h.html#autotoc_md9',1,'']]],
+  ['reload_2',['Hot reload',['../bco_8h.html#autotoc_md4',1,'']]],
+  ['remove_3',['remove',['../structbent__sys__def__t.html#a746509dc90d5b7d576bebb99a1a47162',1,'bent_sys_def_t']]],
+  ['repeatable_4',['repeatable',['../structbarg__opt__t.html#ae49c222cc27823a14a7033ff4902cf3d',1,'barg_opt_t']]],
+  ['require_5',['require',['../structbent__sys__def__t.html#ac7cdf1c432817c50caf5f16af20bcbc0',1,'bent_sys_def_t']]],
+  ['root_6',['root',['../structbhamt__sample__t.html#a9b0baf9cc474117b7b883d416bca8a4f',1,'bhamt_sample_t']]],
+  ['run_7',['run',['../structbtest__case__t.html#a39031630b32c8d7fb6dab402ccfa3206',1,'btest_case_t']]]
 ];

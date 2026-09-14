@@ -1,11 +1,7 @@
 var searchData=
 [
-  ['max_5fdepth_0',['max_depth',['../structbserial__ctx__config__s.html#a0bdafbcc10fe2efe9203367f2809e296',1,'bserial_ctx_config_s']]],
-  ['max_5fnum_5felements_1',['max_num_elements',['../structbarg__array__opts__t.html#a99a7aac6e912beec05e8fee63b0eaf42',1,'barg_array_opts_t']]],
-  ['max_5fnum_5fsymbols_2',['max_num_symbols',['../structbserial__ctx__config__s.html#a509414de6fe3ff31f286111e1cd5f0c7',1,'bserial_ctx_config_s']]],
-  ['max_5frecord_5ffields_3',['max_record_fields',['../structbserial__ctx__config__s.html#aa29473ee73a48871058c9fc2ba14938e',1,'bserial_ctx_config_s']]],
-  ['max_5fsymbol_5flen_4',['max_symbol_len',['../structbserial__ctx__config__s.html#ae37023ca788c1eec8646a0bfc4d7efca',1,'bserial_ctx_config_s']]],
-  ['mem_5',['mem',['../structbserial__mem__out__s.html#ac0780627d1b426df74314d41c4a6e2b5',1,'bserial_mem_out_s']]],
-  ['memctx_6',['memctx',['../structbhash__config__s.html#acba711c5e549436a3f74e3234c6530c9',1,'bhash_config_s']]],
-  ['message_7',['message',['../structbarg__result__t.html#a4806f7dfda4984f85722608d2814d02c',1,'barg_result_t']]]
+  ['len_0',['len',['../structblog__str__t.html#ae91ce40f4a584cc5ab68f1f3218685b0',1,'blog_str_t::len'],['../structbserial__mem__out__s.html#aeb4b0d7a69b4a03de2abfbd99e7bb701',1,'bserial_mem_out_s::len'],['../structbhandle__state__t.html#acee654f33cc1b955b87dc51529c4a4c3',1,'bhandle_state_t::len']]],
+  ['level_1',['level',['../structblog__ctx__t.html#aa1904a01f1ca401425414f6bc5b7427a',1,'blog_ctx_t']]],
+  ['line_2',['line',['../structblog__ctx__t.html#a831ab21211ab328b4be692f05c7f0d18',1,'blog_ctx_t::line'],['../structbco__loc__t.html#ac4ee3d81a7c57dc1d37193c14a6152d3',1,'bco_loc_t::line'],['../structbsv__explain__s.html#a1102497157e378f45a7b9eb9cd8ccc3d',1,'bsv_explain_s::line'],['../structbscn__pos__t.html#ae52d9c9132348b42adc736117992ddf0',1,'bscn_pos_t::line'],['../structbstacktrace__info__t.html#a0a600aaf892ebf40d71e784657827981',1,'bstacktrace_info_t::line']]],
+  ['load_5fpercent_3',['load_percent',['../structbhash__config__s.html#a8724f4ebc00faf5c8e2e93091757d56c',1,'bhash_config_s']]]
 ];
