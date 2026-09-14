@@ -6,7 +6,7 @@ var searchData=
   ['size_3',['size',['../structxincbin__data__s.html#a77d07f2168707bb70b15f4428a642039',1,'xincbin_data_s::size'],['../structbent__comp__def__t.html#a7eb491f6b49353bcc3104e3954be7e2a',1,'bent_comp_def_t::size'],['../structbent__sys__def__t.html#ab8f8abac04fba85d1ab34ad92c8c45ca',1,'bent_sys_def_t::size']]],
   ['skip_4',['skip',['../structbserial__in__s.html#afc4f1ccfe48b553643a460d1ad456204',1,'bserial_in_s']]],
   ['status_5',['status',['../structbarg__result__t.html#a4c33e4a9d533ab4c3dc84ea318461c6f',1,'barg_result_t']]],
-  ['string_20encoding_20validation_6',['String encoding validation',['../bserial_8h.html#autotoc_md14',1,'']]],
+  ['string_20encoding_20validation_6',['String encoding validation',['../bserial_8h.html#autotoc_md15',1,'']]],
   ['structured_20serialization_7',['Structured serialization',['../bserial_8h.html#autotoc_md7',1,'']]],
   ['suite_8',['suite',['../structbtest__case__t.html#a82b35ef984121ba3602a6616b615f8bf',1,'btest_case_t']]],
   ['summary_9',['summary',['../structbarg__opt__t.html#acc1d8647862b3cbf140c7773a807f3a9',1,'barg_opt_t::summary'],['../structbarg__t.html#a6697e200906f04e6f53c2721753021f6',1,'barg_t::summary']]],

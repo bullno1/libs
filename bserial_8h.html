@@ -133,6 +133,12 @@ Macros</h2></td></tr>
 <tr class="memitem:a6b7a06a5232f7be971abccb32123fe39" id="r_a6b7a06a5232f7be971abccb32123fe39"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#a6b7a06a5232f7be971abccb32123fe39">BSERIAL_KEY</a>(ctx,  name)&#160;&#160;&#160;if (<a class="el" href="bserial_8h.html#aa263323ebc7bc8fc33a97514821d6b59">bserial_key</a>(ctx, #name, sizeof(#name) - 1))</td></tr>
 <tr class="memdesc:a6b7a06a5232f7be971abccb32123fe39"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/write a key in a record.  <br /></td></tr>
 <tr class="separator:a6b7a06a5232f7be971abccb32123fe39"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a852225e32d1fc707767ab38af021f9d2" id="r_a852225e32d1fc707767ab38af021f9d2"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#a852225e32d1fc707767ab38af021f9d2">BSERIAL_ENUM</a>(ctx,  value)&#160;&#160;&#160;while (<a class="el" href="bserial_8h.html#a1809a58fbe960076532f7f6dc5214175">bserial_enum</a>(ctx, value))</td></tr>
+<tr class="memdesc:a852225e32d1fc707767ab38af021f9d2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/write an enum.  <br /></td></tr>
+<tr class="separator:a852225e32d1fc707767ab38af021f9d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a02aa27ef3ee671f16da3c9ba41b6ab5d" id="r_a02aa27ef3ee671f16da3c9ba41b6ab5d"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#a02aa27ef3ee671f16da3c9ba41b6ab5d">BSERIAL_VARIANT</a>(ctx,  name)&#160;&#160;&#160;<a class="el" href="bserial_8h.html#ad518ed4099429db4ddae3054a90f6874">bserial_variant</a>(ctx, #name, sizeof(#name) - 1, name)</td></tr>
+<tr class="memdesc:a02aa27ef3ee671f16da3c9ba41b6ab5d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Declare a variant in an enum.  <br /></td></tr>
+<tr class="separator:a02aa27ef3ee671f16da3c9ba41b6ab5d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
 Typedefs</h2></td></tr>
@@ -307,6 +313,12 @@ size_t&#160;</td><td class="memItemRight" valign="bottom"><b>bserial_ctx_mem_siz
 <tr class="memitem:aa263323ebc7bc8fc33a97514821d6b59" id="r_aa263323ebc7bc8fc33a97514821d6b59"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#aa263323ebc7bc8fc33a97514821d6b59">bserial_key</a> (<a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *ctx, const char *name, uint64_t len)</td></tr>
 <tr class="memdesc:aa263323ebc7bc8fc33a97514821d6b59"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/write a key.  <br /></td></tr>
 <tr class="separator:aa263323ebc7bc8fc33a97514821d6b59"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1809a58fbe960076532f7f6dc5214175" id="r_a1809a58fbe960076532f7f6dc5214175"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#a1809a58fbe960076532f7f6dc5214175">bserial_enum</a> (<a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *ctx, int *value)</td></tr>
+<tr class="memdesc:a1809a58fbe960076532f7f6dc5214175"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/write an enum.  <br /></td></tr>
+<tr class="separator:a1809a58fbe960076532f7f6dc5214175"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad518ed4099429db4ddae3054a90f6874" id="r_ad518ed4099429db4ddae3054a90f6874"><td class="memItemLeft" align="right" valign="top"><a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#ad518ed4099429db4ddae3054a90f6874">bserial_variant</a> (<a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *ctx, const char *name, uint64_t len, int value)</td></tr>
+<tr class="memdesc:ad518ed4099429db4ddae3054a90f6874"><td class="mdescLeft">&#160;</td><td class="mdescRight">Declare a variant of an enum.  <br /></td></tr>
+<tr class="separator:ad518ed4099429db4ddae3054a90f6874"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a287c2ecd7505242af08d9ace5fa66516" id="r_a287c2ecd7505242af08d9ace5fa66516"><td class="memItemLeft" align="right" valign="top"><a id="a287c2ecd7505242af08d9ace5fa66516" name="a287c2ecd7505242af08d9ace5fa66516"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>bserial_trace</b> (<a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *ctx, <a class="el" href="bserial_8h.html#aeda1e0a0324958c67852b20e1d00e7b3">bserial_tracer_t</a> tracer, void *userdata)</td></tr>
 <tr class="memdesc:a287c2ecd7505242af08d9ace5fa66516"><td class="mdescLeft">&#160;</td><td class="mdescRight">Trace the error context during serialization. <br /></td></tr>
@@ -391,11 +403,11 @@ Record</h3>
 <div class="line"> </div>
 <div class="line">    <span class="keywordflow">return</span> <a class="code hl_function" href="bserial_8h.html#a8dc8121519c7732864ca7211088b7776">bserial_status</a>(ctx);</div>
 <div class="line">}</div>
-<div class="ttc" id="abserial_8h_html_a38ebcbf7776e35a4837e45d9fbc96e79"><div class="ttname"><a href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a></div><div class="ttdeci">struct bserial_ctx_s bserial_ctx_t</div><div class="ttdoc">Serialization context.</div><div class="ttdef"><b>Definition</b> bserial.h:483</div></div>
-<div class="ttc" id="abserial_8h_html_a53882609fbb8d070dda12f9a2e501e3b"><div class="ttname"><a href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a></div><div class="ttdeci">bserial_status_t</div><div class="ttdoc">IO status.</div><div class="ttdef"><b>Definition</b> bserial.h:422</div></div>
-<div class="ttc" id="abserial_8h_html_a7d488368f2ebd0beefea7801a872f375"><div class="ttname"><a href="bserial_8h.html#a7d488368f2ebd0beefea7801a872f375">bserial_any_int</a></div><div class="ttdeci">#define bserial_any_int(ctx, integer)</div><div class="ttdoc">Automatically select the right integer serialization function.</div><div class="ttdef"><b>Definition</b> bserial.h:717</div></div>
+<div class="ttc" id="abserial_8h_html_a38ebcbf7776e35a4837e45d9fbc96e79"><div class="ttname"><a href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a></div><div class="ttdeci">struct bserial_ctx_s bserial_ctx_t</div><div class="ttdoc">Serialization context.</div><div class="ttdef"><b>Definition</b> bserial.h:522</div></div>
+<div class="ttc" id="abserial_8h_html_a53882609fbb8d070dda12f9a2e501e3b"><div class="ttname"><a href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a></div><div class="ttdeci">bserial_status_t</div><div class="ttdoc">IO status.</div><div class="ttdef"><b>Definition</b> bserial.h:461</div></div>
+<div class="ttc" id="abserial_8h_html_a7d488368f2ebd0beefea7801a872f375"><div class="ttname"><a href="bserial_8h.html#a7d488368f2ebd0beefea7801a872f375">bserial_any_int</a></div><div class="ttdeci">#define bserial_any_int(ctx, integer)</div><div class="ttdoc">Automatically select the right integer serialization function.</div><div class="ttdef"><b>Definition</b> bserial.h:756</div></div>
 <div class="ttc" id="abserial_8h_html_a8dc8121519c7732864ca7211088b7776"><div class="ttname"><a href="bserial_8h.html#a8dc8121519c7732864ca7211088b7776">bserial_status</a></div><div class="ttdeci">bserial_status_t bserial_status(bserial_ctx_t *ctx)</div><div class="ttdoc">Get the current IO status.</div></div>
-<div class="ttc" id="abserial_8h_html_a96e7bd6b140b4881d2d5757a5bcbffbc"><div class="ttname"><a href="bserial_8h.html#a96e7bd6b140b4881d2d5757a5bcbffbc">BSERIAL_CHECK_STATUS</a></div><div class="ttdeci">#define BSERIAL_CHECK_STATUS(OP)</div><div class="ttdoc">Helper macro to check for IO status and return on error.</div><div class="ttdef"><b>Definition</b> bserial.h:415</div></div>
+<div class="ttc" id="abserial_8h_html_a96e7bd6b140b4881d2d5757a5bcbffbc"><div class="ttname"><a href="bserial_8h.html#a96e7bd6b140b4881d2d5757a5bcbffbc">BSERIAL_CHECK_STATUS</a></div><div class="ttdeci">#define BSERIAL_CHECK_STATUS(OP)</div><div class="ttdoc">Helper macro to check for IO status and return on error.</div><div class="ttdef"><b>Definition</b> bserial.h:454</div></div>
 <div class="ttc" id="abserial_8h_html_aa263323ebc7bc8fc33a97514821d6b59"><div class="ttname"><a href="bserial_8h.html#aa263323ebc7bc8fc33a97514821d6b59">bserial_key</a></div><div class="ttdeci">bool bserial_key(bserial_ctx_t *ctx, const char *name, uint64_t len)</div><div class="ttdoc">Read/write a key.</div></div>
 <div class="ttc" id="abserial_8h_html_aadc0750bc75a41f8b32fe9404e6954c2"><div class="ttname"><a href="bserial_8h.html#aadc0750bc75a41f8b32fe9404e6954c2">bserial_f32</a></div><div class="ttdeci">bserial_status_t bserial_f32(bserial_ctx_t *ctx, float *value)</div><div class="ttdoc">Read/write a single precision float.</div></div>
 <div class="ttc" id="abserial_8h_html_ad011a5ec92074186c752409b63f7afbd"><div class="ttname"><a href="bserial_8h.html#ad011a5ec92074186c752409b63f7afbd">bserial_record</a></div><div class="ttdeci">bool bserial_record(bserial_ctx_t *ctx)</div><div class="ttdoc">Read/write a record.</div></div>
@@ -417,8 +429,8 @@ Record</h3>
 <div class="line"> </div>
 <div class="line">    <span class="keywordflow">return</span> <a class="code hl_function" href="bserial_8h.html#a8dc8121519c7732864ca7211088b7776">bserial_status</a>(ctx);</div>
 <div class="line">}</div>
-<div class="ttc" id="abserial_8h_html_a6b7a06a5232f7be971abccb32123fe39"><div class="ttname"><a href="bserial_8h.html#a6b7a06a5232f7be971abccb32123fe39">BSERIAL_KEY</a></div><div class="ttdeci">#define BSERIAL_KEY(ctx, name)</div><div class="ttdoc">Read/write a key in a record.</div><div class="ttdef"><b>Definition</b> bserial.h:849</div></div>
-<div class="ttc" id="abserial_8h_html_af46e2853c8411a1cc72a20f4e45883e4"><div class="ttname"><a href="bserial_8h.html#af46e2853c8411a1cc72a20f4e45883e4">BSERIAL_RECORD</a></div><div class="ttdeci">#define BSERIAL_RECORD(ctx)</div><div class="ttdoc">Read/write a record.</div><div class="ttdef"><b>Definition</b> bserial.h:840</div></div>
+<div class="ttc" id="abserial_8h_html_a6b7a06a5232f7be971abccb32123fe39"><div class="ttname"><a href="bserial_8h.html#a6b7a06a5232f7be971abccb32123fe39">BSERIAL_KEY</a></div><div class="ttdeci">#define BSERIAL_KEY(ctx, name)</div><div class="ttdoc">Read/write a key in a record.</div><div class="ttdef"><b>Definition</b> bserial.h:888</div></div>
+<div class="ttc" id="abserial_8h_html_af46e2853c8411a1cc72a20f4e45883e4"><div class="ttname"><a href="bserial_8h.html#af46e2853c8411a1cc72a20f4e45883e4">BSERIAL_RECORD</a></div><div class="ttdeci">#define BSERIAL_RECORD(ctx)</div><div class="ttdoc">Read/write a record.</div><div class="ttdef"><b>Definition</b> bserial.h:879</div></div>
 </div><!-- fragment --><p>The peculiar structure has to do with how the library handles record serialization. Considering that it has to support the following:</p>
 <ul>
 <li>New fields may be added.</li>
@@ -479,9 +491,35 @@ Incompatible type change</h4>
 <div class="line">    }</div>
 <div class="line">}</div>
 <div class="ttc" id="abserial_8h_html_a9efe4064847e35223ecbaa17e59da6d1"><div class="ttname"><a href="bserial_8h.html#a9efe4064847e35223ecbaa17e59da6d1">bserial_mode</a></div><div class="ttdeci">bserial_mode_t bserial_mode(bserial_ctx_t *ctx)</div><div class="ttdoc">Get the current serialization mode.</div></div>
-<div class="ttc" id="abserial_8h_html_aa72d84b2b1108e2128281caab136bd8ba7eb9e8a1b996d240a327695da0e6c031"><div class="ttname"><a href="bserial_8h.html#aa72d84b2b1108e2128281caab136bd8ba7eb9e8a1b996d240a327695da0e6c031">BSERIAL_MODE_READ</a></div><div class="ttdeci">@ BSERIAL_MODE_READ</div><div class="ttdoc">Reading.</div><div class="ttdef"><b>Definition</b> bserial.h:475</div></div>
+<div class="ttc" id="abserial_8h_html_aa72d84b2b1108e2128281caab136bd8ba7eb9e8a1b996d240a327695da0e6c031"><div class="ttname"><a href="bserial_8h.html#aa72d84b2b1108e2128281caab136bd8ba7eb9e8a1b996d240a327695da0e6c031">BSERIAL_MODE_READ</a></div><div class="ttdeci">@ BSERIAL_MODE_READ</div><div class="ttdoc">Reading.</div><div class="ttdef"><b>Definition</b> bserial.h:514</div></div>
 </div><!-- fragment --><p>Versioning can thus, be done per field instead of per record. This should make backward-compatible schema change relatively painless.</p>
 <h3><a class="anchor" id="autotoc_md12"></a>
+Enum</h3>
+<p>An enum is stored as a symbol: the name of the active variant. Like record keys, the names are declared in the serialization code and the library matches the stream against them. No lookup table is stored in the stream and the numeric values of the C enum never leave the program, so they can be renumbered or reordered freely.</p>
+<div class="fragment"><div class="line"><a class="code hl_enumeration" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a></div>
+<div class="line">serialize_shape_kind(<a class="code hl_typedef" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a>* ctx, <span class="keywordtype">int</span>* kind) {</div>
+<div class="line">    <a class="code hl_define" href="bserial_8h.html#a852225e32d1fc707767ab38af021f9d2">BSERIAL_ENUM</a>(ctx, kind) {</div>
+<div class="line">        <a class="code hl_define" href="bserial_8h.html#a02aa27ef3ee671f16da3c9ba41b6ab5d">BSERIAL_VARIANT</a>(ctx, SHAPE_CIRCLE);</div>
+<div class="line">        <a class="code hl_define" href="bserial_8h.html#a02aa27ef3ee671f16da3c9ba41b6ab5d">BSERIAL_VARIANT</a>(ctx, SHAPE_SQUARE);</div>
+<div class="line">        <a class="code hl_define" href="bserial_8h.html#a02aa27ef3ee671f16da3c9ba41b6ab5d">BSERIAL_VARIANT</a>(ctx, SHAPE_TRIANGLE);</div>
+<div class="line">    }</div>
+<div class="line"> </div>
+<div class="line">    <span class="keywordflow">return</span> <a class="code hl_function" href="bserial_8h.html#a8dc8121519c7732864ca7211088b7776">bserial_status</a>(ctx);</div>
+<div class="line">}</div>
+<div class="ttc" id="abserial_8h_html_a02aa27ef3ee671f16da3c9ba41b6ab5d"><div class="ttname"><a href="bserial_8h.html#a02aa27ef3ee671f16da3c9ba41b6ab5d">BSERIAL_VARIANT</a></div><div class="ttdeci">#define BSERIAL_VARIANT(ctx, name)</div><div class="ttdoc">Declare a variant in an enum.</div><div class="ttdef"><b>Definition</b> bserial.h:944</div></div>
+<div class="ttc" id="abserial_8h_html_a852225e32d1fc707767ab38af021f9d2"><div class="ttname"><a href="bserial_8h.html#a852225e32d1fc707767ab38af021f9d2">BSERIAL_ENUM</a></div><div class="ttdeci">#define BSERIAL_ENUM(ctx, value)</div><div class="ttdoc">Read/write an enum.</div><div class="ttdef"><b>Definition</b> bserial.h:934</div></div>
+</div><!-- fragment --><p>When writing, the variant whose value matches <code>*kind</code> writes its name. When reading, the variant whose name matches the stream stores its value into <code>*kind</code>. A value with no name or a name with no variant is an error.</p>
+<p>Renaming a variant is handled like renaming a record field: keep the old name as a read-only alias.</p>
+<div class="fragment"><div class="line"><a class="code hl_define" href="bserial_8h.html#a852225e32d1fc707767ab38af021f9d2">BSERIAL_ENUM</a>(ctx, kind) {</div>
+<div class="line">    <span class="keywordflow">if</span> (<a class="code hl_function" href="bserial_8h.html#a9efe4064847e35223ecbaa17e59da6d1">bserial_mode</a>(ctx) == <a class="code hl_enumvalue" href="bserial_8h.html#aa72d84b2b1108e2128281caab136bd8ba7eb9e8a1b996d240a327695da0e6c031">BSERIAL_MODE_READ</a>) {</div>
+<div class="line">        <span class="comment">// Data written before the rename</span></div>
+<div class="line">        <a class="code hl_function" href="bserial_8h.html#ad518ed4099429db4ddae3054a90f6874">bserial_variant</a>(ctx, <span class="stringliteral">&quot;SHAPE_BOX&quot;</span>, <span class="keyword">sizeof</span>(<span class="stringliteral">&quot;SHAPE_BOX&quot;</span>) - 1, SHAPE_SQUARE);</div>
+<div class="line">    }</div>
+<div class="line">    <a class="code hl_define" href="bserial_8h.html#a02aa27ef3ee671f16da3c9ba41b6ab5d">BSERIAL_VARIANT</a>(ctx, SHAPE_CIRCLE);</div>
+<div class="line">    <a class="code hl_define" href="bserial_8h.html#a02aa27ef3ee671f16da3c9ba41b6ab5d">BSERIAL_VARIANT</a>(ctx, SHAPE_SQUARE);</div>
+<div class="line">}</div>
+<div class="ttc" id="abserial_8h_html_ad518ed4099429db4ddae3054a90f6874"><div class="ttname"><a href="bserial_8h.html#ad518ed4099429db4ddae3054a90f6874">bserial_variant</a></div><div class="ttdeci">bserial_status_t bserial_variant(bserial_ctx_t *ctx, const char *name, uint64_t len, int value)</div><div class="ttdoc">Declare a variant of an enum.</div></div>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md13"></a>
 Variable length types</h3>
 <p>Beside the initial fixed-size memory buffer passed to <code>bserial_make_ctx</code>, the library does not allocate any more memory. For variable-length data types such as table or array, user code has to make their own decision. In general, fixed allocation is encouraged and it is always important to enforce a hard limit on length. However, when dynamic size is needed something like this can be used:</p>
 <div class="fragment"><div class="line"><a class="code hl_enumeration" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a></div>
@@ -499,7 +537,7 @@ Variable length types</h3>
 <div class="line">    <span class="keywordflow">return</span> <a class="code hl_function" href="bserial_8h.html#a8dc8121519c7732864ca7211088b7776">bserial_status</a>(ctx);</div>
 <div class="line">}</div>
 <div class="ttc" id="abserial_8h_html_a120448dc636a70d108a9a76465d81ee3"><div class="ttname"><a href="bserial_8h.html#a120448dc636a70d108a9a76465d81ee3">bserial_array</a></div><div class="ttdeci">bserial_status_t bserial_array(bserial_ctx_t *ctx, uint64_t *len)</div><div class="ttdoc">Read/write an array.</div></div>
-<div class="ttc" id="abserial_8h_html_a53882609fbb8d070dda12f9a2e501e3ba26a96cefb83bab521b44f029a20fe239"><div class="ttname"><a href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3ba26a96cefb83bab521b44f029a20fe239">BSERIAL_MALFORMED</a></div><div class="ttdeci">@ BSERIAL_MALFORMED</div><div class="ttdoc">Malformed data encountered.</div><div class="ttdef"><b>Definition</b> bserial.h:428</div></div>
+<div class="ttc" id="abserial_8h_html_a53882609fbb8d070dda12f9a2e501e3ba26a96cefb83bab521b44f029a20fe239"><div class="ttname"><a href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3ba26a96cefb83bab521b44f029a20fe239">BSERIAL_MALFORMED</a></div><div class="ttdeci">@ BSERIAL_MALFORMED</div><div class="ttdoc">Malformed data encountered.</div><div class="ttdef"><b>Definition</b> bserial.h:467</div></div>
 </div><!-- fragment --><p>In the write path, <code>my_array_len_resize</code> should be a noop. In the read path, <code>my_array_len_resize</code> will adjust the array to have the appropriate size.</p>
 <p>In general, variable length type should follow the pattern of:</p>
 <ol type="1">
@@ -509,11 +547,11 @@ Variable length types</h3>
 <li>If using dynamic memory, resize storage to fit length.</li>
 <li>Loop through elements and serialize them.</li>
 </ol>
-<h3><a class="anchor" id="autotoc_md13"></a>
+<h3><a class="anchor" id="autotoc_md14"></a>
 Table</h3>
 <p><code>bserial_array</code> and <code>bserial_table</code> have the same signature. The only requirement for <code>bserial_table</code> is that all subsequent elements must be records of the same type: same set of keys and values must have the same type. The storage optimization is done automatically.</p>
 <p>Internally, the keys are only written once at the beginning of the table. Then, all values of all rows are stored packed without separators.</p>
-<h3><a class="anchor" id="autotoc_md14"></a>
+<h3><a class="anchor" id="autotoc_md15"></a>
 String encoding validation</h3>
 <p>This is considered to be out of scope. However, it is not difficult to create a helper in user code:</p>
 <div class="fragment"><div class="line"><a class="code hl_enumeration" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a></div>
@@ -533,7 +571,7 @@ String encoding validation</h3>
 <div class="line">}</div>
 <div class="ttc" id="abserial_8h_html_a1e9db74a29c5838f59655bea2fc77c06"><div class="ttname"><a href="bserial_8h.html#a1e9db74a29c5838f59655bea2fc77c06">bserial_blob_header</a></div><div class="ttdeci">bserial_status_t bserial_blob_header(bserial_ctx_t *ctx, uint64_t *len)</div><div class="ttdoc">Read/write a binary blob's header.</div></div>
 <div class="ttc" id="abserial_8h_html_a59ba430636a464f8d8644792f3d52bc3"><div class="ttname"><a href="bserial_8h.html#a59ba430636a464f8d8644792f3d52bc3">bserial_blob_body</a></div><div class="ttdeci">bserial_status_t bserial_blob_body(bserial_ctx_t *ctx, char *buf)</div><div class="ttdoc">Read/write a binary blob's body.</div></div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md15"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md16"></a>
 Variant/tagged union types</h3>
 <p>There is no built-in support for these types. However, they could be emulated with an array where:</p>
 <ul>
@@ -546,7 +584,7 @@ Variant/tagged union types</h3>
 <div class="line">    <a class="code hl_define" href="bserial_8h.html#a96e7bd6b140b4881d2d5757a5bcbffbc">BSERIAL_CHECK_STATUS</a>(<a class="code hl_function" href="bserial_8h.html#a120448dc636a70d108a9a76465d81ee3">bserial_array</a>(ctx, &amp;len));</div>
 <div class="line">    <span class="keywordflow">if</span> (len != 2) { <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3ba26a96cefb83bab521b44f029a20fe239">BSERIAL_MALFORMED</a>; }</div>
 <div class="line"> </div>
-<div class="line">    <a class="code hl_define" href="bserial_8h.html#a96e7bd6b140b4881d2d5757a5bcbffbc">BSERIAL_CHECK_STATUS</a>(<a class="code hl_define" href="bserial_8h.html#a7d488368f2ebd0beefea7801a872f375">bserial_any_int</a>(ctx, &amp;variant-&gt;type));</div>
+<div class="line">    <a class="code hl_define" href="bserial_8h.html#a96e7bd6b140b4881d2d5757a5bcbffbc">BSERIAL_CHECK_STATUS</a>(serialize_my_variant_type(ctx, &amp;variant-&gt;type));  <span class="comment">// An enum</span></div>
 <div class="line">    <span class="keywordflow">switch</span> (variant-&gt;type) {</div>
 <div class="line">        <span class="keywordflow">case</span> MY_VARIANT_TYPE_1:</div>
 <div class="line">            <span class="keywordflow">return</span> serialize_variant_type_1(ctx, &amp;variant-&gt;payload.type1);</div>
@@ -558,7 +596,7 @@ Variant/tagged union types</h3>
 <div class="line">    }</div>
 <div class="line">}</div>
 </div><!-- fragment --><p>Record is not appropriate for this usecase as fields in records are unordered. There is no guarantee that the type field will be read before the payload fields.</p>
-<h3><a class="anchor" id="autotoc_md16"></a>
+<h3><a class="anchor" id="autotoc_md17"></a>
 Associative map</h3>
 <p>Record is optimized for serializing a fixed set of keys and it is not suitable for associative map types such as hashtable. Instead, a table should be used:</p>
 <div class="fragment"><div class="line"><a class="code hl_enumeration" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a></div>
@@ -677,9 +715,46 @@ Associative map</h3>
 <div class="line">        <a class="code hl_enumeration" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a> bserial__status = OP; \</div>
 <div class="line">        if (bserial__status != <a class="code hl_enumvalue" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3ba0e569cfcfda76d402f15530cf5278187">BSERIAL_OK</a>) { <span class="keywordflow">return</span> bserial__status; } \</div>
 <div class="line">    } <span class="keywordflow">while</span>(0)</div>
-<div class="ttc" id="abserial_8h_html_a53882609fbb8d070dda12f9a2e501e3ba0e569cfcfda76d402f15530cf5278187"><div class="ttname"><a href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3ba0e569cfcfda76d402f15530cf5278187">BSERIAL_OK</a></div><div class="ttdeci">@ BSERIAL_OK</div><div class="ttdoc">No error.</div><div class="ttdef"><b>Definition</b> bserial.h:424</div></div>
+<div class="ttc" id="abserial_8h_html_a53882609fbb8d070dda12f9a2e501e3ba0e569cfcfda76d402f15530cf5278187"><div class="ttname"><a href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3ba0e569cfcfda76d402f15530cf5278187">BSERIAL_OK</a></div><div class="ttdeci">@ BSERIAL_OK</div><div class="ttdoc">No error.</div><div class="ttdef"><b>Definition</b> bserial.h:463</div></div>
 </div><!-- fragment -->
 <p>Helper macro to check for IO status and return on error. </p>
+
+</div>
+</div>
+<a id="a852225e32d1fc707767ab38af021f9d2" name="a852225e32d1fc707767ab38af021f9d2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a852225e32d1fc707767ab38af021f9d2">&#9670;&#160;</a></span>BSERIAL_ENUM</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define BSERIAL_ENUM</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">ctx, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">value&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td>&#160;&#160;&#160;while (<a class="el" href="bserial_8h.html#a1809a58fbe960076532f7f6dc5214175">bserial_enum</a>(ctx, value))</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Read/write an enum. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ctx</td><td>The serialization context. </td></tr>
+    <tr><td class="paramname">value</td><td>Pointer to the enum value. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -740,6 +815,43 @@ Associative map</h3>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">ctx</td><td>The serialization context. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a02aa27ef3ee671f16da3c9ba41b6ab5d" name="a02aa27ef3ee671f16da3c9ba41b6ab5d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a02aa27ef3ee671f16da3c9ba41b6ab5d">&#9670;&#160;</a></span>BSERIAL_VARIANT</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define BSERIAL_VARIANT</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">ctx, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">name&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td>&#160;&#160;&#160;<a class="el" href="bserial_8h.html#ad518ed4099429db4ddae3054a90f6874">bserial_variant</a>(ctx, #name, sizeof(#name) - 1, name)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Declare a variant in an enum. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ctx</td><td>The serialization context. </td></tr>
+    <tr><td class="paramname">name</td><td>Literal name of an enum variant, without any quote. e.g: <code>FOO</code> and <b>not</b> <code>"FOO"</code>. It is also used as the value. </td></tr>
   </table>
   </dd>
 </dl>
@@ -966,6 +1078,47 @@ Associative map</h3>
   </table>
   </dd>
 </dl>
+
+</div>
+</div>
+<a id="a1809a58fbe960076532f7f6dc5214175" name="a1809a58fbe960076532f7f6dc5214175"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1809a58fbe960076532f7f6dc5214175">&#9670;&#160;</a></span>bserial_enum()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool bserial_enum </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *&#160;</td>
+          <td class="paramname"><em>ctx</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Read/write an enum. </p>
+<p>An enum is stored as a symbol: the name of the active variant.</p>
+<p>This should always be called as the condition of a while loop: <code>while (bserial_enum(ctx, value)) {</code>. Therefore, the macro <a class="el" href="bserial_8h.html#a852225e32d1fc707767ab38af021f9d2">BSERIAL_ENUM</a> should be used. The body of the loop must only contain <a class="el" href="bserial_8h.html#ad518ed4099429db4ddae3054a90f6874">bserial_variant</a> calls.</p>
+<p>When writing, the variant whose value matches <code>*value</code> writes its name. When reading, the variant whose name matches the stream stores its value into <code>*value</code>. It is an error if no variant matches.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ctx</td><td>The serialization context. </td></tr>
+    <tr><td class="paramname">value</td><td>The enum value.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="bserial_8h.html#ad518ed4099429db4ddae3054a90f6874" title="Declare a variant of an enum.">bserial_variant</a> </dd></dl>
 
 </div>
 </div>
@@ -1541,6 +1694,59 @@ Associative map</h3>
 
 <p>Read/write an unsigned varint. </p>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="bserial_8h.html#a7d488368f2ebd0beefea7801a872f375" title="Automatically select the right integer serialization function.">bserial_any_int</a> </dd></dl>
+
+</div>
+</div>
+<a id="ad518ed4099429db4ddae3054a90f6874" name="ad518ed4099429db4ddae3054a90f6874"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad518ed4099429db4ddae3054a90f6874">&#9670;&#160;</a></span>bserial_variant()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a> bserial_variant </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *&#160;</td>
+          <td class="paramname"><em>ctx</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>name</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>len</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Declare a variant of an enum. </p>
+<p>This can only be called within a <a class="el" href="bserial_8h.html#a852225e32d1fc707767ab38af021f9d2">BSERIAL_ENUM</a> block.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ctx</td><td>The serialization context. </td></tr>
+    <tr><td class="paramname">name</td><td>Name of the variant. </td></tr>
+    <tr><td class="paramname">len</td><td>Length of the name. </td></tr>
+    <tr><td class="paramname">value</td><td>Value of the variant.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="bserial_8h.html#a1809a58fbe960076532f7f6dc5214175" title="Read/write an enum.">bserial_enum</a> </dd></dl>
 
 </div>
 </div>

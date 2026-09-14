@@ -92,6 +92,6 @@ var menudata={children:[
 {text:"b",url:"globals_eval.html#index_b"}]},
 {text:"Macros",url:"globals_defs.html",children:[
 {text:"a",url:"globals_defs.html#index_a"},
-{text:"b",url:"globals_defs.html#index_b"},
-{text:"t",url:"globals_defs.html#index_t"},
-{text:"x",url:"globals_defs.html#index_x"}]}]}]}]}
+{text:"b",url:"globals_defs_b.html#index_b"},
+{text:"t",url:"globals_defs_t.html#index_t"},
+{text:"x",url:"globals_defs_x.html#index_x"}]}]}]}]}

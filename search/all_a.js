@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['map_0',['Associative map',['../bserial_8h.html#autotoc_md16',1,'']]],
+  ['map_0',['Associative map',['../bserial_8h.html#autotoc_md17',1,'']]],
   ['max_5fdepth_1',['max_depth',['../structbserial__ctx__config__s.html#a0bdafbcc10fe2efe9203367f2809e296',1,'bserial_ctx_config_s']]],
   ['max_5fnum_5felements_2',['max_num_elements',['../structbarg__array__opts__t.html#a99a7aac6e912beec05e8fee63b0eaf42',1,'barg_array_opts_t']]],
   ['max_5fnum_5fsymbols_3',['max_num_symbols',['../structbserial__ctx__config__s.html#a509414de6fe3ff31f286111e1cd5f0c7',1,'bserial_ctx_config_s']]],
