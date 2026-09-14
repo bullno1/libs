@@ -102,6 +102,9 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structbserial__ctx__config__s.html">bserial_ctx_config_s</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Serialization context configuration.  <a href="structbserial__ctx__config__s.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structbserial__int__type__t.html">bserial_int_type_t</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Description of an integer type.  <a href="structbserial__int__type__t.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structbserial__stdio__in__s.html">bserial_stdio_in_s</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">stdio input stream  <a href="structbserial__stdio__in__s.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -124,16 +127,31 @@ Macros</h2></td></tr>
 <tr class="memitem:a96e7bd6b140b4881d2d5757a5bcbffbc" id="r_a96e7bd6b140b4881d2d5757a5bcbffbc"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#a96e7bd6b140b4881d2d5757a5bcbffbc">BSERIAL_CHECK_STATUS</a>(OP)</td></tr>
 <tr class="memdesc:a96e7bd6b140b4881d2d5757a5bcbffbc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Helper macro to check for IO status and return on error.  <br /></td></tr>
 <tr class="separator:a96e7bd6b140b4881d2d5757a5bcbffbc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7d488368f2ebd0beefea7801a872f375" id="r_a7d488368f2ebd0beefea7801a872f375"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#a7d488368f2ebd0beefea7801a872f375">bserial_any_int</a>(ctx,  integer)</td></tr>
-<tr class="memdesc:a7d488368f2ebd0beefea7801a872f375"><td class="mdescLeft">&#160;</td><td class="mdescRight">Automatically select the right integer serialization function.  <br /></td></tr>
+<tr class="memitem:a70ccb2fcda48f6c61e4b3784f68a723c" id="r_a70ccb2fcda48f6c61e4b3784f68a723c"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#a70ccb2fcda48f6c61e4b3784f68a723c">BSERIAL_INT_TYPE</a>(ptr)</td></tr>
+<tr class="memdesc:a70ccb2fcda48f6c61e4b3784f68a723c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Describe the integer type pointed to by <em>ptr</em>.  <br /></td></tr>
+<tr class="separator:a70ccb2fcda48f6c61e4b3784f68a723c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7d488368f2ebd0beefea7801a872f375" id="r_a7d488368f2ebd0beefea7801a872f375"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#a7d488368f2ebd0beefea7801a872f375">bserial_any_int</a>(ctx,  integer)&#160;&#160;&#160;	<a class="el" href="bserial_8h.html#a3401b57c5e02d8eae2a49ca329b4b1a3">bserial_typed_int</a>(ctx, (integer), <a class="el" href="bserial_8h.html#a70ccb2fcda48f6c61e4b3784f68a723c">BSERIAL_INT_TYPE</a>(integer))</td></tr>
+<tr class="memdesc:a7d488368f2ebd0beefea7801a872f375"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/write an integer of any type.  <br /></td></tr>
 <tr class="separator:a7d488368f2ebd0beefea7801a872f375"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab535a9752b090ccb3ce939973a61fbbe" id="r_ab535a9752b090ccb3ce939973a61fbbe"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#ab535a9752b090ccb3ce939973a61fbbe">bserial_blob</a>(ctx,  buf,  len)&#160;&#160;&#160;	<a class="el" href="bserial_8h.html#a88e5e5f3e8d87907aeb4c05dc4c1e733">bserial_typed_blob</a>(ctx, buf, (len), <a class="el" href="bserial_8h.html#a70ccb2fcda48f6c61e4b3784f68a723c">BSERIAL_INT_TYPE</a>(len))</td></tr>
+<tr class="memdesc:ab535a9752b090ccb3ce939973a61fbbe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/write a binary blob.  <br /></td></tr>
+<tr class="separator:ab535a9752b090ccb3ce939973a61fbbe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a70742ca8ccd51945da6c3fb090da2138" id="r_a70742ca8ccd51945da6c3fb090da2138"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#a70742ca8ccd51945da6c3fb090da2138">bserial_blob_header</a>(ctx,  len)&#160;&#160;&#160;	<a class="el" href="bserial_8h.html#aa41255d509df480d9667e7ac70c4f941">bserial_typed_len</a>(ctx, <a class="el" href="bserial_8h.html#a05bafd5ff83d2d8f1985dd5a44828b79">bserial_blob_header_u64</a>, (len), <a class="el" href="bserial_8h.html#a70ccb2fcda48f6c61e4b3784f68a723c">BSERIAL_INT_TYPE</a>(len))</td></tr>
+<tr class="memdesc:a70742ca8ccd51945da6c3fb090da2138"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/write a binary blob's header.  <br /></td></tr>
+<tr class="separator:a70742ca8ccd51945da6c3fb090da2138"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afeb26b8c4c541f98593fa2970754a1f3" id="r_afeb26b8c4c541f98593fa2970754a1f3"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#afeb26b8c4c541f98593fa2970754a1f3">bserial_array</a>(ctx,  len)&#160;&#160;&#160;	<a class="el" href="bserial_8h.html#aa41255d509df480d9667e7ac70c4f941">bserial_typed_len</a>(ctx, <a class="el" href="bserial_8h.html#a7ccebaf359b8e269539971ae5d0efd18">bserial_array_u64</a>, (len), <a class="el" href="bserial_8h.html#a70ccb2fcda48f6c61e4b3784f68a723c">BSERIAL_INT_TYPE</a>(len))</td></tr>
+<tr class="memdesc:afeb26b8c4c541f98593fa2970754a1f3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/write an array.  <br /></td></tr>
+<tr class="separator:afeb26b8c4c541f98593fa2970754a1f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad7535618a109001ee8e8b9fbd60d14fe" id="r_ad7535618a109001ee8e8b9fbd60d14fe"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#ad7535618a109001ee8e8b9fbd60d14fe">bserial_table</a>(ctx,  len)&#160;&#160;&#160;	<a class="el" href="bserial_8h.html#aa41255d509df480d9667e7ac70c4f941">bserial_typed_len</a>(ctx, <a class="el" href="bserial_8h.html#a912f07227f2ef9273f6bee1ac81bf0ee">bserial_table_u64</a>, (len), <a class="el" href="bserial_8h.html#a70ccb2fcda48f6c61e4b3784f68a723c">BSERIAL_INT_TYPE</a>(len))</td></tr>
+<tr class="memdesc:ad7535618a109001ee8e8b9fbd60d14fe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/write a table.  <br /></td></tr>
+<tr class="separator:ad7535618a109001ee8e8b9fbd60d14fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af46e2853c8411a1cc72a20f4e45883e4" id="r_af46e2853c8411a1cc72a20f4e45883e4"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#af46e2853c8411a1cc72a20f4e45883e4">BSERIAL_RECORD</a>(ctx)&#160;&#160;&#160;while (<a class="el" href="bserial_8h.html#ad011a5ec92074186c752409b63f7afbd">bserial_record</a>(ctx))</td></tr>
 <tr class="memdesc:af46e2853c8411a1cc72a20f4e45883e4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/write a record.  <br /></td></tr>
 <tr class="separator:af46e2853c8411a1cc72a20f4e45883e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6b7a06a5232f7be971abccb32123fe39" id="r_a6b7a06a5232f7be971abccb32123fe39"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#a6b7a06a5232f7be971abccb32123fe39">BSERIAL_KEY</a>(ctx,  name)&#160;&#160;&#160;if (<a class="el" href="bserial_8h.html#aa263323ebc7bc8fc33a97514821d6b59">bserial_key</a>(ctx, #name, sizeof(#name) - 1))</td></tr>
 <tr class="memdesc:a6b7a06a5232f7be971abccb32123fe39"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/write a key in a record.  <br /></td></tr>
 <tr class="separator:a6b7a06a5232f7be971abccb32123fe39"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a852225e32d1fc707767ab38af021f9d2" id="r_a852225e32d1fc707767ab38af021f9d2"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#a852225e32d1fc707767ab38af021f9d2">BSERIAL_ENUM</a>(ctx,  value)&#160;&#160;&#160;while (<a class="el" href="bserial_8h.html#a1809a58fbe960076532f7f6dc5214175">bserial_enum</a>(ctx, value))</td></tr>
+<tr class="memitem:a852225e32d1fc707767ab38af021f9d2" id="r_a852225e32d1fc707767ab38af021f9d2"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#a852225e32d1fc707767ab38af021f9d2">BSERIAL_ENUM</a>(ctx,  value)&#160;&#160;&#160;	while (<a class="el" href="bserial_8h.html#aa52e04586440f4f2274e3541bf4b4274">bserial_typed_enum</a>(ctx, (value), <a class="el" href="bserial_8h.html#a70ccb2fcda48f6c61e4b3784f68a723c">BSERIAL_INT_TYPE</a>(value)))</td></tr>
 <tr class="memdesc:a852225e32d1fc707767ab38af021f9d2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/write an enum.  <br /></td></tr>
 <tr class="separator:a852225e32d1fc707767ab38af021f9d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a02aa27ef3ee671f16da3c9ba41b6ab5d" id="r_a02aa27ef3ee671f16da3c9ba41b6ab5d"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#a02aa27ef3ee671f16da3c9ba41b6ab5d">BSERIAL_VARIANT</a>(ctx,  name)&#160;&#160;&#160;<a class="el" href="bserial_8h.html#ad518ed4099429db4ddae3054a90f6874">bserial_variant</a>(ctx, #name, sizeof(#name) - 1, name)</td></tr>
@@ -159,6 +177,10 @@ typedef struct <a class="el" href="structbserial__out__s.html">bserial_out_s</a>
 <tr class="memitem:aeda1e0a0324958c67852b20e1d00e7b3" id="r_aeda1e0a0324958c67852b20e1d00e7b3"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#aeda1e0a0324958c67852b20e1d00e7b3">bserial_tracer_t</a>) (int depth, const char *fmt, va_list args, void *userdata)</td></tr>
 <tr class="memdesc:aeda1e0a0324958c67852b20e1d00e7b3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Debug trace callback.  <br /></td></tr>
 <tr class="separator:aeda1e0a0324958c67852b20e1d00e7b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a76d6918f02969334029e58a1cd8dadcc" id="r_a76d6918f02969334029e58a1cd8dadcc"><td class="memItemLeft" align="right" valign="top"><a id="a76d6918f02969334029e58a1cd8dadcc" name="a76d6918f02969334029e58a1cd8dadcc"></a>
+typedef <a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a>(*&#160;</td><td class="memItemRight" valign="bottom"><b>bserial_len_fn_t</b>) (<a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *ctx, uint64_t *len)</td></tr>
+<tr class="memdesc:a76d6918f02969334029e58a1cd8dadcc"><td class="mdescLeft">&#160;</td><td class="mdescRight">A length operation on 64 bits. <br /></td></tr>
+<tr class="separator:a76d6918f02969334029e58a1cd8dadcc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac2400efbc3f73f28891edd221beb0302" id="r_ac2400efbc3f73f28891edd221beb0302"><td class="memItemLeft" align="right" valign="top"><a id="ac2400efbc3f73f28891edd221beb0302" name="ac2400efbc3f73f28891edd221beb0302"></a>
 typedef struct <a class="el" href="structbserial__stdio__in__s.html">bserial_stdio_in_s</a>&#160;</td><td class="memItemRight" valign="bottom"><b>bserial_stdio_in_t</b></td></tr>
 <tr class="memdesc:ac2400efbc3f73f28891edd221beb0302"><td class="mdescLeft">&#160;</td><td class="mdescRight">stdio input stream <br /></td></tr>
@@ -272,28 +294,24 @@ size_t&#160;</td><td class="memItemRight" valign="bottom"><b>bserial_ctx_mem_siz
 <a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a>&#160;</td><td class="memItemRight" valign="bottom"><b>bserial_f64</b> (<a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *ctx, double *value)</td></tr>
 <tr class="memdesc:a19af13101fd53d8c020763cdb6d5abc5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/write a single double float. <br /></td></tr>
 <tr class="separator:a19af13101fd53d8c020763cdb6d5abc5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a47d892c74860dc07db9f40cd4703814a" id="r_a47d892c74860dc07db9f40cd4703814a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#a47d892c74860dc07db9f40cd4703814a">bserial_i8</a> (<a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *ctx, int8_t *i8)</td></tr>
-<tr class="separator:a47d892c74860dc07db9f40cd4703814a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aaf5c74c78a7a9932ddd1153ad2943743" id="r_aaf5c74c78a7a9932ddd1153ad2943743"><td class="memItemLeft" align="right" valign="top"><a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#aaf5c74c78a7a9932ddd1153ad2943743">bserial_i16</a> (<a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *ctx, int16_t *i16)</td></tr>
-<tr class="separator:aaf5c74c78a7a9932ddd1153ad2943743"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af4ede68d74ba24e2f62c5f307b949711" id="r_af4ede68d74ba24e2f62c5f307b949711"><td class="memItemLeft" align="right" valign="top"><a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#af4ede68d74ba24e2f62c5f307b949711">bserial_i32</a> (<a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *ctx, int32_t *i32)</td></tr>
-<tr class="separator:af4ede68d74ba24e2f62c5f307b949711"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8c17baaa6b0297a54050b4add0c5dca8" id="r_a8c17baaa6b0297a54050b4add0c5dca8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#a8c17baaa6b0297a54050b4add0c5dca8">bserial_u8</a> (<a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *ctx, uint8_t *u8)</td></tr>
-<tr class="separator:a8c17baaa6b0297a54050b4add0c5dca8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a46cf28122b4a64f8564e97d6212e711a" id="r_a46cf28122b4a64f8564e97d6212e711a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#a46cf28122b4a64f8564e97d6212e711a">bserial_u16</a> (<a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *ctx, uint16_t *u16)</td></tr>
-<tr class="separator:a46cf28122b4a64f8564e97d6212e711a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afc0cb21e632f15c4f1dd522c8bf03ced" id="r_afc0cb21e632f15c4f1dd522c8bf03ced"><td class="memItemLeft" align="right" valign="top"><a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#afc0cb21e632f15c4f1dd522c8bf03ced">bserial_u32</a> (<a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *ctx, uint32_t *u32)</td></tr>
-<tr class="separator:afc0cb21e632f15c4f1dd522c8bf03ced"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab135ee976170ef2f25c6f1713e5e5a48" id="r_ab135ee976170ef2f25c6f1713e5e5a48"><td class="memItemLeft" align="right" valign="top"><a id="ab135ee976170ef2f25c6f1713e5e5a48" name="ab135ee976170ef2f25c6f1713e5e5a48"></a>
 <a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a>&#160;</td><td class="memItemRight" valign="bottom"><b>bserial_bool</b> (<a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *ctx, bool *boolean)</td></tr>
 <tr class="memdesc:ab135ee976170ef2f25c6f1713e5e5a48"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/write a boolean. <br /></td></tr>
 <tr class="separator:ab135ee976170ef2f25c6f1713e5e5a48"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad5917f671f6318176d12d195cd39775f" id="r_ad5917f671f6318176d12d195cd39775f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#ad5917f671f6318176d12d195cd39775f">bserial_blob</a> (<a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *ctx, char *buf, uint64_t *len)</td></tr>
-<tr class="memdesc:ad5917f671f6318176d12d195cd39775f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/write a binary blob.  <br /></td></tr>
-<tr class="separator:ad5917f671f6318176d12d195cd39775f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1e9db74a29c5838f59655bea2fc77c06" id="r_a1e9db74a29c5838f59655bea2fc77c06"><td class="memItemLeft" align="right" valign="top"><a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#a1e9db74a29c5838f59655bea2fc77c06">bserial_blob_header</a> (<a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *ctx, uint64_t *len)</td></tr>
-<tr class="memdesc:a1e9db74a29c5838f59655bea2fc77c06"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/write a binary blob's header.  <br /></td></tr>
-<tr class="separator:a1e9db74a29c5838f59655bea2fc77c06"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3401b57c5e02d8eae2a49ca329b4b1a3" id="r_a3401b57c5e02d8eae2a49ca329b4b1a3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#a3401b57c5e02d8eae2a49ca329b4b1a3">bserial_typed_int</a> (<a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *ctx, void *value, <a class="el" href="structbserial__int__type__t.html">bserial_int_type_t</a> type)</td></tr>
+<tr class="memdesc:a3401b57c5e02d8eae2a49ca329b4b1a3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/write an integer of any type.  <br /></td></tr>
+<tr class="separator:a3401b57c5e02d8eae2a49ca329b4b1a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa41255d509df480d9667e7ac70c4f941" id="r_aa41255d509df480d9667e7ac70c4f941"><td class="memItemLeft" align="right" valign="top"><a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#aa41255d509df480d9667e7ac70c4f941">bserial_typed_len</a> (<a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *ctx, <a class="el" href="bserial_8h.html#a76d6918f02969334029e58a1cd8dadcc">bserial_len_fn_t</a> fn, void *len, <a class="el" href="structbserial__int__type__t.html">bserial_int_type_t</a> type)</td></tr>
+<tr class="memdesc:aa41255d509df480d9667e7ac70c4f941"><td class="mdescLeft">&#160;</td><td class="mdescRight">Apply a length operation to a length of any integer type.  <br /></td></tr>
+<tr class="separator:aa41255d509df480d9667e7ac70c4f941"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4cf971cdda822926db5fa6d87149c347" id="r_a4cf971cdda822926db5fa6d87149c347"><td class="memItemLeft" align="right" valign="top"><a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#a4cf971cdda822926db5fa6d87149c347">bserial_blob_u64</a> (<a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *ctx, char *buf, uint64_t *len)</td></tr>
+<tr class="memdesc:a4cf971cdda822926db5fa6d87149c347"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/write a binary blob.  <br /></td></tr>
+<tr class="separator:a4cf971cdda822926db5fa6d87149c347"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a88e5e5f3e8d87907aeb4c05dc4c1e733" id="r_a88e5e5f3e8d87907aeb4c05dc4c1e733"><td class="memItemLeft" align="right" valign="top"><a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#a88e5e5f3e8d87907aeb4c05dc4c1e733">bserial_typed_blob</a> (<a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *ctx, char *buf, void *len, <a class="el" href="structbserial__int__type__t.html">bserial_int_type_t</a> type)</td></tr>
+<tr class="separator:a88e5e5f3e8d87907aeb4c05dc4c1e733"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a05bafd5ff83d2d8f1985dd5a44828b79" id="r_a05bafd5ff83d2d8f1985dd5a44828b79"><td class="memItemLeft" align="right" valign="top"><a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#a05bafd5ff83d2d8f1985dd5a44828b79">bserial_blob_header_u64</a> (<a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *ctx, uint64_t *len)</td></tr>
+<tr class="memdesc:a05bafd5ff83d2d8f1985dd5a44828b79"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/write a binary blob's header.  <br /></td></tr>
+<tr class="separator:a05bafd5ff83d2d8f1985dd5a44828b79"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a59ba430636a464f8d8644792f3d52bc3" id="r_a59ba430636a464f8d8644792f3d52bc3"><td class="memItemLeft" align="right" valign="top"><a id="a59ba430636a464f8d8644792f3d52bc3" name="a59ba430636a464f8d8644792f3d52bc3"></a>
 <a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a>&#160;</td><td class="memItemRight" valign="bottom"><b>bserial_blob_body</b> (<a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *ctx, char *buf)</td></tr>
 <tr class="memdesc:a59ba430636a464f8d8644792f3d52bc3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/write a binary blob's body. <br /></td></tr>
@@ -301,21 +319,21 @@ size_t&#160;</td><td class="memItemRight" valign="bottom"><b>bserial_ctx_mem_siz
 <tr class="memitem:a4bd541267c55bebf79c2839283d8ea5a" id="r_a4bd541267c55bebf79c2839283d8ea5a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#a4bd541267c55bebf79c2839283d8ea5a">bserial_symbol</a> (<a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *ctx, const char **buf, uint64_t *len)</td></tr>
 <tr class="memdesc:a4bd541267c55bebf79c2839283d8ea5a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/write a symbol.  <br /></td></tr>
 <tr class="separator:a4bd541267c55bebf79c2839283d8ea5a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a120448dc636a70d108a9a76465d81ee3" id="r_a120448dc636a70d108a9a76465d81ee3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#a120448dc636a70d108a9a76465d81ee3">bserial_array</a> (<a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *ctx, uint64_t *len)</td></tr>
-<tr class="memdesc:a120448dc636a70d108a9a76465d81ee3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/write an array.  <br /></td></tr>
-<tr class="separator:a120448dc636a70d108a9a76465d81ee3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7fa83533084e02ce3ea80b6723175f6d" id="r_a7fa83533084e02ce3ea80b6723175f6d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#a7fa83533084e02ce3ea80b6723175f6d">bserial_table</a> (<a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *ctx, uint64_t *len)</td></tr>
-<tr class="memdesc:a7fa83533084e02ce3ea80b6723175f6d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/write a table.  <br /></td></tr>
-<tr class="separator:a7fa83533084e02ce3ea80b6723175f6d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7ccebaf359b8e269539971ae5d0efd18" id="r_a7ccebaf359b8e269539971ae5d0efd18"><td class="memItemLeft" align="right" valign="top"><a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#a7ccebaf359b8e269539971ae5d0efd18">bserial_array_u64</a> (<a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *ctx, uint64_t *len)</td></tr>
+<tr class="memdesc:a7ccebaf359b8e269539971ae5d0efd18"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/write an array.  <br /></td></tr>
+<tr class="separator:a7ccebaf359b8e269539971ae5d0efd18"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a912f07227f2ef9273f6bee1ac81bf0ee" id="r_a912f07227f2ef9273f6bee1ac81bf0ee"><td class="memItemLeft" align="right" valign="top"><a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#a912f07227f2ef9273f6bee1ac81bf0ee">bserial_table_u64</a> (<a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *ctx, uint64_t *len)</td></tr>
+<tr class="memdesc:a912f07227f2ef9273f6bee1ac81bf0ee"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/write a table.  <br /></td></tr>
+<tr class="separator:a912f07227f2ef9273f6bee1ac81bf0ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad011a5ec92074186c752409b63f7afbd" id="r_ad011a5ec92074186c752409b63f7afbd"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#ad011a5ec92074186c752409b63f7afbd">bserial_record</a> (<a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *ctx)</td></tr>
 <tr class="memdesc:ad011a5ec92074186c752409b63f7afbd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/write a record.  <br /></td></tr>
 <tr class="separator:ad011a5ec92074186c752409b63f7afbd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa263323ebc7bc8fc33a97514821d6b59" id="r_aa263323ebc7bc8fc33a97514821d6b59"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#aa263323ebc7bc8fc33a97514821d6b59">bserial_key</a> (<a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *ctx, const char *name, uint64_t len)</td></tr>
 <tr class="memdesc:aa263323ebc7bc8fc33a97514821d6b59"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/write a key.  <br /></td></tr>
 <tr class="separator:aa263323ebc7bc8fc33a97514821d6b59"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1809a58fbe960076532f7f6dc5214175" id="r_a1809a58fbe960076532f7f6dc5214175"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#a1809a58fbe960076532f7f6dc5214175">bserial_enum</a> (<a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *ctx, int *value)</td></tr>
-<tr class="memdesc:a1809a58fbe960076532f7f6dc5214175"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/write an enum.  <br /></td></tr>
-<tr class="separator:a1809a58fbe960076532f7f6dc5214175"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa52e04586440f4f2274e3541bf4b4274" id="r_aa52e04586440f4f2274e3541bf4b4274"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#aa52e04586440f4f2274e3541bf4b4274">bserial_typed_enum</a> (<a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *ctx, void *value, <a class="el" href="structbserial__int__type__t.html">bserial_int_type_t</a> type)</td></tr>
+<tr class="memdesc:aa52e04586440f4f2274e3541bf4b4274"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read/write an enum.  <br /></td></tr>
+<tr class="separator:aa52e04586440f4f2274e3541bf4b4274"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad518ed4099429db4ddae3054a90f6874" id="r_ad518ed4099429db4ddae3054a90f6874"><td class="memItemLeft" align="right" valign="top"><a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bserial_8h.html#ad518ed4099429db4ddae3054a90f6874">bserial_variant</a> (<a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *ctx, const char *name, uint64_t len, int value)</td></tr>
 <tr class="memdesc:ad518ed4099429db4ddae3054a90f6874"><td class="mdescLeft">&#160;</td><td class="mdescRight">Declare a variant of an enum.  <br /></td></tr>
 <tr class="separator:ad518ed4099429db4ddae3054a90f6874"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -403,11 +421,11 @@ Record</h3>
 <div class="line"> </div>
 <div class="line">    <span class="keywordflow">return</span> <a class="code hl_function" href="bserial_8h.html#a8dc8121519c7732864ca7211088b7776">bserial_status</a>(ctx);</div>
 <div class="line">}</div>
-<div class="ttc" id="abserial_8h_html_a38ebcbf7776e35a4837e45d9fbc96e79"><div class="ttname"><a href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a></div><div class="ttdeci">struct bserial_ctx_s bserial_ctx_t</div><div class="ttdoc">Serialization context.</div><div class="ttdef"><b>Definition</b> bserial.h:522</div></div>
-<div class="ttc" id="abserial_8h_html_a53882609fbb8d070dda12f9a2e501e3b"><div class="ttname"><a href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a></div><div class="ttdeci">bserial_status_t</div><div class="ttdoc">IO status.</div><div class="ttdef"><b>Definition</b> bserial.h:461</div></div>
-<div class="ttc" id="abserial_8h_html_a7d488368f2ebd0beefea7801a872f375"><div class="ttname"><a href="bserial_8h.html#a7d488368f2ebd0beefea7801a872f375">bserial_any_int</a></div><div class="ttdeci">#define bserial_any_int(ctx, integer)</div><div class="ttdoc">Automatically select the right integer serialization function.</div><div class="ttdef"><b>Definition</b> bserial.h:756</div></div>
+<div class="ttc" id="abserial_8h_html_a38ebcbf7776e35a4837e45d9fbc96e79"><div class="ttname"><a href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a></div><div class="ttdeci">struct bserial_ctx_s bserial_ctx_t</div><div class="ttdoc">Serialization context.</div><div class="ttdef"><b>Definition</b> bserial.h:534</div></div>
+<div class="ttc" id="abserial_8h_html_a53882609fbb8d070dda12f9a2e501e3b"><div class="ttname"><a href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a></div><div class="ttdeci">bserial_status_t</div><div class="ttdoc">IO status.</div><div class="ttdef"><b>Definition</b> bserial.h:473</div></div>
+<div class="ttc" id="abserial_8h_html_a7d488368f2ebd0beefea7801a872f375"><div class="ttname"><a href="bserial_8h.html#a7d488368f2ebd0beefea7801a872f375">bserial_any_int</a></div><div class="ttdeci">#define bserial_any_int(ctx, integer)</div><div class="ttdoc">Read/write an integer of any type.</div><div class="ttdef"><b>Definition</b> bserial.h:793</div></div>
 <div class="ttc" id="abserial_8h_html_a8dc8121519c7732864ca7211088b7776"><div class="ttname"><a href="bserial_8h.html#a8dc8121519c7732864ca7211088b7776">bserial_status</a></div><div class="ttdeci">bserial_status_t bserial_status(bserial_ctx_t *ctx)</div><div class="ttdoc">Get the current IO status.</div></div>
-<div class="ttc" id="abserial_8h_html_a96e7bd6b140b4881d2d5757a5bcbffbc"><div class="ttname"><a href="bserial_8h.html#a96e7bd6b140b4881d2d5757a5bcbffbc">BSERIAL_CHECK_STATUS</a></div><div class="ttdeci">#define BSERIAL_CHECK_STATUS(OP)</div><div class="ttdoc">Helper macro to check for IO status and return on error.</div><div class="ttdef"><b>Definition</b> bserial.h:454</div></div>
+<div class="ttc" id="abserial_8h_html_a96e7bd6b140b4881d2d5757a5bcbffbc"><div class="ttname"><a href="bserial_8h.html#a96e7bd6b140b4881d2d5757a5bcbffbc">BSERIAL_CHECK_STATUS</a></div><div class="ttdeci">#define BSERIAL_CHECK_STATUS(OP)</div><div class="ttdoc">Helper macro to check for IO status and return on error.</div><div class="ttdef"><b>Definition</b> bserial.h:466</div></div>
 <div class="ttc" id="abserial_8h_html_aa263323ebc7bc8fc33a97514821d6b59"><div class="ttname"><a href="bserial_8h.html#aa263323ebc7bc8fc33a97514821d6b59">bserial_key</a></div><div class="ttdeci">bool bserial_key(bserial_ctx_t *ctx, const char *name, uint64_t len)</div><div class="ttdoc">Read/write a key.</div></div>
 <div class="ttc" id="abserial_8h_html_aadc0750bc75a41f8b32fe9404e6954c2"><div class="ttname"><a href="bserial_8h.html#aadc0750bc75a41f8b32fe9404e6954c2">bserial_f32</a></div><div class="ttdeci">bserial_status_t bserial_f32(bserial_ctx_t *ctx, float *value)</div><div class="ttdoc">Read/write a single precision float.</div></div>
 <div class="ttc" id="abserial_8h_html_ad011a5ec92074186c752409b63f7afbd"><div class="ttname"><a href="bserial_8h.html#ad011a5ec92074186c752409b63f7afbd">bserial_record</a></div><div class="ttdeci">bool bserial_record(bserial_ctx_t *ctx)</div><div class="ttdoc">Read/write a record.</div></div>
@@ -429,8 +447,8 @@ Record</h3>
 <div class="line"> </div>
 <div class="line">    <span class="keywordflow">return</span> <a class="code hl_function" href="bserial_8h.html#a8dc8121519c7732864ca7211088b7776">bserial_status</a>(ctx);</div>
 <div class="line">}</div>
-<div class="ttc" id="abserial_8h_html_a6b7a06a5232f7be971abccb32123fe39"><div class="ttname"><a href="bserial_8h.html#a6b7a06a5232f7be971abccb32123fe39">BSERIAL_KEY</a></div><div class="ttdeci">#define BSERIAL_KEY(ctx, name)</div><div class="ttdoc">Read/write a key in a record.</div><div class="ttdef"><b>Definition</b> bserial.h:888</div></div>
-<div class="ttc" id="abserial_8h_html_af46e2853c8411a1cc72a20f4e45883e4"><div class="ttname"><a href="bserial_8h.html#af46e2853c8411a1cc72a20f4e45883e4">BSERIAL_RECORD</a></div><div class="ttdeci">#define BSERIAL_RECORD(ctx)</div><div class="ttdoc">Read/write a record.</div><div class="ttdef"><b>Definition</b> bserial.h:879</div></div>
+<div class="ttc" id="abserial_8h_html_a6b7a06a5232f7be971abccb32123fe39"><div class="ttname"><a href="bserial_8h.html#a6b7a06a5232f7be971abccb32123fe39">BSERIAL_KEY</a></div><div class="ttdeci">#define BSERIAL_KEY(ctx, name)</div><div class="ttdoc">Read/write a key in a record.</div><div class="ttdef"><b>Definition</b> bserial.h:975</div></div>
+<div class="ttc" id="abserial_8h_html_af46e2853c8411a1cc72a20f4e45883e4"><div class="ttname"><a href="bserial_8h.html#af46e2853c8411a1cc72a20f4e45883e4">BSERIAL_RECORD</a></div><div class="ttdeci">#define BSERIAL_RECORD(ctx)</div><div class="ttdoc">Read/write a record.</div><div class="ttdef"><b>Definition</b> bserial.h:966</div></div>
 </div><!-- fragment --><p>The peculiar structure has to do with how the library handles record serialization. Considering that it has to support the following:</p>
 <ul>
 <li>New fields may be added.</li>
@@ -491,13 +509,19 @@ Incompatible type change</h4>
 <div class="line">    }</div>
 <div class="line">}</div>
 <div class="ttc" id="abserial_8h_html_a9efe4064847e35223ecbaa17e59da6d1"><div class="ttname"><a href="bserial_8h.html#a9efe4064847e35223ecbaa17e59da6d1">bserial_mode</a></div><div class="ttdeci">bserial_mode_t bserial_mode(bserial_ctx_t *ctx)</div><div class="ttdoc">Get the current serialization mode.</div></div>
-<div class="ttc" id="abserial_8h_html_aa72d84b2b1108e2128281caab136bd8ba7eb9e8a1b996d240a327695da0e6c031"><div class="ttname"><a href="bserial_8h.html#aa72d84b2b1108e2128281caab136bd8ba7eb9e8a1b996d240a327695da0e6c031">BSERIAL_MODE_READ</a></div><div class="ttdeci">@ BSERIAL_MODE_READ</div><div class="ttdoc">Reading.</div><div class="ttdef"><b>Definition</b> bserial.h:514</div></div>
+<div class="ttc" id="abserial_8h_html_aa72d84b2b1108e2128281caab136bd8ba7eb9e8a1b996d240a327695da0e6c031"><div class="ttname"><a href="bserial_8h.html#aa72d84b2b1108e2128281caab136bd8ba7eb9e8a1b996d240a327695da0e6c031">BSERIAL_MODE_READ</a></div><div class="ttdeci">@ BSERIAL_MODE_READ</div><div class="ttdoc">Reading.</div><div class="ttdef"><b>Definition</b> bserial.h:526</div></div>
 </div><!-- fragment --><p>Versioning can thus, be done per field instead of per record. This should make backward-compatible schema change relatively painless.</p>
 <h3><a class="anchor" id="autotoc_md12"></a>
 Enum</h3>
 <p>An enum is stored as a symbol: the name of the active variant. Like record keys, the names are declared in the serialization code and the library matches the stream against them. No lookup table is stored in the stream and the numeric values of the C enum never leave the program, so they can be renumbered or reordered freely.</p>
-<div class="fragment"><div class="line"><a class="code hl_enumeration" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a></div>
-<div class="line">serialize_shape_kind(<a class="code hl_typedef" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a>* ctx, <span class="keywordtype">int</span>* kind) {</div>
+<div class="fragment"><div class="line"><span class="keyword">typedef</span> <span class="keyword">enum</span> {</div>
+<div class="line">    SHAPE_CIRCLE,</div>
+<div class="line">    SHAPE_SQUARE,</div>
+<div class="line">    SHAPE_TRIANGLE,</div>
+<div class="line">} shape_kind_t;</div>
+<div class="line"> </div>
+<div class="line"><a class="code hl_enumeration" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a></div>
+<div class="line">serialize_shape_kind(<a class="code hl_typedef" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a>* ctx, shape_kind_t* kind) {</div>
 <div class="line">    <a class="code hl_define" href="bserial_8h.html#a852225e32d1fc707767ab38af021f9d2">BSERIAL_ENUM</a>(ctx, kind) {</div>
 <div class="line">        <a class="code hl_define" href="bserial_8h.html#a02aa27ef3ee671f16da3c9ba41b6ab5d">BSERIAL_VARIANT</a>(ctx, SHAPE_CIRCLE);</div>
 <div class="line">        <a class="code hl_define" href="bserial_8h.html#a02aa27ef3ee671f16da3c9ba41b6ab5d">BSERIAL_VARIANT</a>(ctx, SHAPE_SQUARE);</div>
@@ -506,9 +530,9 @@ Enum</h3>
 <div class="line"> </div>
 <div class="line">    <span class="keywordflow">return</span> <a class="code hl_function" href="bserial_8h.html#a8dc8121519c7732864ca7211088b7776">bserial_status</a>(ctx);</div>
 <div class="line">}</div>
-<div class="ttc" id="abserial_8h_html_a02aa27ef3ee671f16da3c9ba41b6ab5d"><div class="ttname"><a href="bserial_8h.html#a02aa27ef3ee671f16da3c9ba41b6ab5d">BSERIAL_VARIANT</a></div><div class="ttdeci">#define BSERIAL_VARIANT(ctx, name)</div><div class="ttdoc">Declare a variant in an enum.</div><div class="ttdef"><b>Definition</b> bserial.h:944</div></div>
-<div class="ttc" id="abserial_8h_html_a852225e32d1fc707767ab38af021f9d2"><div class="ttname"><a href="bserial_8h.html#a852225e32d1fc707767ab38af021f9d2">BSERIAL_ENUM</a></div><div class="ttdeci">#define BSERIAL_ENUM(ctx, value)</div><div class="ttdoc">Read/write an enum.</div><div class="ttdef"><b>Definition</b> bserial.h:934</div></div>
-</div><!-- fragment --><p>When writing, the variant whose value matches <code>*kind</code> writes its name. When reading, the variant whose name matches the stream stores its value into <code>*kind</code>. A value with no name or a name with no variant is an error.</p>
+<div class="ttc" id="abserial_8h_html_a02aa27ef3ee671f16da3c9ba41b6ab5d"><div class="ttname"><a href="bserial_8h.html#a02aa27ef3ee671f16da3c9ba41b6ab5d">BSERIAL_VARIANT</a></div><div class="ttdeci">#define BSERIAL_VARIANT(ctx, name)</div><div class="ttdoc">Declare a variant in an enum.</div><div class="ttdef"><b>Definition</b> bserial.h:1042</div></div>
+<div class="ttc" id="abserial_8h_html_a852225e32d1fc707767ab38af021f9d2"><div class="ttname"><a href="bserial_8h.html#a852225e32d1fc707767ab38af021f9d2">BSERIAL_ENUM</a></div><div class="ttdeci">#define BSERIAL_ENUM(ctx, value)</div><div class="ttdoc">Read/write an enum.</div><div class="ttdef"><b>Definition</b> bserial.h:1031</div></div>
+</div><!-- fragment --><p><code>BSERIAL_ENUM</code> takes a pointer to an integer or enum of any type. When writing, the variant whose value matches the pointee writes its name. When reading, the variant whose name matches the stream stores its value into the pointee. A value with no name or a name with no variant is an error.</p>
 <p>Renaming a variant is handled like renaming a record field: keep the old name as a read-only alias.</p>
 <div class="fragment"><div class="line"><a class="code hl_define" href="bserial_8h.html#a852225e32d1fc707767ab38af021f9d2">BSERIAL_ENUM</a>(ctx, kind) {</div>
 <div class="line">    <span class="keywordflow">if</span> (<a class="code hl_function" href="bserial_8h.html#a9efe4064847e35223ecbaa17e59da6d1">bserial_mode</a>(ctx) == <a class="code hl_enumvalue" href="bserial_8h.html#aa72d84b2b1108e2128281caab136bd8ba7eb9e8a1b996d240a327695da0e6c031">BSERIAL_MODE_READ</a>) {</div>
@@ -524,8 +548,8 @@ Variable length types</h3>
 <p>Beside the initial fixed-size memory buffer passed to <code>bserial_make_ctx</code>, the library does not allocate any more memory. For variable-length data types such as table or array, user code has to make their own decision. In general, fixed allocation is encouraged and it is always important to enforce a hard limit on length. However, when dynamic size is needed something like this can be used:</p>
 <div class="fragment"><div class="line"><a class="code hl_enumeration" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a></div>
 <div class="line">serialize_my_array(<a class="code hl_typedef" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a>* ctx, my_array_t* array) {  <span class="comment">// The program&#39;s array type</span></div>
-<div class="line">    uint64_t len = (uint64_t)my_array_len(array);  <span class="comment">// Put length into a variable</span></div>
-<div class="line">    <a class="code hl_define" href="bserial_8h.html#a96e7bd6b140b4881d2d5757a5bcbffbc">BSERIAL_CHECK_STATUS</a>(<a class="code hl_function" href="bserial_8h.html#a120448dc636a70d108a9a76465d81ee3">bserial_array</a>(ctx, &amp;len));  <span class="comment">// Serialize length</span></div>
+<div class="line">    <span class="keywordtype">int</span> len = my_array_len(array);  <span class="comment">// Put length into a variable</span></div>
+<div class="line">    <a class="code hl_define" href="bserial_8h.html#a96e7bd6b140b4881d2d5757a5bcbffbc">BSERIAL_CHECK_STATUS</a>(<a class="code hl_define" href="bserial_8h.html#afeb26b8c4c541f98593fa2970754a1f3">bserial_array</a>(ctx, &amp;len));  <span class="comment">// Serialize length</span></div>
 <div class="line">    <span class="keywordflow">if</span> (len &gt; MY_ARRAY_MAX_LEN) { <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3ba26a96cefb83bab521b44f029a20fe239">BSERIAL_MALFORMED</a>; }  <span class="comment">// Limit check</span></div>
 <div class="line">    my_array_resize(array, len);  <span class="comment">// Dynamically resize the array to fit</span></div>
 <div class="line"> </div>
@@ -536,8 +560,8 @@ Variable length types</h3>
 <div class="line"> </div>
 <div class="line">    <span class="keywordflow">return</span> <a class="code hl_function" href="bserial_8h.html#a8dc8121519c7732864ca7211088b7776">bserial_status</a>(ctx);</div>
 <div class="line">}</div>
-<div class="ttc" id="abserial_8h_html_a120448dc636a70d108a9a76465d81ee3"><div class="ttname"><a href="bserial_8h.html#a120448dc636a70d108a9a76465d81ee3">bserial_array</a></div><div class="ttdeci">bserial_status_t bserial_array(bserial_ctx_t *ctx, uint64_t *len)</div><div class="ttdoc">Read/write an array.</div></div>
-<div class="ttc" id="abserial_8h_html_a53882609fbb8d070dda12f9a2e501e3ba26a96cefb83bab521b44f029a20fe239"><div class="ttname"><a href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3ba26a96cefb83bab521b44f029a20fe239">BSERIAL_MALFORMED</a></div><div class="ttdeci">@ BSERIAL_MALFORMED</div><div class="ttdoc">Malformed data encountered.</div><div class="ttdef"><b>Definition</b> bserial.h:467</div></div>
+<div class="ttc" id="abserial_8h_html_a53882609fbb8d070dda12f9a2e501e3ba26a96cefb83bab521b44f029a20fe239"><div class="ttname"><a href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3ba26a96cefb83bab521b44f029a20fe239">BSERIAL_MALFORMED</a></div><div class="ttdeci">@ BSERIAL_MALFORMED</div><div class="ttdoc">Malformed data encountered.</div><div class="ttdef"><b>Definition</b> bserial.h:479</div></div>
+<div class="ttc" id="abserial_8h_html_afeb26b8c4c541f98593fa2970754a1f3"><div class="ttname"><a href="bserial_8h.html#afeb26b8c4c541f98593fa2970754a1f3">bserial_array</a></div><div class="ttdeci">#define bserial_array(ctx, len)</div><div class="ttdoc">Read/write an array.</div><div class="ttdef"><b>Definition</b> bserial.h:898</div></div>
 </div><!-- fragment --><p>In the write path, <code>my_array_len_resize</code> should be a noop. In the read path, <code>my_array_len_resize</code> will adjust the array to have the appropriate size.</p>
 <p>In general, variable length type should follow the pattern of:</p>
 <ol type="1">
@@ -547,6 +571,7 @@ Variable length types</h3>
 <li>If using dynamic memory, resize storage to fit length.</li>
 <li>Loop through elements and serialize them.</li>
 </ol>
+<p>Lengths, like <code>bserial_any_int</code>, accept a pointer to any integer type. They are widened to 64 bits on the wire. A negative length on write or a length that does not fit in the variable on read is an error. The <code>_u64</code> variants such as <code>bserial_array_u64</code> are the underlying functions.</p>
 <h3><a class="anchor" id="autotoc_md14"></a>
 Table</h3>
 <p><code>bserial_array</code> and <code>bserial_table</code> have the same signature. The only requirement for <code>bserial_table</code> is that all subsequent elements must be records of the same type: same set of keys and values must have the same type. The storage optimization is done automatically.</p>
@@ -556,8 +581,8 @@ String encoding validation</h3>
 <p>This is considered to be out of scope. However, it is not difficult to create a helper in user code:</p>
 <div class="fragment"><div class="line"><a class="code hl_enumeration" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a></div>
 <div class="line">serialize_utf8_str(<a class="code hl_typedef" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a>* ctx, my_string_t* str) {  <span class="comment">// The program&#39;s string type</span></div>
-<div class="line">    uint64_t len = (uint64_t)my_string_len(str);  <span class="comment">// Put length into a variable</span></div>
-<div class="line">    <a class="code hl_define" href="bserial_8h.html#a96e7bd6b140b4881d2d5757a5bcbffbc">BSERIAL_CHECK_STATUS</a>(<a class="code hl_function" href="bserial_8h.html#a1e9db74a29c5838f59655bea2fc77c06">bserial_blob_header</a>(ctx, &amp;len));  <span class="comment">// Serialize length</span></div>
+<div class="line">    <span class="keywordtype">int</span> len = my_string_len(str);  <span class="comment">// Put length into a variable</span></div>
+<div class="line">    <a class="code hl_define" href="bserial_8h.html#a96e7bd6b140b4881d2d5757a5bcbffbc">BSERIAL_CHECK_STATUS</a>(<a class="code hl_define" href="bserial_8h.html#a70742ca8ccd51945da6c3fb090da2138">bserial_blob_header</a>(ctx, &amp;len));  <span class="comment">// Serialize length</span></div>
 <div class="line">    <span class="keywordflow">if</span> (len &gt; MY_STRING_MAX_LEN) { <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3ba26a96cefb83bab521b44f029a20fe239">BSERIAL_MALFORMED</a>; }  <span class="comment">// Limit check</span></div>
 <div class="line">    my_string_resize(str, len);  <span class="comment">// Dynamically resize the string</span></div>
 <div class="line"> </div>
@@ -569,8 +594,8 @@ String encoding validation</h3>
 <div class="line"> </div>
 <div class="line">    <span class="keywordflow">return</span> <a class="code hl_function" href="bserial_8h.html#a8dc8121519c7732864ca7211088b7776">bserial_status</a>(ctx);</div>
 <div class="line">}</div>
-<div class="ttc" id="abserial_8h_html_a1e9db74a29c5838f59655bea2fc77c06"><div class="ttname"><a href="bserial_8h.html#a1e9db74a29c5838f59655bea2fc77c06">bserial_blob_header</a></div><div class="ttdeci">bserial_status_t bserial_blob_header(bserial_ctx_t *ctx, uint64_t *len)</div><div class="ttdoc">Read/write a binary blob's header.</div></div>
 <div class="ttc" id="abserial_8h_html_a59ba430636a464f8d8644792f3d52bc3"><div class="ttname"><a href="bserial_8h.html#a59ba430636a464f8d8644792f3d52bc3">bserial_blob_body</a></div><div class="ttdeci">bserial_status_t bserial_blob_body(bserial_ctx_t *ctx, char *buf)</div><div class="ttdoc">Read/write a binary blob's body.</div></div>
+<div class="ttc" id="abserial_8h_html_a70742ca8ccd51945da6c3fb090da2138"><div class="ttname"><a href="bserial_8h.html#a70742ca8ccd51945da6c3fb090da2138">bserial_blob_header</a></div><div class="ttdeci">#define bserial_blob_header(ctx, len)</div><div class="ttdoc">Read/write a binary blob's header.</div><div class="ttdef"><b>Definition</b> bserial.h:859</div></div>
 </div><!-- fragment --><h3><a class="anchor" id="autotoc_md16"></a>
 Variant/tagged union types</h3>
 <p>There is no built-in support for these types. However, they could be emulated with an array where:</p>
@@ -580,8 +605,8 @@ Variant/tagged union types</h3>
 </ul>
 <div class="fragment"><div class="line"><a class="code hl_enumeration" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a></div>
 <div class="line">serialize_variant(<a class="code hl_typedef" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a>* ctx, my_variant_t* variant) {</div>
-<div class="line">    uint64_t len = 2;  <span class="comment">// The size is always 2</span></div>
-<div class="line">    <a class="code hl_define" href="bserial_8h.html#a96e7bd6b140b4881d2d5757a5bcbffbc">BSERIAL_CHECK_STATUS</a>(<a class="code hl_function" href="bserial_8h.html#a120448dc636a70d108a9a76465d81ee3">bserial_array</a>(ctx, &amp;len));</div>
+<div class="line">    <span class="keywordtype">int</span> len = 2;  <span class="comment">// The size is always 2</span></div>
+<div class="line">    <a class="code hl_define" href="bserial_8h.html#a96e7bd6b140b4881d2d5757a5bcbffbc">BSERIAL_CHECK_STATUS</a>(<a class="code hl_define" href="bserial_8h.html#afeb26b8c4c541f98593fa2970754a1f3">bserial_array</a>(ctx, &amp;len));</div>
 <div class="line">    <span class="keywordflow">if</span> (len != 2) { <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3ba26a96cefb83bab521b44f029a20fe239">BSERIAL_MALFORMED</a>; }</div>
 <div class="line"> </div>
 <div class="line">    <a class="code hl_define" href="bserial_8h.html#a96e7bd6b140b4881d2d5757a5bcbffbc">BSERIAL_CHECK_STATUS</a>(serialize_my_variant_type(ctx, &amp;variant-&gt;type));  <span class="comment">// An enum</span></div>
@@ -601,8 +626,8 @@ Associative map</h3>
 <p>Record is optimized for serializing a fixed set of keys and it is not suitable for associative map types such as hashtable. Instead, a table should be used:</p>
 <div class="fragment"><div class="line"><a class="code hl_enumeration" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a></div>
 <div class="line">serialize_hashmap(<a class="code hl_typedef" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a>* ctx, my_hashmap_t* hashmap) {</div>
-<div class="line">    uint64_t len = my_hashmap_len(hashmap);</div>
-<div class="line">    <a class="code hl_define" href="bserial_8h.html#a96e7bd6b140b4881d2d5757a5bcbffbc">BSERIAL_CHECK_STATUS</a>(<a class="code hl_function" href="bserial_8h.html#a7fa83533084e02ce3ea80b6723175f6d">bserial_table</a>(ctx, &amp;len));</div>
+<div class="line">    <span class="keywordtype">size_t</span> len = my_hashmap_len(hashmap);</div>
+<div class="line">    <a class="code hl_define" href="bserial_8h.html#a96e7bd6b140b4881d2d5757a5bcbffbc">BSERIAL_CHECK_STATUS</a>(<a class="code hl_define" href="bserial_8h.html#ad7535618a109001ee8e8b9fbd60d14fe">bserial_table</a>(ctx, &amp;len));</div>
 <div class="line"> </div>
 <div class="line">    <span class="keywordflow">if</span> (<a class="code hl_function" href="bserial_8h.html#a9efe4064847e35223ecbaa17e59da6d1">bserial_mode</a>(ctx) == <a class="code hl_enumvalue" href="bserial_8h.html#aa72d84b2b1108e2128281caab136bd8ba7eb9e8a1b996d240a327695da0e6c031">BSERIAL_MODE_READ</a>) {</div>
 <div class="line">        <span class="comment">// Optionally, reserve</span></div>
@@ -628,7 +653,7 @@ Associative map</h3>
 <div class="line"> </div>
 <div class="line">    <span class="keywordflow">return</span> <a class="code hl_function" href="bserial_8h.html#a8dc8121519c7732864ca7211088b7776">bserial_status</a>(ctx);</div>
 <div class="line">}</div>
-<div class="ttc" id="abserial_8h_html_a7fa83533084e02ce3ea80b6723175f6d"><div class="ttname"><a href="bserial_8h.html#a7fa83533084e02ce3ea80b6723175f6d">bserial_table</a></div><div class="ttdeci">bserial_status_t bserial_table(bserial_ctx_t *ctx, uint64_t *len)</div><div class="ttdoc">Read/write a table.</div></div>
+<div class="ttc" id="abserial_8h_html_ad7535618a109001ee8e8b9fbd60d14fe"><div class="ttname"><a href="bserial_8h.html#ad7535618a109001ee8e8b9fbd60d14fe">bserial_table</a></div><div class="ttdeci">#define bserial_table(ctx, len)</div><div class="ttdoc">Read/write a table.</div><div class="ttdef"><b>Definition</b> bserial.h:918</div></div>
 </div><!-- fragment --><p>Where <code>serialize_hashmap_entry</code> defines a record:</p>
 <div class="fragment"><div class="line"><a class="code hl_enumeration" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a></div>
 <div class="line">serialize_hashmap_entry(<a class="code hl_typedef" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a>* ctx, my_hashmap_entry_t* entry) {</div>
@@ -667,32 +692,126 @@ Associative map</h3>
         <tr>
           <td></td>
           <td>)</td>
-          <td></td><td></td>
+          <td></td><td>&#160;&#160;&#160;	<a class="el" href="bserial_8h.html#a3401b57c5e02d8eae2a49ca329b4b1a3">bserial_typed_int</a>(ctx, (integer), <a class="el" href="bserial_8h.html#a70ccb2fcda48f6c61e4b3784f68a723c">BSERIAL_INT_TYPE</a>(integer))</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<b>Value:</b><div class="fragment"><div class="line">    _Generic( \</div>
-<div class="line">        integer, \</div>
-<div class="line">        int8_t*: <a class="code hl_function" href="bserial_8h.html#a47d892c74860dc07db9f40cd4703814a">bserial_i8</a>, \</div>
-<div class="line">        int16_t*: <a class="code hl_function" href="bserial_8h.html#aaf5c74c78a7a9932ddd1153ad2943743">bserial_i16</a>, \</div>
-<div class="line">        int32_t*: <a class="code hl_function" href="bserial_8h.html#af4ede68d74ba24e2f62c5f307b949711">bserial_i32</a>, \</div>
-<div class="line">        int64_t*: <a class="code hl_function" href="bserial_8h.html#a5870bbbab52ea349e6c104401de6a4cf">bserial_sint</a>, \</div>
-<div class="line">        uint8_t*: <a class="code hl_function" href="bserial_8h.html#a8c17baaa6b0297a54050b4add0c5dca8">bserial_u8</a>, \</div>
-<div class="line">        uint16_t*: <a class="code hl_function" href="bserial_8h.html#a46cf28122b4a64f8564e97d6212e711a">bserial_u16</a>, \</div>
-<div class="line">        uint32_t*: <a class="code hl_function" href="bserial_8h.html#afc0cb21e632f15c4f1dd522c8bf03ced">bserial_u32</a>, \</div>
-<div class="line">        uint64_t*: <a class="code hl_function" href="bserial_8h.html#a4939b409a645787ee029a2eb63868567">bserial_uint</a> \</div>
-<div class="line">    )(ctx, integer)</div>
-<div class="ttc" id="abserial_8h_html_a46cf28122b4a64f8564e97d6212e711a"><div class="ttname"><a href="bserial_8h.html#a46cf28122b4a64f8564e97d6212e711a">bserial_u16</a></div><div class="ttdeci">bserial_status_t bserial_u16(bserial_ctx_t *ctx, uint16_t *u16)</div></div>
-<div class="ttc" id="abserial_8h_html_a47d892c74860dc07db9f40cd4703814a"><div class="ttname"><a href="bserial_8h.html#a47d892c74860dc07db9f40cd4703814a">bserial_i8</a></div><div class="ttdeci">bserial_status_t bserial_i8(bserial_ctx_t *ctx, int8_t *i8)</div></div>
-<div class="ttc" id="abserial_8h_html_a4939b409a645787ee029a2eb63868567"><div class="ttname"><a href="bserial_8h.html#a4939b409a645787ee029a2eb63868567">bserial_uint</a></div><div class="ttdeci">bserial_status_t bserial_uint(bserial_ctx_t *ctx, uint64_t *value)</div><div class="ttdoc">Read/write an unsigned varint.</div></div>
-<div class="ttc" id="abserial_8h_html_a5870bbbab52ea349e6c104401de6a4cf"><div class="ttname"><a href="bserial_8h.html#a5870bbbab52ea349e6c104401de6a4cf">bserial_sint</a></div><div class="ttdeci">bserial_status_t bserial_sint(bserial_ctx_t *ctx, int64_t *value)</div><div class="ttdoc">Read/write a signed varint.</div></div>
-<div class="ttc" id="abserial_8h_html_a8c17baaa6b0297a54050b4add0c5dca8"><div class="ttname"><a href="bserial_8h.html#a8c17baaa6b0297a54050b4add0c5dca8">bserial_u8</a></div><div class="ttdeci">bserial_status_t bserial_u8(bserial_ctx_t *ctx, uint8_t *u8)</div></div>
-<div class="ttc" id="abserial_8h_html_aaf5c74c78a7a9932ddd1153ad2943743"><div class="ttname"><a href="bserial_8h.html#aaf5c74c78a7a9932ddd1153ad2943743">bserial_i16</a></div><div class="ttdeci">bserial_status_t bserial_i16(bserial_ctx_t *ctx, int16_t *i16)</div></div>
-<div class="ttc" id="abserial_8h_html_af4ede68d74ba24e2f62c5f307b949711"><div class="ttname"><a href="bserial_8h.html#af4ede68d74ba24e2f62c5f307b949711">bserial_i32</a></div><div class="ttdeci">bserial_status_t bserial_i32(bserial_ctx_t *ctx, int32_t *i32)</div></div>
-<div class="ttc" id="abserial_8h_html_afc0cb21e632f15c4f1dd522c8bf03ced"><div class="ttname"><a href="bserial_8h.html#afc0cb21e632f15c4f1dd522c8bf03ced">bserial_u32</a></div><div class="ttdeci">bserial_status_t bserial_u32(bserial_ctx_t *ctx, uint32_t *u32)</div></div>
-</div><!-- fragment -->
-<p>Automatically select the right integer serialization function. </p>
-<p>For types smaller than 64 bits, bound check is also performed. </p>
+
+<p>Read/write an integer of any type. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ctx</td><td>The serialization context. </td></tr>
+    <tr><td class="paramname">integer</td><td>Pointer to an integer of any fundamental type or a typedef of one. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="afeb26b8c4c541f98593fa2970754a1f3" name="afeb26b8c4c541f98593fa2970754a1f3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afeb26b8c4c541f98593fa2970754a1f3">&#9670;&#160;</a></span>bserial_array</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define bserial_array</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">ctx, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">len&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td>&#160;&#160;&#160;	<a class="el" href="bserial_8h.html#aa41255d509df480d9667e7ac70c4f941">bserial_typed_len</a>(ctx, <a class="el" href="bserial_8h.html#a7ccebaf359b8e269539971ae5d0efd18">bserial_array_u64</a>, (len), <a class="el" href="bserial_8h.html#a70ccb2fcda48f6c61e4b3784f68a723c">BSERIAL_INT_TYPE</a>(len))</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Read/write an array. </p>
+<p>Same as <a class="el" href="bserial_8h.html#a7ccebaf359b8e269539971ae5d0efd18">bserial_array_u64</a> but <em>len</em> can be a pointer to any integer type. </p>
+
+</div>
+</div>
+<a id="ab535a9752b090ccb3ce939973a61fbbe" name="ab535a9752b090ccb3ce939973a61fbbe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab535a9752b090ccb3ce939973a61fbbe">&#9670;&#160;</a></span>bserial_blob</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define bserial_blob</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">ctx, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">buf, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">len&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td>&#160;&#160;&#160;	<a class="el" href="bserial_8h.html#a88e5e5f3e8d87907aeb4c05dc4c1e733">bserial_typed_blob</a>(ctx, buf, (len), <a class="el" href="bserial_8h.html#a70ccb2fcda48f6c61e4b3784f68a723c">BSERIAL_INT_TYPE</a>(len))</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Read/write a binary blob. </p>
+<p>Same as <a class="el" href="bserial_8h.html#a4cf971cdda822926db5fa6d87149c347">bserial_blob_u64</a> but <em>len</em> can be a pointer to any integer type.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ctx</td><td>The serialization context. </td></tr>
+    <tr><td class="paramname">buf</td><td>The buffer to read/write. </td></tr>
+    <tr><td class="paramname">len</td><td>Pointer to the size of the buffer. Will be set to the actual size. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a70742ca8ccd51945da6c3fb090da2138" name="a70742ca8ccd51945da6c3fb090da2138"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a70742ca8ccd51945da6c3fb090da2138">&#9670;&#160;</a></span>bserial_blob_header</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define bserial_blob_header</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">ctx, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">len&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td>&#160;&#160;&#160;	<a class="el" href="bserial_8h.html#aa41255d509df480d9667e7ac70c4f941">bserial_typed_len</a>(ctx, <a class="el" href="bserial_8h.html#a05bafd5ff83d2d8f1985dd5a44828b79">bserial_blob_header_u64</a>, (len), <a class="el" href="bserial_8h.html#a70ccb2fcda48f6c61e4b3784f68a723c">BSERIAL_INT_TYPE</a>(len))</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Read/write a binary blob's header. </p>
+<p>Same as <a class="el" href="bserial_8h.html#a05bafd5ff83d2d8f1985dd5a44828b79">bserial_blob_header_u64</a> but <em>len</em> can be a pointer to any integer type. </p>
 
 </div>
 </div>
@@ -715,7 +834,7 @@ Associative map</h3>
 <div class="line">        <a class="code hl_enumeration" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a> bserial__status = OP; \</div>
 <div class="line">        if (bserial__status != <a class="code hl_enumvalue" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3ba0e569cfcfda76d402f15530cf5278187">BSERIAL_OK</a>) { <span class="keywordflow">return</span> bserial__status; } \</div>
 <div class="line">    } <span class="keywordflow">while</span>(0)</div>
-<div class="ttc" id="abserial_8h_html_a53882609fbb8d070dda12f9a2e501e3ba0e569cfcfda76d402f15530cf5278187"><div class="ttname"><a href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3ba0e569cfcfda76d402f15530cf5278187">BSERIAL_OK</a></div><div class="ttdeci">@ BSERIAL_OK</div><div class="ttdoc">No error.</div><div class="ttdef"><b>Definition</b> bserial.h:463</div></div>
+<div class="ttc" id="abserial_8h_html_a53882609fbb8d070dda12f9a2e501e3ba0e569cfcfda76d402f15530cf5278187"><div class="ttname"><a href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3ba0e569cfcfda76d402f15530cf5278187">BSERIAL_OK</a></div><div class="ttdeci">@ BSERIAL_OK</div><div class="ttdoc">No error.</div><div class="ttdef"><b>Definition</b> bserial.h:475</div></div>
 </div><!-- fragment -->
 <p>Helper macro to check for IO status and return on error. </p>
 
@@ -742,19 +861,64 @@ Associative map</h3>
         <tr>
           <td></td>
           <td>)</td>
-          <td></td><td>&#160;&#160;&#160;while (<a class="el" href="bserial_8h.html#a1809a58fbe960076532f7f6dc5214175">bserial_enum</a>(ctx, value))</td>
+          <td></td><td>&#160;&#160;&#160;	while (<a class="el" href="bserial_8h.html#aa52e04586440f4f2274e3541bf4b4274">bserial_typed_enum</a>(ctx, (value), <a class="el" href="bserial_8h.html#a70ccb2fcda48f6c61e4b3784f68a723c">BSERIAL_INT_TYPE</a>(value)))</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 <p>Read/write an enum. </p>
+<p>Same as <a class="el" href="bserial_8h.html#aa52e04586440f4f2274e3541bf4b4274">bserial_typed_enum</a> but the type is inferred from <em>value</em>.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">ctx</td><td>The serialization context. </td></tr>
-    <tr><td class="paramname">value</td><td>Pointer to the enum value. </td></tr>
+    <tr><td class="paramname">value</td><td>Pointer to the enum value, an integer or enum of any type. It is evaluated once per loop iteration and must not have side effects.</td></tr>
   </table>
   </dd>
 </dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="bserial_8h.html#aa52e04586440f4f2274e3541bf4b4274" title="Read/write an enum.">bserial_typed_enum</a> </dd>
+<dd>
+<a class="el" href="bserial_8h.html#a70ccb2fcda48f6c61e4b3784f68a723c" title="Describe the integer type pointed to by ptr.">BSERIAL_INT_TYPE</a> </dd></dl>
+
+</div>
+</div>
+<a id="a70ccb2fcda48f6c61e4b3784f68a723c" name="a70ccb2fcda48f6c61e4b3784f68a723c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a70ccb2fcda48f6c61e4b3784f68a723c">&#9670;&#160;</a></span>BSERIAL_INT_TYPE</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define BSERIAL_INT_TYPE</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">ptr</td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<b>Value:</b><div class="fragment"><div class="line">    ((<a class="code hl_struct" href="structbserial__int__type__t.html">bserial_int_type_t</a>){ \</div>
+<div class="line">        <span class="comment">/* % is only defined for integer types */</span> \</div>
+<div class="line">        .size = (uint8_t)(<span class="keyword">sizeof</span>(*(ptr)) + 0 * <span class="keyword">sizeof</span>(*(ptr) % 1)), \</div>
+<div class="line">        .is_signed = _Generic((ptr), \</div>
+<div class="line">            <span class="keywordtype">bool</span>*: false, \</div>
+<div class="line">            char*: CHAR_MIN &lt; 0, \</div>
+<div class="line">            signed char*: true, \</div>
+<div class="line">            unsigned char*: false, \</div>
+<div class="line">            short*: true, \</div>
+<div class="line">            unsigned short*: false, \</div>
+<div class="line">            int*: true, \</div>
+<div class="line">            unsigned int*: false, \</div>
+<div class="line">            long*: true, \</div>
+<div class="line">            unsigned long*: false, \</div>
+<div class="line">            long long*: true, \</div>
+<div class="line">            unsigned long long*: false, \</div>
+<div class="line">            default: true \</div>
+<div class="line">        ), \</div>
+<div class="line">    })</div>
+<div class="ttc" id="astructbserial__int__type__t_html"><div class="ttname"><a href="structbserial__int__type__t.html">bserial_int_type_t</a></div><div class="ttdoc">Description of an integer type.</div><div class="ttdef"><b>Definition</b> bserial.h:744</div></div>
+</div><!-- fragment -->
+<p>Describe the integer type pointed to by <em>ptr</em>. </p>
+<p><em>ptr</em> must point to an integer type. Any other pointer type is a compile error. </p>
 
 </div>
 </div>
@@ -818,6 +982,37 @@ Associative map</h3>
   </table>
   </dd>
 </dl>
+
+</div>
+</div>
+<a id="ad7535618a109001ee8e8b9fbd60d14fe" name="ad7535618a109001ee8e8b9fbd60d14fe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad7535618a109001ee8e8b9fbd60d14fe">&#9670;&#160;</a></span>bserial_table</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define bserial_table</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">ctx, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">len&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td>&#160;&#160;&#160;	<a class="el" href="bserial_8h.html#aa41255d509df480d9667e7ac70c4f941">bserial_typed_len</a>(ctx, <a class="el" href="bserial_8h.html#a912f07227f2ef9273f6bee1ac81bf0ee">bserial_table_u64</a>, (len), <a class="el" href="bserial_8h.html#a70ccb2fcda48f6c61e4b3784f68a723c">BSERIAL_INT_TYPE</a>(len))</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Read/write a table. </p>
+<p>Same as <a class="el" href="bserial_8h.html#a912f07227f2ef9273f6bee1ac81bf0ee">bserial_table_u64</a> but <em>len</em> can be a pointer to any integer type. </p>
 
 </div>
 </div>
@@ -968,14 +1163,14 @@ Associative map</h3>
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="a120448dc636a70d108a9a76465d81ee3" name="a120448dc636a70d108a9a76465d81ee3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a120448dc636a70d108a9a76465d81ee3">&#9670;&#160;</a></span>bserial_array()</h2>
+<a id="a7ccebaf359b8e269539971ae5d0efd18" name="a7ccebaf359b8e269539971ae5d0efd18"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7ccebaf359b8e269539971ae5d0efd18">&#9670;&#160;</a></span>bserial_array_u64()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a> bserial_array </td>
+          <td class="memname"><a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a> bserial_array_u64 </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *&#160;</td>
           <td class="paramname"><em>ctx</em>, </td>
@@ -999,14 +1194,52 @@ Associative map</h3>
 
 </div>
 </div>
-<a id="ad5917f671f6318176d12d195cd39775f" name="ad5917f671f6318176d12d195cd39775f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad5917f671f6318176d12d195cd39775f">&#9670;&#160;</a></span>bserial_blob()</h2>
+<a id="a05bafd5ff83d2d8f1985dd5a44828b79" name="a05bafd5ff83d2d8f1985dd5a44828b79"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a05bafd5ff83d2d8f1985dd5a44828b79">&#9670;&#160;</a></span>bserial_blob_header_u64()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a> bserial_blob </td>
+          <td class="memname"><a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a> bserial_blob_header_u64 </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *&#160;</td>
+          <td class="paramname"><em>ctx</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t *&#160;</td>
+          <td class="paramname"><em>len</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Read/write a binary blob's header. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ctx</td><td>The serialization context. </td></tr>
+    <tr><td class="paramname">len</td><td>Maximum size. Will be set to the actual size on read.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="bserial_8h.html#a70742ca8ccd51945da6c3fb090da2138" title="Read/write a binary blob&#39;s header.">bserial_blob_header</a> </dd></dl>
+
+</div>
+</div>
+<a id="a4cf971cdda822926db5fa6d87149c347" name="a4cf971cdda822926db5fa6d87149c347"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4cf971cdda822926db5fa6d87149c347">&#9670;&#160;</a></span>bserial_blob_u64()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a> bserial_blob_u64 </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *&#160;</td>
           <td class="paramname"><em>ctx</em>, </td>
@@ -1032,180 +1265,16 @@ Associative map</h3>
 </div><div class="memdoc">
 
 <p>Read/write a binary blob. </p>
-<p>Instead of combining into one step, one can also use: <a class="el" href="bserial_8h.html#a1e9db74a29c5838f59655bea2fc77c06">bserial_blob_header</a> and <a class="el" href="bserial_8h.html#a59ba430636a464f8d8644792f3d52bc3">bserial_blob_body</a>.</p>
+<p>Instead of combining into one step, one can also use: <a class="el" href="bserial_8h.html#a70742ca8ccd51945da6c3fb090da2138">bserial_blob_header</a> and <a class="el" href="bserial_8h.html#a59ba430636a464f8d8644792f3d52bc3">bserial_blob_body</a>.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">ctx</td><td>The serialization context. </td></tr>
     <tr><td class="paramname">buf</td><td>The buffer to read/write. </td></tr>
-    <tr><td class="paramname">len</td><td>Size of the buffer. Will be set to the actual size. </td></tr>
+    <tr><td class="paramname">len</td><td>Size of the buffer. Will be set to the actual size.</td></tr>
   </table>
   </dd>
 </dl>
-
-</div>
-</div>
-<a id="a1e9db74a29c5838f59655bea2fc77c06" name="a1e9db74a29c5838f59655bea2fc77c06"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1e9db74a29c5838f59655bea2fc77c06">&#9670;&#160;</a></span>bserial_blob_header()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a> bserial_blob_header </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *&#160;</td>
-          <td class="paramname"><em>ctx</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">uint64_t *&#160;</td>
-          <td class="paramname"><em>len</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Read/write a binary blob's header. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">ctx</td><td>The serialization context. </td></tr>
-    <tr><td class="paramname">len</td><td>Maximum size. Will be set to the actual size on read. </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="a1809a58fbe960076532f7f6dc5214175" name="a1809a58fbe960076532f7f6dc5214175"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1809a58fbe960076532f7f6dc5214175">&#9670;&#160;</a></span>bserial_enum()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool bserial_enum </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *&#160;</td>
-          <td class="paramname"><em>ctx</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">int *&#160;</td>
-          <td class="paramname"><em>value</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Read/write an enum. </p>
-<p>An enum is stored as a symbol: the name of the active variant.</p>
-<p>This should always be called as the condition of a while loop: <code>while (bserial_enum(ctx, value)) {</code>. Therefore, the macro <a class="el" href="bserial_8h.html#a852225e32d1fc707767ab38af021f9d2">BSERIAL_ENUM</a> should be used. The body of the loop must only contain <a class="el" href="bserial_8h.html#ad518ed4099429db4ddae3054a90f6874">bserial_variant</a> calls.</p>
-<p>When writing, the variant whose value matches <code>*value</code> writes its name. When reading, the variant whose name matches the stream stores its value into <code>*value</code>. It is an error if no variant matches.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">ctx</td><td>The serialization context. </td></tr>
-    <tr><td class="paramname">value</td><td>The enum value.</td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="bserial_8h.html#ad518ed4099429db4ddae3054a90f6874" title="Declare a variant of an enum.">bserial_variant</a> </dd></dl>
-
-</div>
-</div>
-<a id="aaf5c74c78a7a9932ddd1153ad2943743" name="aaf5c74c78a7a9932ddd1153ad2943743"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aaf5c74c78a7a9932ddd1153ad2943743">&#9670;&#160;</a></span>bserial_i16()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a> bserial_i16 </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *&#160;</td>
-          <td class="paramname"><em>ctx</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">int16_t *&#160;</td>
-          <td class="paramname"><em>i16</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="bserial_8h.html#a7d488368f2ebd0beefea7801a872f375" title="Automatically select the right integer serialization function.">bserial_any_int</a> </dd></dl>
-
-</div>
-</div>
-<a id="af4ede68d74ba24e2f62c5f307b949711" name="af4ede68d74ba24e2f62c5f307b949711"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af4ede68d74ba24e2f62c5f307b949711">&#9670;&#160;</a></span>bserial_i32()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a> bserial_i32 </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *&#160;</td>
-          <td class="paramname"><em>ctx</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">int32_t *&#160;</td>
-          <td class="paramname"><em>i32</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="bserial_8h.html#a7d488368f2ebd0beefea7801a872f375" title="Automatically select the right integer serialization function.">bserial_any_int</a> </dd></dl>
-
-</div>
-</div>
-<a id="a47d892c74860dc07db9f40cd4703814a" name="a47d892c74860dc07db9f40cd4703814a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a47d892c74860dc07db9f40cd4703814a">&#9670;&#160;</a></span>bserial_i8()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a> bserial_i8 </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *&#160;</td>
-          <td class="paramname"><em>ctx</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">int8_t *&#160;</td>
-          <td class="paramname"><em>i8</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="bserial_8h.html#a7d488368f2ebd0beefea7801a872f375" title="Automatically select the right integer serialization function.">bserial_any_int</a> </dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="bserial_8h.html#ab535a9752b090ccb3ce939973a61fbbe" title="Read/write a binary blob.">bserial_blob</a> </dd></dl>
 
 </div>
 </div>
@@ -1495,7 +1564,7 @@ Associative map</h3>
 </div><div class="memdoc">
 
 <p>Read/write a signed varint. </p>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="bserial_8h.html#a7d488368f2ebd0beefea7801a872f375" title="Automatically select the right integer serialization function.">bserial_any_int</a> </dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="bserial_8h.html#a7d488368f2ebd0beefea7801a872f375" title="Read/write an integer of any type.">bserial_any_int</a> </dd></dl>
 
 </div>
 </div>
@@ -1546,14 +1615,14 @@ Associative map</h3>
 
 </div>
 </div>
-<a id="a7fa83533084e02ce3ea80b6723175f6d" name="a7fa83533084e02ce3ea80b6723175f6d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7fa83533084e02ce3ea80b6723175f6d">&#9670;&#160;</a></span>bserial_table()</h2>
+<a id="a912f07227f2ef9273f6bee1ac81bf0ee" name="a912f07227f2ef9273f6bee1ac81bf0ee"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a912f07227f2ef9273f6bee1ac81bf0ee">&#9670;&#160;</a></span>bserial_table_u64()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a> bserial_table </td>
+          <td class="memname"><a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a> bserial_table_u64 </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *&#160;</td>
           <td class="paramname"><em>ctx</em>, </td>
@@ -1579,14 +1648,14 @@ Associative map</h3>
 
 </div>
 </div>
-<a id="a46cf28122b4a64f8564e97d6212e711a" name="a46cf28122b4a64f8564e97d6212e711a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a46cf28122b4a64f8564e97d6212e711a">&#9670;&#160;</a></span>bserial_u16()</h2>
+<a id="a88e5e5f3e8d87907aeb4c05dc4c1e733" name="a88e5e5f3e8d87907aeb4c05dc4c1e733"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a88e5e5f3e8d87907aeb4c05dc4c1e733">&#9670;&#160;</a></span>bserial_typed_blob()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a> bserial_u16 </td>
+          <td class="memname"><a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a> bserial_typed_blob </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *&#160;</td>
           <td class="paramname"><em>ctx</em>, </td>
@@ -1594,8 +1663,20 @@ Associative map</h3>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">uint16_t *&#160;</td>
-          <td class="paramname"><em>u16</em>&#160;</td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>buf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>len</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structbserial__int__type__t.html">bserial_int_type_t</a>&#160;</td>
+          <td class="paramname"><em>type</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1604,18 +1685,18 @@ Associative map</h3>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="bserial_8h.html#a7d488368f2ebd0beefea7801a872f375" title="Automatically select the right integer serialization function.">bserial_any_int</a> </dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="bserial_8h.html#ab535a9752b090ccb3ce939973a61fbbe" title="Read/write a binary blob.">bserial_blob</a> </dd></dl>
 
 </div>
 </div>
-<a id="afc0cb21e632f15c4f1dd522c8bf03ced" name="afc0cb21e632f15c4f1dd522c8bf03ced"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afc0cb21e632f15c4f1dd522c8bf03ced">&#9670;&#160;</a></span>bserial_u32()</h2>
+<a id="aa52e04586440f4f2274e3541bf4b4274" name="aa52e04586440f4f2274e3541bf4b4274"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa52e04586440f4f2274e3541bf4b4274">&#9670;&#160;</a></span>bserial_typed_enum()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a> bserial_u32 </td>
+          <td class="memname">bool bserial_typed_enum </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *&#160;</td>
           <td class="paramname"><em>ctx</em>, </td>
@@ -1623,8 +1704,14 @@ Associative map</h3>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">uint32_t *&#160;</td>
-          <td class="paramname"><em>u32</em>&#160;</td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>value</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structbserial__int__type__t.html">bserial_int_type_t</a>&#160;</td>
+          <td class="paramname"><em>type</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1633,18 +1720,33 @@ Associative map</h3>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="bserial_8h.html#a7d488368f2ebd0beefea7801a872f375" title="Automatically select the right integer serialization function.">bserial_any_int</a> </dd></dl>
+
+<p>Read/write an enum. </p>
+<p>An enum is stored as a symbol: the name of the active variant.</p>
+<p>This should always be called as the condition of a while loop: <code>while (bserial_typed_enum(ctx, value, type)) {</code>. Therefore, the macro <a class="el" href="bserial_8h.html#a852225e32d1fc707767ab38af021f9d2">BSERIAL_ENUM</a> should be used. The body of the loop must only contain <a class="el" href="bserial_8h.html#ad518ed4099429db4ddae3054a90f6874">bserial_variant</a> calls.</p>
+<p>When writing, the variant whose value matches the pointed-to integer writes its name. When reading, the variant whose name matches the stream stores its value into the pointed-to integer. It is an error if no variant matches or if the value does not fit in the integer type.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ctx</td><td>The serialization context. </td></tr>
+    <tr><td class="paramname">value</td><td>Pointer to the enum value, an integer of any type. </td></tr>
+    <tr><td class="paramname">type</td><td>Description of the pointed-to type.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="bserial_8h.html#ad518ed4099429db4ddae3054a90f6874" title="Declare a variant of an enum.">bserial_variant</a> </dd>
+<dd>
+<a class="el" href="bserial_8h.html#a70ccb2fcda48f6c61e4b3784f68a723c" title="Describe the integer type pointed to by ptr.">BSERIAL_INT_TYPE</a> </dd></dl>
 
 </div>
 </div>
-<a id="a8c17baaa6b0297a54050b4add0c5dca8" name="a8c17baaa6b0297a54050b4add0c5dca8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8c17baaa6b0297a54050b4add0c5dca8">&#9670;&#160;</a></span>bserial_u8()</h2>
+<a id="a3401b57c5e02d8eae2a49ca329b4b1a3" name="a3401b57c5e02d8eae2a49ca329b4b1a3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3401b57c5e02d8eae2a49ca329b4b1a3">&#9670;&#160;</a></span>bserial_typed_int()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a> bserial_u8 </td>
+          <td class="memname"><a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a> bserial_typed_int </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *&#160;</td>
           <td class="paramname"><em>ctx</em>, </td>
@@ -1652,8 +1754,14 @@ Associative map</h3>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">uint8_t *&#160;</td>
-          <td class="paramname"><em>u8</em>&#160;</td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>value</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structbserial__int__type__t.html">bserial_int_type_t</a>&#160;</td>
+          <td class="paramname"><em>type</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1662,7 +1770,58 @@ Associative map</h3>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="bserial_8h.html#a7d488368f2ebd0beefea7801a872f375" title="Automatically select the right integer serialization function.">bserial_any_int</a> </dd></dl>
+
+<p>Read/write an integer of any type. </p>
+<p>The value is widened to 64 bits for serialization. On read, a value that does not fit in the type is an error.</p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="bserial_8h.html#a7d488368f2ebd0beefea7801a872f375" title="Read/write an integer of any type.">bserial_any_int</a> </dd></dl>
+
+</div>
+</div>
+<a id="aa41255d509df480d9667e7ac70c4f941" name="aa41255d509df480d9667e7ac70c4f941"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa41255d509df480d9667e7ac70c4f941">&#9670;&#160;</a></span>bserial_typed_len()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="bserial_8h.html#a53882609fbb8d070dda12f9a2e501e3b">bserial_status_t</a> bserial_typed_len </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="bserial_8h.html#a38ebcbf7776e35a4837e45d9fbc96e79">bserial_ctx_t</a> *&#160;</td>
+          <td class="paramname"><em>ctx</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="bserial_8h.html#a76d6918f02969334029e58a1cd8dadcc">bserial_len_fn_t</a>&#160;</td>
+          <td class="paramname"><em>fn</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>len</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structbserial__int__type__t.html">bserial_int_type_t</a>&#160;</td>
+          <td class="paramname"><em>type</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Apply a length operation to a length of any integer type. </p>
+<p>A negative length on write or a length that does not fit in the type on read is an error.</p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="bserial_8h.html#afeb26b8c4c541f98593fa2970754a1f3" title="Read/write an array.">bserial_array</a> </dd>
+<dd>
+<a class="el" href="bserial_8h.html#ad7535618a109001ee8e8b9fbd60d14fe" title="Read/write a table.">bserial_table</a> </dd>
+<dd>
+<a class="el" href="bserial_8h.html#a70742ca8ccd51945da6c3fb090da2138" title="Read/write a binary blob&#39;s header.">bserial_blob_header</a> </dd></dl>
 
 </div>
 </div>
@@ -1693,7 +1852,7 @@ Associative map</h3>
 </div><div class="memdoc">
 
 <p>Read/write an unsigned varint. </p>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="bserial_8h.html#a7d488368f2ebd0beefea7801a872f375" title="Automatically select the right integer serialization function.">bserial_any_int</a> </dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="bserial_8h.html#a7d488368f2ebd0beefea7801a872f375" title="Read/write an integer of any type.">bserial_any_int</a> </dd></dl>
 
 </div>
 </div>
@@ -1746,7 +1905,7 @@ Associative map</h3>
   </table>
   </dd>
 </dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="bserial_8h.html#a1809a58fbe960076532f7f6dc5214175" title="Read/write an enum.">bserial_enum</a> </dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="bserial_8h.html#aa52e04586440f4f2274e3541bf4b4274" title="Read/write an enum.">bserial_typed_enum</a> </dd></dl>
 
 </div>
 </div>

@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>blibs: xincbin_data_s Struct Reference</title>
+<title>blibs: bserial_int_type_t Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -72,32 +72,30 @@ $(function() {
 <div class="header">
   <div class="summary">
 <a href="#pub-attribs">Public Attributes</a> &#124;
-<a href="structxincbin__data__s-members.html">List of all members</a>  </div>
-  <div class="headertitle"><div class="title">xincbin_data_s Struct Reference</div></div>
+<a href="structbserial__int__type__t-members.html">List of all members</a>  </div>
+  <div class="headertitle"><div class="title">bserial_int_type_t Struct Reference</div></div>
 </div><!--header-->
 <div class="contents">
 
-<p>An embedded resource.  
- <a href="structxincbin__data__s.html#details">More...</a></p>
+<p>Description of an integer type.  
+ <a href="structbserial__int__type__t.html#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="xincbin_8h_source.html">xincbin.h</a>&gt;</code></p>
+<p><code>#include &lt;<a class="el" href="bserial_8h_source.html">bserial.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:a77d07f2168707bb70b15f4428a642039" id="r_a77d07f2168707bb70b15f4428a642039"><td class="memItemLeft" align="right" valign="top"><a id="a77d07f2168707bb70b15f4428a642039" name="a77d07f2168707bb70b15f4428a642039"></a>
-unsigned int&#160;</td><td class="memItemRight" valign="bottom"><b>size</b></td></tr>
-<tr class="memdesc:a77d07f2168707bb70b15f4428a642039"><td class="mdescLeft">&#160;</td><td class="mdescRight">Size of the resource in bytes, excluding the implicit null terminator. <br /></td></tr>
-<tr class="separator:a77d07f2168707bb70b15f4428a642039"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4cde1ba7a68cec8f18fb71460a9586fe" id="r_a4cde1ba7a68cec8f18fb71460a9586fe"><td class="memItemLeft" align="right" valign="top"><a id="a4cde1ba7a68cec8f18fb71460a9586fe" name="a4cde1ba7a68cec8f18fb71460a9586fe"></a>
-const unsigned char *&#160;</td><td class="memItemRight" valign="bottom"><b>data</b></td></tr>
-<tr class="memdesc:a4cde1ba7a68cec8f18fb71460a9586fe"><td class="mdescLeft">&#160;</td><td class="mdescRight">The content of the resource. <br /></td></tr>
-<tr class="separator:a4cde1ba7a68cec8f18fb71460a9586fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac660e12f7941b830e71c001ad14067c4" id="r_ac660e12f7941b830e71c001ad14067c4"><td class="memItemLeft" align="right" valign="top"><a id="ac660e12f7941b830e71c001ad14067c4" name="ac660e12f7941b830e71c001ad14067c4"></a>
+uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>size</b></td></tr>
+<tr class="separator:ac660e12f7941b830e71c001ad14067c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a36226ab4be1d29bdb85029f65373125a" id="r_a36226ab4be1d29bdb85029f65373125a"><td class="memItemLeft" align="right" valign="top"><a id="a36226ab4be1d29bdb85029f65373125a" name="a36226ab4be1d29bdb85029f65373125a"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>is_signed</b></td></tr>
+<tr class="separator:a36226ab4be1d29bdb85029f65373125a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>An embedded resource. </p>
-<p><code>data</code> is followed by an implicit null terminator at <code>data[size]</code> which is not counted in <code>size</code>, so text resources can be used as C strings without copying. </p>
+<div class="textblock"><p>Description of an integer type. </p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="bserial_8h.html#a70ccb2fcda48f6c61e4b3784f68a723c" title="Describe the integer type pointed to by ptr.">BSERIAL_INT_TYPE</a> </dd></dl>
 </div><hr/>The documentation for this struct was generated from the following file:<ul>
-<li><a class="el" href="xincbin_8h_source.html">xincbin.h</a></li>
+<li><a class="el" href="bserial_8h_source.html">bserial.h</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
