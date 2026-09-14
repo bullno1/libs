@@ -93,6 +93,12 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a758860f6b892547a709d24914d9a0a7f" id="r_a758860f6b892547a709d24914d9a0a7f"><td class="memItemLeft" align="right" valign="top">void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structbent__comp__def__t.html#a758860f6b892547a709d24914d9a0a7f">cleanup</a> )(void *comp)</td></tr>
 <tr class="memdesc:a758860f6b892547a709d24914d9a0a7f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Optional initialization callback for this component.  <br /></td></tr>
 <tr class="separator:a758860f6b892547a709d24914d9a0a7f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad73b794e83ae9364e22f0fcccb2e1cfb" id="r_ad73b794e83ae9364e22f0fcccb2e1cfb"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structbent__comp__def__t.html#ad73b794e83ae9364e22f0fcccb2e1cfb">flags</a></td></tr>
+<tr class="memdesc:ad73b794e83ae9364e22f0fcccb2e1cfb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Component behaviour flags.  <br /></td></tr>
+<tr class="separator:ad73b794e83ae9364e22f0fcccb2e1cfb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5ad1bb30b1ee1cc43d8538a43fc5234f" id="r_a5ad1bb30b1ee1cc43d8538a43fc5234f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="bent_8h.html#a4b8437eaa533ce84ee9c09707c3f6016">bent_serialize_fn_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structbent__comp__def__t.html#a5ad1bb30b1ee1cc43d8538a43fc5234f">serialize</a></td></tr>
+<tr class="memdesc:a5ad1bb30b1ee1cc43d8538a43fc5234f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Optional serialization callback.  <br /></td></tr>
+<tr class="separator:a5ad1bb30b1ee1cc43d8538a43fc5234f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Component type definition. </p>
@@ -112,6 +118,23 @@ Public Attributes</h2></td></tr>
 
 <p>Optional initialization callback for this component. </p>
 <p>If this is omitted, nothing will be done upon destruction. Take note that the component's storage memory is owned by the library and it can be recycled. </p>
+
+</div>
+</div>
+<a id="ad73b794e83ae9364e22f0fcccb2e1cfb" name="ad73b794e83ae9364e22f0fcccb2e1cfb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad73b794e83ae9364e22f0fcccb2e1cfb">&#9670;&#160;</a></span>flags</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint32_t bent_comp_def_t::flags</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Component behaviour flags. </p>
+<p>A bitwise OR of values from <a class="el" href="bent_8h.html#a7495915a9f2a653cf841ce475d7e5c2a">bent_comp_flags_t</a>. </p>
 
 </div>
 </div>
@@ -140,6 +163,23 @@ Public Attributes</h2></td></tr>
   </table>
   </dd>
 </dl>
+
+</div>
+</div>
+<a id="a5ad1bb30b1ee1cc43d8538a43fc5234f" name="a5ad1bb30b1ee1cc43d8538a43fc5234f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5ad1bb30b1ee1cc43d8538a43fc5234f">&#9670;&#160;</a></span>serialize</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="bent_8h.html#a4b8437eaa533ce84ee9c09707c3f6016">bent_serialize_fn_t</a> bent_comp_def_t::serialize</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Optional serialization callback. </p>
+<p>A component with data must have exactly one of this, <a class="el" href="bent_8h.html#a7495915a9f2a653cf841ce475d7e5c2aa660298197a6378d88a040308a3d9ddc6">BENT_COMP_RAW</a> or <a class="el" href="bent_8h.html#a7495915a9f2a653cf841ce475d7e5c2aa7ae8f6feb283e357a72f30b03a074f32">BENT_COMP_TRANSIENT</a>, see <a class="el" href="bent_8h.html#a39496187626de743d939bc581c2b9bb7" title="How a component type takes part in a save, see bent_comp_save_t.">bent_comp_save_mode()</a>. </p>
 
 </div>
 </div>

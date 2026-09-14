@@ -117,6 +117,9 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:acaba5a2f6982bb3b9405d7b5d1dc8dd4" id="r_acaba5a2f6982bb3b9405d7b5d1dc8dd4"><td class="memItemLeft" align="right" valign="top">void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structbent__sys__def__t.html#acaba5a2f6982bb3b9405d7b5d1dc8dd4">update</a> )(void *userdata, <a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *world, <a class="el" href="bent_8h.html#a21e030cf08c3b1500b58273680b5f081">bent_mask_t</a> <a class="el" href="structbent__sys__def__t.html#a9c28a9adfb7d2b205fc9ae5e7f017ba9">update_mask</a>, <a class="el" href="structbent__t.html">bent_t</a> *entities, <a class="el" href="bent_8h.html#aef1f57c00a98e4078b680c9b384bdf54">bent_index_t</a> num_entities)</td></tr>
 <tr class="memdesc:acaba5a2f6982bb3b9405d7b5d1dc8dd4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Optional update callback.  <br /></td></tr>
 <tr class="separator:acaba5a2f6982bb3b9405d7b5d1dc8dd4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9864d9f7aa9b4111ecde60b19254b308" id="r_a9864d9f7aa9b4111ecde60b19254b308"><td class="memItemLeft" align="right" valign="top"><a class="el" href="bent_8h.html#a4b8437eaa533ce84ee9c09707c3f6016">bent_serialize_fn_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structbent__sys__def__t.html#a9864d9f7aa9b4111ecde60b19254b308">serialize</a></td></tr>
+<tr class="memdesc:a9864d9f7aa9b4111ecde60b19254b308"><td class="mdescLeft">&#160;</td><td class="mdescRight">Optional serialization callback for the system's data.  <br /></td></tr>
+<tr class="separator:a9864d9f7aa9b4111ecde60b19254b308"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>System definition. </p>
@@ -308,6 +311,23 @@ Public Attributes</h2></td></tr>
 <p>An entity must have all of the listed components to be processed by this system.</p>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="bent_8h.html#a9eee6092ac401da9b5274072f292646e" title="Helper for a null-terminated component list.">BENT_COMP_LIST</a></dd></dl>
 <dl class="section remark"><dt>Remarks</dt><dd>If both this and <a class="el" href="structbent__sys__def__t.html#a8ac4995a75939ff1de8d93d2f16bab87">bent_sys_def_t::exclude</a> are <code>NULL</code>, this system will not match any entities. </dd></dl>
+
+</div>
+</div>
+<a id="a9864d9f7aa9b4111ecde60b19254b308" name="a9864d9f7aa9b4111ecde60b19254b308"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9864d9f7aa9b4111ecde60b19254b308">&#9670;&#160;</a></span>serialize</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="bent_8h.html#a4b8437eaa533ce84ee9c09707c3f6016">bent_serialize_fn_t</a> bent_sys_def_t::serialize</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Optional serialization callback for the system's data. </p>
+<p>Unlike components, a system without one is simply not saved: its data is assumed to be derived and rebuilt in <a class="el" href="structbent__sys__def__t.html#ae82443c6a45c8b359762a75c95fd85aa">bent_sys_def_t::init</a>. </p>
 
 </div>
 </div>

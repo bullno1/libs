@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>blibs: Member List</title>
+<title>blibs: bent_handles_t Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -70,18 +70,39 @@ $(function() {
 
 </div><!-- top -->
 <div class="header">
-  <div class="headertitle"><div class="title">bent_comp_def_t Member List</div></div>
+  <div class="summary">
+<a href="#pub-attribs">Public Attributes</a> &#124;
+<a href="structbent__handles__t-members.html">List of all members</a>  </div>
+  <div class="headertitle"><div class="title">bent_handles_t Struct Reference</div></div>
 </div><!--header-->
 <div class="contents">
 
-<p>This is the complete list of members for <a class="el" href="structbent__comp__def__t.html">bent_comp_def_t</a>, including all inherited members.</p>
-<table class="directory">
-  <tr class="even"><td class="entry"><a class="el" href="structbent__comp__def__t.html#a758860f6b892547a709d24914d9a0a7f">cleanup</a></td><td class="entry"><a class="el" href="structbent__comp__def__t.html">bent_comp_def_t</a></td><td class="entry"></td></tr>
-  <tr class="odd"><td class="entry"><a class="el" href="structbent__comp__def__t.html#ad73b794e83ae9364e22f0fcccb2e1cfb">flags</a></td><td class="entry"><a class="el" href="structbent__comp__def__t.html">bent_comp_def_t</a></td><td class="entry"></td></tr>
-  <tr class="even"><td class="entry"><a class="el" href="structbent__comp__def__t.html#a0f997e981c9be9484a9dfadf613bab14">init</a></td><td class="entry"><a class="el" href="structbent__comp__def__t.html">bent_comp_def_t</a></td><td class="entry"></td></tr>
-  <tr class="odd"><td class="entry"><a class="el" href="structbent__comp__def__t.html#a5ad1bb30b1ee1cc43d8538a43fc5234f">serialize</a></td><td class="entry"><a class="el" href="structbent__comp__def__t.html">bent_comp_def_t</a></td><td class="entry"></td></tr>
-  <tr class="even"><td class="entry"><a class="el" href="structbent__comp__def__t.html#a7eb491f6b49353bcc3104e3954be7e2a">size</a></td><td class="entry"><a class="el" href="structbent__comp__def__t.html">bent_comp_def_t</a></td><td class="entry"></td></tr>
-</table></div><!-- contents -->
+<p>Saved entity handles, a view into the world.  
+ <a href="structbent__handles__t.html#details">More...</a></p>
+
+<p><code>#include &lt;<a class="el" href="bent_8h_source.html">bent.h</a>&gt;</code></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
+Public Attributes</h2></td></tr>
+<tr class="memitem:a428cdc0cdc993e0b1664d96fec6b817c" id="r_a428cdc0cdc993e0b1664d96fec6b817c"><td class="memItemLeft" align="right" valign="top"><a id="a428cdc0cdc993e0b1664d96fec6b817c" name="a428cdc0cdc993e0b1664d96fec6b817c"></a>
+<a class="el" href="bent_8h.html#aef1f57c00a98e4078b680c9b384bdf54">bent_index_t</a>&#160;</td><td class="memItemRight" valign="bottom"><b>len</b></td></tr>
+<tr class="memdesc:a428cdc0cdc993e0b1664d96fec6b817c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of slots. <br /></td></tr>
+<tr class="separator:a428cdc0cdc993e0b1664d96fec6b817c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a43e11c573ae398d3294f4406d3399a78" id="r_a43e11c573ae398d3294f4406d3399a78"><td class="memItemLeft" align="right" valign="top"><a id="a43e11c573ae398d3294f4406d3399a78" name="a43e11c573ae398d3294f4406d3399a78"></a>
+const <a class="el" href="bent_8h.html#aef1f57c00a98e4078b680c9b384bdf54">bent_index_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>gens</b></td></tr>
+<tr class="memdesc:a43e11c573ae398d3294f4406d3399a78"><td class="mdescLeft">&#160;</td><td class="mdescRight">One generation per slot. <br /></td></tr>
+<tr class="separator:a43e11c573ae398d3294f4406d3399a78"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Saved entity handles, a view into the world. </p>
+<p>One generation per slot, an odd generation is a live entity. Valid until the next call that creates or destroys an entity.</p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="bent_8h.html#aa5bbe75335768666f62312d1bb2609fb" title="The state of every entity handle, see bent_handles_t.">bent_handles</a> </dd>
+<dd>
+<a class="el" href="bent_8h.html#a6508ae4d121e8ab4e3a12811796600d7" title="Replace the entity handles of an empty world with saved ones.">bent_load_handles</a> </dd></dl>
+</div><hr/>The documentation for this struct was generated from the following file:<ul>
+<li><a class="el" href="bent_8h_source.html">bent.h</a></li>
+</ul>
+</div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
 Generated by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8

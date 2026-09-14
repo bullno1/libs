@@ -82,6 +82,7 @@ $(function() {
 <div class="textblock"><p>Entity handle. </p>
 <p>Each handle has a generation counter so using a stale handle belonging to a destroyed entity is safe.</p>
 <p>An entity handle can also be zero-initialized. In which case, it will be considered stale.</p>
+<p>Handles survive a save and load unchanged.</p>
 <p>Functions will behave in a sensible way when given a stale handle:</p>
 <ul>
 <li>(Redudnant) destruction of the entity as well as addition or removal of components become noop.</li>
