@@ -218,3 +218,92 @@ BTEST(schema, limit) {
 	leaf_t leaf = { 0 };
 	BTEST_ASSERT(serialize_leaf(ctx, &leaf) == BSERIAL_MALFORMED);
 }
+
+// Key names are compared by address on the write side.
+// These buffers give each call site distinct addresses regardless of string
+// pooling, and the first key of the two schemas is the same buffer.
+static const char key_x[] = "x";
+static const char key_y[] = "y";
+static const char key_z[] = "z";
+
+static bserial_status_t
+serialize_vec2f_other_site(bserial_ctx_t* ctx, vec2f_t* rec) {
+	BSERIAL_RECORD(ctx) {
+		if (bserial_key(ctx, key_x, sizeof(key_x) - 1)) {
+			BSERIAL_CHECK_STATUS(bserial_f32(ctx, &rec->x));
+		}
+
+		if (bserial_key(ctx, key_y, sizeof(key_y) - 1)) {
+			BSERIAL_CHECK_STATUS(bserial_f32(ctx, &rec->y));
+		}
+	}
+
+	return bserial_status(ctx);
+}
+
+static bserial_status_t
+serialize_vec2f_as_xz(bserial_ctx_t* ctx, vec2f_t* rec) {
+	BSERIAL_RECORD(ctx) {
+		if (bserial_key(ctx, key_x, sizeof(key_x) - 1)) {
+			BSERIAL_CHECK_STATUS(bserial_f32(ctx, &rec->x));
+		}
+
+		if (bserial_key(ctx, key_z, sizeof(key_z) - 1)) {
+			BSERIAL_CHECK_STATUS(bserial_f32(ctx, &rec->y));
+		}
+	}
+
+	return bserial_status(ctx);
+}
+
+BTEST(schema, call_sites) {
+	vec2f_t vec = { 1.f, 2.f };
+	bserial_ctx_t* ctx = common_fixture.out_ctx;
+
+	// [RECORD_DEF][2][SYM_DEF "x"][SYM_DEF "y"] then two [F32][4 bytes]
+	size_t def_size = 1 + 1 + 3 + 3 + 5 * 2;
+	// [RECORD_REF][id] then two [F32][4 bytes]
+	size_t ref_size = 1 + 1 + 5 * 2;
+
+	// A different call site with the same keys shares the schema
+	BTEST_ASSERT(serialize_vec2f(ctx, &vec) == BSERIAL_OK);
+	BTEST_ASSERT(common_fixture.mem_out.len == def_size);
+	BTEST_ASSERT(serialize_vec2f_other_site(ctx, &vec) == BSERIAL_OK);
+	BTEST_ASSERT(common_fixture.mem_out.len == def_size + ref_size);
+	BTEST_ASSERT(serialize_vec2f_other_site(ctx, &vec) == BSERIAL_OK);
+	BTEST_ASSERT(common_fixture.mem_out.len == def_size + ref_size * 2);
+	BTEST_ASSERT(serialize_vec2f(ctx, &vec) == BSERIAL_OK);
+	BTEST_ASSERT(common_fixture.mem_out.len == def_size + ref_size * 3);
+
+	// A schema sharing the first key address with another must stay distinct,
+	// even when alternating with it.
+	// [RECORD_DEF][2][SYM_REF x][SYM_DEF "z"] then two [F32][4 bytes]
+	size_t xz_def_size = 1 + 1 + 2 + 3 + 5 * 2;
+	BTEST_ASSERT(serialize_vec2f_as_xz(ctx, &vec) == BSERIAL_OK);
+	BTEST_ASSERT(common_fixture.mem_out.len == def_size + ref_size * 3 + xz_def_size);
+	size_t before = common_fixture.mem_out.len;
+	for (int i = 0; i < 3; ++i) {
+		BTEST_ASSERT(serialize_vec2f_other_site(ctx, &vec) == BSERIAL_OK);
+		BTEST_ASSERT(serialize_vec2f_as_xz(ctx, &vec) == BSERIAL_OK);
+	}
+	BTEST_ASSERT(common_fixture.mem_out.len == before + ref_size * 6);
+
+	hex_dump(common_fixture.mem_out.mem, common_fixture.mem_out.len);
+
+	ctx = common_fixture_make_in_ctx();
+	for (int i = 0; i < 4; ++i) {
+		vec2f_t out = { 0 };
+		BTEST_ASSERT(serialize_vec2f(ctx, &out) == BSERIAL_OK);
+		BTEST_ASSERT(memcmp(&vec, &out, sizeof(vec)) == 0);
+	}
+	for (int i = 0; i < 4; ++i) {
+		vec2f_t xz = { 0 };
+		BTEST_ASSERT(serialize_vec2f_as_xz(ctx, &xz) == BSERIAL_OK);
+		BTEST_ASSERT(memcmp(&vec, &xz, sizeof(vec)) == 0);
+		if (i < 3) {
+			vec2f_t xy = { 0 };
+			BTEST_ASSERT(serialize_vec2f(ctx, &xy) == BSERIAL_OK);
+			BTEST_ASSERT(memcmp(&vec, &xy, sizeof(vec)) == 0);
+		}
+	}
+}

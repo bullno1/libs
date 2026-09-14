@@ -959,7 +959,7 @@ bserial_record(bserial_ctx_t* ctx);
  * Therefore, the value serialization code should only be run if this returns true.
  * This function should always be used in a condition: `if (bserial_key(ctx, name, len) {`.
  *
- * Moreover, @a name should be a constant.
+ * Moreover, @a name must be a constant.
  *
  * Therefore, the @ref BSERIAL_KEY macro should be used.
  *
@@ -1347,6 +1347,10 @@ typedef struct {
 // An interned list of keys
 typedef struct {
 	bserial_symbol_t* fields;
+	// The key addresses of the call site that last wrote this schema.
+	// Since key names are constants, a call site declaring the same addresses
+	// again is declaring the same schema.
+	const char** site_keys;
 	uint32_t num_fields;
 } bserial_schema_t;
 
@@ -1392,6 +1396,10 @@ struct bserial_ctx_s {
 	int32_t* schema_index;
 	int32_t schema_exp;
 	bserial_symbol_t* schema_fields;
+	// Direct-mapped cache from the address of a record's first key to a
+	// schema id + 1. Sized like schema_index.
+	int32_t* schema_site_index;
+	const char** schema_site_keys;
 
 	bserial_scope_t* scope_first;
 	bserial_scope_t* scope;
@@ -1449,6 +1457,18 @@ bserial_ctx_mem_layout(void* mem, bserial_ctx_config_t config) {
 		_Alignof(bserial_symbol_t)
 	);
 
+	ptrdiff_t schema_site_index = mem_layout_reserve(
+		&layout,
+		sizeof(int32_t) * schema_index_len,
+		_Alignof(int32_t)
+	);
+
+	ptrdiff_t schema_site_keys = mem_layout_reserve(
+		&layout,
+		sizeof(const char*) * config.max_num_schemas * config.max_record_fields,
+		_Alignof(const char*)
+	);
+
 	ptrdiff_t scope = mem_layout_reserve(
 		&layout,
 		sizeof(bserial_scope_t) * config.max_depth,
@@ -1474,6 +1494,9 @@ bserial_ctx_mem_layout(void* mem, bserial_ctx_config_t config) {
 		ctx->schema_exp = schema_exp;
 		memset(ctx->schema_index, 0, sizeof(*ctx->schema_index) * schema_index_len);
 		ctx->schema_fields = mem_layout_locate(mem, schema_fields);
+		ctx->schema_site_index = mem_layout_locate(mem, schema_site_index);
+		memset(ctx->schema_site_index, 0, sizeof(*ctx->schema_site_index) * schema_index_len);
+		ctx->schema_site_keys = mem_layout_locate(mem, schema_site_keys);
 
 		ctx->scope_first = ctx->scope = mem_layout_locate(mem, scope);
 		ctx->scope_last = ctx->scope + config.max_depth - 1;
@@ -2048,6 +2071,7 @@ bserial_alloc_schema(bserial_ctx_t* ctx, uint32_t num_fields) {
 
 	bserial_schema_t* schema = &ctx->schemas[ctx->num_schemas];
 	schema->fields = ctx->schema_fields + (size_t)ctx->num_schemas * ctx->config.max_record_fields;
+	schema->site_keys = ctx->schema_site_keys + (size_t)ctx->num_schemas * ctx->config.max_record_fields;
 	schema->num_fields = num_fields;
 	ctx->num_schemas += 1;
 	return schema;
@@ -2111,6 +2135,31 @@ bserial_schema_eq(const bserial_schema_t* schema, const bserial_record_mapping_t
 	return true;
 }
 
+// Remember which call site wrote a schema so that the next record from the
+// same site can skip hashing and comparing the key names.
+static inline void
+bserial_cache_schema_site(
+	bserial_ctx_t* ctx,
+	int32_t site_slot,
+	bserial_schema_t* schema,
+	const bserial_record_mapping_t* keys,
+	uint64_t num_keys
+) {
+	if (num_keys == 0) { return; }
+
+	for (uint64_t i = 0; i < num_keys; ++i) {
+		schema->site_keys[i] = keys[i].symbol;
+	}
+	ctx->schema_site_index[site_slot] = (int32_t)(schema - ctx->schemas) + 1;
+}
+
+static inline bserial_status_t
+bserial_write_schema_ref(bserial_ctx_t* ctx, int32_t id) {
+	uint8_t marker = BSERIAL_RECORD_REF;
+	BSERIAL_CHECK_STATUS(ctx->status = bserial_write(ctx->out, &marker, sizeof(marker)));
+	return ctx->status = bserial_write_uint((uint64_t)id, ctx->out);
+}
+
 // Write a schema definition the first time a list of keys is seen and a
 // reference afterwards.
 static inline bserial_status_t
@@ -2120,6 +2169,27 @@ bserial_write_schema(
 	uint64_t num_keys,
 	bserial_schema_t** out
 ) {
+	// Fast path: the call site is recognized by the addresses of its keys.
+	// The address of the first key picks a cache slot, the rest are verified.
+	int32_t site_slot = 0;
+	if (num_keys > 0) {
+		uint64_t site_hash = (uint64_t)(uintptr_t)keys[0].symbol * 0x9e3779b97f4a7c15ull;
+		site_slot = (int32_t)(site_hash >> (64 - ctx->schema_exp));
+		int32_t index = ctx->schema_site_index[site_slot];
+		if (index != 0) {
+			bserial_schema_t* schema = &ctx->schemas[index - 1];
+			bool same_site = schema->num_fields == num_keys;
+			for (uint64_t i = 0; same_site && i < num_keys; ++i) {
+				same_site = schema->site_keys[i] == keys[i].symbol;
+			}
+			if (same_site) {
+				BSERIAL_CHECK_STATUS(bserial_write_schema_ref(ctx, index - 1));
+				*out = schema;
+				return BSERIAL_OK;
+			}
+		}
+	}
+
 	uint64_t hash = bserial_schema_hash(keys, num_keys);
 	for (int32_t i = (int32_t)hash;;) {
 		i = bserial_lookup_index(hash, ctx->schema_exp, i);
@@ -2128,6 +2198,7 @@ bserial_write_schema(
 			bserial_schema_t* schema = bserial_alloc_schema(ctx, (uint32_t)num_keys);
 			if (schema == NULL) { return bserial_malformed(ctx); }
 			ctx->schema_index[i] = (int32_t)ctx->num_schemas;  // id + 1
+			bserial_cache_schema_site(ctx, site_slot, schema, keys, num_keys);
 
 			uint8_t marker = BSERIAL_RECORD_DEF;
 			BSERIAL_CHECK_STATUS(ctx->status = bserial_write(ctx->out, &marker, sizeof(marker)));
@@ -2143,9 +2214,10 @@ bserial_write_schema(
 			*out = schema;
 			return BSERIAL_OK;
 		} else if (bserial_schema_eq(&ctx->schemas[index - 1], keys, num_keys)) {
-			uint8_t marker = BSERIAL_RECORD_REF;
-			BSERIAL_CHECK_STATUS(ctx->status = bserial_write(ctx->out, &marker, sizeof(marker)));
-			BSERIAL_CHECK_STATUS(ctx->status = bserial_write_uint((uint64_t)index - 1, ctx->out));
+			// Another call site with the same keys. Let it take the fast
+			// path from now on.
+			bserial_cache_schema_site(ctx, site_slot, &ctx->schemas[index - 1], keys, num_keys);
+			BSERIAL_CHECK_STATUS(bserial_write_schema_ref(ctx, index - 1));
 
 			*out = &ctx->schemas[index - 1];
 			return BSERIAL_OK;
