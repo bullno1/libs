@@ -302,8 +302,23 @@
  * @hideinitializer
  */
 #define BENT_FOREACH_QUERY(VAR, WORLD, QUERY) \
+	BENT_FOREACH_QUERY_EX(VAR, WORLD, NULL, QUERY)
+
+/**
+ * Same as @ref BENT_FOREACH_QUERY with an explicit @ref bent_query_ctx_t.
+ *
+ * @param VAR name of the variable of type @ref bent_t
+ * @param WORLD the world
+ * @param CTX a @ref bent_query_ctx_t, `NULL` for the world's shared one
+ * @param QUERY a @ref bent_query_t
+ *
+ * @see bent_query_begin_ex
+ *
+ * @hideinitializer
+ */
+#define BENT_FOREACH_QUERY_EX(VAR, WORLD, CTX, QUERY) \
 	for ( \
-		bent_query_itr_t bent__itr = bent_query_begin((WORLD), (QUERY)); \
+		bent_query_itr_t bent__itr = bent_query_begin_ex((WORLD), (QUERY), (CTX)); \
 		bent_query_next((WORLD), &bent__itr); \
 	) \
 		for ( \
@@ -469,6 +484,20 @@ typedef struct {
 } bent_query_t;
 
 /**
+ * Storage for the snapshots taken by query iterators.
+ *
+ * A context is a stack: nested iterations push and pop in order.
+ * It keeps its allocation and only grows past its high-water mark, so once
+ * warm an iteration allocates nothing.
+ * It is not safe to share between threads.
+ * Every world creates one for the calls that do not take a context.
+ *
+ * @see bent_create_query_ctx
+ * @see bent_query_begin_ex
+ */
+typedef struct bent_query_ctx_s bent_query_ctx_t;
+
+/**
  * Query iterator, see @ref bent_query_begin.
  */
 typedef struct {
@@ -476,6 +505,7 @@ typedef struct {
 	bent_t entity;
 	/// @cond INTERNAL
 	bent_query_t query;
+	bent_query_ctx_t* ctx;
 	bent_index_t base;
 	bent_index_t pos;
 	bent_index_t end;
@@ -1126,6 +1156,49 @@ bent_query_each(
 );
 
 /**
+ * Same as @ref bent_query_each with an explicit @ref bent_query_ctx_t.
+ *
+ * @param world the world
+ * @param query the query
+ * @param ctx the context, `NULL` for the world's shared one
+ * @param fn the function to call
+ * @param userdata passed to `fn`
+ */
+BENT_API void
+bent_query_each_ex(
+	bent_world_t* world,
+	bent_query_t query,
+	bent_query_ctx_t* ctx,
+	void (*fn)(void* userdata, bent_world_t* world, bent_t entity),
+	void* userdata
+);
+
+/**
+ * Create a query context.
+ *
+ * Only needed to iterate from several threads at once: give each thread its
+ * own and pass it to @ref bent_query_begin_ex.
+ *
+ * @param memctx memory allocator context
+ * @return the context
+ *
+ * @see bent_query_ctx_t
+ */
+BENT_API bent_query_ctx_t*
+bent_create_query_ctx(void* memctx);
+
+/**
+ * Destroy a query context.
+ *
+ * No iteration may be in flight on it.
+ * Calling this on `NULL` is safe.
+ *
+ * @param ctx the context
+ */
+BENT_API void
+bent_destroy_query_ctx(bent_query_ctx_t* ctx);
+
+/**
  * Begin iterating a query.
  *
  * The iterator walks a snapshot of the list taken here and checks each entity
@@ -1134,6 +1207,9 @@ bent_query_each(
  * An entity that stops matching is skipped, an entity that starts matching is
  * not visited until the next iteration.
  * Iterations can be nested.
+ *
+ * The snapshot lives in the world's shared @ref bent_query_ctx_t, see
+ * @ref bent_query_begin_ex to use another one.
  *
  * @ref bent_query_next releases the snapshot when it returns `false`.
  * To leave the loop early, call @ref bent_query_end.
@@ -1149,6 +1225,19 @@ bent_query_each(
  */
 BENT_API bent_query_itr_t
 bent_query_begin(bent_world_t* world, bent_query_t query);
+
+/**
+ * Same as @ref bent_query_begin with an explicit @ref bent_query_ctx_t.
+ *
+ * @param world the world
+ * @param query the query
+ * @param ctx the context, `NULL` for the world's shared one
+ * @return the iterator
+ *
+ * @see BENT_FOREACH_QUERY_EX
+ */
+BENT_API bent_query_itr_t
+bent_query_begin_ex(bent_world_t* world, bent_query_t query, bent_query_ctx_t* ctx);
 
 /**
  * Advance an iterator.
@@ -1578,6 +1667,12 @@ typedef struct {
 	barray(bent_t) dense;
 } bent_query_data_t;
 
+struct bent_query_ctx_s {
+	// Stack of snapshots for the iterations in flight
+	barray(bent_t) entities;
+	void* memctx;
+};
+
 typedef struct {
 	bent_bitset_t require;
 	bent_bitset_t exclude;
@@ -1615,8 +1710,8 @@ struct bent_world_s {
 	barray(bent_system_data_t) systems;
 	// Interned by (require, exclude), never removed
 	barray(bent_query_data_t) queries;
-	// Stack of snapshots for the query iterators in flight
-	barray(bent_t) scratch;
+	// For the iterations that do not bring their own
+	bent_query_ctx_t* query_ctx;
 	barray(bent_notification_t) notify_queue;
 	// Which slots are alive, and their generations
 	bhandle_map_t handles;
@@ -2090,6 +2185,7 @@ bent_init(bent_world_t** world_ptr, void* memctx) {
 		world = BENT_REALLOC(NULL, sizeof(bent_world_t), memctx);
 		*world = (bent_world_t){
 			.memctx = memctx,
+			.query_ctx = bent_create_query_ctx(memctx),
 		};
 	}
 
@@ -2208,7 +2304,7 @@ bent_cleanup(bent_world_t** world_ptr) {
 
 	barray_free(world->systems, world->memctx);
 	barray_free(world->queries, world->memctx);
-	barray_free(world->scratch, world->memctx);
+	bent_destroy_query_ctx(world->query_ctx);
 	barray_free(world->notify_queue, world->memctx);
 	bseg_free(world->entities, world->memctx);
 	bhandle_free(&world->handles, world->memctx);
@@ -2449,8 +2545,25 @@ bent_query_match(bent_world_t* world, bent_query_t query, bent_t entity_id) {
 	return bent_query_match_impl(&world->queries[query.id - 1], &entity_data->components);
 }
 
+bent_query_ctx_t*
+bent_create_query_ctx(void* memctx) {
+	bent_query_ctx_t* ctx = BENT_REALLOC(NULL, sizeof(bent_query_ctx_t), memctx);
+	*ctx = (bent_query_ctx_t){ .memctx = memctx };
+	return ctx;
+}
+
+void
+bent_destroy_query_ctx(bent_query_ctx_t* ctx) {
+	if (ctx == NULL) { return; }
+
+	barray_free(ctx->entities, ctx->memctx);
+	BENT_REALLOC(ctx, 0, ctx->memctx);
+}
+
 bent_query_itr_t
-bent_query_begin(bent_world_t* world, bent_query_t query) {
+bent_query_begin_ex(bent_world_t* world, bent_query_t query, bent_query_ctx_t* ctx) {
+	if (ctx == NULL) { ctx = world->query_ctx; }
+
 	bent_index_t num_entities = 0;
 	bent_t* entities = NULL;
 	if (query.id != 0) {
@@ -2459,30 +2572,38 @@ bent_query_begin(bent_world_t* world, bent_query_t query) {
 		entities = query_data->dense;
 	}
 
-	// Push a snapshot on the scratch stack: the live list may be reordered
+	// Push a snapshot on the context's stack: the live list may be reordered
 	// or reallocated by the body of the loop
-	bent_index_t base = (bent_index_t)barray_len(world->scratch);
+	bent_index_t base = (bent_index_t)barray_len(ctx->entities);
 	if (num_entities > 0) {
-		barray_resize(world->scratch, base + num_entities, world->memctx);
-		memcpy(world->scratch + base, entities, (size_t)num_entities * sizeof(bent_t));
+		barray_resize(ctx->entities, base + num_entities, ctx->memctx);
+		memcpy(ctx->entities + base, entities, (size_t)num_entities * sizeof(bent_t));
 	}
 
 	return (bent_query_itr_t){
 		.query = query,
+		.ctx = ctx,
 		.base = base,
 		.pos = base,
 		.end = base + num_entities,
 	};
 }
 
+bent_query_itr_t
+bent_query_begin(bent_world_t* world, bent_query_t query) {
+	return bent_query_begin_ex(world, query, NULL);
+}
+
 void
 bent_query_end(bent_world_t* world, bent_query_itr_t* itr) {
+	(void)world;
 	if (itr->done) { return; }
 	itr->done = true;
 	itr->once = 0;
 
 	// Nested iterations are LIFO so this is the top of the stack
-	barray_resize(world->scratch, itr->base, world->memctx);
+	bent_query_ctx_t* ctx = itr->ctx;
+	barray_resize(ctx->entities, itr->base, ctx->memctx);
 }
 
 bool
@@ -2498,7 +2619,7 @@ bent_query_next(bent_world_t* world, bent_query_itr_t* itr) {
 
 	// Skip what no longer matches (or was destroyed) since the snapshot
 	while (itr->pos < itr->end) {
-		bent_t entity = world->scratch[itr->pos++];
+		bent_t entity = itr->ctx->entities[itr->pos++];
 		if (bent_query_match(world, itr->query, entity)) {
 			itr->entity = entity;
 			return true;
@@ -2510,16 +2631,27 @@ bent_query_next(bent_world_t* world, bent_query_itr_t* itr) {
 }
 
 void
+bent_query_each_ex(
+	bent_world_t* world,
+	bent_query_t query,
+	bent_query_ctx_t* ctx,
+	void (*fn)(void* userdata, bent_world_t* world, bent_t entity),
+	void* userdata
+) {
+	bent_query_itr_t itr = bent_query_begin_ex(world, query, ctx);
+	while (bent_query_next(world, &itr)) {
+		fn(userdata, world, itr.entity);
+	}
+}
+
+void
 bent_query_each(
 	bent_world_t* world,
 	bent_query_t query,
 	void (*fn)(void* userdata, bent_world_t* world, bent_t entity),
 	void* userdata
 ) {
-	bent_query_itr_t itr = bent_query_begin(world, query);
-	while (bent_query_next(world, &itr)) {
-		fn(userdata, world, itr.entity);
-	}
+	bent_query_each_ex(world, query, NULL, fn, userdata);
 }
 
 bent_query_t

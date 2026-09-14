@@ -519,3 +519,56 @@ BTEST(query, no_entity_list_creates_no_query) {
 	BTEST_EXPECT_EQUAL("%d", sys->num_adds, 3);
 	BTEST_EXPECT_EQUAL("%d", sys->num_removes, 2);
 }
+
+BTEST(query, private_context) {
+	bent_world_t* world = fixture.world;
+
+	for (int i = 0; i < 6; ++i) {
+		bent_t ent = bent_create(world);
+		bent_add(world, ent, basic_component, NULL);
+	}
+	bent_query_t q = bent_query(world, BENT_COMP_LIST(&basic_component), NULL);
+
+	bent_query_ctx_t* ctx = bent_create_query_ctx(NULL);
+
+	// A private context nested inside the shared one, and the other way around
+	int pairs = 0;
+	BENT_FOREACH_QUERY(a, world, q) {
+		(void)a;
+		BENT_FOREACH_QUERY_EX(b, world, ctx, q) {
+			(void)b;
+			++pairs;
+		}
+	}
+	BTEST_EXPECT_EQUAL("%d", pairs, 36);
+
+	pairs = 0;
+	BENT_FOREACH_QUERY_EX(a, world, ctx, q) {
+		BENT_FOREACH_QUERY(b, world, q) {
+			if (bent_equal(a, b)) { bent_destroy(world, b); }
+			++pairs;
+		}
+	}
+	// Each outer entity sees one fewer inner entity than the previous one
+	BTEST_EXPECT_EQUAL("%d", pairs, 6 + 5 + 4 + 3 + 2 + 1);
+	BTEST_EXPECT_EQUAL("%d", count(world, q), 0);
+
+	// The explicit form on a private context, stopped early
+	bent_t ent = bent_create(world);
+	bent_add(world, ent, basic_component, NULL);
+	bent_query_itr_t itr = bent_query_begin_ex(world, q, ctx);
+	BTEST_EXPECT(bent_query_next(world, &itr));
+	bent_query_end(world, &itr);
+
+	int visited = 0;
+	bent_query_each_ex(world, q, ctx, count_entity, &visited);
+	BTEST_EXPECT_EQUAL("%d", visited, 1);
+
+	// NULL is the shared context
+	itr = bent_query_begin_ex(world, q, NULL);
+	BTEST_EXPECT(bent_query_next(world, &itr));
+	BTEST_EXPECT(!bent_query_next(world, &itr));
+
+	bent_destroy_query_ctx(ctx);
+	bent_destroy_query_ctx(NULL);
+}
