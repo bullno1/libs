@@ -16,8 +16,9 @@ BTEST(generic, any_int_fundamental_types) {
 	unsigned short ush = 60000;
 	int i = -70000;
 	unsigned int ui = 4000000000u;
-	long l = -1234567890123L;
-	unsigned long ul = 12345678901234UL;
+	// long is 32 bits on Windows
+	long l = -1234567890L;
+	unsigned long ul = 3000000000UL;
 	long long ll = -9000000000000000000LL;
 	unsigned long long ull = 18000000000000000000ULL;
 	size_t sz = 987654321;

@@ -47,7 +47,7 @@ serialize_int_array(bserial_ctx_t* ctx, int_array_t* int_array) {
 	if (len > 7) { return BSERIAL_MALFORMED; }
 	int_array->len = (int)len;
 
-	for (int i = 0; i < len; ++i) {
+	for (int i = 0; i < int_array->len; ++i) {
 		BSERIAL_CHECK_STATUS(bserial_any_int(ctx, &int_array->values[i]));
 	}
 
@@ -60,7 +60,7 @@ serialize_nested_array(bserial_ctx_t* ctx, nested_array_t* nested_array) {
 	BSERIAL_CHECK_STATUS(bserial_array(ctx, &len));
 	if (len > 7) { return BSERIAL_MALFORMED; }
 	nested_array->len = (int)len;
-	for (int i = 0; i < len; ++i) {
+	for (int i = 0; i < nested_array->len; ++i) {
 		BSERIAL_CHECK_STATUS(serialize_int_array(ctx, &nested_array->values[i]));
 	}
 

@@ -254,7 +254,7 @@
  *
  * bserial_status_t
  * serialize_shape_kind(bserial_ctx_t* ctx, shape_kind_t* kind) {
- *     BSERIAL_ENUM(ctx, *kind) {
+ *     BSERIAL_ENUM(ctx, kind) {
  *         BSERIAL_VARIANT(ctx, SHAPE_CIRCLE);
  *         BSERIAL_VARIANT(ctx, SHAPE_SQUARE);
  *         BSERIAL_VARIANT(ctx, SHAPE_TRIANGLE);
@@ -264,16 +264,16 @@
  * }
  * ```
  *
- * `BSERIAL_ENUM` takes an lvalue of any integer or enum type, not a pointer.
- * When writing, the variant whose value matches it writes its name.
- * When reading, the variant whose name matches the stream stores its value into it.
+ * `BSERIAL_ENUM` takes a pointer to an integer or enum of any type.
+ * When writing, the variant whose value matches the pointee writes its name.
+ * When reading, the variant whose name matches the stream stores its value into the pointee.
  * A value with no name or a name with no variant is an error.
  *
  * Renaming a variant is handled like renaming a record field:
  * keep the old name as a read-only alias.
  *
  * ```c
- * BSERIAL_ENUM(ctx, *kind) {
+ * BSERIAL_ENUM(ctx, kind) {
  *     if (bserial_mode(ctx) == BSERIAL_MODE_READ) {
  *         // Data written before the rename
  *         bserial_variant(ctx, "SHAPE_BOX", sizeof("SHAPE_BOX") - 1, SHAPE_SQUARE);
@@ -749,14 +749,15 @@ typedef struct {
 /**
  * @brief Describe the integer type pointed to by @a ptr.
  *
- * @a ptr must point to one of the fundamental integer types.
- * Fixed-width and other typedefs such as `size_t` resolve to one of those.
+ * @a ptr must point to an integer type.
  * Any other pointer type is a compile error.
  */
 #define BSERIAL_INT_TYPE(ptr) \
 	((bserial_int_type_t){ \
-		.size = (uint8_t)sizeof(*(ptr)), \
+		/* % is only defined for integer types */ \
+		.size = (uint8_t)(sizeof(*(ptr)) + 0 * sizeof(*(ptr) % 1)), \
 		.is_signed = _Generic((ptr), \
+			bool*: false, \
 			char*: CHAR_MIN < 0, \
 			signed char*: true, \
 			unsigned char*: false, \
@@ -767,7 +768,8 @@ typedef struct {
 			long*: true, \
 			unsigned long*: false, \
 			long long*: true, \
-			unsigned long long*: false \
+			unsigned long long*: false, \
+			default: true \
 		), \
 	})
 
@@ -978,22 +980,26 @@ bserial_key(bserial_ctx_t* ctx, const char* name, uint64_t len);
  * An enum is stored as a symbol: the name of the active variant.
  *
  * This should always be called as the condition of a while loop:
- * `while (bserial_enum(ctx, value)) {`.
+ * `while (bserial_typed_enum(ctx, value, type)) {`.
  * Therefore, the macro @ref BSERIAL_ENUM should be used.
  * The body of the loop must only contain @ref bserial_variant calls.
  *
- * When writing, the variant whose value matches `*value` writes its name.
+ * When writing, the variant whose value matches the pointed-to integer
+ * writes its name.
  * When reading, the variant whose name matches the stream stores its value
- * into `*value`.
- * It is an error if no variant matches.
+ * into the pointed-to integer.
+ * It is an error if no variant matches or if the value does not fit in the
+ * integer type.
  *
  * @param ctx The serialization context.
- * @param value The enum value.
+ * @param value Pointer to the enum value, an integer of any type.
+ * @param type Description of the pointed-to type.
  *
  * @see bserial_variant
+ * @see BSERIAL_INT_TYPE
  */
 BSERIAL_API bool
-bserial_enum(bserial_ctx_t* ctx, int* value);
+bserial_typed_enum(bserial_ctx_t* ctx, void* value, bserial_int_type_t type);
 
 /**
  * @brief Declare a variant of an enum.
@@ -1005,7 +1011,7 @@ bserial_enum(bserial_ctx_t* ctx, int* value);
  * @param len Length of the name.
  * @param value Value of the variant.
  *
- * @see bserial_enum
+ * @see bserial_typed_enum
  */
 BSERIAL_API bserial_status_t
 bserial_variant(bserial_ctx_t* ctx, const char* name, uint64_t len, int value);
@@ -1013,20 +1019,17 @@ bserial_variant(bserial_ctx_t* ctx, const char* name, uint64_t len, int value);
 /**
  * @brief Read/write an enum.
  *
- * Unlike @ref bserial_enum, this takes an lvalue of any integer or enum type
- * instead of a pointer.
- * The value is copied into a temporary `int` for the duration of the loop and
- * assigned back at the end.
+ * Same as @ref bserial_typed_enum but the type is inferred from @a value.
  *
  * @param ctx The serialization context.
- * @param lvalue The enum value.
- *   It is evaluated twice and must not have side effects.
+ * @param value Pointer to the enum value, an integer or enum of any type.
+ *   It is evaluated once per loop iteration and must not have side effects.
+ *
+ * @see bserial_typed_enum
+ * @see BSERIAL_INT_TYPE
  */
-#define BSERIAL_ENUM(ctx, lvalue) \
-	for ( \
-		int bserial__enum_value = (int)(lvalue); \
-		bserial_enum(ctx, &bserial__enum_value) || (((lvalue) = bserial__enum_value), false); \
-	)
+#define BSERIAL_ENUM(ctx, value) \
+	while (bserial_typed_enum(ctx, (value), BSERIAL_INT_TYPE(value)))
 
 /**
  * Declare a variant in an enum
@@ -1343,7 +1346,8 @@ typedef struct {
 	// current record.
 	bool value_pending;
 
-	int* enum_value;
+	void* enum_value;
+	bserial_int_type_t enum_type;
 	const char* enum_symbol;
 	uint64_t enum_symbol_len;
 	bool enum_matched;
@@ -2421,8 +2425,33 @@ bserial_key(bserial_ctx_t* ctx, const char* name, uint64_t len) {
 	}
 }
 
+// Widen an enum value of any storage type to int64_t
+static inline bool
+bserial_load_enum(const void* value, bserial_int_type_t type, int64_t* out) {
+	if (type.is_signed) {
+		return bserial_load_sint(value, type.size, out);
+	} else {
+		uint64_t wide;
+		if (!bserial_load_uint(value, type.size, &wide)) { return false; }
+		if (wide > INT64_MAX) { return false; }
+		*out = (int64_t)wide;
+		return true;
+	}
+}
+
+// Store with range check
+static inline bool
+bserial_store_enum(void* value, bserial_int_type_t type, int64_t in) {
+	if (type.is_signed) {
+		return bserial_store_sint(value, type.size, in);
+	} else {
+		if (in < 0) { return false; }
+		return bserial_store_uint(value, type.size, (uint64_t)in);
+	}
+}
+
 bool
-bserial_enum(bserial_ctx_t* ctx, int* value) {
+bserial_typed_enum(bserial_ctx_t* ctx, void* value, bserial_int_type_t type) {
 	if (ctx->status != BSERIAL_OK) { return false; }
 
 	bserial_scope_t* scope = ctx->scope;
@@ -2445,6 +2474,7 @@ bserial_enum(bserial_ctx_t* ctx, int* value) {
 	}
 	scope = ctx->scope;
 	scope->enum_value = value;
+	scope->enum_type = type;
 
 	if (bserial_mode(ctx) == BSERIAL_MODE_READ) {
 		if (bserial_symbol(ctx, &scope->enum_symbol, &scope->enum_symbol_len) != BSERIAL_OK) {
@@ -2472,11 +2502,17 @@ bserial_variant(bserial_ctx_t* ctx, const char* name, uint64_t len, int value) {
 			scope->enum_symbol_len == len
 			&& memcmp(scope->enum_symbol, name, len) == 0
 		) {
-			*scope->enum_value = value;
+			if (!bserial_store_enum(scope->enum_value, scope->enum_type, value)) {
+				return bserial_malformed(ctx);
+			}
 			scope->enum_matched = true;
 		}
 	} else {
-		if (*scope->enum_value == value) {
+		int64_t current;
+		if (!bserial_load_enum(scope->enum_value, scope->enum_type, &current)) {
+			return bserial_malformed(ctx);
+		}
+		if (current == value) {
 			BSERIAL_CHECK_STATUS(bserial_symbol(ctx, &name, &len));
 			scope->enum_matched = true;
 		}
