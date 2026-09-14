@@ -42,6 +42,24 @@
  * A component with data that declares nothing is a mistake and
  * @ref bent_unserializable_comp reports it.
  * A tag component is saved by presence alone.
+ *
+ * ## Messages
+ *
+ * A message is a plain struct sent to an entity.
+ * It is delivered to every system that has a
+ * @ref bent_sys_def_t::handlers "handler" for it and
+ * @ref bent_match "matches" the entity.
+ * The sender does not know who is interested.
+ *
+ * @ref BENT_MSG declares a message type, @ref bent_msg constructs one and
+ * @ref bent_send delivers it.
+ * Delivery follows the same rule as the @ref bent_sys_def_t::add "add" and
+ * @ref bent_sys_def_t::remove "remove" callbacks: immediate from ordinary
+ * code, queued when sent from inside a callback until the outermost callback
+ * returns.
+ *
+ * Example:
+ * @snippet samples/bent.c BENT_MSG
  */
 
 #include "autolist.h"
@@ -291,6 +309,70 @@
 #define BENT_COMP_LIST(...) (bent_comp_reg_t*[]){ __VA_ARGS__, 0 }
 
 /**
+ * Helper for a null-terminated message handler list.
+ *
+ * To be used inside a @ref bent_sys_def_t.
+ * Each entry is a `{ &message, handler }` pair, see @ref bent_msg_handler_t.
+ */
+#define BENT_MSG_HANDLERS(...) (bent_msg_handler_t[]){ __VA_ARGS__, { 0 } }
+
+/**
+ * Construct a message.
+ *
+ * Expands to a compound literal of the message's struct type, so it is
+ * followed by a brace initializer:
+ *
+ * @code{.c}
+ * collision_msg_t msg = bent_msg(collision_msg){ .a = a, .b = b };
+ * @endcode
+ *
+ * @param NAME name of the message type
+ *
+ * @see BENT_MSG
+ */
+#define bent_msg(NAME) (struct NAME)
+
+/**
+ * Send a message to an entity.
+ *
+ * The message is delivered to every system that lists it in its
+ * @ref bent_sys_def_t::handlers "handlers" and @ref bent_match "matches" the
+ * entity, in system registration order.
+ * A stale handle delivers to nobody.
+ *
+ * Outside of a system callback, the handlers run before this returns,
+ * followed by whatever they queued.
+ * From inside a callback (an @ref bent_sys_def_t::add "add",
+ * @ref bent_sys_def_t::remove "remove" or a message handler) the message is
+ * copied and delivered once the outermost callback returns.
+ * Matching is evaluated right before each handler runs, so a queued message
+ * to an entity that no longer matches, or that was destroyed, is dropped.
+ * Between @ref bent_begin_load and @ref bent_end_load nothing is delivered.
+ *
+ * The last argument is either a brace initializer or a value of the
+ * message's type:
+ *
+ * @snippet samples/bent.c bent_send
+ *
+ * @param WORLD the world
+ * @param ENTITY the entity
+ * @param NAME name of the message type
+ * @param ... the message
+ * @return the number of handlers called, 0 when the message was queued
+ *
+ * @remarks A message type is identified by the address of its registration,
+ *     which changes on a hot reload.
+ *     Do not keep a `bent_msg_reg_t*` in a system's data across one.
+ *
+ * @see BENT_MSG
+ * @see bent_msg_handler_t
+ *
+ * @hideinitializer
+ */
+#define bent_send(WORLD, ENTITY, NAME, ...) \
+	bent__send((WORLD), (ENTITY), &NAME, (struct NAME[]){ __VA_ARGS__ }, sizeof(struct NAME))
+
+/**
  * Iterate the entities matching a query.
  *
  * See @ref bent_query_begin for what the body may do.
@@ -422,6 +504,34 @@
 	BENT_DECLARE_COMP(NAME) \
 	BENT_DEFINE_TAG_COMP_ADDER(NAME)
 
+/**
+ * Dual use helper for a message type.
+ *
+ * This must be followed by a struct body and a semicolon:
+ *
+ * @code{.c}
+ * BENT_MSG(collision_msg) { bent_t a, b; float depth; };
+ * @endcode
+ *
+ * It defines `struct NAME`, the typedef `NAME_t` and declares the
+ * registration `NAME`, a @ref bent_msg_reg_t whose address identifies the
+ * message type.
+ *
+ * In a header file, it will forward-declare the registration.
+ *
+ * In a single source file, define `BENT_DEFINE_COMPONENTS` and include this
+ * header to implement the registration, the same way as @ref BENT_POD_COMP.
+ *
+ * @param NAME name of the message type
+ *
+ * @see bent_msg
+ * @see bent_send
+ */
+#define BENT_MSG(NAME) \
+	typedef struct NAME NAME##_t; \
+	extern bent_msg_reg_t NAME; \
+	struct NAME
+
 #else
 
 #define BENT_POD_COMP(NAME, TYPE) BENT_DEFINE_POD_COMP(NAME, TYPE)
@@ -431,6 +541,11 @@
 #define BENT_TRANSIENT_POD_COMP(NAME, TYPE) BENT_DEFINE_TRANSIENT_COMP(NAME, TYPE)
 
 #define BENT_TAG_COMP(NAME) BENT_DEFINE_TAG_COMP(NAME)
+
+#define BENT_MSG(NAME) \
+	typedef struct NAME NAME##_t; \
+	bent_msg_reg_t NAME = { .name = #NAME }; \
+	struct NAME
 
 #endif
 
@@ -664,6 +779,47 @@ typedef struct {
 } bent_comp_reg_t;
 
 /**
+ * Registration of a message type.
+ *
+ * Its address is the identity of the message type.
+ *
+ * @see BENT_MSG
+ */
+typedef struct {
+	/*! Name of the message type */
+	const char* name;
+} bent_msg_reg_t;
+
+/**
+ * Message handler.
+ *
+ * @param userdata system's data
+ * @param world the world this system belongs to
+ * @param entity the matching entity the message was sent to
+ * @param msg the message, cast it to the message's struct type
+ *
+ * @see bent_send
+ */
+typedef void (*bent_msg_fn_t)(
+	void* userdata,
+	bent_world_t* world,
+	bent_t entity,
+	const void* msg
+);
+
+/**
+ * An entry in a system's message handler list.
+ *
+ * @see BENT_MSG_HANDLERS
+ */
+typedef struct {
+	/*! The message type's registration */
+	bent_msg_reg_t* msg;
+	/*! The handler */
+	bent_msg_fn_t fn;
+} bent_msg_handler_t;
+
+/**
  * System behavior flags.
  *
  * @see bent_sys_def_t::flags.
@@ -841,6 +997,18 @@ typedef struct {
 	 * is assumed to be derived and rebuilt in @ref bent_sys_def_t::init.
 	 */
 	bent_serialize_fn_t serialize;
+
+	/**
+	 * Optional null-terminated list of message handlers.
+	 *
+	 * A handler is called for a message sent to an entity this system
+	 * @ref bent_match "matches".
+	 * The same rules as @ref bent_sys_def_t::add apply to what it may do.
+	 *
+	 * @see BENT_MSG_HANDLERS
+	 * @see bent_send
+	 */
+	bent_msg_handler_t* handlers;
 } bent_sys_def_t;
 
 /**
@@ -1571,6 +1739,15 @@ bent__next_live(bent_world_t* world, bent_index_t from);
 BENT_API bent_t
 bent__next_with(bent_world_t* world, bent_comp_reg_t comp, bent_index_t from);
 
+BENT_API bent_index_t
+bent__send(
+	bent_world_t* world,
+	bent_t entity,
+	bent_msg_reg_t* msg,
+	const void* data,
+	size_t size
+);
+
 #endif
 
 #endif
@@ -1604,6 +1781,15 @@ bent__libc_realloc(void* ptr, size_t size, void* ctx) {
 	}
 }
 
+#endif
+
+// Queued message payloads are aligned to this, same choice as barray
+#ifndef BENT__MSG_ALIGN_TYPE
+#	ifdef _MSC_VER
+#		define BENT__MSG_ALIGN_TYPE long double
+#	else
+#		define BENT__MSG_ALIGN_TYPE max_align_t
+#	endif
 #endif
 
 #define BARRAY_REALLOC BENT_REALLOC
@@ -1663,6 +1849,9 @@ typedef struct {
 	bent_bitset_t old_components;
 	bent_bitset_t new_components;
 	bool created;
+	// A queued message when not NULL, its payload lives in msg_payloads
+	bent_msg_reg_t* msg;
+	size_t msg_offset;
 } bent_notification_t;
 
 typedef struct {
@@ -1719,6 +1908,12 @@ struct bent_world_s {
 	// For the iterations that do not bring their own
 	bent_query_ctx_t* query_ctx;
 	barray(bent_notification_t) notify_queue;
+	// Copies of the messages queued in notify_queue
+	barray(char) msg_payloads;
+	// The pair being drained is swapped with these so that callbacks can
+	// queue more without moving the payload being delivered
+	barray(bent_notification_t) spare_notify_queue;
+	barray(char) spare_msg_payloads;
 	// Which slots are alive, and their generations
 	bhandle_map_t handles;
 	// One per slot, segmented so that entity data pointers stay valid across
@@ -2031,9 +2226,50 @@ bent_match_empty_impl(bent_world_t* world, bent_t entity_id) {
 	}
 }
 
+static bent_entity_data_t*
+bent_entity_data(bent_world_t* world, bent_t entity_id);
+
+// Call every handler for `msg` whose system matches the entity.
+// Matching is checked right before each call since a handler can change it.
+static bent_index_t
+bent_deliver_msg(bent_world_t* world, bent_t entity, bent_msg_reg_t* msg, const void* data) {
+	bent_index_t count = 0;
+	bent_index_t num_systems = (bent_index_t)barray_len(world->systems);
+	for (bent_index_t i = 0; i < num_systems; ++i) {
+		bent_system_data_t* sys = &world->systems[i];
+		// A system may not be initialized yet if this is sent from an init callback
+		if (sys->def == NULL || sys->def->handlers == NULL) { continue; }
+		const bent_msg_handler_t* handlers = sys->def->handlers;
+
+		for (const bent_msg_handler_t* handler = handlers; handler->msg != NULL; ++handler) {
+			if (handler->msg != msg) { continue; }
+
+			const bent_entity_data_t* entity_data = bent_entity_data(world, entity);
+			if (entity_data == NULL) { return count; }
+			if (!bent_sys_match_impl(sys, &entity_data->components)) { continue; }
+
+			handler->fn(sys->userdata, world, entity, data);
+			++count;
+		}
+	}
+	return count;
+}
+
+// `payloads` is the buffer a queued message was copied into
 static void
-bent_dispatch_notification(bent_world_t* world, const bent_notification_t* notification) {
-	if (notification->created) {
+bent_dispatch_notification(
+	bent_world_t* world,
+	const bent_notification_t* notification,
+	const char* payloads
+) {
+	if (notification->msg != NULL) {
+		bent_deliver_msg(
+			world,
+			notification->entity,
+			notification->msg,
+			payloads + notification->msg_offset
+		);
+	} else if (notification->created) {
 		bent_match_empty_impl(world, notification->entity);
 	} else {
 		bent_notify_systems_impl(
@@ -2060,12 +2296,25 @@ bent_begin_notify(bent_world_t* world) {
 // Deliver whatever the callbacks queued, then the entities they destroyed
 static void
 bent_end_notify(bent_world_t* world) {
-	// Callbacks may queue more while draining
-	for (bent_index_t i = 0; i < (bent_index_t)barray_len(world->notify_queue); ++i) {
-		bent_notification_t notification = world->notify_queue[i];
-		bent_dispatch_notification(world, &notification);
+	// Callbacks may queue more while draining.
+	// Each round drains what the previous one queued, into the spare pair so
+	// that a payload being delivered is never moved by a reallocation.
+	while (barray_len(world->notify_queue) > 0) {
+		barray(bent_notification_t) queue = world->notify_queue;
+		barray(char) payloads = world->msg_payloads;
+		world->notify_queue = world->spare_notify_queue;
+		world->msg_payloads = world->spare_msg_payloads;
+
+		bent_index_t len = (bent_index_t)barray_len(queue);
+		for (bent_index_t i = 0; i < len; ++i) {
+			bent_dispatch_notification(world, &queue[i], payloads);
+		}
+
+		barray_clear(queue);
+		barray_clear(payloads);
+		world->spare_notify_queue = queue;
+		world->spare_msg_payloads = payloads;
 	}
-	barray_clear(world->notify_queue);
 	world->notifying = false;
 
 	if (!world->defer_destruction) {
@@ -2098,7 +2347,7 @@ bent_notify(bent_world_t* world, bent_notification_t notification) {
 		return;
 	}
 
-	bent_dispatch_notification(world, &notification);
+	bent_dispatch_notification(world, &notification, NULL);
 	bent_end_notify(world);
 }
 
@@ -2122,6 +2371,37 @@ bent_match_empty(bent_world_t* world, bent_t entity_id) {
 		.entity = entity_id,
 		.created = true,
 	});
+}
+
+bent_index_t
+bent__send(
+	bent_world_t* world,
+	bent_t entity,
+	bent_msg_reg_t* msg,
+	const void* data,
+	size_t size
+) {
+	// No system has seen the entities yet
+	if (world->loading) { return 0; }
+
+	if (!bent_begin_notify(world)) {
+		// Nested: copy the payload, aligned so the handler can read it in place
+		size_t align = _Alignof(BENT__MSG_ALIGN_TYPE);
+		size_t offset = (barray_len(world->msg_payloads) + align - 1) / align * align;
+		barray_resize(world->msg_payloads, offset + size, world->memctx);
+		memcpy(world->msg_payloads + offset, data, size);
+
+		barray_push(world->notify_queue, ((bent_notification_t){
+			.entity = entity,
+			.msg = msg,
+			.msg_offset = offset,
+		}), world->memctx);
+		return 0;
+	}
+
+	bent_index_t count = bent_deliver_msg(world, entity, msg, data);
+	bent_end_notify(world);
+	return count;
 }
 
 // }}}
@@ -2312,6 +2592,9 @@ bent_cleanup(bent_world_t** world_ptr) {
 	barray_free(world->queries, world->memctx);
 	bent_destroy_query_ctx(world->query_ctx);
 	barray_free(world->notify_queue, world->memctx);
+	barray_free(world->msg_payloads, world->memctx);
+	barray_free(world->spare_notify_queue, world->memctx);
+	barray_free(world->spare_msg_payloads, world->memctx);
 	bseg_free(world->entities, world->memctx);
 	bhandle_free(&world->handles, world->memctx);
 	barray_free(world->destroy_queue, world->memctx);
