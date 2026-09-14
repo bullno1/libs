@@ -100,6 +100,12 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structbent__t.html">bent_t</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Entity handle.  <a href="structbent__t.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structbent__query__t.html">bent_query_t</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Handle to a query, see <a class="el" href="bent_8h.html#a0176a90859d6e940929f23a400e610e4">bent_query</a>.  <a href="structbent__query__t.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structbent__query__itr__t.html">bent_query_itr_t</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Query iterator, see <a class="el" href="bent_8h.html#add9e76870daecbd9013c0fed23f3ce68">bent_query_begin</a>.  <a href="structbent__query__itr__t.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structbent__handles__t.html">bent_handles_t</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Saved entity handles, a view into the world.  <a href="structbent__handles__t.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -193,9 +199,15 @@ Macros</h2></td></tr>
 <tr class="memitem:a9eee6092ac401da9b5274072f292646e" id="r_a9eee6092ac401da9b5274072f292646e"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bent_8h.html#a9eee6092ac401da9b5274072f292646e">BENT_COMP_LIST</a>(...)&#160;&#160;&#160;(<a class="el" href="structbent__comp__reg__t.html">bent_comp_reg_t</a>*[]){ __VA_ARGS__, 0 }</td></tr>
 <tr class="memdesc:a9eee6092ac401da9b5274072f292646e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Helper for a null-terminated component list.  <br /></td></tr>
 <tr class="separator:a9eee6092ac401da9b5274072f292646e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae370665781a7e4fa801106a343d7f427" id="r_ae370665781a7e4fa801106a343d7f427"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bent_8h.html#ae370665781a7e4fa801106a343d7f427">BENT_FOREACH_ENTITY</a>(VAR,  ENTITIES)</td></tr>
-<tr class="memdesc:ae370665781a7e4fa801106a343d7f427"><td class="mdescLeft">&#160;</td><td class="mdescRight">Helper to iterate entities.  <br /></td></tr>
-<tr class="separator:ae370665781a7e4fa801106a343d7f427"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a54f83fc2c1375cf98d19ecbaab060357" id="r_a54f83fc2c1375cf98d19ecbaab060357"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bent_8h.html#a54f83fc2c1375cf98d19ecbaab060357">BENT_FOREACH_QUERY</a>(VAR,  WORLD,  QUERY)</td></tr>
+<tr class="memdesc:a54f83fc2c1375cf98d19ecbaab060357"><td class="mdescLeft">&#160;</td><td class="mdescRight">Iterate the entities matching a query.  <br /></td></tr>
+<tr class="separator:a54f83fc2c1375cf98d19ecbaab060357"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a53625462888805ab3609db6edc56778b" id="r_a53625462888805ab3609db6edc56778b"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bent_8h.html#a53625462888805ab3609db6edc56778b">BENT_FOREACH_QUERY_EX</a>(VAR,  WORLD,  CTX,  QUERY)</td></tr>
+<tr class="memdesc:a53625462888805ab3609db6edc56778b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Same as <a class="el" href="bent_8h.html#a54f83fc2c1375cf98d19ecbaab060357">BENT_FOREACH_QUERY</a> with an explicit <a class="el" href="bent_8h.html#a7d24e6a898d4e64bd2be5e50bc6ef4e6">bent_query_ctx_t</a>.  <br /></td></tr>
+<tr class="separator:a53625462888805ab3609db6edc56778b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a98167ba0f151020e41d695a19879c5e4" id="r_a98167ba0f151020e41d695a19879c5e4"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bent_8h.html#a98167ba0f151020e41d695a19879c5e4">BENT_FOREACH_MATCH</a>(VAR,  WORLD,  REQUIRE,  EXCLUDE)</td></tr>
+<tr class="memdesc:a98167ba0f151020e41d695a19879c5e4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Iterate the entities that have all of some components and none of others.  <br /></td></tr>
+<tr class="separator:a98167ba0f151020e41d695a19879c5e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a25589a58bb341c5e0b1fd00f2a63dcd1" id="r_a25589a58bb341c5e0b1fd00f2a63dcd1"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bent_8h.html#a25589a58bb341c5e0b1fd00f2a63dcd1">BENT_FOREACH_LIVE</a>(VAR,  WORLD)</td></tr>
 <tr class="memdesc:a25589a58bb341c5e0b1fd00f2a63dcd1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Iterate every live entity of a world, in index order.  <br /></td></tr>
 <tr class="separator:a25589a58bb341c5e0b1fd00f2a63dcd1"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -231,6 +243,9 @@ typedef <a class="el" href="bent_8h.html#ac5dbd8435d1fe23d180032910e473a70">BENT
 typedef <a class="el" href="bent_8h.html#a0af5904b704c31d55fb23cecaab05f9a">BENT_MASK_TYPE</a>&#160;</td><td class="memItemRight" valign="bottom"><b>bent_mask_t</b></td></tr>
 <tr class="memdesc:a21e030cf08c3b1500b58273680b5f081"><td class="mdescLeft">&#160;</td><td class="mdescRight">Bitmask type used in the library. <br /></td></tr>
 <tr class="separator:a21e030cf08c3b1500b58273680b5f081"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7d24e6a898d4e64bd2be5e50bc6ef4e6" id="r_a7d24e6a898d4e64bd2be5e50bc6ef4e6"><td class="memItemLeft" align="right" valign="top">typedef struct bent_query_ctx_s&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bent_8h.html#a7d24e6a898d4e64bd2be5e50bc6ef4e6">bent_query_ctx_t</a></td></tr>
+<tr class="memdesc:a7d24e6a898d4e64bd2be5e50bc6ef4e6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Storage for the snapshots taken by query iterators.  <br /></td></tr>
+<tr class="separator:a7d24e6a898d4e64bd2be5e50bc6ef4e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad4854a10e0593e302021a4e399d96e4b" id="r_ad4854a10e0593e302021a4e399d96e4b"><td class="memItemLeft" align="right" valign="top"><a id="ad4854a10e0593e302021a4e399d96e4b" name="ad4854a10e0593e302021a4e399d96e4b"></a>
 typedef <a class="el" href="bent_8h.html#a63ec6f21464c7ff36f785df4b6dfd2de">BENT_SERIALIZE_CTX</a>&#160;</td><td class="memItemRight" valign="bottom"><b>bent_serialize_ctx_t</b></td></tr>
 <tr class="memdesc:ad4854a10e0593e302021a4e399d96e4b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Serialization context, see <a class="el" href="bent_8h.html#a63ec6f21464c7ff36f785df4b6dfd2de">BENT_SERIALIZE_CTX</a>. <br /></td></tr>
@@ -307,9 +322,42 @@ Functions</h2></td></tr>
 <tr class="memitem:a6c47f4d0f18919c36f60e5b300787d20" id="r_a6c47f4d0f18919c36f60e5b300787d20"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bent_8h.html#a6c47f4d0f18919c36f60e5b300787d20">bent_run</a> (<a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *world, <a class="el" href="bent_8h.html#a21e030cf08c3b1500b58273680b5f081">bent_mask_t</a> update_mask)</td></tr>
 <tr class="memdesc:a6c47f4d0f18919c36f60e5b300787d20"><td class="mdescLeft">&#160;</td><td class="mdescRight">Run all systems matching the update mask.  <br /></td></tr>
 <tr class="separator:a6c47f4d0f18919c36f60e5b300787d20"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0e05186828b7e8fef1c6f75ac9163e8b" id="r_a0e05186828b7e8fef1c6f75ac9163e8b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structbent__t.html">bent_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bent_8h.html#a0e05186828b7e8fef1c6f75ac9163e8b">bent_get_entity_list</a> (<a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *world, <a class="el" href="structbent__sys__reg__t.html">bent_sys_reg_t</a> sys, <a class="el" href="bent_8h.html#aef1f57c00a98e4078b680c9b384bdf54">bent_index_t</a> *num_entities)</td></tr>
-<tr class="memdesc:a0e05186828b7e8fef1c6f75ac9163e8b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieve the list of matched entities for a system.  <br /></td></tr>
-<tr class="separator:a0e05186828b7e8fef1c6f75ac9163e8b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0176a90859d6e940929f23a400e610e4" id="r_a0176a90859d6e940929f23a400e610e4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structbent__query__t.html">bent_query_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bent_8h.html#a0176a90859d6e940929f23a400e610e4">bent_query</a> (<a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *world, <a class="el" href="structbent__comp__reg__t.html">bent_comp_reg_t</a> **require, <a class="el" href="structbent__comp__reg__t.html">bent_comp_reg_t</a> **exclude)</td></tr>
+<tr class="memdesc:a0176a90859d6e940929f23a400e610e4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get or create a query.  <br /></td></tr>
+<tr class="separator:a0176a90859d6e940929f23a400e610e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abe689ab286a88333b52794371bc4c491" id="r_abe689ab286a88333b52794371bc4c491"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structbent__query__t.html">bent_query_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bent_8h.html#abe689ab286a88333b52794371bc4c491">bent_query_masks</a> (<a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *world, <a class="el" href="structbent__bitset__t.html">bent_bitset_t</a> require, <a class="el" href="structbent__bitset__t.html">bent_bitset_t</a> exclude)</td></tr>
+<tr class="memdesc:abe689ab286a88333b52794371bc4c491"><td class="mdescLeft">&#160;</td><td class="mdescRight">Same as <a class="el" href="bent_8h.html#a0176a90859d6e940929f23a400e610e4">bent_query</a> but from bitsets built at runtime.  <br /></td></tr>
+<tr class="separator:abe689ab286a88333b52794371bc4c491"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af025d4a9f235a1a7c4831ffe3c063fa6" id="r_af025d4a9f235a1a7c4831ffe3c063fa6"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bent_8h.html#af025d4a9f235a1a7c4831ffe3c063fa6">bent_query_match</a> (<a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *world, <a class="el" href="structbent__query__t.html">bent_query_t</a> query, <a class="el" href="structbent__t.html">bent_t</a> entity)</td></tr>
+<tr class="memdesc:af025d4a9f235a1a7c4831ffe3c063fa6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check whether an entity matches a query.  <br /></td></tr>
+<tr class="separator:af025d4a9f235a1a7c4831ffe3c063fa6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a056a6150c58005b99c96c86e0543a2bc" id="r_a056a6150c58005b99c96c86e0543a2bc"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bent_8h.html#a056a6150c58005b99c96c86e0543a2bc">bent_query_each</a> (<a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *world, <a class="el" href="structbent__query__t.html">bent_query_t</a> query, void(*fn)(void *userdata, <a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *world, <a class="el" href="structbent__t.html">bent_t</a> entity), void *userdata)</td></tr>
+<tr class="memdesc:a056a6150c58005b99c96c86e0543a2bc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Call a function on every entity matching a query.  <br /></td></tr>
+<tr class="separator:a056a6150c58005b99c96c86e0543a2bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a756c8053ead4a23e63a4252c4ccdd6d7" id="r_a756c8053ead4a23e63a4252c4ccdd6d7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bent_8h.html#a756c8053ead4a23e63a4252c4ccdd6d7">bent_query_each_ex</a> (<a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *world, <a class="el" href="structbent__query__t.html">bent_query_t</a> query, <a class="el" href="bent_8h.html#a7d24e6a898d4e64bd2be5e50bc6ef4e6">bent_query_ctx_t</a> *ctx, void(*fn)(void *userdata, <a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *world, <a class="el" href="structbent__t.html">bent_t</a> entity), void *userdata)</td></tr>
+<tr class="memdesc:a756c8053ead4a23e63a4252c4ccdd6d7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Same as <a class="el" href="bent_8h.html#a056a6150c58005b99c96c86e0543a2bc">bent_query_each</a> with an explicit <a class="el" href="bent_8h.html#a7d24e6a898d4e64bd2be5e50bc6ef4e6">bent_query_ctx_t</a>.  <br /></td></tr>
+<tr class="separator:a756c8053ead4a23e63a4252c4ccdd6d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adc61edfd3690b35f681a5172e023b940" id="r_adc61edfd3690b35f681a5172e023b940"><td class="memItemLeft" align="right" valign="top"><a class="el" href="bent_8h.html#a7d24e6a898d4e64bd2be5e50bc6ef4e6">bent_query_ctx_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bent_8h.html#adc61edfd3690b35f681a5172e023b940">bent_create_query_ctx</a> (void *memctx)</td></tr>
+<tr class="memdesc:adc61edfd3690b35f681a5172e023b940"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a query context.  <br /></td></tr>
+<tr class="separator:adc61edfd3690b35f681a5172e023b940"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a068e69e80ad9e30727a06f3e96572856" id="r_a068e69e80ad9e30727a06f3e96572856"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bent_8h.html#a068e69e80ad9e30727a06f3e96572856">bent_destroy_query_ctx</a> (<a class="el" href="bent_8h.html#a7d24e6a898d4e64bd2be5e50bc6ef4e6">bent_query_ctx_t</a> *ctx)</td></tr>
+<tr class="memdesc:a068e69e80ad9e30727a06f3e96572856"><td class="mdescLeft">&#160;</td><td class="mdescRight">Destroy a query context.  <br /></td></tr>
+<tr class="separator:a068e69e80ad9e30727a06f3e96572856"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:add9e76870daecbd9013c0fed23f3ce68" id="r_add9e76870daecbd9013c0fed23f3ce68"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structbent__query__itr__t.html">bent_query_itr_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bent_8h.html#add9e76870daecbd9013c0fed23f3ce68">bent_query_begin</a> (<a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *world, <a class="el" href="structbent__query__t.html">bent_query_t</a> query)</td></tr>
+<tr class="memdesc:add9e76870daecbd9013c0fed23f3ce68"><td class="mdescLeft">&#160;</td><td class="mdescRight">Begin iterating a query.  <br /></td></tr>
+<tr class="separator:add9e76870daecbd9013c0fed23f3ce68"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a85dac3fdc52cccd0c06e25a652c9532f" id="r_a85dac3fdc52cccd0c06e25a652c9532f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structbent__query__itr__t.html">bent_query_itr_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bent_8h.html#a85dac3fdc52cccd0c06e25a652c9532f">bent_query_begin_ex</a> (<a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *world, <a class="el" href="structbent__query__t.html">bent_query_t</a> query, <a class="el" href="bent_8h.html#a7d24e6a898d4e64bd2be5e50bc6ef4e6">bent_query_ctx_t</a> *ctx)</td></tr>
+<tr class="memdesc:a85dac3fdc52cccd0c06e25a652c9532f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Same as <a class="el" href="bent_8h.html#add9e76870daecbd9013c0fed23f3ce68">bent_query_begin</a> with an explicit <a class="el" href="bent_8h.html#a7d24e6a898d4e64bd2be5e50bc6ef4e6">bent_query_ctx_t</a>.  <br /></td></tr>
+<tr class="separator:a85dac3fdc52cccd0c06e25a652c9532f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0898971cd2c22f98167623473b820859" id="r_a0898971cd2c22f98167623473b820859"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bent_8h.html#a0898971cd2c22f98167623473b820859">bent_query_next</a> (<a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *world, <a class="el" href="structbent__query__itr__t.html">bent_query_itr_t</a> *itr)</td></tr>
+<tr class="memdesc:a0898971cd2c22f98167623473b820859"><td class="mdescLeft">&#160;</td><td class="mdescRight">Advance an iterator.  <br /></td></tr>
+<tr class="separator:a0898971cd2c22f98167623473b820859"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4d25910606dae32281f0eada1a4511d9" id="r_a4d25910606dae32281f0eada1a4511d9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bent_8h.html#a4d25910606dae32281f0eada1a4511d9">bent_query_end</a> (<a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *world, <a class="el" href="structbent__query__itr__t.html">bent_query_itr_t</a> *itr)</td></tr>
+<tr class="memdesc:a4d25910606dae32281f0eada1a4511d9"><td class="mdescLeft">&#160;</td><td class="mdescRight">End an iteration early.  <br /></td></tr>
+<tr class="separator:a4d25910606dae32281f0eada1a4511d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1593db12135422c0d3629e9d87f43287" id="r_a1593db12135422c0d3629e9d87f43287"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structbent__query__t.html">bent_query_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bent_8h.html#a1593db12135422c0d3629e9d87f43287">bent_sys_query</a> (<a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *world, <a class="el" href="structbent__sys__reg__t.html">bent_sys_reg_t</a> sys)</td></tr>
+<tr class="memdesc:a1593db12135422c0d3629e9d87f43287"><td class="mdescLeft">&#160;</td><td class="mdescRight">The query that provides a system's entity list.  <br /></td></tr>
+<tr class="separator:a1593db12135422c0d3629e9d87f43287"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae8695da91e1342ecb6e183933d39bb58" id="r_ae8695da91e1342ecb6e183933d39bb58"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structbent__bitset__t.html">bent_bitset_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bent_8h.html#ae8695da91e1342ecb6e183933d39bb58">bent_get_entity_mask</a> (<a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *world, <a class="el" href="structbent__t.html">bent_t</a> entity)</td></tr>
 <tr class="memdesc:ae8695da91e1342ecb6e183933d39bb58"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieve the component mask of an entity.  <br /></td></tr>
 <tr class="separator:ae8695da91e1342ecb6e183933d39bb58"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -403,6 +451,10 @@ static <a class="el" href="structbent__bitset__t.html">bent_bitset_t</a>&#160;</
 <p>Components and systems are automatically registered with the help of <a class="el" href="autolist_8h.html">autolist.h</a>. When a hot reload solution such as <a href="https://github.com/bullno1/remodule">remodule</a>, is used changes to component or system definitions will be detected and the system will be updated automatically.</p>
 <dl class="section remark"><dt>Remarks</dt><dd>Not all properites can be hot-reloaded. They will be clearly marked as such in the following sections.</dd></dl>
 <h2><a class="anchor" id="autotoc_md19"></a>
+Queries</h2>
+<p>A <a class="el" href="bent_8h.html#a0176a90859d6e940929f23a400e610e4">query</a> is the list of every live entity that has all of some components and none of some others, kept up to date by the world.</p>
+<p>Use <a class="el" href="bent_8h.html#a98167ba0f151020e41d695a19879c5e4">BENT_FOREACH_MATCH</a> to walk the matching entities without registering a system.</p>
+<h2><a class="anchor" id="autotoc_md20"></a>
 Serialization</h2>
 <p>The library does not pick a format. It exposes helpers so the host can use any serialization method:</p>
 <ul>
@@ -523,7 +575,7 @@ Serialization</h2>
 <div class="line">    .size = <span class="keyword">sizeof</span>(transform_t),  <span class="comment">// The most important property</span></div>
 <div class="line">    <span class="comment">/* .init = ... */</span> <span class="comment">// Optionally with callbacks</span></div>
 <div class="line">};</div>
-<div class="ttc" id="abent_8h_html_aa4bae8da5ba5cddef82a407950cff5be"><div class="ttname"><a href="bent_8h.html#aa4bae8da5ba5cddef82a407950cff5be">BENT_DEFINE_COMP</a></div><div class="ttdeci">#define BENT_DEFINE_COMP(NAME)</div><div class="ttdoc">Define a component type.</div><div class="ttdef"><b>Definition</b> bent.h:160</div></div>
+<div class="ttc" id="abent_8h_html_aa4bae8da5ba5cddef82a407950cff5be"><div class="ttname"><a href="bent_8h.html#aa4bae8da5ba5cddef82a407950cff5be">BENT_DEFINE_COMP</a></div><div class="ttdeci">#define BENT_DEFINE_COMP(NAME)</div><div class="ttdoc">Define a component type.</div><div class="ttdef"><b>Definition</b> bent.h:168</div></div>
 </div><!-- fragment --> 
 </div>
 </div>
@@ -598,9 +650,9 @@ Serialization</h2>
 <b>Value:</b><div class="fragment"><div class="line">    <span class="keyword">static</span> <span class="keyword">inline</span> COMP_TYPE* bent_add_##NAME(<a class="code hl_typedef" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a>* world, <a class="code hl_struct" href="structbent__t.html">bent_t</a> entity, ARG_TYPE* arg) { \</div>
 <div class="line">        <span class="keywordflow">return</span> <a class="code hl_function" href="bent_8h.html#ae75bedb5a72a29c14e2b3d5b054ce3c7">bent_add</a>(world, entity, NAME, arg); \</div>
 <div class="line">    }</div>
-<div class="ttc" id="abent_8h_html_ad25dcf8369af5e341d68f2a85083f584"><div class="ttname"><a href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a></div><div class="ttdeci">struct bent_world_s bent_world_t</div><div class="ttdoc">Handle to an entity world.</div><div class="ttdef"><b>Definition</b> bent.h:376</div></div>
+<div class="ttc" id="abent_8h_html_ad25dcf8369af5e341d68f2a85083f584"><div class="ttname"><a href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a></div><div class="ttdeci">struct bent_world_s bent_world_t</div><div class="ttdoc">Handle to an entity world.</div><div class="ttdef"><b>Definition</b> bent.h:432</div></div>
 <div class="ttc" id="abent_8h_html_ae75bedb5a72a29c14e2b3d5b054ce3c7"><div class="ttname"><a href="bent_8h.html#ae75bedb5a72a29c14e2b3d5b054ce3c7">bent_add</a></div><div class="ttdeci">void * bent_add(bent_world_t *world, bent_t entity, bent_comp_reg_t comp, void *arg)</div><div class="ttdoc">Add a component to an entity.</div></div>
-<div class="ttc" id="astructbent__t_html"><div class="ttname"><a href="structbent__t.html">bent_t</a></div><div class="ttdoc">Entity handle.</div><div class="ttdef"><b>Definition</b> bent.h:410</div></div>
+<div class="ttc" id="astructbent__t_html"><div class="ttname"><a href="structbent__t.html">bent_t</a></div><div class="ttdoc">Entity handle.</div><div class="ttdef"><b>Definition</b> bent.h:466</div></div>
 </div><!-- fragment -->
 <p>Define a type-safe helper function to add a component. </p>
 <dl class="params"><dt>Parameters</dt><dd>
@@ -698,7 +750,7 @@ Serialization</h2>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Most components do not have init or cleanup so there is a shortcut</span></div>
 <div class="line"><a class="code hl_define" href="bent_8h.html#aa0fbb0c469d4fe38d754d8ce99bef7dc">BENT_DEFINE_POD_COMP</a>(health, health_t)</div>
-<div class="ttc" id="abent_8h_html_aa0fbb0c469d4fe38d754d8ce99bef7dc"><div class="ttname"><a href="bent_8h.html#aa0fbb0c469d4fe38d754d8ce99bef7dc">BENT_DEFINE_POD_COMP</a></div><div class="ttdeci">#define BENT_DEFINE_POD_COMP(NAME, TYPE)</div><div class="ttdoc">Define a component type, whose data is a POD (plain old data)</div><div class="ttdef"><b>Definition</b> bent.h:178</div></div>
+<div class="ttc" id="abent_8h_html_aa0fbb0c469d4fe38d754d8ce99bef7dc"><div class="ttname"><a href="bent_8h.html#aa0fbb0c469d4fe38d754d8ce99bef7dc">BENT_DEFINE_POD_COMP</a></div><div class="ttdeci">#define BENT_DEFINE_POD_COMP(NAME, TYPE)</div><div class="ttdoc">Define a component type, whose data is a POD (plain old data)</div><div class="ttdef"><b>Definition</b> bent.h:186</div></div>
 </div><!-- fragment --> 
 </div>
 </div>
@@ -734,9 +786,12 @@ Serialization</h2>
 <div class="line">    <span class="keywordtype">void</span>* userdata,</div>
 <div class="line">    <a class="code hl_typedef" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a>* world,</div>
 <div class="line">    <a class="code hl_typedef" href="bent_8h.html#a21e030cf08c3b1500b58273680b5f081">bent_mask_t</a> update_mask,</div>
-<div class="line">    <a class="code hl_struct" href="structbent__t.html">bent_t</a>* entities,</div>
-<div class="line">    <a class="code hl_typedef" href="bent_8h.html#aef1f57c00a98e4078b680c9b384bdf54">bent_index_t</a> num_entities</div>
+<div class="line">    <a class="code hl_struct" href="structbent__query__t.html">bent_query_t</a> query</div>
 <div class="line">) {</div>
+<div class="line">    <span class="comment">// The matching entities are visited through the query</span></div>
+<div class="line">    <a class="code hl_define" href="bent_8h.html#a54f83fc2c1375cf98d19ecbaab060357">BENT_FOREACH_QUERY</a>(e, world, query) {</div>
+<div class="line">        (void)e;</div>
+<div class="line">    }</div>
 <div class="line">}</div>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Called when a component is added</span></div>
@@ -764,10 +819,11 @@ Serialization</h2>
 <div class="line">    <span class="comment">// And cleaned upp</span></div>
 <div class="line">    <span class="comment">/* .cleanup = health_bar_cleanup */</span></div>
 <div class="line">};</div>
-<div class="ttc" id="abent_8h_html_a21e030cf08c3b1500b58273680b5f081"><div class="ttname"><a href="bent_8h.html#a21e030cf08c3b1500b58273680b5f081">bent_mask_t</a></div><div class="ttdeci">BENT_MASK_TYPE bent_mask_t</div><div class="ttdoc">Bitmask type used in the library.</div><div class="ttdef"><b>Definition</b> bent.h:382</div></div>
-<div class="ttc" id="abent_8h_html_a3080367ffa462dc5a5ae7d2589f1e7ee"><div class="ttname"><a href="bent_8h.html#a3080367ffa462dc5a5ae7d2589f1e7ee">BENT_DEFINE_SYS</a></div><div class="ttdeci">#define BENT_DEFINE_SYS(NAME)</div><div class="ttdoc">Define a system.</div><div class="ttdef"><b>Definition</b> bent.h:245</div></div>
-<div class="ttc" id="abent_8h_html_a9eee6092ac401da9b5274072f292646e"><div class="ttname"><a href="bent_8h.html#a9eee6092ac401da9b5274072f292646e">BENT_COMP_LIST</a></div><div class="ttdeci">#define BENT_COMP_LIST(...)</div><div class="ttdoc">Helper for a null-terminated component list.</div><div class="ttdef"><b>Definition</b> bent.h:277</div></div>
-<div class="ttc" id="abent_8h_html_aef1f57c00a98e4078b680c9b384bdf54"><div class="ttname"><a href="bent_8h.html#aef1f57c00a98e4078b680c9b384bdf54">bent_index_t</a></div><div class="ttdeci">BENT_INDEX_TYPE bent_index_t</div><div class="ttdoc">Index type used in the library.</div><div class="ttdef"><b>Definition</b> bent.h:379</div></div>
+<div class="ttc" id="abent_8h_html_a21e030cf08c3b1500b58273680b5f081"><div class="ttname"><a href="bent_8h.html#a21e030cf08c3b1500b58273680b5f081">bent_mask_t</a></div><div class="ttdeci">BENT_MASK_TYPE bent_mask_t</div><div class="ttdoc">Bitmask type used in the library.</div><div class="ttdef"><b>Definition</b> bent.h:438</div></div>
+<div class="ttc" id="abent_8h_html_a3080367ffa462dc5a5ae7d2589f1e7ee"><div class="ttname"><a href="bent_8h.html#a3080367ffa462dc5a5ae7d2589f1e7ee">BENT_DEFINE_SYS</a></div><div class="ttdeci">#define BENT_DEFINE_SYS(NAME)</div><div class="ttdoc">Define a system.</div><div class="ttdef"><b>Definition</b> bent.h:253</div></div>
+<div class="ttc" id="abent_8h_html_a54f83fc2c1375cf98d19ecbaab060357"><div class="ttname"><a href="bent_8h.html#a54f83fc2c1375cf98d19ecbaab060357">BENT_FOREACH_QUERY</a></div><div class="ttdeci">#define BENT_FOREACH_QUERY(VAR, WORLD, QUERY)</div><div class="ttdoc">Iterate the entities matching a query.</div><div class="ttdef"><b>Definition</b> bent.h:304</div></div>
+<div class="ttc" id="abent_8h_html_a9eee6092ac401da9b5274072f292646e"><div class="ttname"><a href="bent_8h.html#a9eee6092ac401da9b5274072f292646e">BENT_COMP_LIST</a></div><div class="ttdeci">#define BENT_COMP_LIST(...)</div><div class="ttdoc">Helper for a null-terminated component list.</div><div class="ttdef"><b>Definition</b> bent.h:285</div></div>
+<div class="ttc" id="astructbent__query__t_html"><div class="ttname"><a href="structbent__query__t.html">bent_query_t</a></div><div class="ttdoc">Handle to a query, see bent_query.</div><div class="ttdef"><b>Definition</b> bent.h:480</div></div>
 </div><!-- fragment --> 
 </div>
 </div>
@@ -829,48 +885,8 @@ Serialization</h2>
 <div class="line">            itr.name, itr.comp.id, itr.comp.def-&gt;size</div>
 <div class="line">        );</div>
 <div class="line">    }</div>
-<div class="ttc" id="abent_8h_html_ac3182b22b3afdb8f20dd38f0b3bd5026"><div class="ttname"><a href="bent_8h.html#ac3182b22b3afdb8f20dd38f0b3bd5026">BENT_FOREACH_COMP</a></div><div class="ttdeci">#define BENT_FOREACH_COMP(ITR)</div><div class="ttdoc">Iterate over each component type.</div><div class="ttdef"><b>Definition</b> bent.h:197</div></div>
+<div class="ttc" id="abent_8h_html_ac3182b22b3afdb8f20dd38f0b3bd5026"><div class="ttname"><a href="bent_8h.html#ac3182b22b3afdb8f20dd38f0b3bd5026">BENT_FOREACH_COMP</a></div><div class="ttdeci">#define BENT_FOREACH_COMP(ITR)</div><div class="ttdoc">Iterate over each component type.</div><div class="ttdef"><b>Definition</b> bent.h:205</div></div>
 </div><!-- fragment --> 
-</div>
-</div>
-<a id="ae370665781a7e4fa801106a343d7f427" name="ae370665781a7e4fa801106a343d7f427"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae370665781a7e4fa801106a343d7f427">&#9670;&#160;</a></span>BENT_FOREACH_ENTITY</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define BENT_FOREACH_ENTITY</td>
-          <td>(</td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname">VAR, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname">ENTITIES&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<b>Value:</b><div class="fragment"><div class="line">    <span class="keywordflow">for</span> ( \</div>
-<div class="line">        <span class="keyword">struct</span> { <a class="code hl_typedef" href="bent_8h.html#aef1f57c00a98e4078b680c9b384bdf54">bent_index_t</a> index; <span class="keywordtype">char</span> once; } bent__itr = { 0 }; \</div>
-<div class="line">        bent__itr.index &lt; bent__entity_list_len(ENTITIES); \</div>
-<div class="line">        ++bent__itr.index \</div>
-<div class="line">    ) \</div>
-<div class="line">        <span class="keywordflow">for</span> ( \</div>
-<div class="line">            <a class="code hl_struct" href="structbent__t.html">bent_t</a> VAR = (bent__itr.once = 1, (ENTITIES)[bent__itr.index]); \</div>
-<div class="line">            bent__itr.once; \</div>
-<div class="line">            bent__itr.once = 0 \</div>
-<div class="line">        )</div>
-</div><!-- fragment -->
-<p>Helper to iterate entities. </p>
-
 </div>
 </div>
 <a id="a25589a58bb341c5e0b1fd00f2a63dcd1" name="a25589a58bb341c5e0b1fd00f2a63dcd1"></a>
@@ -908,6 +924,168 @@ Serialization</h2>
   </table>
   </dd>
 </dl>
+
+</div>
+</div>
+<a id="a98167ba0f151020e41d695a19879c5e4" name="a98167ba0f151020e41d695a19879c5e4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a98167ba0f151020e41d695a19879c5e4">&#9670;&#160;</a></span>BENT_FOREACH_MATCH</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define BENT_FOREACH_MATCH</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">VAR, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">WORLD, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">REQUIRE, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">EXCLUDE&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Iterate the entities that have all of some components and none of others. </p>
+<p>Shorthand for <a class="el" href="bent_8h.html#a54f83fc2c1375cf98d19ecbaab060357">BENT_FOREACH_QUERY</a> over <a class="el" href="bent_8h.html#a0176a90859d6e940929f23a400e610e4">bent_query</a>.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">VAR</td><td>name of the variable of type <a class="el" href="structbent__t.html">bent_t</a> </td></tr>
+    <tr><td class="paramname">WORLD</td><td>the world </td></tr>
+    <tr><td class="paramname">REQUIRE</td><td>null-terminated list of required components, may be <code>NULL</code> </td></tr>
+    <tr><td class="paramname">EXCLUDE</td><td>null-terminated list of excluded components, may be <code>NULL</code></td></tr>
+  </table>
+  </dd>
+</dl>
+<p>Example: </p><div class="fragment"><div class="line">    <a class="code hl_define" href="bent_8h.html#a98167ba0f151020e41d695a19879c5e4">BENT_FOREACH_MATCH</a>(</div>
+<div class="line">        e, world,</div>
+<div class="line">        <a class="code hl_define" href="bent_8h.html#a9eee6092ac401da9b5274072f292646e">BENT_COMP_LIST</a>(&amp;transform, &amp;health),  <span class="comment">// Required</span></div>
+<div class="line">        <a class="code hl_define" href="bent_8h.html#a9eee6092ac401da9b5274072f292646e">BENT_COMP_LIST</a>(&amp;tag)                  <span class="comment">// Excluded, may be NULL</span></div>
+<div class="line">    ) {</div>
+<div class="line">        <span class="comment">// The body may freely mutate the world, even the current entity</span></div>
+<div class="line">        <span class="keywordflow">if</span> (bent_get_health(world, e)-&gt;hp &lt;= 0) {</div>
+<div class="line">            bent_add_tag(world, e);  <span class="comment">// Excluded from now on</span></div>
+<div class="line">        }</div>
+<div class="line">    }</div>
+<div class="ttc" id="abent_8h_html_a98167ba0f151020e41d695a19879c5e4"><div class="ttname"><a href="bent_8h.html#a98167ba0f151020e41d695a19879c5e4">BENT_FOREACH_MATCH</a></div><div class="ttdeci">#define BENT_FOREACH_MATCH(VAR, WORLD, REQUIRE, EXCLUDE)</div><div class="ttdoc">Iterate the entities that have all of some components and none of others.</div><div class="ttdef"><b>Definition</b> bent.h:347</div></div>
+</div><!-- fragment --><dl class="section see"><dt>See also</dt><dd><a class="el" href="bent_8h.html#a9eee6092ac401da9b5274072f292646e" title="Helper for a null-terminated component list.">BENT_COMP_LIST</a> </dd></dl>
+
+</div>
+</div>
+<a id="a54f83fc2c1375cf98d19ecbaab060357" name="a54f83fc2c1375cf98d19ecbaab060357"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a54f83fc2c1375cf98d19ecbaab060357">&#9670;&#160;</a></span>BENT_FOREACH_QUERY</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define BENT_FOREACH_QUERY</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">VAR, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">WORLD, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">QUERY&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Iterate the entities matching a query. </p>
+<p>See <a class="el" href="bent_8h.html#add9e76870daecbd9013c0fed23f3ce68">bent_query_begin</a> for what the body may do. <code>break</code> and <code>continue</code> work as usual. Do not <code>return</code> or <code>goto</code> out of the loop: the snapshot would not be released. Use <a class="el" href="bent_8h.html#add9e76870daecbd9013c0fed23f3ce68">bent_query_begin</a> directly when that is needed.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">VAR</td><td>name of the variable of type <a class="el" href="structbent__t.html">bent_t</a> </td></tr>
+    <tr><td class="paramname">WORLD</td><td>the world </td></tr>
+    <tr><td class="paramname">QUERY</td><td>a <a class="el" href="structbent__query__t.html">bent_query_t</a></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="bent_8h.html#a98167ba0f151020e41d695a19879c5e4" title="Iterate the entities that have all of some components and none of others.">BENT_FOREACH_MATCH</a> </dd></dl>
+
+</div>
+</div>
+<a id="a53625462888805ab3609db6edc56778b" name="a53625462888805ab3609db6edc56778b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a53625462888805ab3609db6edc56778b">&#9670;&#160;</a></span>BENT_FOREACH_QUERY_EX</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define BENT_FOREACH_QUERY_EX</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">VAR, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">WORLD, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">CTX, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">QUERY&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Same as <a class="el" href="bent_8h.html#a54f83fc2c1375cf98d19ecbaab060357">BENT_FOREACH_QUERY</a> with an explicit <a class="el" href="bent_8h.html#a7d24e6a898d4e64bd2be5e50bc6ef4e6">bent_query_ctx_t</a>. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">VAR</td><td>name of the variable of type <a class="el" href="structbent__t.html">bent_t</a> </td></tr>
+    <tr><td class="paramname">WORLD</td><td>the world </td></tr>
+    <tr><td class="paramname">CTX</td><td>a <a class="el" href="bent_8h.html#a7d24e6a898d4e64bd2be5e50bc6ef4e6">bent_query_ctx_t</a>, <code>NULL</code> for the world's shared one </td></tr>
+    <tr><td class="paramname">QUERY</td><td>a <a class="el" href="structbent__query__t.html">bent_query_t</a></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="bent_8h.html#a85dac3fdc52cccd0c06e25a652c9532f" title="Same as bent_query_begin with an explicit bent_query_ctx_t.">bent_query_begin_ex</a> </dd></dl>
 
 </div>
 </div>
@@ -967,7 +1145,7 @@ Serialization</h2>
 <div class="line">            itr.name, itr.sys.id, itr.sys.def-&gt;size</div>
 <div class="line">        );</div>
 <div class="line">    }</div>
-<div class="ttc" id="abent_8h_html_a8f67fe2dc2440cc02376c98ae7bae587"><div class="ttname"><a href="bent_8h.html#a8f67fe2dc2440cc02376c98ae7bae587">BENT_FOREACH_SYS</a></div><div class="ttdeci">#define BENT_FOREACH_SYS(ITR)</div><div class="ttdoc">Iterate over each system.</div><div class="ttdef"><b>Definition</b> bent.h:261</div></div>
+<div class="ttc" id="abent_8h_html_a8f67fe2dc2440cc02376c98ae7bae587"><div class="ttname"><a href="bent_8h.html#a8f67fe2dc2440cc02376c98ae7bae587">BENT_FOREACH_SYS</a></div><div class="ttdeci">#define BENT_FOREACH_SYS(ITR)</div><div class="ttdoc">Iterate over each system.</div><div class="ttdef"><b>Definition</b> bent.h:269</div></div>
 </div><!-- fragment --> 
 </div>
 </div>
@@ -1060,7 +1238,7 @@ Serialization</h2>
 <b>Value:</b><div class="fragment"><div class="line">    <a class="code hl_define" href="bent_8h.html#a714cff0c85030e912233e983634a1106">BENT_DECLARE_COMP</a>(NAME) \</div>
 <div class="line">    BENT_DEFINE_COMP_ADDER(NAME, TYPE) \</div>
 <div class="line">    BENT_DEFINE_COMP_GETTER(NAME, TYPE)</div>
-<div class="ttc" id="abent_8h_html_a714cff0c85030e912233e983634a1106"><div class="ttname"><a href="bent_8h.html#a714cff0c85030e912233e983634a1106">BENT_DECLARE_COMP</a></div><div class="ttdeci">#define BENT_DECLARE_COMP(NAME)</div><div class="ttdoc">Forward-declare a component type.</div><div class="ttdef"><b>Definition</b> bent.h:102</div></div>
+<div class="ttc" id="abent_8h_html_a714cff0c85030e912233e983634a1106"><div class="ttname"><a href="bent_8h.html#a714cff0c85030e912233e983634a1106">BENT_DECLARE_COMP</a></div><div class="ttdeci">#define BENT_DECLARE_COMP(NAME)</div><div class="ttdoc">Forward-declare a component type.</div><div class="ttdef"><b>Definition</b> bent.h:110</div></div>
 </div><!-- fragment -->
 <p>Dual use helper for POD component. </p>
 <p>In a header file, it will forward-declare the component and define inline helpers.</p>
@@ -1110,6 +1288,26 @@ Serialization</h2>
 </div>
 </div>
 <h2 class="groupheader">Typedef Documentation</h2>
+<a id="a7d24e6a898d4e64bd2be5e50bc6ef4e6" name="a7d24e6a898d4e64bd2be5e50bc6ef4e6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7d24e6a898d4e64bd2be5e50bc6ef4e6">&#9670;&#160;</a></span>bent_query_ctx_t</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct bent_query_ctx_s <a class="el" href="bent_8h.html#a7d24e6a898d4e64bd2be5e50bc6ef4e6">bent_query_ctx_t</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Storage for the snapshots taken by query iterators. </p>
+<p>A context is a stack: nested iterations push and pop in order. It keeps its allocation and only grows past its high-water mark, so once warm an iteration allocates nothing. It is not safe to share between threads. Every world creates one for the calls that do not take a context.</p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="bent_8h.html#adc61edfd3690b35f681a5172e023b940" title="Create a query context.">bent_create_query_ctx</a> </dd>
+<dd>
+<a class="el" href="bent_8h.html#a85dac3fdc52cccd0c06e25a652c9532f" title="Same as bent_query_begin with an explicit bent_query_ctx_t.">bent_query_begin_ex</a> </dd></dl>
+
+</div>
+</div>
 <a id="a4b8437eaa533ce84ee9c09707c3f6016" name="a4b8437eaa533ce84ee9c09707c3f6016"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a4b8437eaa533ce84ee9c09707c3f6016">&#9670;&#160;</a></span>bent_serialize_fn_t</h2>
 
@@ -1209,7 +1407,7 @@ Serialization</h2>
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="ae97b5bf4222c2b44b069ca8e760dff2da6c1c6f8cc1f52474099a10ac0b3b0c81" name="ae97b5bf4222c2b44b069ca8e760dff2da6c1c6f8cc1f52474099a10ac0b3b0c81"></a>BENT_SYS_ALLOW_REINIT&#160;</td><td class="fielddoc"><p>Whether this system's <a class="el" href="structbent__sys__def__t.html#ae82443c6a45c8b359762a75c95fd85aa">bent_sys_def_t::init</a> callback can be called on reload. </p>
 </td></tr>
 <tr><td class="fieldname"><a id="ae97b5bf4222c2b44b069ca8e760dff2dac05bea9c1f4c5aff7d53b2a5e6f05927" name="ae97b5bf4222c2b44b069ca8e760dff2dac05bea9c1f4c5aff7d53b2a5e6f05927"></a>BENT_SYS_NO_ENTITY_LIST&#160;</td><td class="fielddoc"><p>When set, this system will not keep an internal entity list. </p>
-<p>Functions <a class="el" href="bent_8h.html#a0e05186828b7e8fef1c6f75ac9163e8b">bent_get_entity_list</a> will return NULL. </p>
+<p>No <a class="el" href="bent_8h.html#a0176a90859d6e940929f23a400e610e4">query</a> is created for it. <a class="el" href="bent_8h.html#a1593db12135422c0d3629e9d87f43287">bent_sys_query</a> returns the empty query and so does the <code>query</code> argument of <a class="el" href="structbent__sys__def__t.html#a7d8073ba68bb18555aa413252887d33e">bent_sys_def_t::update</a>. </p>
 </td></tr>
 </table>
 
@@ -1427,6 +1625,35 @@ Serialization</h2>
 
 </div>
 </div>
+<a id="adc61edfd3690b35f681a5172e023b940" name="adc61edfd3690b35f681a5172e023b940"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adc61edfd3690b35f681a5172e023b940">&#9670;&#160;</a></span>bent_create_query_ctx()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="bent_8h.html#a7d24e6a898d4e64bd2be5e50bc6ef4e6">bent_query_ctx_t</a> * bent_create_query_ctx </td>
+          <td>(</td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>memctx</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Create a query context. </p>
+<p>Only needed to iterate from several threads at once: give each thread its own and pass it to <a class="el" href="bent_8h.html#a85dac3fdc52cccd0c06e25a652c9532f">bent_query_begin_ex</a>.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">memctx</td><td>memory allocator context </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>the context</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="bent_8h.html#a7d24e6a898d4e64bd2be5e50bc6ef4e6" title="Storage for the snapshots taken by query iterators.">bent_query_ctx_t</a> </dd></dl>
+
+</div>
+</div>
 <a id="a75c8548b708ea279443f6a163c72fab4" name="a75c8548b708ea279443f6a163c72fab4"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a75c8548b708ea279443f6a163c72fab4">&#9670;&#160;</a></span>bent_destroy()</h2>
 
@@ -1463,6 +1690,33 @@ Serialization</h2>
   </dd>
 </dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="bent_8h.html#a83fcc20bceba961c69fbe2939b7c106d" title="Check whether an entity is flagged for destruction.">bent_is_active</a> </dd></dl>
+
+</div>
+</div>
+<a id="a068e69e80ad9e30727a06f3e96572856" name="a068e69e80ad9e30727a06f3e96572856"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a068e69e80ad9e30727a06f3e96572856">&#9670;&#160;</a></span>bent_destroy_query_ctx()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void bent_destroy_query_ctx </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="bent_8h.html#a7d24e6a898d4e64bd2be5e50bc6ef4e6">bent_query_ctx_t</a> *&#160;</td>
+          <td class="paramname"><em>ctx</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Destroy a query context. </p>
+<p>No iteration may be in flight on it. Calling this on <code>NULL</code> is safe.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ctx</td><td>the context </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -1580,51 +1834,6 @@ Serialization</h2>
 <dl class="section return"><dt>Returns</dt><dd>component's data or <code>NULL</code> if the entity does not have this component</dd></dl>
 <dl class="section remark"><dt>Remarks</dt><dd>If the component has a zero size, this will always return <code>NULL</code>. For "tag" components, use <a class="el" href="bent_8h.html#a873fd6a3320ab4e7908b36adba026527">bent_has</a> instead. The returned pointer remains valid until the component is removed from the entity or the entity is destroyed.</dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="bent_8h.html#a4c18e4ac589daa89c2bb5fa1dfc65406" title="Define a type-safe helper function to retrieve a component.">BENT_DEFINE_COMP_GETTER</a> </dd></dl>
-
-</div>
-</div>
-<a id="a0e05186828b7e8fef1c6f75ac9163e8b" name="a0e05186828b7e8fef1c6f75ac9163e8b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0e05186828b7e8fef1c6f75ac9163e8b">&#9670;&#160;</a></span>bent_get_entity_list()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="structbent__t.html">bent_t</a> * bent_get_entity_list </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *&#160;</td>
-          <td class="paramname"><em>world</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structbent__sys__reg__t.html">bent_sys_reg_t</a>&#160;</td>
-          <td class="paramname"><em>sys</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="bent_8h.html#aef1f57c00a98e4078b680c9b384bdf54">bent_index_t</a> *&#160;</td>
-          <td class="paramname"><em>num_entities</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Retrieve the list of matched entities for a system. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">world</td><td>the world </td></tr>
-    <tr><td class="paramname">sys</td><td>the system </td></tr>
-    <tr><td class="paramname">num_entities</td><td>pointer to receive number of entities </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>The list of matched entities </dd></dl>
 
 </div>
 </div>
@@ -2047,6 +2256,428 @@ Serialization</h2>
 
 </div>
 </div>
+<a id="a0176a90859d6e940929f23a400e610e4" name="a0176a90859d6e940929f23a400e610e4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0176a90859d6e940929f23a400e610e4">&#9670;&#160;</a></span>bent_query()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structbent__query__t.html">bent_query_t</a> bent_query </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *&#160;</td>
+          <td class="paramname"><em>world</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structbent__comp__reg__t.html">bent_comp_reg_t</a> **&#160;</td>
+          <td class="paramname"><em>require</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structbent__comp__reg__t.html">bent_comp_reg_t</a> **&#160;</td>
+          <td class="paramname"><em>exclude</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get or create a query. </p>
+<p>A query is the list of every live entity that has all of the required components and none of the excluded ones. The world keeps it up to date as components are added and removed and as entities are created and destroyed.</p>
+<p>Queries are interned: the same pair of masks always returns the same handle and the list behind it is shared, including with systems.</p>
+<p>A query holds no callback and no code pointer, only the masks, so a handle stays valid across a hot reload.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">world</td><td>the world </td></tr>
+    <tr><td class="paramname">require</td><td>null-terminated list of required components, <code>NULL</code> is an empty list </td></tr>
+    <tr><td class="paramname">exclude</td><td>null-terminated list of excluded components, <code>NULL</code> is an empty list </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>the query handle</dd></dl>
+<dl class="section remark"><dt>Remarks</dt><dd><code>bent_query(world, NULL, NULL)</code> matches every live entity. This differs from a system, where a <code>NULL</code> pair matches nothing.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="bent_8h.html#a9eee6092ac401da9b5274072f292646e" title="Helper for a null-terminated component list.">BENT_COMP_LIST</a> </dd>
+<dd>
+<a class="el" href="bent_8h.html#a54f83fc2c1375cf98d19ecbaab060357" title="Iterate the entities matching a query.">BENT_FOREACH_QUERY</a> </dd>
+<dd>
+<a class="el" href="bent_8h.html#a98167ba0f151020e41d695a19879c5e4" title="Iterate the entities that have all of some components and none of others.">BENT_FOREACH_MATCH</a> </dd></dl>
+
+</div>
+</div>
+<a id="add9e76870daecbd9013c0fed23f3ce68" name="add9e76870daecbd9013c0fed23f3ce68"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#add9e76870daecbd9013c0fed23f3ce68">&#9670;&#160;</a></span>bent_query_begin()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structbent__query__itr__t.html">bent_query_itr_t</a> bent_query_begin </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *&#160;</td>
+          <td class="paramname"><em>world</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structbent__query__t.html">bent_query_t</a>&#160;</td>
+          <td class="paramname"><em>query</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Begin iterating a query. </p>
+<p>The iterator walks a snapshot of the list taken here and checks each entity against the query again before yielding it, so the body may add or remove components on any entity and destroy any entity. An entity that stops matching is skipped, an entity that starts matching is not visited until the next iteration. Iterations can be nested.</p>
+<p>The snapshot lives in the world's shared <a class="el" href="bent_8h.html#a7d24e6a898d4e64bd2be5e50bc6ef4e6">bent_query_ctx_t</a>, see <a class="el" href="bent_8h.html#a85dac3fdc52cccd0c06e25a652c9532f">bent_query_begin_ex</a> to use another one.</p>
+<p><a class="el" href="bent_8h.html#a0898971cd2c22f98167623473b820859">bent_query_next</a> releases the snapshot when it returns <code>false</code>. To leave the loop early, call <a class="el" href="bent_8h.html#a4d25910606dae32281f0eada1a4511d9">bent_query_end</a>.</p>
+<p>Example: </p><div class="fragment"><div class="line">    <a class="code hl_struct" href="structbent__query__itr__t.html">bent_query_itr_t</a> itr = <a class="code hl_function" href="bent_8h.html#add9e76870daecbd9013c0fed23f3ce68">bent_query_begin</a>(world, alive);</div>
+<div class="line">    <span class="keywordflow">while</span> (<a class="code hl_function" href="bent_8h.html#a0898971cd2c22f98167623473b820859">bent_query_next</a>(world, &amp;itr)) {</div>
+<div class="line">        <span class="keywordflow">if</span> (bent_get_health(world, itr.<a class="code hl_variable" href="structbent__query__itr__t.html#a962826245c6b038945d4f2c5dbb131cc">entity</a>)-&gt;hp &gt; 500) {</div>
+<div class="line">            <a class="code hl_function" href="bent_8h.html#a4d25910606dae32281f0eada1a4511d9">bent_query_end</a>(world, &amp;itr);  <span class="comment">// Required before leaving early</span></div>
+<div class="line">            <span class="keywordflow">break</span>;</div>
+<div class="line">        }</div>
+<div class="line">    }</div>
+<div class="ttc" id="abent_8h_html_a0898971cd2c22f98167623473b820859"><div class="ttname"><a href="bent_8h.html#a0898971cd2c22f98167623473b820859">bent_query_next</a></div><div class="ttdeci">bool bent_query_next(bent_world_t *world, bent_query_itr_t *itr)</div><div class="ttdoc">Advance an iterator.</div></div>
+<div class="ttc" id="abent_8h_html_a4d25910606dae32281f0eada1a4511d9"><div class="ttname"><a href="bent_8h.html#a4d25910606dae32281f0eada1a4511d9">bent_query_end</a></div><div class="ttdeci">void bent_query_end(bent_world_t *world, bent_query_itr_t *itr)</div><div class="ttdoc">End an iteration early.</div></div>
+<div class="ttc" id="abent_8h_html_add9e76870daecbd9013c0fed23f3ce68"><div class="ttname"><a href="bent_8h.html#add9e76870daecbd9013c0fed23f3ce68">bent_query_begin</a></div><div class="ttdeci">bent_query_itr_t bent_query_begin(bent_world_t *world, bent_query_t query)</div><div class="ttdoc">Begin iterating a query.</div></div>
+<div class="ttc" id="astructbent__query__itr__t_html"><div class="ttname"><a href="structbent__query__itr__t.html">bent_query_itr_t</a></div><div class="ttdoc">Query iterator, see bent_query_begin.</div><div class="ttdef"><b>Definition</b> bent.h:503</div></div>
+<div class="ttc" id="astructbent__query__itr__t_html_a962826245c6b038945d4f2c5dbb131cc"><div class="ttname"><a href="structbent__query__itr__t.html#a962826245c6b038945d4f2c5dbb131cc">bent_query_itr_t::entity</a></div><div class="ttdeci">bent_t entity</div><div class="ttdoc">The current entity.</div><div class="ttdef"><b>Definition</b> bent.h:505</div></div>
+</div><!-- fragment --><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">world</td><td>the world </td></tr>
+    <tr><td class="paramname">query</td><td>the query </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>the iterator</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="bent_8h.html#a54f83fc2c1375cf98d19ecbaab060357" title="Iterate the entities matching a query.">BENT_FOREACH_QUERY</a> </dd></dl>
+
+</div>
+</div>
+<a id="a85dac3fdc52cccd0c06e25a652c9532f" name="a85dac3fdc52cccd0c06e25a652c9532f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a85dac3fdc52cccd0c06e25a652c9532f">&#9670;&#160;</a></span>bent_query_begin_ex()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structbent__query__itr__t.html">bent_query_itr_t</a> bent_query_begin_ex </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *&#160;</td>
+          <td class="paramname"><em>world</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structbent__query__t.html">bent_query_t</a>&#160;</td>
+          <td class="paramname"><em>query</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="bent_8h.html#a7d24e6a898d4e64bd2be5e50bc6ef4e6">bent_query_ctx_t</a> *&#160;</td>
+          <td class="paramname"><em>ctx</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Same as <a class="el" href="bent_8h.html#add9e76870daecbd9013c0fed23f3ce68">bent_query_begin</a> with an explicit <a class="el" href="bent_8h.html#a7d24e6a898d4e64bd2be5e50bc6ef4e6">bent_query_ctx_t</a>. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">world</td><td>the world </td></tr>
+    <tr><td class="paramname">query</td><td>the query </td></tr>
+    <tr><td class="paramname">ctx</td><td>the context, <code>NULL</code> for the world's shared one </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>the iterator</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="bent_8h.html#a53625462888805ab3609db6edc56778b" title="Same as BENT_FOREACH_QUERY with an explicit bent_query_ctx_t.">BENT_FOREACH_QUERY_EX</a> </dd></dl>
+
+</div>
+</div>
+<a id="a056a6150c58005b99c96c86e0543a2bc" name="a056a6150c58005b99c96c86e0543a2bc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a056a6150c58005b99c96c86e0543a2bc">&#9670;&#160;</a></span>bent_query_each()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void bent_query_each </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *&#160;</td>
+          <td class="paramname"><em>world</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structbent__query__t.html">bent_query_t</a>&#160;</td>
+          <td class="paramname"><em>query</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void(*)(void *userdata, <a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *world, <a class="el" href="structbent__t.html">bent_t</a> entity)&#160;</td>
+          <td class="paramname"><em>fn</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>userdata</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Call a function on every entity matching a query. </p>
+<p>The same rules as <a class="el" href="bent_8h.html#add9e76870daecbd9013c0fed23f3ce68">bent_query_begin</a> apply to the callback.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">world</td><td>the world </td></tr>
+    <tr><td class="paramname">query</td><td>the query </td></tr>
+    <tr><td class="paramname">fn</td><td>the function to call </td></tr>
+    <tr><td class="paramname">userdata</td><td>passed to <code>fn</code> </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a756c8053ead4a23e63a4252c4ccdd6d7" name="a756c8053ead4a23e63a4252c4ccdd6d7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a756c8053ead4a23e63a4252c4ccdd6d7">&#9670;&#160;</a></span>bent_query_each_ex()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void bent_query_each_ex </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *&#160;</td>
+          <td class="paramname"><em>world</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structbent__query__t.html">bent_query_t</a>&#160;</td>
+          <td class="paramname"><em>query</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="bent_8h.html#a7d24e6a898d4e64bd2be5e50bc6ef4e6">bent_query_ctx_t</a> *&#160;</td>
+          <td class="paramname"><em>ctx</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void(*)(void *userdata, <a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *world, <a class="el" href="structbent__t.html">bent_t</a> entity)&#160;</td>
+          <td class="paramname"><em>fn</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>userdata</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Same as <a class="el" href="bent_8h.html#a056a6150c58005b99c96c86e0543a2bc">bent_query_each</a> with an explicit <a class="el" href="bent_8h.html#a7d24e6a898d4e64bd2be5e50bc6ef4e6">bent_query_ctx_t</a>. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">world</td><td>the world </td></tr>
+    <tr><td class="paramname">query</td><td>the query </td></tr>
+    <tr><td class="paramname">ctx</td><td>the context, <code>NULL</code> for the world's shared one </td></tr>
+    <tr><td class="paramname">fn</td><td>the function to call </td></tr>
+    <tr><td class="paramname">userdata</td><td>passed to <code>fn</code> </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a4d25910606dae32281f0eada1a4511d9" name="a4d25910606dae32281f0eada1a4511d9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4d25910606dae32281f0eada1a4511d9">&#9670;&#160;</a></span>bent_query_end()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void bent_query_end </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *&#160;</td>
+          <td class="paramname"><em>world</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structbent__query__itr__t.html">bent_query_itr_t</a> *&#160;</td>
+          <td class="paramname"><em>itr</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>End an iteration early. </p>
+<p>Calling this on a finished iterator is a noop.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">world</td><td>the world </td></tr>
+    <tr><td class="paramname">itr</td><td>the iterator </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="abe689ab286a88333b52794371bc4c491" name="abe689ab286a88333b52794371bc4c491"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abe689ab286a88333b52794371bc4c491">&#9670;&#160;</a></span>bent_query_masks()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structbent__query__t.html">bent_query_t</a> bent_query_masks </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *&#160;</td>
+          <td class="paramname"><em>world</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structbent__bitset__t.html">bent_bitset_t</a>&#160;</td>
+          <td class="paramname"><em>require</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structbent__bitset__t.html">bent_bitset_t</a>&#160;</td>
+          <td class="paramname"><em>exclude</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Same as <a class="el" href="bent_8h.html#a0176a90859d6e940929f23a400e610e4">bent_query</a> but from bitsets built at runtime. </p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="bent_8h.html#addcb94bd7a35aff8a5ba9213d0bb71ce" title="Build a bitset from a NULL-terminated list of components.">bent_bitset_from_comp_list</a> </dd></dl>
+
+</div>
+</div>
+<a id="af025d4a9f235a1a7c4831ffe3c063fa6" name="af025d4a9f235a1a7c4831ffe3c063fa6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af025d4a9f235a1a7c4831ffe3c063fa6">&#9670;&#160;</a></span>bent_query_match()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool bent_query_match </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *&#160;</td>
+          <td class="paramname"><em>world</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structbent__query__t.html">bent_query_t</a>&#160;</td>
+          <td class="paramname"><em>query</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structbent__t.html">bent_t</a>&#160;</td>
+          <td class="paramname"><em>entity</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Check whether an entity matches a query. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">world</td><td>the world </td></tr>
+    <tr><td class="paramname">query</td><td>the query </td></tr>
+    <tr><td class="paramname">entity</td><td>an entity handle </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>whether the entity is live and matches the query </dd></dl>
+
+</div>
+</div>
+<a id="a0898971cd2c22f98167623473b820859" name="a0898971cd2c22f98167623473b820859"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0898971cd2c22f98167623473b820859">&#9670;&#160;</a></span>bent_query_next()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool bent_query_next </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *&#160;</td>
+          <td class="paramname"><em>world</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structbent__query__itr__t.html">bent_query_itr_t</a> *&#160;</td>
+          <td class="paramname"><em>itr</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Advance an iterator. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">world</td><td>the world </td></tr>
+    <tr><td class="paramname">itr</td><td>the iterator </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>whether <a class="el" href="structbent__query__itr__t.html#a962826245c6b038945d4f2c5dbb131cc">bent_query_itr_t::entity</a> holds the next entity. <code>false</code> once the iteration is over. </dd></dl>
+
+</div>
+</div>
 <a id="ad5deefd26f7342b9bd5252a43c0d283f" name="ad5deefd26f7342b9bd5252a43c0d283f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad5deefd26f7342b9bd5252a43c0d283f">&#9670;&#160;</a></span>bent_remove()</h2>
 
@@ -2208,7 +2839,7 @@ Serialization</h2>
 </div><div class="memdoc">
 
 <p>Run all systems matching the update mask. </p>
-<p>A system can be registered with an <a class="el" href="structbent__sys__def__t.html#a9c28a9adfb7d2b205fc9ae5e7f017ba9">update mask</a> along with an <a class="el" href="structbent__sys__def__t.html#acaba5a2f6982bb3b9405d7b5d1dc8dd4">update callback</a>. When this function is called, only the systems whose update mask shares at least a single bit with the given <code>update_mask</code> will have its update callback invoked. This allow the application to selectively call a subset of systems and force an order among them.</p>
+<p>A system can be registered with an <a class="el" href="structbent__sys__def__t.html#a9c28a9adfb7d2b205fc9ae5e7f017ba9">update mask</a> along with an <a class="el" href="structbent__sys__def__t.html#a7d8073ba68bb18555aa413252887d33e">update callback</a>. When this function is called, only the systems whose update mask shares at least a single bit with the given <code>update_mask</code> will have its update callback invoked. This allow the application to selectively call a subset of systems and force an order among them.</p>
 <p>For example, it might be desirable to perform all logic updates first before rendering. In this case, one may set <code>LOGIC_MASK = 1 &lt;&lt; 0</code> and <code>RENDER_MASK = 1 &lt;&lt; 1</code>. <code>bent_run(world, LOGIC_MASK)</code> will only invoke systems whose <code>update_mask</code> contains this bit. The same goes for <code>bent_run(world, RENDER_MASK)</code>.</p>
 <p>A system whose <code>update_mask = LOGIC_MASK | RENDER_MASK</code> will be invoked in both cases.</p>
 <dl class="params"><dt>Parameters</dt><dd>
@@ -2220,7 +2851,48 @@ Serialization</h2>
 </dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="structbent__sys__def__t.html#a9c28a9adfb7d2b205fc9ae5e7f017ba9" title="The update mask for this system.">bent_sys_def_t::update_mask</a> </dd>
 <dd>
-<a class="el" href="structbent__sys__def__t.html#acaba5a2f6982bb3b9405d7b5d1dc8dd4" title="Optional update callback.">bent_sys_def_t::update</a> </dd></dl>
+<a class="el" href="structbent__sys__def__t.html#a7d8073ba68bb18555aa413252887d33e" title="Optional update callback.">bent_sys_def_t::update</a> </dd></dl>
+
+</div>
+</div>
+<a id="a1593db12135422c0d3629e9d87f43287" name="a1593db12135422c0d3629e9d87f43287"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1593db12135422c0d3629e9d87f43287">&#9670;&#160;</a></span>bent_sys_query()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structbent__query__t.html">bent_query_t</a> bent_sys_query </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *&#160;</td>
+          <td class="paramname"><em>world</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structbent__sys__reg__t.html">bent_sys_reg_t</a>&#160;</td>
+          <td class="paramname"><em>sys</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The query that provides a system's entity list. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">world</td><td>the world </td></tr>
+    <tr><td class="paramname">sys</td><td>a system's registration handle </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>the query, or the empty query for a system that matches nothing or has <a class="el" href="bent_8h.html#ae97b5bf4222c2b44b069ca8e760dff2dac05bea9c1f4c5aff7d53b2a5e6f05927">BENT_SYS_NO_ENTITY_LIST</a></dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="structbent__sys__def__t.html#ac7cdf1c432817c50caf5f16af20bcbc0" title="Null-terminated list of required components.">bent_sys_def_t::require</a> </dd>
+<dd>
+<a class="el" href="structbent__sys__def__t.html#a8ac4995a75939ff1de8d93d2f16bab87" title="Null-terminated list of required components.">bent_sys_def_t::exclude</a> </dd></dl>
 
 </div>
 </div>

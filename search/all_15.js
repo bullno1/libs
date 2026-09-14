@@ -1,8 +1,5 @@
 var searchData=
 [
-  ['xincbin_0',['XINCBIN',['../xincbin_8h.html#ad86160f43090e8a422c8723ec8e87c56',1,'xincbin.h']]],
-  ['xincbin_2eh_1',['xincbin.h',['../xincbin_8h.html',1,'']]],
-  ['xincbin_5fdata_5fs_2',['xincbin_data_s',['../structxincbin__data__s.html',1,'']]],
-  ['xincbin_5fdata_5ft_3',['xincbin_data_t',['../xincbin_8h.html#a75ebafbf6955de2f0948eac546324593',1,'xincbin.h']]],
-  ['xincbin_5fget_4',['XINCBIN_GET',['../xincbin_8h.html#a9d9386c7c2e62e8168787fe44fa3b1ae',1,'xincbin.h']]]
+  ['with_5fcolors_0',['with_colors',['../structblog__file__logger__options__t.html#a7202daac1717d09a2db7c2589993435a',1,'blog_file_logger_options_t']]],
+  ['write_1',['write',['../structbserial__out__s.html#a3e2efc8581edaf94befe53729a17f0b2',1,'bserial_out_s::write'],['../structbsv__out__s.html#ade905b067efd1508063dcf0860991827',1,'bsv_out_s::write']]]
 ];
