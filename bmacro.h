@@ -173,4 +173,14 @@
 #	define BTYPEOF(EXP) __typeof__(EXP)
 #endif
 
+/**
+ * Calculate the allocation size in bytes for a struct with flexible array member (FAM)
+ *
+ * @param TYPE The struct type with a flexible array member
+ * @param FIELD The flexible array member name
+ * @param N Number of array elements that the flexible member will have
+ * @return Number of bytes to allocate
+ */
+#define BFAM_SIZEOF(TYPE, FIELD, N) (sizeof(TYPE) + sizeof(((TYPE*)0)->FIELD[0]) * (N))
+
 #endif
