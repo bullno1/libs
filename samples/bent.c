@@ -33,6 +33,7 @@ BENT_DEFINE_POD_COMP(health, health_t)
 //!                                                                             [BENT_DEFINE_POD_COMP]
 
 BENT_DEFINE_COMP_ADDER(health, health_t)
+BENT_DEFINE_COMP_ADDER(transform, transform_t)
 BENT_DEFINE_COMP_GETTER(health, health_t)
 
 // A component can also be zero-sized, in that case it is just a tag
@@ -168,6 +169,25 @@ main(int argc, const char* arg[]) {
 	// The same goes to double addition
 	health_t* health_data2 = bent_add_health(world, ent, NULL);
 	assert(health_data2 == health_data);  // The same instance as before
+
+	// An entity with several components can be created in one go.
+	// Systems only hear about it once every component is there.
+	//!                                                                         [bent_create_from]
+	bent_t goblin = bent_create_from(world, BENT_PREFAB(
+		BENT_COMP(transform, { .x = 4, .y = 2 }),  // Typed through the adder helper
+		BENT_COMP(health, { .hp = 30 }),
+		BENT_COMP(tag)  // No argument for a tag
+	));
+
+	// A prefab can also be kept and created from repeatedly
+	bent_prefab_t rat = BENT_PREFAB(
+		BENT_COMP(transform),  // Zeroed
+		BENT_COMP(health, { .hp = 3 })
+	);
+	bent_t rat1 = bent_create_from(world, rat);
+	bent_t rat2 = bent_create_from(world, rat);
+	//!                                                                         [bent_create_from]
+	(void)goblin; (void)rat1; (void)rat2;
 
 	// Update the world in phases
 	bent_run(world, PHASE_UPDATE);
