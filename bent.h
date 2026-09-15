@@ -22,6 +22,18 @@
  * Use @ref BENT_FOREACH_MATCH to walk the matching entities without
  * registering a system.
  *
+ * ## Prefabs
+ *
+ * A @ref BENT_PREFAB is a list of components with their initializers.
+ * @ref bent_create_from creates an entity from a prefab in one go: systems
+ * are notified once, after every component is added. Their
+ * @ref bent_sys_def_t::add "add" callbacks see the complete entity.
+ * A prefab kept at file scope can be created from repeatedly.
+ * @ref bent_add_from applies a prefab to an existing entity.
+ *
+ * Example:
+ * @snippet samples/bent.c bent_create_from
+ *
  * ## Serialization
  *
  * The library does not pick a format.
@@ -151,11 +163,15 @@
 /**
  * Define a type-safe helper function to add a component.
  *
+ * This also defines `NAME_arg_t` as an alias of `ARG_TYPE` so that
+ * @ref BENT_COMP can construct the argument without naming its type.
+ *
  * @param NAME name of the component type
  * @param COMP_TYPE type of the component's data
  * @param ARG_TYPE type of the constructor argument
  */
 #define BENT_DEFINE_COMP_ADDER_EX(NAME, COMP_TYPE, ARG_TYPE) \
+	typedef ARG_TYPE NAME##_arg_t; \
 	static inline COMP_TYPE* bent_add_##NAME(bent_world_t* world, bent_t entity, ARG_TYPE* arg) { \
 		return bent_add(world, entity, NAME, arg); \
    	}
@@ -315,6 +331,53 @@
  * Each entry is a `{ &message, handler }` pair, see @ref bent_msg_handler_t.
  */
 #define BENT_MSG_HANDLERS(...) (bent_msg_handler_t[]){ __VA_ARGS__, { 0 } }
+
+/**
+ * One entry of a @ref BENT_PREFAB list.
+ *
+ * The optional last argument is either a brace initializer or a value of the
+ * component's argument type, see @ref BENT_DEFINE_COMP_ADDER_EX.
+ * Without it, the component is added with a `NULL` argument, which is the
+ * only form a tag component or a component without an adder accepts.
+ *
+ * @code{.c}
+ * BENT_COMP(transform, { .x = 10, .y = 11 })
+ * BENT_COMP(health, initial_health)
+ * BENT_COMP(player)
+ * @endcode
+ *
+ * @param NAME name of the component type
+ *
+ * @see bent_prefab_entry_t
+ * @see BENT_PREFAB
+ * @see bent_create_from
+ *
+ * @hideinitializer
+ */
+#define BENT_COMP(NAME, ...) \
+	{ .comp = &NAME __VA_OPT__(, .arg = (NAME##_arg_t[]){ __VA_ARGS__ }) }
+
+/**
+ * A prefab: a null-terminated list of @ref BENT_COMP entries.
+ *
+ * At file scope, the list has static storage and can be kept around.
+ * Inside a function, it lives until the end of the enclosing block.
+ *
+ * @code{.c}
+ * bent_t ent = bent_create_from(world, BENT_PREFAB(
+ *     BENT_COMP(transform, { .x = 10, .y = 11 }),
+ *     BENT_COMP(health, { .hp = 999 }),
+ *     BENT_COMP(player)
+ * ));
+ * @endcode
+ *
+ * @see bent_create_from
+ * @see bent_add_from
+ *
+ * @hideinitializer
+ */
+#define BENT_PREFAB(...) (bent_prefab_entry_t[]){ __VA_ARGS__, { 0 } }
+
 
 /**
  * Construct a message.
@@ -779,6 +842,32 @@ typedef struct {
 } bent_comp_reg_t;
 
 /**
+ * A component to add and the argument for its @ref bent_comp_def_t::init.
+ *
+ * Construct with @ref BENT_COMP, list with @ref BENT_PREFAB.
+ *
+ * @see bent_create_from
+ * @see bent_add_from
+ */
+typedef struct {
+	/*! The component's registration, `NULL` terminates a list */
+	bent_comp_reg_t* comp;
+	/*! Argument to pass to @ref bent_comp_def_t::init, may be `NULL` */
+	void* arg;
+} bent_prefab_entry_t;
+
+/**
+ * A prefab: a null-terminated list of @ref bent_prefab_entry_t.
+ *
+ * Construct with @ref BENT_PREFAB.
+ * Like a string, it is a pointer to the first element.
+ *
+ * @see bent_create_from
+ * @see bent_add_from
+ */
+typedef const bent_prefab_entry_t* bent_prefab_t;
+
+/**
  * Registration of a message type.
  *
  * Its address is the identity of the message type.
@@ -1097,6 +1186,29 @@ BENT_API bent_t
 bent_create(bent_world_t* world);
 
 /**
+ * Create an entity from a prefab.
+ *
+ * Systems are notified about the entity once, after every component in the
+ * list is added.
+ * Their @ref bent_sys_def_t::add "add" callbacks see the complete entity,
+ * the same as after @ref bent_end_load, instead of one intermediate state per
+ * component as a sequence of @ref bent_add would give.
+ *
+ * Example:
+ *
+ * @snippet samples/bent.c bent_create_from
+ *
+ * @param world the world
+ * @param prefab the prefab, see @ref BENT_PREFAB
+ * @return a new entity handle
+ *
+ * @see bent_create
+ * @see bent_add_from
+ */
+BENT_API bent_t
+bent_create_from(bent_world_t* world, bent_prefab_t prefab);
+
+/**
  * Destroy an existing entity
  *
  * If this is called during an @ref bent_run "update", the destruction will be
@@ -1150,6 +1262,23 @@ bent_is_active(bent_world_t* world, bent_t entity);
  */
 BENT_API void*
 bent_add(bent_world_t* world, bent_t entity, bent_comp_reg_t comp, void* arg);
+
+/**
+ * Add the components of a prefab to an existing entity
+ *
+ * Every component is added before systems are notified, so their callbacks
+ * see the entity with the whole list, not one intermediate state per
+ * component.
+ * Components the entity already has are left alone, the same as @ref bent_add.
+ *
+ * @param world the world
+ * @param entity an entity handle
+ * @param prefab the prefab, see @ref BENT_PREFAB
+ *
+ * @see bent_create_from
+ */
+BENT_API void
+bent_add_from(bent_world_t* world, bent_t entity, bent_prefab_t prefab);
 
 /**
  * Remove a component from an entity
@@ -1681,6 +1810,12 @@ bent_bitset_check(const bent_bitset_t* bitset, bent_index_t bit_index) {
 	bent_index_t mask_index = bit_index / num_bits_per_mask;
 	bent_mask_t mask = (bent_mask_t)1 << (bit_index % num_bits_per_mask);
 	return (bitset->bits[mask_index] & mask) > 0;
+}
+
+/*! Check whether two bitsets are the same */
+static bool
+bent_bitset_equal(const bent_bitset_t* lhs, const bent_bitset_t* rhs) {
+	return memcmp(lhs->bits, rhs->bits, sizeof(lhs->bits)) == 0;
 }
 
 /*! Check whether a bitset has at least one bit of another set */
@@ -2229,6 +2364,15 @@ bent_match_empty_impl(bent_world_t* world, bent_t entity_id) {
 static bent_entity_data_t*
 bent_entity_data(bent_world_t* world, bent_t entity_id);
 
+static void*
+bent_add_impl(
+	bent_world_t* world,
+	bent_t entity_id,
+	bent_entity_data_t* entity_data,
+	bent_comp_reg_t reg,
+	void* arg
+);
+
 // Call every handler for `msg` whose system matches the entity.
 // Matching is checked right before each call since a handler can change it.
 static bent_index_t
@@ -2371,6 +2515,30 @@ bent_match_empty(bent_world_t* world, bent_t entity_id) {
 		.entity = entity_id,
 		.created = true,
 	});
+}
+
+// Tell systems about a new entity and its components as one step: it is
+// either unknown to them or complete.
+// Whatever the callbacks add on top is queued and applied once the membership
+// for `components` is established.
+static void
+bent_notify_create(
+	bent_world_t* world,
+	bent_t entity_id,
+	const bent_bitset_t* components
+) {
+	bent_bitset_t empty = { 0 };
+	if (world->loading || !bent_begin_notify(world)) {
+		// Only the query lists are updated, or both notifications are queued
+		// back to back
+		bent_match_empty(world, entity_id);
+		bent_notify_systems(world, entity_id, &empty, components);
+		return;
+	}
+
+	bent_match_empty_impl(world, entity_id);
+	bent_notify_systems_impl(world, entity_id, &empty, components);
+	bent_end_notify(world);
 }
 
 bent_index_t
@@ -2619,6 +2787,22 @@ bent_create(bent_world_t* world) {
 	return entity_id;
 }
 
+bent_t
+bent_create_from(bent_world_t* world, bent_prefab_t prefab) {
+	bhandle_t handle = bhandle_new(&world->handles, world->memctx);
+	BENT_ASSERT(!bhandle_is_null(handle));
+	bent_reset_entity_data(world, handle.index);
+
+	bent_t entity_id = bent__from_bhandle(handle);
+	bent_entity_data_t* entity_data = bseg_ref(world->entities, handle.index);
+	for (bent_prefab_t itr = prefab; itr->comp != NULL; ++itr) {
+		bent_add_impl(world, entity_id, entity_data, *itr->comp, itr->arg);
+	}
+
+	bent_notify_create(world, entity_id, &entity_data->components);
+	return entity_id;
+}
+
 static void
 bent_drain_destroy_queue(bent_world_t* world) {
 	if (world->draining_destroy_queue) { return; }
@@ -2656,38 +2840,67 @@ bent_is_active(bent_world_t* world, bent_t entity_id) {
 	return bent_entity_data(world, entity_id) != NULL && !entity_data->destroy_later;
 }
 
+// Initialize the component and mark it present, without telling systems
+static void*
+bent_add_impl(
+	bent_world_t* world,
+	bent_t entity_id,
+	bent_entity_data_t* entity_data,
+	bent_comp_reg_t reg,
+	void* arg
+) {
+	bent_index_t comp_index = reg.id - 1;
+	bent_component_data_t* comp_data = &world->components[comp_index];
+
+	if (bent_bitset_check(&entity_data->components, comp_index)) {
+		// Already added, return existing data
+		return bent_comp_instance(comp_data, entity_id.index);
+	}
+
+	void* instance = bent_comp_ensure_instance(
+		comp_data, entity_id.index, world->memctx
+	);
+	if (comp_data->def->init) {
+		comp_data->def->init(instance, arg);
+	} else if (instance != NULL) {
+		if (arg == NULL) {
+			memset(instance, 0, comp_data->def->size);
+		} else {
+			memcpy(instance, arg, comp_data->def->size);
+		}
+	}
+
+	bent_bitset_set(&entity_data->components, comp_index);
+	return instance;
+}
+
 void*
 bent_add(bent_world_t* world, bent_t entity_id, bent_comp_reg_t reg, void* arg) {
 	bent_entity_data_t* entity_data = bent_entity_data(world, entity_id);
 	if (entity_data == NULL) { return NULL; }
 
-	bent_index_t comp_index = reg.id - 1;
-	bent_component_data_t* comp_data = &world->components[comp_index];
-
-	if (!bent_bitset_check(&entity_data->components, comp_index)) {
-		// New component
-		void* instance = bent_comp_ensure_instance(
-			comp_data, entity_id.index, world->memctx
-		);
-		if (comp_data->def->init) {
-			comp_data->def->init(instance, arg);
-		} else if (instance != NULL) {
-			if (arg == NULL) {
-				memset(instance, 0, comp_data->def->size);
-			} else {
-				memcpy(instance, arg, comp_data->def->size);
-			}
-		}
-
-		bent_bitset_t old_components = entity_data->components;
-		bent_bitset_set(&entity_data->components, comp_index);
-		bent_bitset_t new_components = entity_data->components;
+	bent_bitset_t old_components = entity_data->components;
+	void* instance = bent_add_impl(world, entity_id, entity_data, reg, arg);
+	bent_bitset_t new_components = entity_data->components;
+	if (!bent_bitset_equal(&old_components, &new_components)) {
 		bent_notify_systems(world, entity_id, &old_components, &new_components);
+	}
 
-		return instance;
-	} else {
-		// Already added, return existing data
-		return bent_comp_instance(comp_data, entity_id.index);
+	return instance;
+}
+
+void
+bent_add_from(bent_world_t* world, bent_t entity_id, bent_prefab_t prefab) {
+	bent_entity_data_t* entity_data = bent_entity_data(world, entity_id);
+	if (entity_data == NULL) { return; }
+
+	bent_bitset_t old_components = entity_data->components;
+	for (bent_prefab_t itr = prefab; itr->comp != NULL; ++itr) {
+		bent_add_impl(world, entity_id, entity_data, *itr->comp, itr->arg);
+	}
+	bent_bitset_t new_components = entity_data->components;
+	if (!bent_bitset_equal(&old_components, &new_components)) {
+		bent_notify_systems(world, entity_id, &old_components, &new_components);
 	}
 }
 
@@ -3029,15 +3242,10 @@ bent_end_load(bent_world_t* world) {
 		bent_t entity_id = bent__from_bhandle(handle);
 
 		// Replay creation and then the addition of every loaded component as
-		// one step. Whatever the callbacks add on top is queued and applied
-		// once the membership for the loaded set is established.
-		bent_bitset_t empty = { 0 };
+		// one step
+		BENT_ASSERT(!world->notifying);
 		bent_bitset_t loaded = entity_data->components;
-		bool outermost = bent_begin_notify(world);
-		BENT_ASSERT(outermost);
-		bent_match_empty_impl(world, entity_id);
-		bent_notify_systems_impl(world, entity_id, &empty, &loaded);
-		bent_end_notify(world);
+		bent_notify_create(world, entity_id, &loaded);
 	}
 }
 
