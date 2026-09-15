@@ -6,6 +6,7 @@
 BENT_MSG(hit_msg) { bent_t source; int amount; };
 BENT_MSG(echo_msg) { int depth; double value; };
 BENT_MSG(unused_msg) { int x; };
+BENT_MSG(tick_msg) { int turn; };
 
 // Nobody but the systems below know about these
 BENT_TAG_COMP(chatty)
@@ -73,10 +74,17 @@ hit_sys1_on_hit(void* userdata, bent_world_t* world, bent_t entity, const void* 
 	record("hit_sys1", "hit", entity, hit->amount, 0, 0.0);
 }
 
+static void
+hit_sys1_on_tick(void* userdata, bent_world_t* world, bent_t entity, const void* msg) {
+	const tick_msg_t* tick = msg;
+	record("hit_sys1", "tick", entity, tick->turn, 0, 0.0);
+}
+
 BENT_DEFINE_SYS(hit_sys1) = {
 	.require = BENT_COMP_LIST(&basic_component),
 	.handlers = BENT_MSG_HANDLERS(
-		{ &hit_msg, hit_sys1_on_hit }
+		{ &hit_msg, hit_sys1_on_hit },
+		{ &tick_msg, hit_sys1_on_tick }
 	),
 };
 
@@ -96,11 +104,44 @@ hit_sys2_on_echo(void* userdata, bent_world_t* world, bent_t entity, const void*
 	record("hit_sys2", "echo", entity, 0, echo->depth, echo->value);
 }
 
+static void
+hit_sys2_on_tick(void* userdata, bent_world_t* world, bent_t entity, const void* msg) {
+	const tick_msg_t* tick = msg;
+	record("hit_sys2", "tick", entity, tick->turn, 0, 0.0);
+}
+
 BENT_DEFINE_SYS(hit_sys2) = {
 	.require = BENT_COMP_LIST(&basic_component2),
 	.handlers = BENT_MSG_HANDLERS(
 		{ &hit_msg, hit_sys2_on_hit },
-		{ &echo_msg, hit_sys2_on_echo }
+		{ &echo_msg, hit_sys2_on_echo },
+		{ &tick_msg, hit_sys2_on_tick }
+	),
+};
+
+// }}}
+
+// relay_sys: broadcasts from inside a handler {{{
+
+typedef struct {
+	int last_nested_result;
+} relay_sys_t;
+
+static void
+relay_on_tick(void* userdata, bent_world_t* world, bent_t entity, const void* msg) {
+	relay_sys_t* sys = userdata;
+	const tick_msg_t* tick = msg;
+	record("relay", "tick", entity, tick->turn, 0, 0.0);
+	if (tick->turn == 1) {
+		sys->last_nested_result = (int)bent_broadcast(world, tick_msg, { .turn = 2 });
+	}
+}
+
+BENT_DEFINE_SYS(relay_sys) = {
+	.size = sizeof(relay_sys_t),
+	.require = BENT_COMP_LIST(&basic_component),
+	.handlers = BENT_MSG_HANDLERS(
+		{ &tick_msg, relay_on_tick }
 	),
 };
 
@@ -354,4 +395,78 @@ BTEST(message, no_handlers) {
 
 	BTEST_EXPECT_EQUAL("%d", (int)bent_send(world, ent, unused_msg, { .x = 1 }), 0);
 	BTEST_EXPECT_EQUAL("%d", log.num_events, 0);
+}
+
+BTEST(message, broadcast_reaches_every_handler) {
+	bent_world_t* world = fixture.world;
+
+	// No entity exists, matching is not involved
+	BTEST_EXPECT_EQUAL("%d", (int)bent_broadcast(world, tick_msg, { .turn = 5 }), 3);
+	BTEST_EXPECT_EQUAL("%d", log.num_events, 3);
+	BTEST_EXPECT_EQUAL("%d", count_events("hit_sys1", "tick"), 1);
+	BTEST_EXPECT_EQUAL("%d", count_events("hit_sys2", "tick"), 1);
+	BTEST_EXPECT_EQUAL("%d", count_events("relay", "tick"), 1);
+	// In registration order, with an invalid entity
+	BTEST_EXPECT(strcmp(log.events[0].sys, "hit_sys1") == 0);
+	BTEST_EXPECT(strcmp(log.events[1].sys, "hit_sys2") == 0);
+	BTEST_EXPECT(strcmp(log.events[2].sys, "relay") == 0);
+	for (int i = 0; i < log.num_events; ++i) {
+		BTEST_EXPECT(bent_is_invalid(log.events[i].entity));
+		BTEST_EXPECT_EQUAL("%d", log.events[i].amount, 5);
+	}
+
+	// Only systems that handle the type are called
+	BTEST_EXPECT_EQUAL("%d", (int)bent_broadcast(world, unused_msg, { .x = 1 }), 0);
+	BTEST_EXPECT_EQUAL("%d", count_events(NULL, "hit"), 0);
+
+	// The value form
+	tick_msg_t tick = bent_msg(tick_msg){ .turn = 6 };
+	BTEST_EXPECT_EQUAL("%d", (int)bent_broadcast(world, tick_msg, tick), 3);
+	BTEST_EXPECT_EQUAL("%d", log.events[log.num_events - 1].amount, 6);
+}
+
+BTEST(message, broadcast_ignores_matching) {
+	bent_world_t* world = fixture.world;
+
+	// Entities that match some handlers' systems and not others change nothing
+	bent_t ent = bent_create(world);
+	bent_add(world, ent, basic_component, NULL);
+	BTEST_EXPECT_EQUAL("%d", (int)bent_broadcast(world, tick_msg, { .turn = 5 }), 3);
+	BTEST_EXPECT_EQUAL("%d", count_events("hit_sys2", "tick"), 1);
+	BTEST_EXPECT(bent_is_invalid(log.events[0].entity));
+
+	// And a send to the entity still matches as usual
+	BTEST_EXPECT_EQUAL("%d", (int)bent_send(world, ent, tick_msg, { .turn = 7 }), 2);
+	BTEST_EXPECT_EQUAL("%d", count_events("hit_sys2", "tick"), 1);
+	BTEST_EXPECT(bent_equal(log.events[log.num_events - 1].entity, ent));
+}
+
+BTEST(message, nested_broadcast_is_queued) {
+	bent_world_t* world = fixture.world;
+	relay_sys_t* relay = bent_get_sys_data(world, relay_sys);
+	relay->last_nested_result = -1;
+
+	// Turn 1 goes to the three handlers, the relay broadcasts turn 2 from
+	// inside its handler: queued, then delivered to all three once the outer
+	// delivery is done
+	BTEST_EXPECT_EQUAL("%d", (int)bent_broadcast(world, tick_msg, { .turn = 1 }), 3);
+	BTEST_EXPECT_EQUAL("%d", relay->last_nested_result, 0);
+	BTEST_EXPECT_EQUAL("%d", log.num_events, 6);
+	for (int i = 0; i < 3; ++i) {
+		BTEST_EXPECT_EQUAL("%d", log.events[i].amount, 1);
+		BTEST_EXPECT_EQUAL("%d", log.events[i + 3].amount, 2);
+	}
+	BTEST_EXPECT_EQUAL("%d", count_events("relay", "tick"), 2);
+}
+
+BTEST(message, broadcast_not_delivered_while_loading) {
+	bent_world_t* world = fixture.world;
+
+	bent_begin_load(world);
+	BTEST_EXPECT_EQUAL("%d", (int)bent_broadcast(world, tick_msg, { .turn = 4 }), 0);
+	BTEST_EXPECT_EQUAL("%d", log.num_events, 0);
+	bent_end_load(world);
+
+	BTEST_EXPECT_EQUAL("%d", (int)bent_broadcast(world, tick_msg, { .turn = 4 }), 3);
+	BTEST_EXPECT_EQUAL("%d", log.num_events, 3);
 }

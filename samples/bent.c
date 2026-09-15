@@ -131,6 +131,25 @@ BENT_DEFINE_SYS(damage_taker) = {
 };
 //!                                                                             [BENT_MSG]
 
+// A message about no entity in particular is broadcast instead.
+// Every system with a handler receives it, whatever it matches.
+BENT_MSG(turn_msg) { int turn; };
+
+static int last_turn = 0;
+
+static void
+on_turn(void* userdata, bent_world_t* world, bent_t entity, const void* msg) {
+	(void)entity;  // Invalid: there is no entity
+	last_turn = ((const turn_msg_t*)msg)->turn;
+}
+
+BENT_DEFINE_SYS(turn_logger) = {
+	.require = BENT_COMP_LIST(&health),  // Irrelevant for a broadcast
+	.handlers = BENT_MSG_HANDLERS(
+		{ &turn_msg, on_turn }
+	),
+};
+
 // See it in action
 int
 main(int argc, const char* arg[]) {
@@ -206,6 +225,12 @@ main(int argc, const char* arg[]) {
 	bent_send(world, ent, damage_msg, splash);
 	assert(bent_get_health(world, ent)->hp == 979);
 	//!                                                                         [bent_send]
+
+	// Broadcast to every system that handles the message
+	//!                                                                         [bent_broadcast]
+	bent_broadcast(world, turn_msg, { .turn = 3 });
+	assert(last_turn == 3);
+	//!                                                                         [bent_broadcast]
 
 	// Entities can also be visited without a system, through a query
 	//!                                                                         [BENT_FOREACH_MATCH]
