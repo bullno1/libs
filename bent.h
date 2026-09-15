@@ -65,6 +65,8 @@
  *
  * @ref BENT_MSG declares a message type, @ref bent_msg constructs one and
  * @ref bent_send delivers it.
+ * @ref bent_broadcast delivers a message that is about no entity in
+ * particular to every system that handles it.
  * Delivery follows the same rule as the @ref bent_sys_def_t::add "add" and
  * @ref bent_sys_def_t::remove "remove" callbacks: immediate from ordinary
  * code, queued when sent from inside a callback until the outermost callback
@@ -434,6 +436,34 @@
  */
 #define bent_send(WORLD, ENTITY, NAME, ...) \
 	bent__send((WORLD), (ENTITY), &NAME, (struct NAME[]){ __VA_ARGS__ }, sizeof(struct NAME))
+
+/**
+ * Broadcast a message to every system.
+ *
+ * The message addresses no entity in particular: it is delivered to every
+ * system that lists it in its @ref bent_sys_def_t::handlers "handlers", in
+ * system registration order, whatever the system matches.
+ * The handler receives an invalid entity handle.
+ *
+ * Timing is the same as @ref bent_send: immediate from ordinary code, copied
+ * and queued from inside a callback, dropped while loading.
+ *
+ * The last argument is either a brace initializer or a value of the
+ * message's type:
+ *
+ * @snippet samples/bent.c bent_broadcast
+ *
+ * @param WORLD the world
+ * @param NAME name of the message type
+ * @param ... the message
+ * @return the number of handlers called, 0 when the message was queued
+ *
+ * @see bent_send
+ *
+ * @hideinitializer
+ */
+#define bent_broadcast(WORLD, NAME, ...) \
+	bent__broadcast((WORLD), &NAME, (struct NAME[]){ __VA_ARGS__ }, sizeof(struct NAME))
 
 /**
  * Iterate the entities matching a query.
@@ -884,10 +914,12 @@ typedef struct {
  *
  * @param userdata system's data
  * @param world the world this system belongs to
- * @param entity the matching entity the message was sent to
+ * @param entity the matching entity the message was sent to, or an invalid
+ *     handle for a @ref bent_broadcast
  * @param msg the message, cast it to the message's struct type
  *
  * @see bent_send
+ * @see bent_broadcast
  */
 typedef void (*bent_msg_fn_t)(
 	void* userdata,
@@ -1883,6 +1915,14 @@ bent__send(
 	size_t size
 );
 
+BENT_API bent_index_t
+bent__broadcast(
+	bent_world_t* world,
+	bent_msg_reg_t* msg,
+	const void* data,
+	size_t size
+);
+
 #endif
 
 #endif
@@ -1987,6 +2027,8 @@ typedef struct {
 	// A queued message when not NULL, its payload lives in msg_payloads
 	bent_msg_reg_t* msg;
 	size_t msg_offset;
+	// The message goes to every handler, entity is not looked at
+	bool broadcast;
 } bent_notification_t;
 
 typedef struct {
@@ -2376,7 +2418,13 @@ bent_add_impl(
 // Call every handler for `msg` whose system matches the entity.
 // Matching is checked right before each call since a handler can change it.
 static bent_index_t
-bent_deliver_msg(bent_world_t* world, bent_t entity, bent_msg_reg_t* msg, const void* data) {
+bent_deliver_msg(
+	bent_world_t* world,
+	bent_t entity,
+	bent_msg_reg_t* msg,
+	const void* data,
+	bool broadcast
+) {
 	bent_index_t count = 0;
 	bent_index_t num_systems = (bent_index_t)barray_len(world->systems);
 	for (bent_index_t i = 0; i < num_systems; ++i) {
@@ -2388,9 +2436,11 @@ bent_deliver_msg(bent_world_t* world, bent_t entity, bent_msg_reg_t* msg, const 
 		for (const bent_msg_handler_t* handler = handlers; handler->msg != NULL; ++handler) {
 			if (handler->msg != msg) { continue; }
 
-			const bent_entity_data_t* entity_data = bent_entity_data(world, entity);
-			if (entity_data == NULL) { return count; }
-			if (!bent_sys_match_impl(sys, &entity_data->components)) { continue; }
+			if (!broadcast) {
+				const bent_entity_data_t* entity_data = bent_entity_data(world, entity);
+				if (entity_data == NULL) { return count; }
+				if (!bent_sys_match_impl(sys, &entity_data->components)) { continue; }
+			}
 
 			handler->fn(sys->userdata, world, entity, data);
 			++count;
@@ -2411,7 +2461,8 @@ bent_dispatch_notification(
 			world,
 			notification->entity,
 			notification->msg,
-			payloads + notification->msg_offset
+			payloads + notification->msg_offset,
+			notification->broadcast
 		);
 	} else if (notification->created) {
 		bent_match_empty_impl(world, notification->entity);
@@ -2541,13 +2592,14 @@ bent_notify_create(
 	bent_end_notify(world);
 }
 
-bent_index_t
-bent__send(
+static bent_index_t
+bent_post_msg(
 	bent_world_t* world,
 	bent_t entity,
 	bent_msg_reg_t* msg,
 	const void* data,
-	size_t size
+	size_t size,
+	bool broadcast
 ) {
 	// No system has seen the entities yet
 	if (world->loading) { return 0; }
@@ -2563,13 +2615,36 @@ bent__send(
 			.entity = entity,
 			.msg = msg,
 			.msg_offset = offset,
+			.broadcast = broadcast,
 		}), world->memctx);
 		return 0;
 	}
 
-	bent_index_t count = bent_deliver_msg(world, entity, msg, data);
+	bent_index_t count = bent_deliver_msg(world, entity, msg, data, broadcast);
 	bent_end_notify(world);
 	return count;
+}
+
+bent_index_t
+bent__send(
+	bent_world_t* world,
+	bent_t entity,
+	bent_msg_reg_t* msg,
+	const void* data,
+	size_t size
+) {
+	return bent_post_msg(world, entity, msg, data, size, false);
+}
+
+bent_index_t
+bent__broadcast(
+	bent_world_t* world,
+	bent_msg_reg_t* msg,
+	const void* data,
+	size_t size
+) {
+	bent_t nobody = { 0 };
+	return bent_post_msg(world, nobody, msg, data, size, true);
 }
 
 // }}}
