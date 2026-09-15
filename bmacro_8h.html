@@ -116,6 +116,9 @@ Macros</h2></td></tr>
 <tr class="memitem:ab4193639588eb484f5aa0dfa21d768a8" id="r_ab4193639588eb484f5aa0dfa21d768a8"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bmacro_8h.html#ab4193639588eb484f5aa0dfa21d768a8">BTYPEOF</a>(EXP)</td></tr>
 <tr class="memdesc:ab4193639588eb484f5aa0dfa21d768a8"><td class="mdescLeft">&#160;</td><td class="mdescRight">The type of an expression.  <br /></td></tr>
 <tr class="separator:ab4193639588eb484f5aa0dfa21d768a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a39ba17323f75cc439a47e4d543f39df5" id="r_a39ba17323f75cc439a47e4d543f39df5"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bmacro_8h.html#a39ba17323f75cc439a47e4d543f39df5">BFAM_SIZEOF</a>(TYPE,  FIELD,  N)&#160;&#160;&#160;(sizeof(TYPE) + sizeof(((TYPE*)0)-&gt;FIELD[0]) * (N))</td></tr>
+<tr class="memdesc:a39ba17323f75cc439a47e4d543f39df5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Calculate the allocation size in bytes for a struct with flexible array member (FAM)  <br /></td></tr>
+<tr class="separator:a39ba17323f75cc439a47e4d543f39df5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Commonly used macros. </p>
@@ -242,6 +245,51 @@ Macros</h2></td></tr>
   </table>
   </dd>
 </dl>
+
+</div>
+</div>
+<a id="a39ba17323f75cc439a47e4d543f39df5" name="a39ba17323f75cc439a47e4d543f39df5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a39ba17323f75cc439a47e4d543f39df5">&#9670;&#160;</a></span>BFAM_SIZEOF</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define BFAM_SIZEOF</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">TYPE, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">FIELD, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">N&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td>&#160;&#160;&#160;(sizeof(TYPE) + sizeof(((TYPE*)0)-&gt;FIELD[0]) * (N))</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Calculate the allocation size in bytes for a struct with flexible array member (FAM) </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">TYPE</td><td>The struct type with a flexible array member </td></tr>
+    <tr><td class="paramname">FIELD</td><td>The flexible array member name </td></tr>
+    <tr><td class="paramname">N</td><td>Number of array elements that the flexible member will have </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Number of bytes to allocate </dd></dl>
 
 </div>
 </div>
