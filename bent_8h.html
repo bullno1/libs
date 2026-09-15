@@ -229,6 +229,9 @@ Macros</h2></td></tr>
 <tr class="memitem:a50fa5fd16ac57909d2002e9d044234da" id="r_a50fa5fd16ac57909d2002e9d044234da"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bent_8h.html#a50fa5fd16ac57909d2002e9d044234da">bent_send</a>(WORLD,  ENTITY,  NAME, ...)</td></tr>
 <tr class="memdesc:a50fa5fd16ac57909d2002e9d044234da"><td class="mdescLeft">&#160;</td><td class="mdescRight">Send a message to an entity.  <br /></td></tr>
 <tr class="separator:a50fa5fd16ac57909d2002e9d044234da"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4eec78820eca00aa18160f1cbf902325" id="r_a4eec78820eca00aa18160f1cbf902325"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bent_8h.html#a4eec78820eca00aa18160f1cbf902325">bent_broadcast</a>(WORLD,  NAME, ...)</td></tr>
+<tr class="memdesc:a4eec78820eca00aa18160f1cbf902325"><td class="mdescLeft">&#160;</td><td class="mdescRight">Broadcast a message to every system.  <br /></td></tr>
+<tr class="separator:a4eec78820eca00aa18160f1cbf902325"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a54f83fc2c1375cf98d19ecbaab060357" id="r_a54f83fc2c1375cf98d19ecbaab060357"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bent_8h.html#a54f83fc2c1375cf98d19ecbaab060357">BENT_FOREACH_QUERY</a>(VAR,  WORLD,  QUERY)</td></tr>
 <tr class="memdesc:a54f83fc2c1375cf98d19ecbaab060357"><td class="mdescLeft">&#160;</td><td class="mdescRight">Iterate the entities matching a query.  <br /></td></tr>
 <tr class="separator:a54f83fc2c1375cf98d19ecbaab060357"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -519,11 +522,11 @@ Prefabs</h2>
 <div class="line">    );</div>
 <div class="line">    <a class="code hl_struct" href="structbent__t.html">bent_t</a> rat1 = <a class="code hl_function" href="bent_8h.html#a6e8e8671ad41b1472f53bfff8cffaf07">bent_create_from</a>(world, rat);</div>
 <div class="line">    <a class="code hl_struct" href="structbent__t.html">bent_t</a> rat2 = <a class="code hl_function" href="bent_8h.html#a6e8e8671ad41b1472f53bfff8cffaf07">bent_create_from</a>(world, rat);</div>
-<div class="ttc" id="abent_8h_html_a2060a6c58db1a8632b5e26675c8676ad"><div class="ttname"><a href="bent_8h.html#a2060a6c58db1a8632b5e26675c8676ad">BENT_COMP</a></div><div class="ttdeci">#define BENT_COMP(NAME,...)</div><div class="ttdoc">One entry of a BENT_PREFAB list.</div><div class="ttdef"><b>Definition</b> bent.h:357</div></div>
+<div class="ttc" id="abent_8h_html_a2060a6c58db1a8632b5e26675c8676ad"><div class="ttname"><a href="bent_8h.html#a2060a6c58db1a8632b5e26675c8676ad">BENT_COMP</a></div><div class="ttdeci">#define BENT_COMP(NAME,...)</div><div class="ttdoc">One entry of a BENT_PREFAB list.</div><div class="ttdef"><b>Definition</b> bent.h:359</div></div>
 <div class="ttc" id="abent_8h_html_a6e8e8671ad41b1472f53bfff8cffaf07"><div class="ttname"><a href="bent_8h.html#a6e8e8671ad41b1472f53bfff8cffaf07">bent_create_from</a></div><div class="ttdeci">bent_t bent_create_from(bent_world_t *world, bent_prefab_t prefab)</div><div class="ttdoc">Create an entity from a prefab.</div></div>
-<div class="ttc" id="abent_8h_html_aa67229382b5477f43c55c18c3e545687"><div class="ttname"><a href="bent_8h.html#aa67229382b5477f43c55c18c3e545687">BENT_PREFAB</a></div><div class="ttdeci">#define BENT_PREFAB(...)</div><div class="ttdoc">A prefab: a null-terminated list of BENT_COMP entries.</div><div class="ttdef"><b>Definition</b> bent.h:379</div></div>
-<div class="ttc" id="astructbent__prefab__entry__t_html"><div class="ttname"><a href="structbent__prefab__entry__t.html">bent_prefab_entry_t</a></div><div class="ttdoc">A component to add and the argument for its bent_comp_def_t::init.</div><div class="ttdef"><b>Definition</b> bent.h:852</div></div>
-<div class="ttc" id="astructbent__t_html"><div class="ttname"><a href="structbent__t.html">bent_t</a></div><div class="ttdoc">Entity handle.</div><div class="ttdef"><b>Definition</b> bent.h:650</div></div>
+<div class="ttc" id="abent_8h_html_aa67229382b5477f43c55c18c3e545687"><div class="ttname"><a href="bent_8h.html#aa67229382b5477f43c55c18c3e545687">BENT_PREFAB</a></div><div class="ttdeci">#define BENT_PREFAB(...)</div><div class="ttdoc">A prefab: a null-terminated list of BENT_COMP entries.</div><div class="ttdef"><b>Definition</b> bent.h:381</div></div>
+<div class="ttc" id="astructbent__prefab__entry__t_html"><div class="ttname"><a href="structbent__prefab__entry__t.html">bent_prefab_entry_t</a></div><div class="ttdoc">A component to add and the argument for its bent_comp_def_t::init.</div><div class="ttdef"><b>Definition</b> bent.h:882</div></div>
+<div class="ttc" id="astructbent__t_html"><div class="ttname"><a href="structbent__t.html">bent_t</a></div><div class="ttdoc">Entity handle.</div><div class="ttdef"><b>Definition</b> bent.h:680</div></div>
 </div><!-- fragment --><h2><a class="anchor" id="autotoc_md21"></a>
 Serialization</h2>
 <p>The library does not pick a format. It exposes helpers so the host can use any serialization method:</p>
@@ -536,7 +539,7 @@ Serialization</h2>
 <h2><a class="anchor" id="autotoc_md22"></a>
 Messages</h2>
 <p>A message is a plain struct sent to an entity. It is delivered to every system that has a <a class="el" href="structbent__sys__def__t.html#ae6835226d1eebedcd76bc0ae551fa9e9">handler</a> for it and <a class="el" href="bent_8h.html#ab3ddf58289789dd8b1127a0a7f188d0b">matches</a> the entity. The sender does not know who is interested.</p>
-<p><a class="el" href="bent_8h.html#ab841f7db828a64a16aa7aed8a635b787">BENT_MSG</a> declares a message type, <a class="el" href="bent_8h.html#aef71d1b268610c2fe0cf20ddf57b5eea">bent_msg</a> constructs one and <a class="el" href="bent_8h.html#a50fa5fd16ac57909d2002e9d044234da">bent_send</a> delivers it. Delivery follows the same rule as the <a class="el" href="structbent__sys__def__t.html#aa5c77de73693ff51502fab17f389fd8d">add</a> and <a class="el" href="structbent__sys__def__t.html#a746509dc90d5b7d576bebb99a1a47162">remove</a> callbacks: immediate from ordinary code, queued when sent from inside a callback until the outermost callback returns.</p>
+<p><a class="el" href="bent_8h.html#ab841f7db828a64a16aa7aed8a635b787">BENT_MSG</a> declares a message type, <a class="el" href="bent_8h.html#aef71d1b268610c2fe0cf20ddf57b5eea">bent_msg</a> constructs one and <a class="el" href="bent_8h.html#a50fa5fd16ac57909d2002e9d044234da">bent_send</a> delivers it. <a class="el" href="bent_8h.html#a4eec78820eca00aa18160f1cbf902325">bent_broadcast</a> delivers a message that is about no entity in particular to every system that handles it. Delivery follows the same rule as the <a class="el" href="structbent__sys__def__t.html#aa5c77de73693ff51502fab17f389fd8d">add</a> and <a class="el" href="structbent__sys__def__t.html#a746509dc90d5b7d576bebb99a1a47162">remove</a> callbacks: immediate from ordinary code, queued when sent from inside a callback until the outermost callback returns.</p>
 <p>Example: </p><div class="fragment"><div class="line"><span class="comment">// A message is a plain struct.</span></div>
 <div class="line"><span class="comment">// This defines `struct damage_msg`, the typedef `damage_msg_t` and the</span></div>
 <div class="line"><span class="comment">// registration `damage_msg` whose address identifies the message type.</span></div>
@@ -559,12 +562,64 @@ Messages</h2>
 <div class="line">        { &amp;damage_msg, health_on_damage }</div>
 <div class="line">    ),</div>
 <div class="line">};</div>
-<div class="ttc" id="abent_8h_html_a3080367ffa462dc5a5ae7d2589f1e7ee"><div class="ttname"><a href="bent_8h.html#a3080367ffa462dc5a5ae7d2589f1e7ee">BENT_DEFINE_SYS</a></div><div class="ttdeci">#define BENT_DEFINE_SYS(NAME)</div><div class="ttdoc">Define a system.</div><div class="ttdef"><b>Definition</b> bent.h:293</div></div>
-<div class="ttc" id="abent_8h_html_a9eee6092ac401da9b5274072f292646e"><div class="ttname"><a href="bent_8h.html#a9eee6092ac401da9b5274072f292646e">BENT_COMP_LIST</a></div><div class="ttdeci">#define BENT_COMP_LIST(...)</div><div class="ttdoc">Helper for a null-terminated component list.</div><div class="ttdef"><b>Definition</b> bent.h:325</div></div>
-<div class="ttc" id="abent_8h_html_ab841f7db828a64a16aa7aed8a635b787"><div class="ttname"><a href="bent_8h.html#ab841f7db828a64a16aa7aed8a635b787">BENT_MSG</a></div><div class="ttdeci">#define BENT_MSG(NAME)</div><div class="ttdoc">Dual use helper for a message type.</div><div class="ttdef"><b>Definition</b> bent.h:593</div></div>
-<div class="ttc" id="abent_8h_html_ace6229b585dd520b4a0dc86f68cdd2f1"><div class="ttname"><a href="bent_8h.html#ace6229b585dd520b4a0dc86f68cdd2f1">BENT_MSG_HANDLERS</a></div><div class="ttdeci">#define BENT_MSG_HANDLERS(...)</div><div class="ttdoc">Helper for a null-terminated message handler list.</div><div class="ttdef"><b>Definition</b> bent.h:333</div></div>
-<div class="ttc" id="abent_8h_html_ad25dcf8369af5e341d68f2a85083f584"><div class="ttname"><a href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a></div><div class="ttdeci">struct bent_world_s bent_world_t</div><div class="ttdoc">Handle to an entity world.</div><div class="ttdef"><b>Definition</b> bent.h:616</div></div>
+<div class="ttc" id="abent_8h_html_a3080367ffa462dc5a5ae7d2589f1e7ee"><div class="ttname"><a href="bent_8h.html#a3080367ffa462dc5a5ae7d2589f1e7ee">BENT_DEFINE_SYS</a></div><div class="ttdeci">#define BENT_DEFINE_SYS(NAME)</div><div class="ttdoc">Define a system.</div><div class="ttdef"><b>Definition</b> bent.h:295</div></div>
+<div class="ttc" id="abent_8h_html_a9eee6092ac401da9b5274072f292646e"><div class="ttname"><a href="bent_8h.html#a9eee6092ac401da9b5274072f292646e">BENT_COMP_LIST</a></div><div class="ttdeci">#define BENT_COMP_LIST(...)</div><div class="ttdoc">Helper for a null-terminated component list.</div><div class="ttdef"><b>Definition</b> bent.h:327</div></div>
+<div class="ttc" id="abent_8h_html_ab841f7db828a64a16aa7aed8a635b787"><div class="ttname"><a href="bent_8h.html#ab841f7db828a64a16aa7aed8a635b787">BENT_MSG</a></div><div class="ttdeci">#define BENT_MSG(NAME)</div><div class="ttdoc">Dual use helper for a message type.</div><div class="ttdef"><b>Definition</b> bent.h:623</div></div>
+<div class="ttc" id="abent_8h_html_ace6229b585dd520b4a0dc86f68cdd2f1"><div class="ttname"><a href="bent_8h.html#ace6229b585dd520b4a0dc86f68cdd2f1">BENT_MSG_HANDLERS</a></div><div class="ttdeci">#define BENT_MSG_HANDLERS(...)</div><div class="ttdoc">Helper for a null-terminated message handler list.</div><div class="ttdef"><b>Definition</b> bent.h:335</div></div>
+<div class="ttc" id="abent_8h_html_ad25dcf8369af5e341d68f2a85083f584"><div class="ttname"><a href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a></div><div class="ttdeci">struct bent_world_s bent_world_t</div><div class="ttdoc">Handle to an entity world.</div><div class="ttdef"><b>Definition</b> bent.h:646</div></div>
 </div><!-- fragment --> </div><h2 class="groupheader">Macro Definition Documentation</h2>
+<a id="a4eec78820eca00aa18160f1cbf902325" name="a4eec78820eca00aa18160f1cbf902325"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4eec78820eca00aa18160f1cbf902325">&#9670;&#160;</a></span>bent_broadcast</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define bent_broadcast</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">WORLD, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">NAME, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>...</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Broadcast a message to every system. </p>
+<p>The message addresses no entity in particular: it is delivered to every system that lists it in its <a class="el" href="structbent__sys__def__t.html#ae6835226d1eebedcd76bc0ae551fa9e9">handlers</a>, in system registration order, whatever the system matches. The handler receives an invalid entity handle.</p>
+<p>Timing is the same as bent_send: immediate from ordinary code, copied and queued from inside a callback, dropped while loading.</p>
+<p>The last argument is either a brace initializer or a value of the message's type:</p>
+<div class="fragment"><div class="line">    <a class="code hl_define" href="bent_8h.html#a4eec78820eca00aa18160f1cbf902325">bent_broadcast</a>(world, turn_msg, { .turn = 3 });</div>
+<div class="line">    assert(last_turn == 3);</div>
+<div class="ttc" id="abent_8h_html_a4eec78820eca00aa18160f1cbf902325"><div class="ttname"><a href="bent_8h.html#a4eec78820eca00aa18160f1cbf902325">bent_broadcast</a></div><div class="ttdeci">#define bent_broadcast(WORLD, NAME,...)</div><div class="ttdoc">Broadcast a message to every system.</div><div class="ttdef"><b>Definition</b> bent.h:465</div></div>
+</div><!-- fragment --><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">WORLD</td><td>the world </td></tr>
+    <tr><td class="paramname">NAME</td><td>name of the message type </td></tr>
+    <tr><td class="paramname">...</td><td>the message </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>the number of handlers called, 0 when the message was queued</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="bent_8h.html#a50fa5fd16ac57909d2002e9d044234da" title="Send a message to an entity.">bent_send</a> </dd></dl>
+
+</div>
+</div>
 <a id="a2060a6c58db1a8632b5e26675c8676ad" name="a2060a6c58db1a8632b5e26675c8676ad"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a2060a6c58db1a8632b5e26675c8676ad">&#9670;&#160;</a></span>BENT_COMP</h2>
 
@@ -721,7 +776,7 @@ Messages</h2>
 <div class="line">    .size = <span class="keyword">sizeof</span>(transform_t),  <span class="comment">// The most important property</span></div>
 <div class="line">    <span class="comment">/* .init = ... */</span> <span class="comment">// Optionally with callbacks</span></div>
 <div class="line">};</div>
-<div class="ttc" id="abent_8h_html_aa4bae8da5ba5cddef82a407950cff5be"><div class="ttname"><a href="bent_8h.html#aa4bae8da5ba5cddef82a407950cff5be">BENT_DEFINE_COMP</a></div><div class="ttdeci">#define BENT_DEFINE_COMP(NAME)</div><div class="ttdoc">Define a component type.</div><div class="ttdef"><b>Definition</b> bent.h:202</div></div>
+<div class="ttc" id="abent_8h_html_aa4bae8da5ba5cddef82a407950cff5be"><div class="ttname"><a href="bent_8h.html#aa4bae8da5ba5cddef82a407950cff5be">BENT_DEFINE_COMP</a></div><div class="ttdeci">#define BENT_DEFINE_COMP(NAME)</div><div class="ttdoc">Define a component type.</div><div class="ttdef"><b>Definition</b> bent.h:204</div></div>
 </div><!-- fragment --> 
 </div>
 </div>
@@ -896,7 +951,7 @@ Messages</h2>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Most components do not have init or cleanup so there is a shortcut</span></div>
 <div class="line"><a class="code hl_define" href="bent_8h.html#aa0fbb0c469d4fe38d754d8ce99bef7dc">BENT_DEFINE_POD_COMP</a>(health, health_t)</div>
-<div class="ttc" id="abent_8h_html_aa0fbb0c469d4fe38d754d8ce99bef7dc"><div class="ttname"><a href="bent_8h.html#aa0fbb0c469d4fe38d754d8ce99bef7dc">BENT_DEFINE_POD_COMP</a></div><div class="ttdeci">#define BENT_DEFINE_POD_COMP(NAME, TYPE)</div><div class="ttdoc">Define a component type, whose data is a POD (plain old data)</div><div class="ttdef"><b>Definition</b> bent.h:220</div></div>
+<div class="ttc" id="abent_8h_html_aa0fbb0c469d4fe38d754d8ce99bef7dc"><div class="ttname"><a href="bent_8h.html#aa0fbb0c469d4fe38d754d8ce99bef7dc">BENT_DEFINE_POD_COMP</a></div><div class="ttdeci">#define BENT_DEFINE_POD_COMP(NAME, TYPE)</div><div class="ttdoc">Define a component type, whose data is a POD (plain old data)</div><div class="ttdef"><b>Definition</b> bent.h:222</div></div>
 </div><!-- fragment --> 
 </div>
 </div>
@@ -965,9 +1020,9 @@ Messages</h2>
 <div class="line">    <span class="comment">// And cleaned upp</span></div>
 <div class="line">    <span class="comment">/* .cleanup = health_bar_cleanup */</span></div>
 <div class="line">};</div>
-<div class="ttc" id="abent_8h_html_a21e030cf08c3b1500b58273680b5f081"><div class="ttname"><a href="bent_8h.html#a21e030cf08c3b1500b58273680b5f081">bent_mask_t</a></div><div class="ttdeci">BENT_MASK_TYPE bent_mask_t</div><div class="ttdoc">Bitmask type used in the library.</div><div class="ttdef"><b>Definition</b> bent.h:622</div></div>
-<div class="ttc" id="abent_8h_html_a54f83fc2c1375cf98d19ecbaab060357"><div class="ttname"><a href="bent_8h.html#a54f83fc2c1375cf98d19ecbaab060357">BENT_FOREACH_QUERY</a></div><div class="ttdeci">#define BENT_FOREACH_QUERY(VAR, WORLD, QUERY)</div><div class="ttdoc">Iterate the entities matching a query.</div><div class="ttdef"><b>Definition</b> bent.h:455</div></div>
-<div class="ttc" id="astructbent__query__t_html"><div class="ttname"><a href="structbent__query__t.html">bent_query_t</a></div><div class="ttdoc">Handle to a query, see bent_query.</div><div class="ttdef"><b>Definition</b> bent.h:664</div></div>
+<div class="ttc" id="abent_8h_html_a21e030cf08c3b1500b58273680b5f081"><div class="ttname"><a href="bent_8h.html#a21e030cf08c3b1500b58273680b5f081">bent_mask_t</a></div><div class="ttdeci">BENT_MASK_TYPE bent_mask_t</div><div class="ttdoc">Bitmask type used in the library.</div><div class="ttdef"><b>Definition</b> bent.h:652</div></div>
+<div class="ttc" id="abent_8h_html_a54f83fc2c1375cf98d19ecbaab060357"><div class="ttname"><a href="bent_8h.html#a54f83fc2c1375cf98d19ecbaab060357">BENT_FOREACH_QUERY</a></div><div class="ttdeci">#define BENT_FOREACH_QUERY(VAR, WORLD, QUERY)</div><div class="ttdoc">Iterate the entities matching a query.</div><div class="ttdef"><b>Definition</b> bent.h:485</div></div>
+<div class="ttc" id="astructbent__query__t_html"><div class="ttname"><a href="structbent__query__t.html">bent_query_t</a></div><div class="ttdoc">Handle to a query, see bent_query.</div><div class="ttdef"><b>Definition</b> bent.h:694</div></div>
 </div><!-- fragment --> 
 </div>
 </div>
@@ -1029,7 +1084,7 @@ Messages</h2>
 <div class="line">            itr.name, itr.comp.id, itr.comp.def-&gt;size</div>
 <div class="line">        );</div>
 <div class="line">    }</div>
-<div class="ttc" id="abent_8h_html_ac3182b22b3afdb8f20dd38f0b3bd5026"><div class="ttname"><a href="bent_8h.html#ac3182b22b3afdb8f20dd38f0b3bd5026">BENT_FOREACH_COMP</a></div><div class="ttdeci">#define BENT_FOREACH_COMP(ITR)</div><div class="ttdoc">Iterate over each component type.</div><div class="ttdef"><b>Definition</b> bent.h:245</div></div>
+<div class="ttc" id="abent_8h_html_ac3182b22b3afdb8f20dd38f0b3bd5026"><div class="ttname"><a href="bent_8h.html#ac3182b22b3afdb8f20dd38f0b3bd5026">BENT_FOREACH_COMP</a></div><div class="ttdeci">#define BENT_FOREACH_COMP(ITR)</div><div class="ttdoc">Iterate over each component type.</div><div class="ttdef"><b>Definition</b> bent.h:247</div></div>
 </div><!-- fragment --> 
 </div>
 </div>
@@ -1130,7 +1185,7 @@ Messages</h2>
 <div class="line">            bent_add_tag(world, e);  <span class="comment">// Excluded from now on</span></div>
 <div class="line">        }</div>
 <div class="line">    }</div>
-<div class="ttc" id="abent_8h_html_a98167ba0f151020e41d695a19879c5e4"><div class="ttname"><a href="bent_8h.html#a98167ba0f151020e41d695a19879c5e4">BENT_FOREACH_MATCH</a></div><div class="ttdeci">#define BENT_FOREACH_MATCH(VAR, WORLD, REQUIRE, EXCLUDE)</div><div class="ttdoc">Iterate the entities that have all of some components and none of others.</div><div class="ttdef"><b>Definition</b> bent.h:498</div></div>
+<div class="ttc" id="abent_8h_html_a98167ba0f151020e41d695a19879c5e4"><div class="ttname"><a href="bent_8h.html#a98167ba0f151020e41d695a19879c5e4">BENT_FOREACH_MATCH</a></div><div class="ttdeci">#define BENT_FOREACH_MATCH(VAR, WORLD, REQUIRE, EXCLUDE)</div><div class="ttdoc">Iterate the entities that have all of some components and none of others.</div><div class="ttdef"><b>Definition</b> bent.h:528</div></div>
 </div><!-- fragment --><dl class="section see"><dt>See also</dt><dd><a class="el" href="bent_8h.html#a9eee6092ac401da9b5274072f292646e" title="Helper for a null-terminated component list.">BENT_COMP_LIST</a> </dd></dl>
 
 </div>
@@ -1289,7 +1344,7 @@ Messages</h2>
 <div class="line">            itr.name, itr.sys.id, itr.sys.def-&gt;size</div>
 <div class="line">        );</div>
 <div class="line">    }</div>
-<div class="ttc" id="abent_8h_html_a8f67fe2dc2440cc02376c98ae7bae587"><div class="ttname"><a href="bent_8h.html#a8f67fe2dc2440cc02376c98ae7bae587">BENT_FOREACH_SYS</a></div><div class="ttdeci">#define BENT_FOREACH_SYS(ITR)</div><div class="ttdoc">Iterate over each system.</div><div class="ttdef"><b>Definition</b> bent.h:309</div></div>
+<div class="ttc" id="abent_8h_html_a8f67fe2dc2440cc02376c98ae7bae587"><div class="ttname"><a href="bent_8h.html#a8f67fe2dc2440cc02376c98ae7bae587">BENT_FOREACH_SYS</a></div><div class="ttdeci">#define BENT_FOREACH_SYS(ITR)</div><div class="ttdoc">Iterate over each system.</div><div class="ttdef"><b>Definition</b> bent.h:311</div></div>
 </div><!-- fragment --> 
 </div>
 </div>
@@ -1373,7 +1428,7 @@ Messages</h2>
 <p>Construct a message. </p>
 <p>Expands to a compound literal of the message's struct type, so it is followed by a brace initializer:</p>
 <div class="fragment"><div class="line">collision_msg_t msg = <a class="code hl_define" href="bent_8h.html#aef71d1b268610c2fe0cf20ddf57b5eea">bent_msg</a>(collision_msg){ .a = a, .b = b };</div>
-<div class="ttc" id="abent_8h_html_aef71d1b268610c2fe0cf20ddf57b5eea"><div class="ttname"><a href="bent_8h.html#aef71d1b268610c2fe0cf20ddf57b5eea">bent_msg</a></div><div class="ttdeci">#define bent_msg(NAME)</div><div class="ttdoc">Construct a message.</div><div class="ttdef"><b>Definition</b> bent.h:396</div></div>
+<div class="ttc" id="abent_8h_html_aef71d1b268610c2fe0cf20ddf57b5eea"><div class="ttname"><a href="bent_8h.html#aef71d1b268610c2fe0cf20ddf57b5eea">bent_msg</a></div><div class="ttdeci">#define bent_msg(NAME)</div><div class="ttdoc">Construct a message.</div><div class="ttdef"><b>Definition</b> bent.h:398</div></div>
 </div><!-- fragment --><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">NAME</td><td>name of the message type</td></tr>
@@ -1402,7 +1457,7 @@ Messages</h2>
 <b>Value:</b><div class="fragment"><div class="line">    <span class="keyword">typedef</span> <span class="keyword">struct </span>NAME NAME##_t; \</div>
 <div class="line">    <span class="keyword">extern</span> <a class="code hl_struct" href="structbent__msg__reg__t.html">bent_msg_reg_t</a> NAME; \</div>
 <div class="line">    <span class="keyword">struct </span>NAME</div>
-<div class="ttc" id="astructbent__msg__reg__t_html"><div class="ttname"><a href="structbent__msg__reg__t.html">bent_msg_reg_t</a></div><div class="ttdoc">Registration of a message type.</div><div class="ttdef"><b>Definition</b> bent.h:877</div></div>
+<div class="ttc" id="astructbent__msg__reg__t_html"><div class="ttname"><a href="structbent__msg__reg__t.html">bent_msg_reg_t</a></div><div class="ttdoc">Registration of a message type.</div><div class="ttdef"><b>Definition</b> bent.h:907</div></div>
 </div><!-- fragment -->
 <p>Dual use helper for a message type. </p>
 <p>This must be followed by a struct body and a semicolon:</p>
@@ -1471,7 +1526,7 @@ Messages</h2>
 <b>Value:</b><div class="fragment"><div class="line">    <a class="code hl_define" href="bent_8h.html#a714cff0c85030e912233e983634a1106">BENT_DECLARE_COMP</a>(NAME) \</div>
 <div class="line">    BENT_DEFINE_COMP_ADDER(NAME, TYPE) \</div>
 <div class="line">    BENT_DEFINE_COMP_GETTER(NAME, TYPE)</div>
-<div class="ttc" id="abent_8h_html_a714cff0c85030e912233e983634a1106"><div class="ttname"><a href="bent_8h.html#a714cff0c85030e912233e983634a1106">BENT_DECLARE_COMP</a></div><div class="ttdeci">#define BENT_DECLARE_COMP(NAME)</div><div class="ttdoc">Forward-declare a component type.</div><div class="ttdef"><b>Definition</b> bent.h:140</div></div>
+<div class="ttc" id="abent_8h_html_a714cff0c85030e912233e983634a1106"><div class="ttname"><a href="bent_8h.html#a714cff0c85030e912233e983634a1106">BENT_DECLARE_COMP</a></div><div class="ttdeci">#define BENT_DECLARE_COMP(NAME)</div><div class="ttdoc">Forward-declare a component type.</div><div class="ttdef"><b>Definition</b> bent.h:142</div></div>
 </div><!-- fragment -->
 <p>Dual use helper for POD component. </p>
 <p>In a header file, it will forward-declare the component and define inline helpers.</p>
@@ -1558,7 +1613,7 @@ Messages</h2>
 <div class="line">    <a class="code hl_define" href="bent_8h.html#a50fa5fd16ac57909d2002e9d044234da">bent_send</a>(world, ent, damage_msg, splash);</div>
 <div class="line">    <a class="code hl_define" href="bent_8h.html#a50fa5fd16ac57909d2002e9d044234da">bent_send</a>(world, ent, damage_msg, splash);</div>
 <div class="line">    assert(bent_get_health(world, ent)-&gt;hp == 979);</div>
-<div class="ttc" id="abent_8h_html_a50fa5fd16ac57909d2002e9d044234da"><div class="ttname"><a href="bent_8h.html#a50fa5fd16ac57909d2002e9d044234da">bent_send</a></div><div class="ttdeci">#define bent_send(WORLD, ENTITY, NAME,...)</div><div class="ttdoc">Send a message to an entity.</div><div class="ttdef"><b>Definition</b> bent.h:435</div></div>
+<div class="ttc" id="abent_8h_html_a50fa5fd16ac57909d2002e9d044234da"><div class="ttname"><a href="bent_8h.html#a50fa5fd16ac57909d2002e9d044234da">bent_send</a></div><div class="ttdeci">#define bent_send(WORLD, ENTITY, NAME,...)</div><div class="ttdoc">Send a message to an entity.</div><div class="ttdef"><b>Definition</b> bent.h:437</div></div>
 </div><!-- fragment --><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">WORLD</td><td>the world </td></tr>
@@ -1635,12 +1690,14 @@ Messages</h2>
   <table class="params">
     <tr><td class="paramname">userdata</td><td>system's data </td></tr>
     <tr><td class="paramname">world</td><td>the world this system belongs to </td></tr>
-    <tr><td class="paramname">entity</td><td>the matching entity the message was sent to </td></tr>
+    <tr><td class="paramname">entity</td><td>the matching entity the message was sent to, or an invalid handle for a <a class="el" href="bent_8h.html#a4eec78820eca00aa18160f1cbf902325">bent_broadcast</a> </td></tr>
     <tr><td class="paramname">msg</td><td>the message, cast it to the message's struct type</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="bent_8h.html#a50fa5fd16ac57909d2002e9d044234da" title="Send a message to an entity.">bent_send</a> </dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="bent_8h.html#a50fa5fd16ac57909d2002e9d044234da" title="Send a message to an entity.">bent_send</a> </dd>
+<dd>
+<a class="el" href="bent_8h.html#a4eec78820eca00aa18160f1cbf902325" title="Broadcast a message to every system.">bent_broadcast</a> </dd></dl>
 
 </div>
 </div>
@@ -2828,8 +2885,8 @@ Messages</h2>
 <div class="ttc" id="abent_8h_html_a0898971cd2c22f98167623473b820859"><div class="ttname"><a href="bent_8h.html#a0898971cd2c22f98167623473b820859">bent_query_next</a></div><div class="ttdeci">bool bent_query_next(bent_world_t *world, bent_query_itr_t *itr)</div><div class="ttdoc">Advance an iterator.</div></div>
 <div class="ttc" id="abent_8h_html_a4d25910606dae32281f0eada1a4511d9"><div class="ttname"><a href="bent_8h.html#a4d25910606dae32281f0eada1a4511d9">bent_query_end</a></div><div class="ttdeci">void bent_query_end(bent_world_t *world, bent_query_itr_t *itr)</div><div class="ttdoc">End an iteration early.</div></div>
 <div class="ttc" id="abent_8h_html_add9e76870daecbd9013c0fed23f3ce68"><div class="ttname"><a href="bent_8h.html#add9e76870daecbd9013c0fed23f3ce68">bent_query_begin</a></div><div class="ttdeci">bent_query_itr_t bent_query_begin(bent_world_t *world, bent_query_t query)</div><div class="ttdoc">Begin iterating a query.</div></div>
-<div class="ttc" id="astructbent__query__itr__t_html"><div class="ttname"><a href="structbent__query__itr__t.html">bent_query_itr_t</a></div><div class="ttdoc">Query iterator, see bent_query_begin.</div><div class="ttdef"><b>Definition</b> bent.h:687</div></div>
-<div class="ttc" id="astructbent__query__itr__t_html_a962826245c6b038945d4f2c5dbb131cc"><div class="ttname"><a href="structbent__query__itr__t.html#a962826245c6b038945d4f2c5dbb131cc">bent_query_itr_t::entity</a></div><div class="ttdeci">bent_t entity</div><div class="ttdoc">The current entity.</div><div class="ttdef"><b>Definition</b> bent.h:689</div></div>
+<div class="ttc" id="astructbent__query__itr__t_html"><div class="ttname"><a href="structbent__query__itr__t.html">bent_query_itr_t</a></div><div class="ttdoc">Query iterator, see bent_query_begin.</div><div class="ttdef"><b>Definition</b> bent.h:717</div></div>
+<div class="ttc" id="astructbent__query__itr__t_html_a962826245c6b038945d4f2c5dbb131cc"><div class="ttname"><a href="structbent__query__itr__t.html#a962826245c6b038945d4f2c5dbb131cc">bent_query_itr_t::entity</a></div><div class="ttdeci">bent_t entity</div><div class="ttdoc">The current entity.</div><div class="ttdef"><b>Definition</b> bent.h:719</div></div>
 </div><!-- fragment --><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">world</td><td>the world </td></tr>
