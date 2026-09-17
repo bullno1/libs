@@ -50,7 +50,7 @@
  *   ever see complete entities.
  *
  * Each component type declares how it takes part through
- * @ref bent_comp_def_t::serialize, @ref BENT_COMP_RAW or @ref BENT_COMP_TRANSIENT.
+ * @ref bent_comp_def_t::serialize or @ref BENT_COMP_TRANSIENT.
  * A component with data that declares nothing is a mistake and
  * @ref bent_unserializable_comp reports it.
  * A tag component is saved by presence alone.
@@ -156,6 +156,42 @@
    	}
 
 /**
+ * Define a type-safe helper function to retrieve a component as read-only.
+ *
+ * This is the same as @ref BENT_DEFINE_COMP_GETTER but it returns a const
+ * pointer.
+ *
+ * @param NAME name of the component type
+ * @param TYPE type of the component's data
+ *
+ * @see BENT_POD_COMP_EX
+ */
+#define BENT_DEFINE_COMP_CONST_GETTER(NAME, TYPE) \
+	static inline const TYPE* bent_get_##NAME(bent_world_t* world, bent_t entity) { \
+		return bent_get(world, entity, NAME); \
+	}
+
+/**
+ * Define a type-safe helper function to retrieve a component for writing.
+ *
+ * The helper is named `bent_get_mut_<NAME>` so it can coexist with the
+ * read-only `bent_get_<NAME>` from @ref BENT_DEFINE_COMP_CONST_GETTER.
+ *
+ * Put it in the source file of the one system allowed to write the component
+ * so that no other translation unit can obtain a mutable pointer through the
+ * typed helpers.
+ *
+ * @param NAME name of the component type
+ * @param TYPE type of the component's data
+ *
+ * @see BENT_POD_COMP_EX
+ */
+#define BENT_DEFINE_COMP_MUT_GETTER(NAME, TYPE) \
+	static inline TYPE* bent_get_mut_##NAME(bent_world_t* world, bent_t entity) { \
+		return bent_get(world, entity, NAME); \
+	}
+
+/**
  * Define a type-safe helper function to add a component.
  *
  * @param NAME name of the component type
@@ -179,6 +215,33 @@
 	static inline COMP_TYPE* bent_add_##NAME(bent_world_t* world, bent_t entity, ARG_TYPE* arg) { \
 		return bent_add(world, entity, NAME, arg); \
    	}
+
+/**
+ * Same as @ref BENT_DEFINE_COMP_ADDER but the helper returns a `const` pointer.
+ *
+ * @param NAME name of the component type
+ * @param TYPE type of the component's data
+ *
+ * @see BENT_POD_COMP_EX
+ */
+#define BENT_DEFINE_COMP_CONST_ADDER(NAME, TYPE) \
+	BENT_DEFINE_COMP_CONST_ADDER_EX(NAME, TYPE, TYPE)
+
+/**
+ * Same as @ref BENT_DEFINE_COMP_ADDER_EX but the helper returns a `const`
+ * pointer.
+ *
+ * @param NAME name of the component type
+ * @param COMP_TYPE type of the component's data
+ * @param ARG_TYPE type of the constructor argument
+ *
+ * @see BENT_POD_COMP_EX
+ */
+#define BENT_DEFINE_COMP_CONST_ADDER_EX(NAME, COMP_TYPE, ARG_TYPE) \
+	typedef ARG_TYPE NAME##_arg_t; \
+	static inline const COMP_TYPE* bent_add_##NAME(bent_world_t* world, bent_t entity, ARG_TYPE* arg) { \
+		return bent_add(world, entity, NAME, arg); \
+	}
 
 /**
  * Define a type-safe helper function to add a tag component (zero-sized).
@@ -223,9 +286,6 @@
  */
 #define BENT_DEFINE_POD_COMP(NAME, TYPE) \
 	BENT_DEFINE_COMP(NAME) = { .size = sizeof(TYPE) };
-
-#define BENT_DEFINE_RAW_COMP(NAME, TYPE) \
-	BENT_DEFINE_COMP(NAME) = { .size = sizeof(TYPE), .flags = BENT_COMP_RAW };
 
 #define BENT_DEFINE_TRANSIENT_COMP(NAME, TYPE) \
 	BENT_DEFINE_COMP(NAME) = { .size = sizeof(TYPE), .flags = BENT_COMP_TRANSIENT };
@@ -567,24 +627,72 @@
 #ifndef BENT_DEFINE_COMPONENTS
 
 /**
- * Dual use helper for POD component.
+ * Dual use helper for a POD component.
  *
  * In a header file, it will forward-declare the component and define inline
  * helpers.
  *
  * In a single source file, define `BENT_DEFINE_COMPONENTS` and include this
  * header to implement the component registration.
+ *
+ * `ACCESS` selects the typed helpers the header defines:
+ *
+ * | `ACCESS` | `bent_add_<NAME>` and `bent_get_<NAME>` return            |
+ * |----------|-----------------------------------------------------------|
+ * | `RW`     | `TYPE*`                                                   |
+ * | `RO`     | `const TYPE*`                                             |
+ *
+ * `RO` is for a component that only one system may write to.
+ * The owning system defines `bent_get_mut_<NAME>` in its own source file with
+ * @ref BENT_DEFINE_COMP_MUT_GETTER, so no other unit can obtain a mutable
+ * pointer through the typed helpers.
+ * This is only a compile-time convention: @ref bent_get still returns `void*`.
+ *
+ * `SAVE` selects how the component takes part in a save, as reported by
+ * @ref bent_comp_save_mode.
+ *
+ * | `SAVE`           | Effect                                               |
+ * |------------------|------------------------------------------------------|
+ * | `UNSERIALIZABLE` | No choice is made, saving fails                      |
+ * | `TRANSIENT`      | @ref BENT_COMP_TRANSIENT                             |
+ * | `SERIALIZED`     | The host implements `bent_serialize_NAME`, see below |
+ *
+ * With `SERIALIZED`, the header declares
+ * `bool bent_serialize_NAME(bent_serialize_ctx_t* ctx, TYPE* comp)` and the
+ * defining unit wires it to @ref bent_comp_def_t::serialize.
+ * The host implements it in any source file, with external linkage, using
+ * @ref BENT_SERIALIZER as the function head.
+ *
+ * Both `ACCESS` and `SAVE` are bare tokens and are never macro-expanded.
+ *
+ * Example:
+ *
+ * @snippet tests/bent/pod_ex.h BENT_POD_COMP_EX
+ *
+ * And the serialization callback, in any source file:
+ *
+ * @snippet tests/bent/pod_ex.c BENT_SERIALIZER
+ *
+ * A read-only component:
+ *
+ * @snippet tests/bent/readonly.h BENT_POD_COMP_EX
+ *
+ * And in its owning system's source file:
+ *
+ * @snippet tests/bent/readonly_owner.c BENT_DEFINE_COMP_MUT_GETTER
+ *
+ * @param NAME name of the component type
+ * @param TYPE type of the component's data
+ * @param ACCESS `RW` or `RO`
+ * @param SAVE `UNSERIALIZABLE`, `TRANSIENT` or `SERIALIZED`
+ *
+ * @see BENT_POD_COMP
  */
-#define BENT_POD_COMP(NAME, TYPE) \
+#define BENT_POD_COMP_EX(NAME, TYPE, ACCESS, SAVE) \
+	typedef TYPE bent__comp_type_##NAME; \
 	BENT_DECLARE_COMP(NAME) \
-	BENT_DEFINE_COMP_ADDER(NAME, TYPE) \
-	BENT_DEFINE_COMP_GETTER(NAME, TYPE)
-
-/// Same as @ref BENT_POD_COMP but the component is serialized as raw bytes
-#define BENT_RAW_POD_COMP BENT_POD_COMP
-
-/// Same as @ref BENT_POD_COMP but the component is never serialized
-#define BENT_TRANSIENT_POD_COMP BENT_POD_COMP
+	BENT__COMP_ACCESS_##ACCESS(NAME, TYPE) \
+	BENT__COMP_SAVE_DECL_##SAVE(NAME, TYPE)
 
 /**
  * Dual use helper for tag component.
@@ -626,14 +734,16 @@
 	typedef struct NAME NAME##_t; \
 	extern bent_msg_reg_t NAME; \
 	struct NAME
-
 #else
 
-#define BENT_POD_COMP(NAME, TYPE) BENT_DEFINE_POD_COMP(NAME, TYPE)
-
-#define BENT_RAW_POD_COMP(NAME, TYPE) BENT_DEFINE_RAW_COMP(NAME, TYPE)
-
-#define BENT_TRANSIENT_POD_COMP(NAME, TYPE) BENT_DEFINE_TRANSIENT_COMP(NAME, TYPE)
+#define BENT_POD_COMP_EX(NAME, TYPE, ACCESS, SAVE) \
+	typedef TYPE bent__comp_type_##NAME; \
+	BENT__COMP_SAVE_DECL_##SAVE(NAME, TYPE) \
+	BENT__COMP_SAVE_DEF_##SAVE(NAME, TYPE) \
+	BENT_DEFINE_COMP(NAME) = { \
+		.size = sizeof(TYPE), \
+		BENT__COMP_SAVE_INIT_##SAVE(NAME, TYPE) \
+	};
 
 #define BENT_TAG_COMP(NAME) BENT_DEFINE_TAG_COMP(NAME)
 
@@ -643,6 +753,70 @@
 	struct NAME
 
 #endif
+
+/**
+ * Dual use helper for a mutable POD component that made no save choice.
+ *
+ * Same as `BENT_POD_COMP_EX(NAME, TYPE, RW, UNSERIALIZABLE)`.
+ *
+ * @param NAME name of the component type
+ * @param TYPE type of the component's data
+ *
+ * @see BENT_POD_COMP_EX
+ */
+#define BENT_POD_COMP(NAME, TYPE) BENT_POD_COMP_EX(NAME, TYPE, RW, UNSERIALIZABLE)
+
+/// Same as `BENT_POD_COMP_EX(NAME, TYPE, RW, TRANSIENT)`
+#define BENT_TRANSIENT_POD_COMP(NAME, TYPE) BENT_POD_COMP_EX(NAME, TYPE, RW, TRANSIENT)
+
+/**
+ * Head of the serialization callback of a component declared with
+ * @ref BENT_POD_COMP_EX.
+ *
+ * It expands to `bool bent_serialize_NAME(bent_serialize_ctx_t* ctx, TYPE* comp)`
+ * where `TYPE` is the type given to @ref BENT_POD_COMP_EX, so it can be
+ * followed by a function body or a semicolon.
+ * The parameters are named `ctx` and `comp`.
+ *
+ * Example:
+ *
+ * @snippet tests/bent/pod_ex.c BENT_SERIALIZER
+ *
+ * @param NAME name of the component type
+ *
+ * @see bent_serialize_fn_t
+ */
+#define BENT_SERIALIZER(NAME) \
+	bool bent_serialize_##NAME(bent_serialize_ctx_t* ctx, bent__comp_type_##NAME* comp)
+
+/// @cond INTERNAL
+// Access axis of BENT_POD_COMP_EX: which typed helpers the header defines
+#define BENT__COMP_ACCESS_RW(NAME, TYPE) \
+	BENT_DEFINE_COMP_ADDER(NAME, TYPE) \
+	BENT_DEFINE_COMP_GETTER(NAME, TYPE)
+#define BENT__COMP_ACCESS_RO(NAME, TYPE) \
+	BENT_DEFINE_COMP_CONST_ADDER(NAME, TYPE) \
+	BENT_DEFINE_COMP_CONST_GETTER(NAME, TYPE)
+
+// Save axis of BENT_POD_COMP_EX.
+// DECL is emitted in both modes, DEF only in the defining unit and INIT is
+// spliced into the bent_comp_def_t initializer.
+#define BENT__COMP_SAVE_DECL_UNSERIALIZABLE(NAME, TYPE)
+#define BENT__COMP_SAVE_DEF_UNSERIALIZABLE(NAME, TYPE)
+#define BENT__COMP_SAVE_INIT_UNSERIALIZABLE(NAME, TYPE)
+
+#define BENT__COMP_SAVE_DECL_TRANSIENT(NAME, TYPE)
+#define BENT__COMP_SAVE_DEF_TRANSIENT(NAME, TYPE)
+#define BENT__COMP_SAVE_INIT_TRANSIENT(NAME, TYPE) .flags = BENT_COMP_TRANSIENT,
+
+#define BENT__COMP_SAVE_DECL_SERIALIZED(NAME, TYPE) BENT_SERIALIZER(NAME);
+#define BENT__COMP_SAVE_DEF_SERIALIZED(NAME, TYPE) \
+	static bool bent__serialize_thunk_##NAME(bent_serialize_ctx_t* ctx, void* data) { \
+		return bent_serialize_##NAME(ctx, data); \
+	}
+#define BENT__COMP_SAVE_INIT_SERIALIZED(NAME, TYPE) \
+	.serialize = bent__serialize_thunk_##NAME,
+/// @endcond
 
 /*! Handle to an entity world */
 typedef struct bent_world_s bent_world_t;
@@ -753,21 +927,12 @@ typedef bool (*bent_serialize_fn_t)(bent_serialize_ctx_t* ctx, void* data);
  */
 typedef enum {
 	/**
-	 * Data is saved and restored as raw bytes.
-	 *
-	 * The size is checked on read.
-	 * This is for plain structs on a single platform: there is no versioning
-	 * and no endianness handling.
-	 */
-	BENT_COMP_RAW       = 1 << 0,
-
-	/**
 	 * Data is neither saved nor restored.
 	 *
 	 * Either a system's @ref bent_sys_def_t::add "add callback" re-creates
 	 * it on load, or it is simply lost.
 	 */
-	BENT_COMP_TRANSIENT = 1 << 1,
+	BENT_COMP_TRANSIENT = 1 << 0,
 } bent_comp_flags_t;
 
 /**
@@ -782,8 +947,6 @@ typedef enum {
 	BENT_COMP_SAVE_NONE,
 	/*! A tag: the list of entities that have it */
 	BENT_COMP_SAVE_PRESENCE,
-	/*! The list of entities, each with a size-checked blob, see @ref BENT_COMP_RAW */
-	BENT_COMP_SAVE_RAW,
 	/*! The list of entities, each followed by whatever @ref bent_comp_def_t::serialize writes */
 	BENT_COMP_SAVE_CALLBACK,
 } bent_comp_save_t;
@@ -853,8 +1016,8 @@ typedef struct {
 	/**
 	 * Optional serialization callback.
 	 *
-	 * A component with data must have exactly one of this, @ref BENT_COMP_RAW
-	 * or @ref BENT_COMP_TRANSIENT, see bent_comp_save_mode().
+	 * A component with data must have exactly one of this or
+	 * @ref BENT_COMP_TRANSIENT, see bent_comp_save_mode().
 	 */
 	bent_serialize_fn_t serialize;
 } bent_comp_def_t;
@@ -1778,13 +1941,11 @@ bent_unserializable_comp(void);
 /*! How a component type takes part in a save, see @ref bent_comp_save_t */
 static inline bent_comp_save_t
 bent_comp_save_mode(const bent_comp_def_t* def) {
-	int raw = (def->flags & BENT_COMP_RAW) != 0;
 	int transient = (def->flags & BENT_COMP_TRANSIENT) != 0;
 	int callback = def->serialize != NULL;
-	if (raw + transient + callback > 1) { return BENT_COMP_SAVE_INVALID; }
+	if (transient && callback) { return BENT_COMP_SAVE_INVALID; }
 	if (transient) { return BENT_COMP_SAVE_NONE; }
 	if (callback) { return BENT_COMP_SAVE_CALLBACK; }
-	if (raw) { return BENT_COMP_SAVE_RAW; }
 	if (def->size == 0) { return BENT_COMP_SAVE_PRESENCE; }
 	return BENT_COMP_SAVE_INVALID;
 }

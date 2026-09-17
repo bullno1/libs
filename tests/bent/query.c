@@ -444,9 +444,9 @@ BTEST(query, load) {
 
 // A system that only wants callbacks must not intern a query
 BENT_DECLARE_COMP(listless_comp)
-BENT_DEFINE_COMP(listless_comp) = { .size = sizeof(int), .flags = BENT_COMP_RAW };
+BENT_DEFINE_COMP(listless_comp) = { .size = sizeof(int), .flags = BENT_COMP_TRANSIENT };
 BENT_DECLARE_COMP(unused_comp)
-BENT_DEFINE_COMP(unused_comp) = { .size = sizeof(int), .flags = BENT_COMP_RAW };
+BENT_DEFINE_COMP(unused_comp) = { .size = sizeof(int), .flags = BENT_COMP_TRANSIENT };
 
 static void
 listless_add(void* data, bent_world_t* world, bent_t entity) {

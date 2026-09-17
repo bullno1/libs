@@ -48,9 +48,15 @@ BENT_DEFINE_COMP(link) = {
 	.serialize = link_serialize,
 };
 
+static bool
+position_serialize(bent_serialize_ctx_t* ctx, void* data) {
+	stream_io(ctx, data, sizeof(float[2]));
+	return true;
+}
+
 BENT_DEFINE_COMP(position) = {
 	.size = sizeof(float[2]),
-	.flags = BENT_COMP_RAW,
+	.serialize = position_serialize,
 };
 
 BENT_DEFINE_TAG_COMP(marker)
@@ -154,9 +160,6 @@ BTEST(serialize, save_mode) {
 	bent_comp_def_t forgot = { .size = 4 };
 	BTEST_EXPECT_EQUAL("%d", bent_comp_save_mode(&forgot), BENT_COMP_SAVE_INVALID);
 
-	bent_comp_def_t raw = { .size = 4, .flags = BENT_COMP_RAW };
-	BTEST_EXPECT_EQUAL("%d", bent_comp_save_mode(&raw), BENT_COMP_SAVE_RAW);
-
 	bent_comp_def_t transient = { .size = 4, .flags = BENT_COMP_TRANSIENT };
 	BTEST_EXPECT_EQUAL("%d", bent_comp_save_mode(&transient), BENT_COMP_SAVE_NONE);
 
@@ -166,11 +169,8 @@ BTEST(serialize, save_mode) {
 	bent_comp_def_t callback = { .size = 4, .serialize = link_serialize };
 	BTEST_EXPECT_EQUAL("%d", bent_comp_save_mode(&callback), BENT_COMP_SAVE_CALLBACK);
 
-	bent_comp_def_t both = { .size = 4, .flags = BENT_COMP_RAW, .serialize = link_serialize };
+	bent_comp_def_t both = { .size = 4, .flags = BENT_COMP_TRANSIENT, .serialize = link_serialize };
 	BTEST_EXPECT_EQUAL("%d", bent_comp_save_mode(&both), BENT_COMP_SAVE_INVALID);
-
-	bent_comp_def_t contradiction = { .size = 4, .flags = BENT_COMP_RAW | BENT_COMP_TRANSIENT };
-	BTEST_EXPECT_EQUAL("%d", bent_comp_save_mode(&contradiction), BENT_COMP_SAVE_INVALID);
 
 	// Every component in this test binary made a choice
 	BTEST_EXPECT(bent_unserializable_comp() == NULL);
@@ -353,7 +353,6 @@ typedef struct {
 	bent_t* linked;
 	int num_linked;
 	bent_t* positioned;
-	float (*positions)[2];
 	int num_positioned;
 	bent_t* marked;
 	int num_marked;
@@ -376,13 +375,10 @@ save_world(bent_world_t* world, save_t* save) {
 		link.def->serialize(&save->stream, bent_get(world, entity, link));
 	}
 
-	int num_positioned = (int)bent_count_with(world, position);
-	save->positioned = malloc(num_positioned * sizeof(bent_t));
-	save->positions = malloc(num_positioned * sizeof(*save->positions));
+	save->positioned = malloc(bent_count_with(world, position) * sizeof(bent_t));
 	BENT_FOREACH_WITH(entity, world, position) {
-		save->positioned[save->num_positioned] = entity;
-		memcpy(save->positions[save->num_positioned], bent_get(world, entity, position), position.def->size);
-		++save->num_positioned;
+		save->positioned[save->num_positioned++] = entity;
+		position.def->serialize(&save->stream, bent_get(world, entity, position));
 	}
 
 	save->marked = malloc(bent_count_with(world, marker) * sizeof(bent_t));
@@ -410,7 +406,7 @@ load_world(bent_world_t* world, save_t* save) {
 	for (int i = 0; i < save->num_positioned; ++i) {
 		void* data = bent_restore(world, save->positioned[i], position);
 		BTEST_ASSERT(data != NULL);
-		memcpy(data, save->positions[i], position.def->size);
+		position.def->serialize(&save->stream, data);
 	}
 	for (int i = 0; i < save->num_marked; ++i) {
 		BTEST_ASSERT(bent_is_active(world, save->marked[i]));
@@ -427,7 +423,6 @@ free_save(save_t* save) {
 	free(save->gens);
 	free(save->linked);
 	free(save->positioned);
-	free(save->positions);
 	free(save->marked);
 	free(save->stream.data);
 }
