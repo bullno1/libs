@@ -319,7 +319,8 @@ blog_write(
 #define BLOG_IMPLEMENTATION
 #endif
 
-#ifdef BLOG_IMPLEMENTATION
+#if defined(BLOG_IMPLEMENTATION) && !defined(BLOG_IMPLEMENTED)
+#define BLOG_IMPLEMENTED
 
 #include <stdarg.h>
 #include <string.h>
