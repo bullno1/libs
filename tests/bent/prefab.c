@@ -6,11 +6,11 @@
 typedef struct { int x, y; } pos_t;
 typedef struct { int hp; } hp_t;
 
-BENT_RAW_POD_COMP(pos, pos_t)
+BENT_TRANSIENT_POD_COMP(pos, pos_t)
 BENT_DEFINE_COMP_ADDER(pos, pos_t)
 BENT_DEFINE_COMP_GETTER(pos, pos_t)
 
-BENT_RAW_POD_COMP(hp, hp_t)
+BENT_TRANSIENT_POD_COMP(hp, hp_t)
 BENT_DEFINE_COMP_ADDER(hp, hp_t)
 BENT_DEFINE_COMP_GETTER(hp, hp_t)
 
