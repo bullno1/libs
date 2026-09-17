@@ -131,6 +131,8 @@
 /*! Number of words in a @ref bent_bitset_t */
 #define BENT_BITSET_LEN ((BENT_MAX_NUM_COMPONENT_TYPES + sizeof(bent_mask_t) * CHAR_BIT - 1) / (sizeof(bent_mask_t) * CHAR_BIT))
 
+#define BENT_INVALID ((bent_t){ 0 })
+
 /**
  * Forward-declare a component type.
  *
