@@ -8,6 +8,10 @@ BENT_DECLARE_COMP(basic_component)
 BENT_DECLARE_COMP(basic_component2)
 BENT_DECLARE_SYS(double_match_system)
 
+// See shared.c
+extern bool bent_test_tolerate_asserts;
+extern int bent_test_num_failed_asserts;
+
 static struct {
 	bent_world_t* world;
 } fixture;
