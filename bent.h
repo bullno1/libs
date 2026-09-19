@@ -467,11 +467,6 @@
  * entity, in system registration order.
  * A stale handle delivers to nobody.
  *
- * Outside of a system callback, the handlers run before this returns,
- * followed by whatever they queued.
- * From inside a callback (an @ref bent_sys_def_t::add "add",
- * @ref bent_sys_def_t::remove "remove" or a message handler) the message is
- * copied and delivered once the outermost callback returns.
  * Matching is evaluated right before each handler runs, so a queued message
  * to an entity that no longer matches, or that was destroyed, is dropped.
  * Between @ref bent_begin_load and @ref bent_end_load nothing is delivered.
@@ -485,7 +480,6 @@
  * @param ENTITY the entity
  * @param NAME name of the message type
  * @param ... the message
- * @return the number of handlers called, 0 when the message was queued
  *
  * @remarks A message type is identified by the address of its registration,
  *     which changes on a hot reload.
@@ -518,7 +512,6 @@
  * @param WORLD the world
  * @param NAME name of the message type
  * @param ... the message
- * @return the number of handlers called, 0 when the message was queued
  *
  * @see bent_send
  *
@@ -2069,7 +2062,7 @@ bent__next_live(bent_world_t* world, bent_index_t from);
 BENT_API bent_t
 bent__next_with(bent_world_t* world, bent_comp_reg_t comp, bent_index_t from);
 
-BENT_API bent_index_t
+BENT_API void
 bent__send(
 	bent_world_t* world,
 	bent_t entity,
@@ -2078,7 +2071,7 @@ bent__send(
 	size_t size
 );
 
-BENT_API bent_index_t
+BENT_API void
 bent__broadcast(
 	bent_world_t* world,
 	bent_msg_reg_t* msg,
@@ -2180,18 +2173,28 @@ bent__from_bhandle(bhandle_t handle) {
 AUTOLIST_IMPL(bent__components)
 AUTOLIST_IMPL(bent__systems)
 
+typedef enum {
+	// The entity appears with new_components, there is no old_components
+	BENT_NOTIFY_CREATED,
+	// The entity goes from old_components to new_components
+	BENT_NOTIFY_ADDED,
+	BENT_NOTIFY_REMOVED,
+	// The entity disappears with old_components, there is no new_components
+	BENT_NOTIFY_DESTROYED,
+	// msg goes to the handlers of the systems matching the entity
+	BENT_NOTIFY_MSG,
+	// msg goes to every handler, entity is not looked at
+	BENT_NOTIFY_BROADCAST,
+} bent_notification_type_t;
+
 typedef struct {
+	bent_notification_type_t type;
 	bent_t entity;
-	// Diff the two, or if `created`, match against systems that accept an
-	// empty entity
 	bent_bitset_t old_components;
 	bent_bitset_t new_components;
-	bool created;
-	// A queued message when not NULL, its payload lives in msg_payloads
 	bent_msg_reg_t* msg;
+	// Where the payload lives in msg_payloads
 	size_t msg_offset;
-	// The message goes to every handler, entity is not looked at
-	bool broadcast;
 } bent_notification_t;
 
 typedef struct {
@@ -2237,8 +2240,8 @@ struct bent_world_s {
 	bool defer_destruction;
 	// Between bent_begin_load and bent_end_load: systems are not notified
 	bool loading;
-	// A system callback is running: further notifications are queued so that
-	// every callback sees a membership consistent with what it was told
+	// The queue is being drained: further notifications wait for their turn
+	// so that every callback sees a membership consistent with what it was told
 	bool notifying;
 	bool draining_destroy_queue;
 
@@ -2248,7 +2251,7 @@ struct bent_world_s {
 	// For the iterations that do not bring their own
 	bent_query_ctx_t* query_ctx;
 	barray(bent_notification_t) notify_queue;
-	// Copies of the messages queued in notify_queue
+	// Payloads of the messages in notify_queue
 	barray(char) msg_payloads;
 	// The pair being drained is swapped with these so that callbacks can
 	// queue more without moving the payload being delivered
@@ -2526,8 +2529,11 @@ bent_sys_cleanup(bent_world_t* world, bent_system_data_t* sys) {
 	BENT_REALLOC(sys->name, 0, world->memctx);
 }
 
+// A NULL side means the entity does not exist on that side, so a system that
+// matches an empty entity gets every new entity.
+// This is for completeness sake and also for consistent reload behavior.
 static void
-bent_notify_systems_impl(
+bent_notify_systems(
 	bent_world_t* world,
 	bent_t entity,
 	const bent_bitset_t* old_components,
@@ -2535,33 +2541,18 @@ bent_notify_systems_impl(
 ) {
 	bent_update_queries(world, entity, old_components, new_components);
 
-	bent_index_t num_systems = (bent_index_t)barray_len(world->systems);
-	for (bent_index_t i = 0; i < num_systems; ++i) {
-		bent_system_data_t* sys = &world->systems[i];
-		if (bent_sys_match_impl(sys, old_components)) {
-			if (!bent_sys_match_impl(sys, new_components)) {
-				bent_sys_remove_entity(world, sys, entity);
-			}
-		} else {
-			if (bent_sys_match_impl(sys, new_components)) {
-				bent_sys_add_entity(world, sys, entity);
-			}
-		}
-	}
-}
-
-// Systems that match an empty entity get every new entity.
-// This is for completeness sake and also for consistent reload behavior.
-static void
-bent_match_empty_impl(bent_world_t* world, bent_t entity_id) {
-	bent_bitset_t empty = { 0 };
-	bent_update_queries(world, entity_id, NULL, &empty);
+	// While loading, systems are only told about entities in bent_end_load
+	if (world->loading) { return; }
 
 	bent_index_t num_systems = (bent_index_t)barray_len(world->systems);
 	for (bent_index_t i = 0; i < num_systems; ++i) {
 		bent_system_data_t* sys = &world->systems[i];
-		if (bent_sys_match_impl(sys, &empty)) {
-			bent_sys_add_entity(world, sys, entity_id);
+		bool was_matching = old_components != NULL && bent_sys_match_impl(sys, old_components);
+		bool is_matching = new_components != NULL && bent_sys_match_impl(sys, new_components);
+		if (was_matching && !is_matching) {
+			bent_sys_remove_entity(world, sys, entity);
+		} else if (!was_matching && is_matching) {
+			bent_sys_add_entity(world, sys, entity);
 		}
 	}
 }
@@ -2580,7 +2571,7 @@ bent_add_impl(
 
 // Call every handler for `msg` whose system matches the entity.
 // Matching is checked right before each call since a handler can change it.
-static bent_index_t
+static void
 bent_deliver_msg(
 	bent_world_t* world,
 	bent_t entity,
@@ -2588,7 +2579,6 @@ bent_deliver_msg(
 	const void* data,
 	bool broadcast
 ) {
-	bent_index_t count = 0;
 	bent_index_t num_systems = (bent_index_t)barray_len(world->systems);
 	for (bent_index_t i = 0; i < num_systems; ++i) {
 		bent_system_data_t* sys = &world->systems[i];
@@ -2601,41 +2591,51 @@ bent_deliver_msg(
 
 			if (!broadcast) {
 				const bent_entity_data_t* entity_data = bent_entity_data(world, entity);
-				if (entity_data == NULL) { return count; }
+				if (entity_data == NULL) { return; }
 				if (!bent_sys_match_impl(sys, &entity_data->components)) { continue; }
 			}
 
 			handler->fn(sys->userdata, world, entity, data);
-			++count;
 		}
 	}
-	return count;
 }
 
-// `payloads` is the buffer a queued message was copied into
+// `payloads` is the buffer the messages were copied into
 static void
 bent_dispatch_notification(
 	bent_world_t* world,
 	const bent_notification_t* notification,
 	const char* payloads
 ) {
-	if (notification->msg != NULL) {
-		bent_deliver_msg(
-			world,
-			notification->entity,
-			notification->msg,
-			payloads + notification->msg_offset,
-			notification->broadcast
-		);
-	} else if (notification->created) {
-		bent_match_empty_impl(world, notification->entity);
-	} else {
-		bent_notify_systems_impl(
-			world,
-			notification->entity,
-			&notification->old_components,
-			&notification->new_components
-		);
+	bent_t entity = notification->entity;
+	switch (notification->type) {
+		case BENT_NOTIFY_CREATED:
+			bent_notify_systems(world, entity, NULL, &notification->new_components);
+			break;
+		case BENT_NOTIFY_ADDED:
+		case BENT_NOTIFY_REMOVED:
+			bent_notify_systems(
+				world, entity,
+				&notification->old_components, &notification->new_components
+			);
+			break;
+		case BENT_NOTIFY_DESTROYED:
+			bent_notify_systems(world, entity, &notification->old_components, NULL);
+			break;
+		case BENT_NOTIFY_MSG:
+			bent_deliver_msg(
+				world, entity,
+				notification->msg, payloads + notification->msg_offset,
+				false
+			);
+			break;
+		case BENT_NOTIFY_BROADCAST:
+			bent_deliver_msg(
+				world, entity,
+				notification->msg, payloads + notification->msg_offset,
+				true
+			);
+			break;
 	}
 }
 
@@ -2643,7 +2643,7 @@ static void
 bent_drain_destroy_queue(bent_world_t* world);
 
 // Returns whether this is the outermost notification.
-// A nested one must be queued instead, see bent_notify.
+// Only that one drains the queue, see bent_notify.
 static bool
 bent_begin_notify(bent_world_t* world) {
 	if (world->notifying) { return false; }
@@ -2651,7 +2651,7 @@ bent_begin_notify(bent_world_t* world) {
 	return true;
 }
 
-// Deliver whatever the callbacks queued, then the entities they destroyed
+// Deliver whatever was queued, then the entities the callbacks destroyed
 static void
 bent_end_notify(bent_world_t* world) {
 	// Callbacks may queue more while draining.
@@ -2680,43 +2680,37 @@ bent_end_notify(bent_world_t* world) {
 	}
 }
 
-// While loading, systems are only told about entities in bent_end_load.
-// While a callback runs, the notification waits until it is done.
+// Every notification goes through the queue.
+// From ordinary code, it is delivered before this returns.
+// From a callback, it waits until the ones before it are delivered.
 static void
 bent_notify(bent_world_t* world, bent_notification_t notification) {
-	if (world->loading) {
-		// The lists still have to stay current
-		bent_bitset_t empty = { 0 };
-		if (notification.created) {
-			bent_update_queries(world, notification.entity, NULL, &empty);
-		} else {
-			bent_update_queries(
-				world,
-				notification.entity,
-				&notification.old_components,
-				&notification.new_components
-			);
-		}
-		return;
-	}
+	barray_push(world->notify_queue, notification, world->memctx);
+	if (bent_begin_notify(world)) { bent_end_notify(world); }
+}
 
-	if (!bent_begin_notify(world)) {
-		barray_push(world->notify_queue, notification, world->memctx);
-		return;
-	}
-
-	bent_dispatch_notification(world, &notification, NULL);
-	bent_end_notify(world);
+// A new entity and its components are one step: it is either unknown to a
+// system or complete.
+// Whatever the callbacks add on top is told after that.
+static void
+bent_notify_created(bent_world_t* world, bent_t entity, const bent_bitset_t* components) {
+	bent_notify(world, (bent_notification_t){
+		.type = BENT_NOTIFY_CREATED,
+		.entity = entity,
+		.new_components = *components,
+	});
 }
 
 static void
-bent_notify_systems(
+bent_notify_changed(
 	bent_world_t* world,
+	bent_notification_type_t type,
 	bent_t entity,
 	const bent_bitset_t* old_components,
 	const bent_bitset_t* new_components
 ) {
 	bent_notify(world, (bent_notification_t){
+		.type = type,
 		.entity = entity,
 		.old_components = *old_components,
 		.new_components = *new_components,
@@ -2724,71 +2718,32 @@ bent_notify_systems(
 }
 
 static void
-bent_match_empty(bent_world_t* world, bent_t entity_id) {
-	bent_notify(world, (bent_notification_t){
-		.entity = entity_id,
-		.created = true,
-	});
-}
-
-// Tell systems about a new entity and its components as one step: it is
-// either unknown to them or complete.
-// Whatever the callbacks add on top is queued and applied once the membership
-// for `components` is established.
-static void
-bent_notify_create(
-	bent_world_t* world,
-	bent_t entity_id,
-	const bent_bitset_t* components
-) {
-	bent_bitset_t empty = { 0 };
-	if (world->loading || !bent_begin_notify(world)) {
-		// Only the query lists are updated, or both notifications are queued
-		// back to back
-		bent_match_empty(world, entity_id);
-		bent_notify_systems(world, entity_id, &empty, components);
-		return;
-	}
-
-	bent_match_empty_impl(world, entity_id);
-	bent_notify_systems_impl(world, entity_id, &empty, components);
-	bent_end_notify(world);
-}
-
-static bent_index_t
 bent_post_msg(
 	bent_world_t* world,
+	bent_notification_type_t type,
 	bent_t entity,
 	bent_msg_reg_t* msg,
 	const void* data,
-	size_t size,
-	bool broadcast
+	size_t size
 ) {
 	// No system has seen the entities yet
-	if (world->loading) { return 0; }
+	if (world->loading) { return; }
 
-	if (!bent_begin_notify(world)) {
-		// Nested: copy the payload, aligned so the handler can read it in place
-		size_t align = _Alignof(BENT__MSG_ALIGN_TYPE);
-		size_t offset = (barray_len(world->msg_payloads) + align - 1) / align * align;
-		barray_resize(world->msg_payloads, offset + size, world->memctx);
-		memcpy(world->msg_payloads + offset, data, size);
+	// Aligned so the handler can read it in place
+	size_t align = _Alignof(BENT__MSG_ALIGN_TYPE);
+	size_t offset = (barray_len(world->msg_payloads) + align - 1) / align * align;
+	barray_resize(world->msg_payloads, offset + size, world->memctx);
+	memcpy(world->msg_payloads + offset, data, size);
 
-		barray_push(world->notify_queue, ((bent_notification_t){
-			.entity = entity,
-			.msg = msg,
-			.msg_offset = offset,
-			.broadcast = broadcast,
-		}), world->memctx);
-		return 0;
-	}
-
-	bent_index_t count = bent_deliver_msg(world, entity, msg, data, broadcast);
-	bent_end_notify(world);
-	return count;
+	bent_notify(world, (bent_notification_t){
+		.type = type,
+		.entity = entity,
+		.msg = msg,
+		.msg_offset = offset,
+	});
 }
 
-bent_index_t
+void
 bent__send(
 	bent_world_t* world,
 	bent_t entity,
@@ -2796,18 +2751,17 @@ bent__send(
 	const void* data,
 	size_t size
 ) {
-	return bent_post_msg(world, entity, msg, data, size, false);
+	bent_post_msg(world, BENT_NOTIFY_MSG, entity, msg, data, size);
 }
 
-bent_index_t
+void
 bent__broadcast(
 	bent_world_t* world,
 	bent_msg_reg_t* msg,
 	const void* data,
 	size_t size
 ) {
-	bent_t nobody = { 0 };
-	return bent_post_msg(world, nobody, msg, data, size, true);
+	bent_post_msg(world, BENT_NOTIFY_BROADCAST, BENT_INVALID, msg, data, size);
 }
 
 // }}}
@@ -2839,20 +2793,13 @@ bent_destroy_immediately(bent_world_t* world, bent_t entity_id) {
 
 	const bent_bitset_t* components = &entity_data->components;
 
-	bent_update_queries(world, entity_id, components, NULL);
-
-	// While loading, no system has seen the entity yet
-	if (!world->loading) {
-		bool outermost = bent_begin_notify(world);
-		bent_index_t num_systems = (bent_index_t)barray_len(world->systems);
-		for (bent_index_t i = 0; i < num_systems; ++i) {
-			bent_system_data_t* sys = &world->systems[i];
-			if (bent_sys_match_impl(sys, components)) {
-				bent_sys_remove_entity(world, sys, entity_id);
-			}
-		}
-		if (outermost) { bent_end_notify(world); }
-	}
+	// Never from a callback, see bent_destroy, so this is delivered right away
+	BENT_ASSERT(!world->notifying);
+	bent_notify(world, (bent_notification_t){
+		.type = BENT_NOTIFY_DESTROYED,
+		.entity = entity_id,
+		.old_components = *components,
+	});
 
 	bent_index_t num_components = world->num_components;
 	for (bent_index_t i = 0; i < num_components; ++i) {
@@ -3021,7 +2968,8 @@ bent_create(bent_world_t* world) {
 	bent_reset_entity_data(world, handle.index);
 
 	bent_t entity_id = bent__from_bhandle(handle);
-	bent_match_empty(world, entity_id);
+	bent_bitset_t empty = { 0 };
+	bent_notify_created(world, entity_id, &empty);
 	return entity_id;
 }
 
@@ -3037,7 +2985,7 @@ bent_create_from(bent_world_t* world, bent_prefab_t prefab) {
 		bent_add_impl(world, entity_id, entity_data, *itr->comp, itr->arg);
 	}
 
-	bent_notify_create(world, entity_id, &entity_data->components);
+	bent_notify_created(world, entity_id, &entity_data->components);
 	return entity_id;
 }
 
@@ -3121,7 +3069,7 @@ bent_add(bent_world_t* world, bent_t entity_id, bent_comp_reg_t reg, void* arg) 
 	void* instance = bent_add_impl(world, entity_id, entity_data, reg, arg);
 	bent_bitset_t new_components = entity_data->components;
 	if (!bent_bitset_equal(&old_components, &new_components)) {
-		bent_notify_systems(world, entity_id, &old_components, &new_components);
+		bent_notify_changed(world, BENT_NOTIFY_ADDED, entity_id, &old_components, &new_components);
 	}
 
 	return instance;
@@ -3138,7 +3086,7 @@ bent_add_from(bent_world_t* world, bent_t entity_id, bent_prefab_t prefab) {
 	}
 	bent_bitset_t new_components = entity_data->components;
 	if (!bent_bitset_equal(&old_components, &new_components)) {
-		bent_notify_systems(world, entity_id, &old_components, &new_components);
+		bent_notify_changed(world, BENT_NOTIFY_ADDED, entity_id, &old_components, &new_components);
 	}
 }
 
@@ -3153,7 +3101,7 @@ bent_remove(bent_world_t* world, bent_t entity_id, bent_comp_reg_t reg) {
 	bent_bitset_t old_components = entity_data->components;
 	bent_bitset_t new_components = old_components;
 	bent_bitset_unset(&new_components, comp_index);
-	bent_notify_systems(world, entity_id, &old_components, &new_components);
+	bent_notify_changed(world, BENT_NOTIFY_REMOVED, entity_id, &old_components, &new_components);
 
 	bent_component_data_t* comp_data = &world->components[comp_index];
 	void* instance = bent_comp_instance(comp_data, entity_id.index);
@@ -3433,8 +3381,9 @@ bent_load_handles_end(bent_world_t* world) {
 	bseg_clear(world->entities);
 	bseg_resize(world->entities, bhandle_capacity(&world->handles), world->memctx);
 
+	bent_bitset_t empty = { 0 };
 	BHANDLE_FOREACH(handle, &world->handles) {
-		bent_match_empty(world, bent__from_bhandle(handle));
+		bent_notify_created(world, bent__from_bhandle(handle), &empty);
 	}
 }
 
@@ -3457,7 +3406,8 @@ bent_reserve(bent_world_t* world, bent_t entity_id) {
 	if (bhandle_reserve(&world->handles, handle, world->memctx) < 0) { return false; }
 
 	bent_reset_entity_data(world, handle.index);
-	bent_match_empty(world, entity_id);
+	bent_bitset_t empty = { 0 };
+	bent_notify_created(world, entity_id, &empty);
 	return true;
 }
 
@@ -3479,11 +3429,9 @@ bent_end_load(bent_world_t* world) {
 		const bent_entity_data_t* entity_data = bseg_ref(world->entities, handle.index);
 		bent_t entity_id = bent__from_bhandle(handle);
 
-		// Replay creation and then the addition of every loaded component as
-		// one step
+		// Replay creation with every loaded component as one step
 		BENT_ASSERT(!world->notifying);
-		bent_bitset_t loaded = entity_data->components;
-		bent_notify_create(world, entity_id, &loaded);
+		bent_notify_created(world, entity_id, &entity_data->components);
 	}
 }
 
