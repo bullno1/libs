@@ -338,9 +338,11 @@ BTEST(message, queued_send_uses_current_membership) {
 
 	bent_send(world, ent, hit_msg, { .amount = 1 });
 
-	// hit_sys2 got the hit but lost its component before the echo was delivered
+	// The first echo was sent before the removal so it is delivered before
+	// hit_sys2 is told about it.
+	// The rest come after and are dropped.
 	BTEST_EXPECT_EQUAL("%d", count_events("hit_sys2", "hit"), 1);
-	BTEST_EXPECT_EQUAL("%d", count_events("hit_sys2", "echo"), 0);
+	BTEST_EXPECT_EQUAL("%d", count_events("hit_sys2", "echo"), 1);
 	BTEST_EXPECT_EQUAL("%d", count_events("chatty", "echo"), 3);
 }
 
