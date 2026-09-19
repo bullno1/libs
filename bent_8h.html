@@ -548,7 +548,7 @@ Serialization</h2>
 <h2><a class="anchor" id="autotoc_md22"></a>
 Messages</h2>
 <p>A message is a plain struct sent to an entity. It is delivered to every system that has a <a class="el" href="structbent__sys__def__t.html#ae6835226d1eebedcd76bc0ae551fa9e9">handler</a> for it and <a class="el" href="bent_8h.html#ab3ddf58289789dd8b1127a0a7f188d0b">matches</a> the entity. The sender does not know who is interested.</p>
-<p><a class="el" href="bent_8h.html#ab841f7db828a64a16aa7aed8a635b787">BENT_MSG</a> declares a message type, <a class="el" href="bent_8h.html#aef71d1b268610c2fe0cf20ddf57b5eea">bent_msg</a> constructs one and <a class="el" href="bent_8h.html#a50fa5fd16ac57909d2002e9d044234da">bent_send</a> delivers it. <a class="el" href="bent_8h.html#a4eec78820eca00aa18160f1cbf902325">bent_broadcast</a> delivers a message that is about no entity in particular to every system that handles it. Delivery follows the same rule as the <a class="el" href="structbent__sys__def__t.html#aa5c77de73693ff51502fab17f389fd8d">add</a> and <a class="el" href="structbent__sys__def__t.html#a746509dc90d5b7d576bebb99a1a47162">remove</a> callbacks: immediate from ordinary code, queued when sent from inside a callback until the outermost callback returns.</p>
+<p><a class="el" href="bent_8h.html#ab841f7db828a64a16aa7aed8a635b787">BENT_MSG</a> declares a message type, <a class="el" href="bent_8h.html#aef71d1b268610c2fe0cf20ddf57b5eea">bent_msg</a> constructs one and <a class="el" href="bent_8h.html#a50fa5fd16ac57909d2002e9d044234da">bent_send</a> delivers it. <a class="el" href="bent_8h.html#a4eec78820eca00aa18160f1cbf902325">bent_broadcast</a> delivers a message that is about no entity in particular to every system that handles it. Delivery follows the same rule as the <a class="el" href="structbent__sys__def__t.html#aa5c77de73693ff51502fab17f389fd8d">add</a> and <a class="el" href="structbent__sys__def__t.html#a96a383366189e847ef618ce31b31ee03">remove</a> callbacks: immediate from ordinary code, queued when sent from inside a callback until the outermost callback returns.</p>
 <p>Example: </p><div class="fragment"><div class="line"><span class="comment">// A message is a plain struct.</span></div>
 <div class="line"><span class="comment">// This defines `struct damage_msg`, the typedef `damage_msg_t` and the</span></div>
 <div class="line"><span class="comment">// registration `damage_msg` whose address identifies the message type.</span></div>
@@ -611,7 +611,7 @@ Messages</h2>
 
 <p>Broadcast a message to every system. </p>
 <p>The message addresses no entity in particular: it is delivered to every system that lists it in its <a class="el" href="structbent__sys__def__t.html#ae6835226d1eebedcd76bc0ae551fa9e9">handlers</a>, in system registration order, whatever the system matches. The handler receives an invalid entity handle.</p>
-<p>Timing is the same as bent_send: immediate from ordinary code, copied and queued from inside a callback, dropped while loading.</p>
+<p>Timing is the same as bent_send: immediate from ordinary code, queued from inside a callback, dropped while loading.</p>
 <p>The last argument is either a brace initializer or a value of the message's type:</p>
 <div class="fragment"><div class="line">    <a class="code hl_define" href="bent_8h.html#a4eec78820eca00aa18160f1cbf902325">bent_broadcast</a>(world, turn_msg, { .turn = 3 });</div>
 <div class="line">    assert(last_turn == 3);</div>
@@ -2227,6 +2227,7 @@ Messages</h2>
 
 <p>Add a component to an entity. </p>
 <p>If the entity already has this component, this is noop. The existing component data is returned.</p>
+<p>Adding back a component whose removal is yet to be notified is noop.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">world</td><td>the world </td></tr>
@@ -3587,6 +3588,7 @@ Messages</h2>
 
 <p>Remove a component from an entity. </p>
 <p>If the entity does not have this component, this is noop.</p>
+<p>The entity keeps the component until every system has been notified about the removal.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">world</td><td>the world </td></tr>
@@ -3597,7 +3599,9 @@ Messages</h2>
 </dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="bent_8h.html#aa4bae8da5ba5cddef82a407950cff5be" title="Define a component type.">BENT_DEFINE_COMP</a> </dd>
 <dd>
-<a class="el" href="bent_8h.html#a714cff0c85030e912233e983634a1106" title="Forward-declare a component type.">BENT_DECLARE_COMP</a> </dd></dl>
+<a class="el" href="bent_8h.html#a714cff0c85030e912233e983634a1106" title="Forward-declare a component type.">BENT_DECLARE_COMP</a> </dd>
+<dd>
+<a class="el" href="structbent__sys__def__t.html#a96a383366189e847ef618ce31b31ee03" title="Optional removal callback.">bent_sys_def_t::remove</a> </dd></dl>
 
 </div>
 </div>

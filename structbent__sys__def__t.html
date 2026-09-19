@@ -111,9 +111,9 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:aa5c77de73693ff51502fab17f389fd8d" id="r_aa5c77de73693ff51502fab17f389fd8d"><td class="memItemLeft" align="right" valign="top">void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structbent__sys__def__t.html#aa5c77de73693ff51502fab17f389fd8d">add</a> )(void *userdata, <a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *world, <a class="el" href="structbent__t.html">bent_t</a> entity)</td></tr>
 <tr class="memdesc:aa5c77de73693ff51502fab17f389fd8d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Optional addition callback.  <br /></td></tr>
 <tr class="separator:aa5c77de73693ff51502fab17f389fd8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a746509dc90d5b7d576bebb99a1a47162" id="r_a746509dc90d5b7d576bebb99a1a47162"><td class="memItemLeft" align="right" valign="top">void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structbent__sys__def__t.html#a746509dc90d5b7d576bebb99a1a47162">remove</a> )(void *userdataata, <a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *world, <a class="el" href="structbent__t.html">bent_t</a> entity)</td></tr>
-<tr class="memdesc:a746509dc90d5b7d576bebb99a1a47162"><td class="mdescLeft">&#160;</td><td class="mdescRight">Optional addition callback.  <br /></td></tr>
-<tr class="separator:a746509dc90d5b7d576bebb99a1a47162"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a96a383366189e847ef618ce31b31ee03" id="r_a96a383366189e847ef618ce31b31ee03"><td class="memItemLeft" align="right" valign="top">void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structbent__sys__def__t.html#a96a383366189e847ef618ce31b31ee03">remove</a> )(void *userdata, <a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *world, <a class="el" href="structbent__t.html">bent_t</a> entity)</td></tr>
+<tr class="memdesc:a96a383366189e847ef618ce31b31ee03"><td class="mdescLeft">&#160;</td><td class="mdescRight">Optional removal callback.  <br /></td></tr>
+<tr class="separator:a96a383366189e847ef618ce31b31ee03"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7d8073ba68bb18555aa413252887d33e" id="r_a7d8073ba68bb18555aa413252887d33e"><td class="memItemLeft" align="right" valign="top">void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structbent__sys__def__t.html#a7d8073ba68bb18555aa413252887d33e">update</a> )(void *userdata, <a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *world, <a class="el" href="bent_8h.html#a21e030cf08c3b1500b58273680b5f081">bent_mask_t</a> <a class="el" href="structbent__sys__def__t.html#a9c28a9adfb7d2b205fc9ae5e7f017ba9">update_mask</a>, <a class="el" href="structbent__query__t.html">bent_query_t</a> query)</td></tr>
 <tr class="memdesc:a7d8073ba68bb18555aa413252887d33e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Optional update callback.  <br /></td></tr>
 <tr class="separator:a7d8073ba68bb18555aa413252887d33e"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -287,20 +287,21 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a746509dc90d5b7d576bebb99a1a47162" name="a746509dc90d5b7d576bebb99a1a47162"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a746509dc90d5b7d576bebb99a1a47162">&#9670;&#160;</a></span>remove</h2>
+<a id="a96a383366189e847ef618ce31b31ee03" name="a96a383366189e847ef618ce31b31ee03"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a96a383366189e847ef618ce31b31ee03">&#9670;&#160;</a></span>remove</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void(* bent_sys_def_t::remove) (void *userdataata, <a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *world, <a class="el" href="structbent__t.html">bent_t</a> entity)</td>
+          <td class="memname">void(* bent_sys_def_t::remove) (void *userdata, <a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *world, <a class="el" href="structbent__t.html">bent_t</a> entity)</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>Optional addition callback. </p>
+<p>Optional removal callback. </p>
 <p>This will be called when an entity no longer matches the criteria given in <a class="el" href="structbent__sys__def__t.html#ac7cdf1c432817c50caf5f16af20bcbc0">bent_sys_def_t::require</a> and <a class="el" href="structbent__sys__def__t.html#a8ac4995a75939ff1de8d93d2f16bab87">bent_sys_def_t::exclude</a> or when a matching entity is destroyed.</p>
+<p>A removed component is still visible at this point: <a class="el" href="bent_8h.html#a873fd6a3320ab4e7908b36adba026527">bent_has</a> reports it and <a class="el" href="bent_8h.html#a575ef88b0418cabf6fbdf6bfba26a18e">bent_get</a> returns its data.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">userdata</td><td>system's data </td></tr>
