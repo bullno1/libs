@@ -65,6 +65,14 @@ BENT_DEFINE_SYS(pos_hp_observer) = {
 	.remove = observer_remove,
 };
 
+// Only excludes, so it matches an empty entity and gets every new one
+BENT_DEFINE_SYS(peaceful_observer) = {
+	.size = sizeof(observer_t),
+	.exclude = BENT_COMP_LIST(&hostile),
+	.add = observer_add,
+	.remove = observer_remove,
+};
+
 typedef struct {
 	bent_t child;
 } spawner_t;
@@ -149,6 +157,30 @@ BTEST(prefab, systems_see_the_complete_entity) {
 	BTEST_EXPECT_EQUAL("%d", 2, by_pos_hp->num_adds);
 	BTEST_EXPECT_EQUAL("%d", 0, by_pos->num_removes);
 	BTEST_EXPECT_EQUAL("%d", 0, by_pos_hp->num_removes);
+}
+
+BTEST(prefab, excluded_from_the_start) {
+	bent_world_t* world = fixture.world;
+	observer_t* peaceful = bent_get_sys_data(world, peaceful_observer);
+
+	// For contrast: it gets the empty entity, then loses it
+	bent_t piecemeal = bent_create(world);
+	BTEST_EXPECT_EQUAL("%d", 1, peaceful->num_adds);
+	bent_add(world, piecemeal, hostile, NULL);
+	BTEST_EXPECT_EQUAL("%d", 1, peaceful->num_removes);
+
+	// Created with what it excludes: it never hears about the entity
+	bent_create_from(world, goblin);
+	BTEST_EXPECT_EQUAL("%d", 1, peaceful->num_adds);
+	BTEST_EXPECT_EQUAL("%d", 1, peaceful->num_removes);
+	BTEST_EXPECT_EQUAL("%d", 0, count_query(world, bent_sys_query(world, peaceful_observer)));
+
+	// Created without: told once, with everything in place
+	bent_create_from(world, BENT_PREFAB(BENT_COMP(hp, { .hp = 5 })));
+	BTEST_EXPECT_EQUAL("%d", 2, peaceful->num_adds);
+	BTEST_EXPECT_EQUAL("%d", 5, peaceful->hp_seen);
+	BTEST_EXPECT_EQUAL("%d", 1, peaceful->num_removes);
+	BTEST_EXPECT_EQUAL("%d", 1, count_query(world, bent_sys_query(world, peaceful_observer)));
 }
 
 BTEST(prefab, inside_a_callback) {

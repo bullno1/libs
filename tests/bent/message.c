@@ -123,22 +123,16 @@ BENT_DEFINE_SYS(hit_sys2) = {
 
 // relay_sys: broadcasts from inside a handler {{{
 
-typedef struct {
-	int last_nested_result;
-} relay_sys_t;
-
 static void
 relay_on_tick(void* userdata, bent_world_t* world, bent_t entity, const void* msg) {
-	relay_sys_t* sys = userdata;
 	const tick_msg_t* tick = msg;
 	record("relay", "tick", entity, tick->turn, 0, 0.0);
 	if (tick->turn == 1) {
-		sys->last_nested_result = (int)bent_broadcast(world, tick_msg, { .turn = 2 });
+		bent_broadcast(world, tick_msg, { .turn = 2 });
 	}
 }
 
 BENT_DEFINE_SYS(relay_sys) = {
-	.size = sizeof(relay_sys_t),
 	.require = BENT_COMP_LIST(&basic_component),
 	.handlers = BENT_MSG_HANDLERS(
 		{ &tick_msg, relay_on_tick }
@@ -154,8 +148,6 @@ typedef struct {
 	int fanout;
 	// Remove basic_component2 from the entity after sending the echoes
 	bool remove_comp2;
-	// What the nested sends returned
-	int last_nested_result;
 } chatty_sys_t;
 
 static void
@@ -168,7 +160,7 @@ chatty_on_hit(void* userdata, bent_world_t* world, bent_t entity, const void* ms
 	for (int i = 0; i < fanout; ++i) {
 		// Built on this stack frame: it has to be copied to survive
 		echo_msg_t echo = bent_msg(echo_msg){ .depth = 1, .value = hit->amount + i * 0.5 };
-		sys->last_nested_result = (int)bent_send(world, entity, echo_msg, echo);
+		bent_send(world, entity, echo_msg, echo);
 	}
 
 	if (sys->remove_comp2) {
@@ -201,8 +193,8 @@ BENT_DEFINE_SYS(chatty_sys) = {
 static void
 loud_add(void* userdata, bent_world_t* world, bent_t entity) {
 	record("loud", "add", entity, 0, 0, 0.0);
-	int result = (int)bent_send(world, entity, hit_msg, { .source = entity, .amount = 7 });
-	record("loud", "add_done", entity, result, 0, 0.0);
+	bent_send(world, entity, hit_msg, { .source = entity, .amount = 7 });
+	record("loud", "add_done", entity, 0, 0, 0.0);
 }
 
 static void
@@ -227,11 +219,11 @@ BTEST(message, delivered_to_matching_systems) {
 	bent_t ent = bent_create(world);
 
 	// Matches nothing yet
-	BTEST_EXPECT_EQUAL("%d", (int)bent_send(world, ent, hit_msg, { .amount = 1 }), 0);
+	bent_send(world, ent, hit_msg, { .amount = 1 });
 	BTEST_EXPECT_EQUAL("%d", log.num_events, 0);
 
 	bent_add(world, ent, basic_component, NULL);
-	BTEST_EXPECT_EQUAL("%d", (int)bent_send(world, ent, hit_msg, { .source = ent, .amount = 2 }), 1);
+	bent_send(world, ent, hit_msg, { .source = ent, .amount = 2 });
 	BTEST_EXPECT_EQUAL("%d", log.num_events, 1);
 	BTEST_EXPECT(strcmp(log.events[0].sys, "hit_sys1") == 0);
 	BTEST_EXPECT(strcmp(log.events[0].msg, "hit") == 0);
@@ -239,19 +231,23 @@ BTEST(message, delivered_to_matching_systems) {
 	BTEST_EXPECT_EQUAL("%d", log.events[0].amount, 2);
 
 	bent_add(world, ent, basic_component2, NULL);
-	BTEST_EXPECT_EQUAL("%d", (int)bent_send(world, ent, hit_msg, { .amount = 3 }), 2);
+	bent_send(world, ent, hit_msg, { .amount = 3 });
 	BTEST_EXPECT_EQUAL("%d", count_events("hit_sys1", "hit"), 2);
 	BTEST_EXPECT_EQUAL("%d", count_events("hit_sys2", "hit"), 1);
+	BTEST_EXPECT_EQUAL("%d", log.num_events, 3);
 
 	// A message nobody handles
-	BTEST_EXPECT_EQUAL("%d", (int)bent_send(world, ent, unused_msg, { .x = 1 }), 0);
+	bent_send(world, ent, unused_msg, { .x = 1 });
+	BTEST_EXPECT_EQUAL("%d", log.num_events, 3);
 
 	// Only systems that handle the type are called, matching is not enough
-	BTEST_EXPECT_EQUAL("%d", (int)bent_send(world, ent, echo_msg, { .depth = 1 }), 1);
+	bent_send(world, ent, echo_msg, { .depth = 1 });
 	BTEST_EXPECT_EQUAL("%d", count_events("hit_sys2", "echo"), 1);
+	BTEST_EXPECT_EQUAL("%d", log.num_events, 4);
 
 	bent_destroy(world, ent);
-	BTEST_EXPECT_EQUAL("%d", (int)bent_send(world, ent, hit_msg, { .amount = 4 }), 0);
+	bent_send(world, ent, hit_msg, { .amount = 4 });
+	BTEST_EXPECT_EQUAL("%d", log.num_events, 4);
 }
 
 BTEST(message, value_form) {
@@ -264,8 +260,8 @@ BTEST(message, value_form) {
 
 	// The same message sent to both sides of a pair
 	hit_msg_t hit = bent_msg(hit_msg){ .source = a, .amount = 9 };
-	BTEST_EXPECT_EQUAL("%d", (int)bent_send(world, a, hit_msg, hit), 1);
-	BTEST_EXPECT_EQUAL("%d", (int)bent_send(world, b, hit_msg, hit), 1);
+	bent_send(world, a, hit_msg, hit);
+	bent_send(world, b, hit_msg, hit);
 
 	BTEST_EXPECT_EQUAL("%d", log.num_events, 2);
 	BTEST_EXPECT(strcmp(log.events[0].sys, "hit_sys1") == 0);
@@ -277,16 +273,14 @@ BTEST(message, value_form) {
 
 BTEST(message, nested_sends_are_queued) {
 	bent_world_t* world = fixture.world;
-	chatty_sys_t* chatty_data = bent_get_sys_data(world, chatty_sys);
 
 	bent_t ent = bent_create(world);
 	bent_add(world, ent, basic_component2, NULL);
 	bent_add(world, ent, chatty, NULL);
 
-	// Direct: hit_sys2 and chatty_sys.
+	// The hit: hit_sys2 and chatty_sys.
 	// Queued: echo depth 1 -> hit_sys2 and chatty_sys, which queues depth 2, etc.
-	BTEST_EXPECT_EQUAL("%d", (int)bent_send(world, ent, hit_msg, { .amount = 4 }), 2);
-	BTEST_EXPECT_EQUAL("%d", chatty_data->last_nested_result, 0);
+	bent_send(world, ent, hit_msg, { .amount = 4 });
 
 	BTEST_EXPECT_EQUAL("%d", count_events(NULL, "hit"), 2);
 	BTEST_EXPECT_EQUAL("%d", count_events("hit_sys2", "echo"), 3);
@@ -314,7 +308,7 @@ BTEST(message, many_nested_sends) {
 	bent_add(world, ent, basic_component2, NULL);
 	bent_add(world, ent, chatty, NULL);
 
-	BTEST_EXPECT_EQUAL("%d", (int)bent_send(world, ent, hit_msg, { .amount = 1 }), 2);
+	bent_send(world, ent, hit_msg, { .amount = 1 });
 
 	// 100 echoes per depth, 3 depths, 2 systems each
 	BTEST_EXPECT_EQUAL("%d", count_events(NULL, "echo"), 100 * 3 * 2);
@@ -342,7 +336,7 @@ BTEST(message, queued_send_uses_current_membership) {
 	bent_add(world, ent, basic_component2, NULL);
 	bent_add(world, ent, chatty, NULL);
 
-	BTEST_EXPECT_EQUAL("%d", (int)bent_send(world, ent, hit_msg, { .amount = 1 }), 2);
+	bent_send(world, ent, hit_msg, { .amount = 1 });
 
 	// hit_sys2 got the hit but lost its component before the echo was delivered
 	BTEST_EXPECT_EQUAL("%d", count_events("hit_sys2", "hit"), 1);
@@ -361,7 +355,6 @@ BTEST(message, send_from_add_callback_is_queued) {
 	BTEST_EXPECT_EQUAL("%d", log.num_events, 4);
 	BTEST_EXPECT(strcmp(log.events[0].msg, "add") == 0);
 	BTEST_EXPECT(strcmp(log.events[1].msg, "add_done") == 0);
-	BTEST_EXPECT_EQUAL("%d", log.events[1].amount, 0);  // Queued, nothing called yet
 	BTEST_EXPECT_EQUAL("%d", count_events("loud", "hit"), 1);
 	BTEST_EXPECT_EQUAL("%d", count_events("hit_sys1", "hit"), 1);
 	BTEST_EXPECT_EQUAL("%d", log.events[2].amount, 7);
@@ -376,11 +369,11 @@ BTEST(message, not_delivered_while_loading) {
 	BTEST_EXPECT(bent_reserve(world, ent));
 	bent_restore(world, ent, basic_component);
 
-	BTEST_EXPECT_EQUAL("%d", (int)bent_send(world, ent, hit_msg, { .amount = 1 }), 0);
+	bent_send(world, ent, hit_msg, { .amount = 1 });
 	BTEST_EXPECT_EQUAL("%d", log.num_events, 0);
 
 	bent_end_load(world);
-	BTEST_EXPECT_EQUAL("%d", (int)bent_send(world, ent, hit_msg, { .amount = 1 }), 1);
+	bent_send(world, ent, hit_msg, { .amount = 1 });
 	BTEST_EXPECT_EQUAL("%d", log.num_events, 1);
 }
 
@@ -393,7 +386,7 @@ BTEST(message, no_handlers) {
 	bent_add(world, ent, basic_component2, NULL);
 	BTEST_EXPECT(bent_match(world, double_match_system, ent));
 
-	BTEST_EXPECT_EQUAL("%d", (int)bent_send(world, ent, unused_msg, { .x = 1 }), 0);
+	bent_send(world, ent, unused_msg, { .x = 1 });
 	BTEST_EXPECT_EQUAL("%d", log.num_events, 0);
 }
 
@@ -401,7 +394,7 @@ BTEST(message, broadcast_reaches_every_handler) {
 	bent_world_t* world = fixture.world;
 
 	// No entity exists, matching is not involved
-	BTEST_EXPECT_EQUAL("%d", (int)bent_broadcast(world, tick_msg, { .turn = 5 }), 3);
+	bent_broadcast(world, tick_msg, { .turn = 5 });
 	BTEST_EXPECT_EQUAL("%d", log.num_events, 3);
 	BTEST_EXPECT_EQUAL("%d", count_events("hit_sys1", "tick"), 1);
 	BTEST_EXPECT_EQUAL("%d", count_events("hit_sys2", "tick"), 1);
@@ -416,12 +409,13 @@ BTEST(message, broadcast_reaches_every_handler) {
 	}
 
 	// Only systems that handle the type are called
-	BTEST_EXPECT_EQUAL("%d", (int)bent_broadcast(world, unused_msg, { .x = 1 }), 0);
-	BTEST_EXPECT_EQUAL("%d", count_events(NULL, "hit"), 0);
+	bent_broadcast(world, unused_msg, { .x = 1 });
+	BTEST_EXPECT_EQUAL("%d", log.num_events, 3);
 
 	// The value form
 	tick_msg_t tick = bent_msg(tick_msg){ .turn = 6 };
-	BTEST_EXPECT_EQUAL("%d", (int)bent_broadcast(world, tick_msg, tick), 3);
+	bent_broadcast(world, tick_msg, tick);
+	BTEST_EXPECT_EQUAL("%d", log.num_events, 6);
 	BTEST_EXPECT_EQUAL("%d", log.events[log.num_events - 1].amount, 6);
 }
 
@@ -431,26 +425,25 @@ BTEST(message, broadcast_ignores_matching) {
 	// Entities that match some handlers' systems and not others change nothing
 	bent_t ent = bent_create(world);
 	bent_add(world, ent, basic_component, NULL);
-	BTEST_EXPECT_EQUAL("%d", (int)bent_broadcast(world, tick_msg, { .turn = 5 }), 3);
+	bent_broadcast(world, tick_msg, { .turn = 5 });
+	BTEST_EXPECT_EQUAL("%d", log.num_events, 3);
 	BTEST_EXPECT_EQUAL("%d", count_events("hit_sys2", "tick"), 1);
 	BTEST_EXPECT(bent_is_invalid(log.events[0].entity));
 
-	// And a send to the entity still matches as usual
-	BTEST_EXPECT_EQUAL("%d", (int)bent_send(world, ent, tick_msg, { .turn = 7 }), 2);
+	// And a send to the entity still matches as usual: hit_sys1 and relay
+	bent_send(world, ent, tick_msg, { .turn = 7 });
+	BTEST_EXPECT_EQUAL("%d", log.num_events, 5);
 	BTEST_EXPECT_EQUAL("%d", count_events("hit_sys2", "tick"), 1);
 	BTEST_EXPECT(bent_equal(log.events[log.num_events - 1].entity, ent));
 }
 
 BTEST(message, nested_broadcast_is_queued) {
 	bent_world_t* world = fixture.world;
-	relay_sys_t* relay = bent_get_sys_data(world, relay_sys);
-	relay->last_nested_result = -1;
 
 	// Turn 1 goes to the three handlers, the relay broadcasts turn 2 from
 	// inside its handler: queued, then delivered to all three once the outer
 	// delivery is done
-	BTEST_EXPECT_EQUAL("%d", (int)bent_broadcast(world, tick_msg, { .turn = 1 }), 3);
-	BTEST_EXPECT_EQUAL("%d", relay->last_nested_result, 0);
+	bent_broadcast(world, tick_msg, { .turn = 1 });
 	BTEST_EXPECT_EQUAL("%d", log.num_events, 6);
 	for (int i = 0; i < 3; ++i) {
 		BTEST_EXPECT_EQUAL("%d", log.events[i].amount, 1);
@@ -463,10 +456,10 @@ BTEST(message, broadcast_not_delivered_while_loading) {
 	bent_world_t* world = fixture.world;
 
 	bent_begin_load(world);
-	BTEST_EXPECT_EQUAL("%d", (int)bent_broadcast(world, tick_msg, { .turn = 4 }), 0);
+	bent_broadcast(world, tick_msg, { .turn = 4 });
 	BTEST_EXPECT_EQUAL("%d", log.num_events, 0);
 	bent_end_load(world);
 
-	BTEST_EXPECT_EQUAL("%d", (int)bent_broadcast(world, tick_msg, { .turn = 4 }), 3);
+	bent_broadcast(world, tick_msg, { .turn = 4 });
 	BTEST_EXPECT_EQUAL("%d", log.num_events, 3);
 }
