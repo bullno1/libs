@@ -134,6 +134,7 @@
 
 // Core {{{
 
+/*! An invalid handle */
 #define BENT_INVALID ((bent_t){ 0 })
 
 /*! Handle to an entity world */
@@ -681,19 +682,19 @@ typedef struct {
  *
  * Example:
  *
- * @snippet tests/bent/pod_ex.h BENT_POD_COMP_EX
+ * @snippet samples/bent_pod/components.h BENT_POD_COMP_EX
  *
  * And the serialization callback, in any source file:
  *
- * @snippet tests/bent/pod_ex.c BENT_SERIALIZER
+ * @snippet samples/bent_pod/main.c BENT_SERIALIZER
  *
  * A read-only component:
  *
- * @snippet tests/bent/readonly.h BENT_POD_COMP_EX
+ * @snippet samples/bent_pod/components.h BENT_POD_COMP_EX_RO
  *
  * And in its owning system's source file:
  *
- * @snippet tests/bent/readonly_owner.c BENT_DEFINE_COMP_MUT_GETTER
+ * @snippet samples/bent_pod/movement.c BENT_DEFINE_COMP_MUT_GETTER
  *
  * @param NAME name of the component type
  * @param TYPE type of the component's data
@@ -770,6 +771,11 @@ typedef struct {
 #define BENT_DEFINE_POD_COMP(NAME, TYPE) \
 	BENT_DEFINE_COMP(NAME) = { .size = sizeof(TYPE) };
 
+/**
+ * Define a transient component.
+ *
+ * This is similar to @ref BENT_DEFINE_POD_COMP but the component is never saved.
+ */
 #define BENT_DEFINE_TRANSIENT_COMP(NAME, TYPE) \
 	BENT_DEFINE_COMP(NAME) = { .size = sizeof(TYPE), .flags = BENT_COMP_TRANSIENT };
 
@@ -1210,7 +1216,7 @@ typedef struct {
  *
  * Example:
  *
- * @snippet tests/bent/pod_ex.c BENT_SERIALIZER
+ * @snippet samples/bent_pod/main.c BENT_SERIALIZER
  *
  * @param NAME name of the component type
  *
@@ -1521,7 +1527,7 @@ bent_comp_save_mode(const bent_comp_def_t* def) {
  * system registration order, whatever the system matches.
  * The handler receives an invalid entity handle.
  *
- * Timing is the same as @ref bent_send: immediate from ordinary code, queued
+ * Timing is the same as @ref bent_send : immediate from ordinary code, queued
  * from inside a callback, dropped while loading.
  *
  * The last argument is either a brace initializer or a value of the

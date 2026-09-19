@@ -3,7 +3,6 @@
 
 #include "../../bent.h"
 
-//! [BENT_POD_COMP_EX]
 // In a header shared by every system
 typedef struct { int x, y; } ro_pos_t;
 
@@ -13,6 +12,5 @@ BENT_POD_COMP_EX(ro_pos, ro_pos_t, RO, TRANSIENT)
 // Other systems ask the owner to write on their behalf
 void
 ro_pos_move(bent_world_t* world, bent_t entity, int dx, int dy);
-//! [BENT_POD_COMP_EX]
 
 #endif
