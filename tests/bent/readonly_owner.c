@@ -3,7 +3,6 @@
 #define BENT_DEFINE_COMPONENTS
 #include "readonly.h"
 
-//! [BENT_DEFINE_COMP_MUT_GETTER]
 // Only this file gets a `ro_pos_t*`, as bent_get_mut_ro_pos
 BENT_DEFINE_COMP_MUT_GETTER(ro_pos, ro_pos_t)
 
@@ -13,4 +12,3 @@ ro_pos_move(bent_world_t* world, bent_t entity, int dx, int dy) {
 	pos->x += dx;
 	pos->y += dy;
 }
-//! [BENT_DEFINE_COMP_MUT_GETTER]

@@ -83,6 +83,8 @@
 #include <limits.h>
 #include <string.h>
 
+// Customization {{{
+
 #ifndef BENT_API
 #define BENT_API
 #endif
@@ -128,688 +130,12 @@
 #define BENT_SERIALIZE_CTX void
 #endif
 
-/*! Number of words in a @ref bent_bitset_t */
-#define BENT_BITSET_LEN ((BENT_MAX_NUM_COMPONENT_TYPES + sizeof(bent_mask_t) * CHAR_BIT - 1) / (sizeof(bent_mask_t) * CHAR_BIT))
+// }}}
 
+// Core {{{
+
+/*! An invalid handle */
 #define BENT_INVALID ((bent_t){ 0 })
-
-/**
- * Forward-declare a component type.
- *
- * This should be used in a header file.
- * It will declare a variable of type @ref bent_comp_reg_t.
- *
- * @param NAME name of the component type
- */
-#define BENT_DECLARE_COMP(NAME) \
-	extern bent_comp_reg_t NAME;
-
-/**
- * Define a type-safe helper function to retrieve a component.
- *
- * @param NAME name of the component type
- * @param TYPE type of the component's data
- */
-#define BENT_DEFINE_COMP_GETTER(NAME, TYPE) \
-	static inline TYPE* bent_get_##NAME(bent_world_t* world, bent_t entity) { \
-		return bent_get(world, entity, NAME); \
-   	}
-
-/**
- * Define a type-safe helper function to retrieve a component as read-only.
- *
- * This is the same as @ref BENT_DEFINE_COMP_GETTER but it returns a const
- * pointer.
- *
- * @param NAME name of the component type
- * @param TYPE type of the component's data
- *
- * @see BENT_POD_COMP_EX
- */
-#define BENT_DEFINE_COMP_CONST_GETTER(NAME, TYPE) \
-	static inline const TYPE* bent_get_##NAME(bent_world_t* world, bent_t entity) { \
-		return bent_get(world, entity, NAME); \
-	}
-
-/**
- * Define a type-safe helper function to retrieve a component for writing.
- *
- * The helper is named `bent_get_mut_<NAME>` so it can coexist with the
- * read-only `bent_get_<NAME>` from @ref BENT_DEFINE_COMP_CONST_GETTER.
- *
- * Put it in the source file of the one system allowed to write the component
- * so that no other translation unit can obtain a mutable pointer through the
- * typed helpers.
- *
- * @param NAME name of the component type
- * @param TYPE type of the component's data
- *
- * @see BENT_POD_COMP_EX
- */
-#define BENT_DEFINE_COMP_MUT_GETTER(NAME, TYPE) \
-	static inline TYPE* bent_get_mut_##NAME(bent_world_t* world, bent_t entity) { \
-		return bent_get(world, entity, NAME); \
-	}
-
-/**
- * Define a type-safe helper function to add a component.
- *
- * @param NAME name of the component type
- * @param TYPE type of the component's data
- */
-#define BENT_DEFINE_COMP_ADDER(NAME, TYPE) \
-	BENT_DEFINE_COMP_ADDER_EX(NAME, TYPE, TYPE)
-
-/**
- * Define a type-safe helper function to add a component.
- *
- * This also defines `NAME_arg_t` as an alias of `ARG_TYPE` so that
- * @ref BENT_COMP can construct the argument without naming its type.
- *
- * @param NAME name of the component type
- * @param COMP_TYPE type of the component's data
- * @param ARG_TYPE type of the constructor argument
- */
-#define BENT_DEFINE_COMP_ADDER_EX(NAME, COMP_TYPE, ARG_TYPE) \
-	typedef ARG_TYPE NAME##_arg_t; \
-	static inline COMP_TYPE* bent_add_##NAME(bent_world_t* world, bent_t entity, ARG_TYPE* arg) { \
-		return bent_add(world, entity, NAME, arg); \
-   	}
-
-/**
- * Same as @ref BENT_DEFINE_COMP_ADDER but the helper returns a `const` pointer.
- *
- * @param NAME name of the component type
- * @param TYPE type of the component's data
- *
- * @see BENT_POD_COMP_EX
- */
-#define BENT_DEFINE_COMP_CONST_ADDER(NAME, TYPE) \
-	BENT_DEFINE_COMP_CONST_ADDER_EX(NAME, TYPE, TYPE)
-
-/**
- * Same as @ref BENT_DEFINE_COMP_ADDER_EX but the helper returns a `const`
- * pointer.
- *
- * @param NAME name of the component type
- * @param COMP_TYPE type of the component's data
- * @param ARG_TYPE type of the constructor argument
- *
- * @see BENT_POD_COMP_EX
- */
-#define BENT_DEFINE_COMP_CONST_ADDER_EX(NAME, COMP_TYPE, ARG_TYPE) \
-	typedef ARG_TYPE NAME##_arg_t; \
-	static inline const COMP_TYPE* bent_add_##NAME(bent_world_t* world, bent_t entity, ARG_TYPE* arg) { \
-		return bent_add(world, entity, NAME, arg); \
-	}
-
-/**
- * Define a type-safe helper function to add a tag component (zero-sized).
- *
- * @param NAME name of the component type
- */
-#define BENT_DEFINE_TAG_COMP_ADDER(NAME) \
-	static inline void bent_add_##NAME(bent_world_t* world, bent_t entity) { \
-		bent_add(world, entity, NAME, NULL); \
-	}
-
-/**
- * Define a component type
- *
- * This must be followed with an initializer list for the type @ref bent_comp_def_t.
- *
- * @param NAME name of the component type
- *
- * Example:
- *
- * @snippet samples/bent.c BENT_DEFINE_COMP
- *
- * @hideinitializer
- */
-#define BENT_DEFINE_COMP(NAME) \
-	extern bent_comp_def_t BENT__COMP_DEF_NAME(NAME); \
-	bent_comp_reg_t NAME = { .def = &BENT__COMP_DEF_NAME(NAME) }; \
-	AUTOLIST_ADD_ENTRY(bent__components, NAME, NAME) \
-	bent_comp_def_t BENT__COMP_DEF_NAME(NAME)
-
-/**
- * Define a component type, whose data is a POD (plain old data)
- *
- * Also define the add and get helpers.
- *
- * @param NAME name of the component type
- * @param TYPE type of the component's data
- *
- * Example:
- *
- * @snippet samples/bent.c BENT_DEFINE_POD_COMP
- */
-#define BENT_DEFINE_POD_COMP(NAME, TYPE) \
-	BENT_DEFINE_COMP(NAME) = { .size = sizeof(TYPE) };
-
-#define BENT_DEFINE_TRANSIENT_COMP(NAME, TYPE) \
-	BENT_DEFINE_COMP(NAME) = { .size = sizeof(TYPE), .flags = BENT_COMP_TRANSIENT };
-
-/**
- * Define a component type with zero size.
- */
-#define BENT_DEFINE_TAG_COMP(NAME) \
-	BENT_DEFINE_COMP(NAME) = { .size = 0 };
-
-/**
- * Iterate over each component type.
- *
- * @param ITR name of the iterator variable of type @ref bent_comp_itr_t
- *
- * Example:
- * @snippet samples/bent.c BENT_FOREACH_COMP
- *
- * @hideinitializer
- */
-#define BENT_FOREACH_COMP(ITR) \
-	AUTOLIST_FOREACH(bent__itr, bent__components) \
-		for ( \
-			bent_comp_itr_t ITR = { \
-				.name = bent__itr->name, \
-				.comp = *(const bent_comp_reg_t*)bent__itr->value_addr, \
-			}; \
-			ITR.name != NULL; \
-			ITR.name = NULL \
-		)
-
-/**
- * Iterate over each component type that appears in a save.
- *
- * That is every type whose bent_comp_save_mode() is at least
- * @ref BENT_COMP_SAVE_PRESENCE, in registration order.
- *
- * @param ITR name of the iterator variable of type @ref bent_comp_itr_t
- *
- * @hideinitializer
- */
-#define BENT_FOREACH_SAVED_COMP(ITR) \
-	BENT_FOREACH_COMP(ITR) \
-		if (bent_comp_save_mode(ITR.comp.def) < BENT_COMP_SAVE_PRESENCE) {} else
-
-/**
- * Forward-declare a system.
- *
- * This should be used in a header file.
- * It will declare a variable of type @ref bent_sys_reg_t.
- *
- * @param NAME name of the system
- */
-#define BENT_DECLARE_SYS(NAME) \
-	extern bent_sys_reg_t NAME;
-
-/**
- * Define a system.
- *
- * This must be followed with an initializer list for the type @ref bent_sys_def_t.
- *
- * @param NAME name of the system
- *
- * Example:
- * @snippet samples/bent.c BENT_DEFINE_SYS
- *
- * @hideinitializer
- */
-#define BENT_DEFINE_SYS(NAME) \
-	extern bent_sys_def_t BENT__SYS_DEF_NAME(NAME); \
-	bent_sys_reg_t NAME = { .def = &BENT__SYS_DEF_NAME(NAME) }; \
-	AUTOLIST_ADD_ENTRY(bent__systems, NAME, NAME) \
-	bent_sys_def_t BENT__SYS_DEF_NAME(NAME)
-
-/**
- * Iterate over each system.
- *
- * @param ITR name of the iterator variable of type @ref bent_sys_itr_t
- *
- * Example:
- * @snippet samples/bent.c BENT_FOREACH_SYS
- *
- * @hideinitializer
- */
-#define BENT_FOREACH_SYS(ITR) \
-	AUTOLIST_FOREACH(bent__itr, bent__systems) \
-		for ( \
-			bent_sys_itr_t ITR = { \
-				.name = bent__itr->name, \
-				.sys = *(const bent_sys_reg_t*)bent__itr->value_addr, \
-			}; \
-			ITR.name != NULL; \
-			ITR.name = NULL \
-		)
-
-/**
- * Helper for a null-terminated component list.
- *
- * To be used inside a @ref bent_sys_def_t.
- */
-#define BENT_COMP_LIST(...) (bent_comp_reg_t*[]){ __VA_ARGS__, 0 }
-
-/**
- * Helper for a null-terminated message handler list.
- *
- * To be used inside a @ref bent_sys_def_t.
- * Each entry is a `{ &message, handler }` pair, see @ref bent_msg_handler_t.
- */
-#define BENT_MSG_HANDLERS(...) (bent_msg_handler_t[]){ __VA_ARGS__, { 0 } }
-
-/**
- * One entry of a @ref BENT_PREFAB list.
- *
- * The optional last argument is either a brace initializer or a value of the
- * component's argument type, see @ref BENT_DEFINE_COMP_ADDER_EX.
- * Without it, the component is added with a `NULL` argument, which is the
- * only form a tag component or a component without an adder accepts.
- *
- * @code{.c}
- * BENT_COMP(transform, { .x = 10, .y = 11 })
- * BENT_COMP(health, initial_health)
- * BENT_COMP(player)
- * @endcode
- *
- * @param NAME name of the component type
- *
- * @see bent_prefab_entry_t
- * @see BENT_PREFAB
- * @see bent_create_from
- *
- * @hideinitializer
- */
-#define BENT_COMP(NAME, ...) \
-	{ .comp = &NAME __VA_OPT__(, .arg = (NAME##_arg_t[]){ __VA_ARGS__ }) }
-
-/**
- * A prefab: a null-terminated list of @ref BENT_COMP entries.
- *
- * At file scope, the list has static storage and can be kept around.
- * Inside a function, it lives until the end of the enclosing block.
- *
- * @code{.c}
- * bent_t ent = bent_create_from(world, BENT_PREFAB(
- *     BENT_COMP(transform, { .x = 10, .y = 11 }),
- *     BENT_COMP(health, { .hp = 999 }),
- *     BENT_COMP(player)
- * ));
- * @endcode
- *
- * @see bent_create_from
- * @see bent_add_from
- *
- * @hideinitializer
- */
-#define BENT_PREFAB(...) (bent_prefab_entry_t[]){ __VA_ARGS__, { 0 } }
-
-
-/**
- * Construct a message.
- *
- * Expands to a compound literal of the message's struct type, so it is
- * followed by a brace initializer:
- *
- * @code{.c}
- * collision_msg_t msg = bent_msg(collision_msg){ .a = a, .b = b };
- * @endcode
- *
- * @param NAME name of the message type
- *
- * @see BENT_MSG
- */
-#define bent_msg(NAME) (struct NAME)
-
-/**
- * Send a message to an entity.
- *
- * The message is delivered to every system that lists it in its
- * @ref bent_sys_def_t::handlers "handlers" and @ref bent_match "matches" the
- * entity, in system registration order.
- * A stale handle delivers to nobody.
- *
- * Matching is evaluated right before each handler runs, so a queued message
- * to an entity that no longer matches, or that was destroyed, is dropped.
- * Between @ref bent_begin_load and @ref bent_end_load nothing is delivered.
- *
- * The last argument is either a brace initializer or a value of the
- * message's type:
- *
- * @snippet samples/bent.c bent_send
- *
- * @param WORLD the world
- * @param ENTITY the entity
- * @param NAME name of the message type
- * @param ... the message
- *
- * @remarks A message type is identified by the address of its registration,
- *     which changes on a hot reload.
- *     Do not keep a `bent_msg_reg_t*` in a system's data across one.
- *
- * @see BENT_MSG
- * @see bent_msg_handler_t
- *
- * @hideinitializer
- */
-#define bent_send(WORLD, ENTITY, NAME, ...) \
-	bent__send((WORLD), (ENTITY), &NAME, (struct NAME[]){ __VA_ARGS__ }, sizeof(struct NAME))
-
-/**
- * Broadcast a message to every system.
- *
- * The message addresses no entity in particular: it is delivered to every
- * system that lists it in its @ref bent_sys_def_t::handlers "handlers", in
- * system registration order, whatever the system matches.
- * The handler receives an invalid entity handle.
- *
- * Timing is the same as @ref bent_send: immediate from ordinary code, queued
- * from inside a callback, dropped while loading.
- *
- * The last argument is either a brace initializer or a value of the
- * message's type:
- *
- * @snippet samples/bent.c bent_broadcast
- *
- * @param WORLD the world
- * @param NAME name of the message type
- * @param ... the message
- *
- * @see bent_send
- *
- * @hideinitializer
- */
-#define bent_broadcast(WORLD, NAME, ...) \
-	bent__broadcast((WORLD), &NAME, (struct NAME[]){ __VA_ARGS__ }, sizeof(struct NAME))
-
-/**
- * Iterate the entities matching a query.
- *
- * See @ref bent_query_begin for what the body may do.
- * `break` and `continue` work as usual.
- * Do not `return` or `goto` out of the loop: the snapshot would not be
- * released.
- * Use @ref bent_query_begin directly when that is needed.
- *
- * @param VAR name of the variable of type @ref bent_t
- * @param WORLD the world
- * @param QUERY a @ref bent_query_t
- *
- * @see BENT_FOREACH_MATCH
- *
- * @hideinitializer
- */
-#define BENT_FOREACH_QUERY(VAR, WORLD, QUERY) \
-	BENT_FOREACH_QUERY_EX(VAR, WORLD, NULL, QUERY)
-
-/**
- * Same as @ref BENT_FOREACH_QUERY with an explicit @ref bent_query_ctx_t.
- *
- * @param VAR name of the variable of type @ref bent_t
- * @param WORLD the world
- * @param CTX a @ref bent_query_ctx_t, `NULL` for the world's shared one
- * @param QUERY a @ref bent_query_t
- *
- * @see bent_query_begin_ex
- *
- * @hideinitializer
- */
-#define BENT_FOREACH_QUERY_EX(VAR, WORLD, CTX, QUERY) \
-	for ( \
-		bent_query_itr_t bent__itr_##VAR = bent_query_begin_ex((WORLD), (QUERY), (CTX)); \
-		bent_query_next((WORLD), &bent__itr_##VAR); \
-	) \
-		for ( \
-			bent_t VAR = (bent__itr_##VAR.once = 1, bent__itr_##VAR.entity); \
-			bent__itr_##VAR.once; \
-			bent__itr_##VAR.once = 0 \
-		)
-
-/**
- * Iterate the entities that have all of some components and none of others.
- *
- * Shorthand for @ref BENT_FOREACH_QUERY over @ref bent_query.
- *
- * @param VAR name of the variable of type @ref bent_t
- * @param WORLD the world
- * @param REQUIRE null-terminated list of required components, may be `NULL`
- * @param EXCLUDE null-terminated list of excluded components, may be `NULL`
- *
- * Example:
- * @snippet samples/bent.c BENT_FOREACH_MATCH
- *
- * @see BENT_COMP_LIST
- *
- * @hideinitializer
- */
-#define BENT_FOREACH_MATCH(VAR, WORLD, REQUIRE, EXCLUDE) \
-	BENT_FOREACH_QUERY(VAR, WORLD, bent_query((WORLD), (REQUIRE), (EXCLUDE)))
-
-/**
- * Iterate every live entity of a world, in index order.
- *
- * Destroying the current entity inside the loop is safe.
- * Entities created inside the loop may or may not be visited.
- *
- * @param VAR name of the variable of type @ref bent_t
- * @param WORLD the world
- *
- * @hideinitializer
- */
-#define BENT_FOREACH_LIVE(VAR, WORLD) \
-	for ( \
-		bent_t VAR = bent__next_live((WORLD), 0); \
-		!bent_is_invalid(VAR); \
-		VAR = bent__next_live((WORLD), VAR.index + 1) \
-	)
-
-/**
- * Iterate every live entity that has a component, in index order.
- *
- * @param VAR name of the variable of type @ref bent_t
- * @param WORLD the world
- * @param COMP a component's registration handle
- *
- * @hideinitializer
- */
-#define BENT_FOREACH_WITH(VAR, WORLD, COMP) \
-	for ( \
-		bent_t VAR = bent__next_with((WORLD), (COMP), 0); \
-		!bent_is_invalid(VAR); \
-		VAR = bent__next_with((WORLD), (COMP), VAR.index + 1) \
-	)
-
-#ifndef BENT_DEFINE_COMPONENTS
-
-/**
- * Dual use helper for a POD component.
- *
- * In a header file, it will forward-declare the component and define inline
- * helpers.
- *
- * In a single source file, define `BENT_DEFINE_COMPONENTS` and include this
- * header to implement the component registration.
- *
- * `ACCESS` selects the typed helpers the header defines:
- *
- * | `ACCESS` | `bent_add_<NAME>` and `bent_get_<NAME>` return            |
- * |----------|-----------------------------------------------------------|
- * | `RW`     | `TYPE*`                                                   |
- * | `RO`     | `const TYPE*`                                             |
- *
- * `RO` is for a component that only one system may write to.
- * The owning system defines `bent_get_mut_<NAME>` in its own source file with
- * @ref BENT_DEFINE_COMP_MUT_GETTER, so no other unit can obtain a mutable
- * pointer through the typed helpers.
- * This is only a compile-time convention: @ref bent_get still returns `void*`.
- *
- * `SAVE` selects how the component takes part in a save, as reported by
- * @ref bent_comp_save_mode.
- *
- * | `SAVE`           | Effect                                               |
- * |------------------|------------------------------------------------------|
- * | `UNSERIALIZABLE` | No choice is made, saving fails                      |
- * | `TRANSIENT`      | @ref BENT_COMP_TRANSIENT                             |
- * | `SERIALIZED`     | The host implements `bent_serialize_NAME`, see below |
- *
- * With `SERIALIZED`, the header declares
- * `bool bent_serialize_NAME(bent_serialize_ctx_t* ctx, TYPE* comp)` and the
- * defining unit wires it to @ref bent_comp_def_t::serialize.
- * The host implements it in any source file, with external linkage, using
- * @ref BENT_SERIALIZER as the function head.
- *
- * Both `ACCESS` and `SAVE` are bare tokens and are never macro-expanded.
- *
- * Example:
- *
- * @snippet tests/bent/pod_ex.h BENT_POD_COMP_EX
- *
- * And the serialization callback, in any source file:
- *
- * @snippet tests/bent/pod_ex.c BENT_SERIALIZER
- *
- * A read-only component:
- *
- * @snippet tests/bent/readonly.h BENT_POD_COMP_EX
- *
- * And in its owning system's source file:
- *
- * @snippet tests/bent/readonly_owner.c BENT_DEFINE_COMP_MUT_GETTER
- *
- * @param NAME name of the component type
- * @param TYPE type of the component's data
- * @param ACCESS `RW` or `RO`
- * @param SAVE `UNSERIALIZABLE`, `TRANSIENT` or `SERIALIZED`
- *
- * @see BENT_POD_COMP
- */
-#define BENT_POD_COMP_EX(NAME, TYPE, ACCESS, SAVE) \
-	typedef TYPE bent__comp_type_##NAME; \
-	BENT_DECLARE_COMP(NAME) \
-	BENT__COMP_ACCESS_##ACCESS(NAME, TYPE) \
-	BENT__COMP_SAVE_DECL_##SAVE(NAME, TYPE)
-
-/**
- * Dual use helper for tag component.
- *
- * In a header file, it will forward-declare the component and define inline
- * helpers.
- *
- * In a single source file, define `BENT_DEFINE_COMPONENTS` and include this
- * header to implement the component registration.
- */
-#define BENT_TAG_COMP(NAME) \
-	BENT_DECLARE_COMP(NAME) \
-	BENT_DEFINE_TAG_COMP_ADDER(NAME)
-
-/**
- * Dual use helper for a message type.
- *
- * This must be followed by a struct body and a semicolon:
- *
- * @code{.c}
- * BENT_MSG(collision_msg) { bent_t a, b; float depth; };
- * @endcode
- *
- * It defines `struct NAME`, the typedef `NAME_t` and declares the
- * registration `NAME`, a @ref bent_msg_reg_t whose address identifies the
- * message type.
- *
- * In a header file, it will forward-declare the registration.
- *
- * In a single source file, define `BENT_DEFINE_COMPONENTS` and include this
- * header to implement the registration, the same way as @ref BENT_POD_COMP.
- *
- * @param NAME name of the message type
- *
- * @see bent_msg
- * @see bent_send
- */
-#define BENT_MSG(NAME) \
-	typedef struct NAME NAME##_t; \
-	extern bent_msg_reg_t NAME; \
-	struct NAME
-#else
-
-#define BENT_POD_COMP_EX(NAME, TYPE, ACCESS, SAVE) \
-	typedef TYPE bent__comp_type_##NAME; \
-	BENT__COMP_SAVE_DECL_##SAVE(NAME, TYPE) \
-	BENT__COMP_SAVE_DEF_##SAVE(NAME, TYPE) \
-	BENT_DEFINE_COMP(NAME) = { \
-		.size = sizeof(TYPE), \
-		BENT__COMP_SAVE_INIT_##SAVE(NAME, TYPE) \
-	};
-
-#define BENT_TAG_COMP(NAME) BENT_DEFINE_TAG_COMP(NAME)
-
-#define BENT_MSG(NAME) \
-	typedef struct NAME NAME##_t; \
-	bent_msg_reg_t NAME = { .name = #NAME }; \
-	struct NAME
-
-#endif
-
-/**
- * Dual use helper for a mutable POD component that made no save choice.
- *
- * Same as `BENT_POD_COMP_EX(NAME, TYPE, RW, UNSERIALIZABLE)`.
- *
- * @param NAME name of the component type
- * @param TYPE type of the component's data
- *
- * @see BENT_POD_COMP_EX
- */
-#define BENT_POD_COMP(NAME, TYPE) BENT_POD_COMP_EX(NAME, TYPE, RW, UNSERIALIZABLE)
-
-/// Same as `BENT_POD_COMP_EX(NAME, TYPE, RW, TRANSIENT)`
-#define BENT_TRANSIENT_POD_COMP(NAME, TYPE) BENT_POD_COMP_EX(NAME, TYPE, RW, TRANSIENT)
-
-/**
- * Head of the serialization callback of a component declared with
- * @ref BENT_POD_COMP_EX.
- *
- * It expands to `bool bent_serialize_NAME(bent_serialize_ctx_t* ctx, TYPE* comp)`
- * where `TYPE` is the type given to @ref BENT_POD_COMP_EX, so it can be
- * followed by a function body or a semicolon.
- * The parameters are named `ctx` and `comp`.
- *
- * Example:
- *
- * @snippet tests/bent/pod_ex.c BENT_SERIALIZER
- *
- * @param NAME name of the component type
- *
- * @see bent_serialize_fn_t
- */
-#define BENT_SERIALIZER(NAME) \
-	bool bent_serialize_##NAME(bent_serialize_ctx_t* ctx, bent__comp_type_##NAME* comp)
-
-/// @cond INTERNAL
-// Access axis of BENT_POD_COMP_EX: which typed helpers the header defines
-#define BENT__COMP_ACCESS_RW(NAME, TYPE) \
-	BENT_DEFINE_COMP_ADDER(NAME, TYPE) \
-	BENT_DEFINE_COMP_GETTER(NAME, TYPE)
-#define BENT__COMP_ACCESS_RO(NAME, TYPE) \
-	BENT_DEFINE_COMP_CONST_ADDER(NAME, TYPE) \
-	BENT_DEFINE_COMP_CONST_GETTER(NAME, TYPE)
-
-// Save axis of BENT_POD_COMP_EX.
-// DECL is emitted in both modes, DEF only in the defining unit and INIT is
-// spliced into the bent_comp_def_t initializer.
-#define BENT__COMP_SAVE_DECL_UNSERIALIZABLE(NAME, TYPE)
-#define BENT__COMP_SAVE_DEF_UNSERIALIZABLE(NAME, TYPE)
-#define BENT__COMP_SAVE_INIT_UNSERIALIZABLE(NAME, TYPE)
-
-#define BENT__COMP_SAVE_DECL_TRANSIENT(NAME, TYPE)
-#define BENT__COMP_SAVE_DEF_TRANSIENT(NAME, TYPE)
-#define BENT__COMP_SAVE_INIT_TRANSIENT(NAME, TYPE) .flags = BENT_COMP_TRANSIENT,
-
-#define BENT__COMP_SAVE_DECL_SERIALIZED(NAME, TYPE) BENT_SERIALIZER(NAME);
-#define BENT__COMP_SAVE_DEF_SERIALIZED(NAME, TYPE) \
-	static bool bent__serialize_thunk_##NAME(bent_serialize_ctx_t* ctx, void* data) { \
-		return bent_serialize_##NAME(ctx, data); \
-	}
-#define BENT__COMP_SAVE_INIT_SERIALIZED(NAME, TYPE) \
-	.serialize = bent__serialize_thunk_##NAME,
-/// @endcond
 
 /*! Handle to an entity world */
 typedef struct bent_world_s bent_world_t;
@@ -819,13 +145,6 @@ typedef BENT_INDEX_TYPE bent_index_t;
 
 /*! Bitmask type used in the library */
 typedef BENT_MASK_TYPE bent_mask_t;
-
-/*! A component bitset */
-typedef struct {
-	/// @cond INTERNAL
-	bent_mask_t bits[BENT_BITSET_LEN];
-	/// @endcond
-} bent_bitset_t;
 
 /**
  * Entity handle
@@ -840,7 +159,7 @@ typedef struct {
  *
  * Functions will behave in a sensible way when given a stale handle:
  *
- * * (Redudnant) destruction of the entity as well as addition or removal of components become noop.
+ * * (Redundant) destruction of the entity as well as addition or removal of components become noop.
  * * The destroyed entity is considered to contain no components.
  * * Data retrieval just return `NULL`.
  * * The destroyed entity will never @ref bent_match "match" any system,
@@ -853,49 +172,11 @@ typedef struct {
 	/// @endcond
 } bent_t;
 
-/**
- * Handle to a query, see @ref bent_query.
- *
- * A zero-initialized handle is the empty query: it matches nothing.
- * Handles are owned by the world and stay valid for its lifetime, across
- * hot reloads.
- */
-typedef struct {
-	/// @cond INTERNAL
-	bent_index_t id;
-	/// @endcond
-} bent_query_t;
+// }}}
 
-/**
- * Storage for the snapshots taken by query iterators.
- *
- * A context is a stack: nested iterations push and pop in order.
- * It keeps its allocation and only grows past its high-water mark, so once
- * warm an iteration allocates nothing.
- * It is not safe to share between threads.
- * Every world creates one for the calls that do not take a context.
- *
- * @see bent_create_query_ctx
- * @see bent_query_begin_ex
- */
-typedef struct bent_query_ctx_s bent_query_ctx_t;
+// Component and system declaration {{{
 
-/**
- * Query iterator, see @ref bent_query_begin.
- */
-typedef struct {
-	/*! The current entity */
-	bent_t entity;
-	/// @cond INTERNAL
-	bent_query_t query;
-	bent_query_ctx_t* ctx;
-	bent_index_t base;
-	bent_index_t pos;
-	bent_index_t end;
-	bool done;
-	char once;
-	/// @endcond
-} bent_query_itr_t;
+// Serialization types {{{
 
 /*! Serialization context, see @ref BENT_SERIALIZE_CTX */
 typedef BENT_SERIALIZE_CTX bent_serialize_ctx_t;
@@ -913,6 +194,74 @@ typedef BENT_SERIALIZE_CTX bent_serialize_ctx_t;
  */
 typedef bool (*bent_serialize_fn_t)(bent_serialize_ctx_t* ctx, void* data);
 
+// }}}
+
+// Messaging types {{{
+
+/**
+ * Registration of a message type.
+ *
+ * Its address is the identity of the message type.
+ *
+ * @see BENT_MSG
+ */
+typedef struct {
+	/*! Name of the message type */
+	const char* name;
+} bent_msg_reg_t;
+
+/**
+ * Message handler.
+ *
+ * @param userdata system's data
+ * @param world the world this system belongs to
+ * @param entity the matching entity the message was sent to, or an invalid
+ *     handle for a @ref bent_broadcast
+ * @param msg the message, cast it to the message's struct type
+ *
+ * @see bent_send
+ * @see bent_broadcast
+ */
+typedef void (*bent_msg_fn_t)(
+	void* userdata,
+	bent_world_t* world,
+	bent_t entity,
+	const void* msg
+);
+
+/**
+ * An entry in a system's message handler list.
+ *
+ * @see BENT_MSG_HANDLERS
+ */
+typedef struct {
+	/*! The message type's registration */
+	bent_msg_reg_t* msg;
+	/*! The handler */
+	bent_msg_fn_t fn;
+} bent_msg_handler_t;
+
+// }}}
+
+// Query types {{{
+
+/**
+ * Handle to a query, see @ref bent_query.
+ *
+ * A zero-initialized handle is the empty query: it matches nothing.
+ * Handles are owned by the world and stay valid for its lifetime, across
+ * hot reloads.
+ */
+typedef struct {
+	/// @cond INTERNAL
+	bent_index_t id;
+	/// @endcond
+} bent_query_t;
+
+// }}}
+
+// Declaration types {{{
+
 /**
  * Component behaviour flags.
  *
@@ -927,38 +276,6 @@ typedef enum {
 	 */
 	BENT_COMP_TRANSIENT = 1 << 0,
 } bent_comp_flags_t;
-
-/**
- * How a component type takes part in a save.
- *
- * @see bent_comp_save_mode()
- */
-typedef enum {
-	/*! Has data but made no choice, or made contradicting ones. Saving must fail. */
-	BENT_COMP_SAVE_INVALID,
-	/*! Not in the file at all, see @ref BENT_COMP_TRANSIENT */
-	BENT_COMP_SAVE_NONE,
-	/*! A tag: the list of entities that have it */
-	BENT_COMP_SAVE_PRESENCE,
-	/*! The list of entities, each followed by whatever @ref bent_comp_def_t::serialize writes */
-	BENT_COMP_SAVE_CALLBACK,
-} bent_comp_save_t;
-
-/**
- * Saved entity handles, a view into the world.
- *
- * One generation per slot, an odd generation is a live entity.
- * Valid until the next call that creates or destroys an entity.
- *
- * @see bent_handles
- * @see bent_load_handles
- */
-typedef struct {
-	/*! Number of slots */
-	bent_index_t len;
-	/*! One generation per slot */
-	const bent_index_t* gens;
-} bent_handles_t;
 
 /**
  * Component type definition.
@@ -1028,75 +345,6 @@ typedef struct {
 	bent_index_t id;
 #endif
 } bent_comp_reg_t;
-
-/**
- * A component to add and the argument for its @ref bent_comp_def_t::init.
- *
- * Construct with @ref BENT_COMP, list with @ref BENT_PREFAB.
- *
- * @see bent_create_from
- * @see bent_add_from
- */
-typedef struct {
-	/*! The component's registration, `NULL` terminates a list */
-	bent_comp_reg_t* comp;
-	/*! Argument to pass to @ref bent_comp_def_t::init, may be `NULL` */
-	void* arg;
-} bent_prefab_entry_t;
-
-/**
- * A prefab: a null-terminated list of @ref bent_prefab_entry_t.
- *
- * Construct with @ref BENT_PREFAB.
- * Like a string, it is a pointer to the first element.
- *
- * @see bent_create_from
- * @see bent_add_from
- */
-typedef const bent_prefab_entry_t* bent_prefab_t;
-
-/**
- * Registration of a message type.
- *
- * Its address is the identity of the message type.
- *
- * @see BENT_MSG
- */
-typedef struct {
-	/*! Name of the message type */
-	const char* name;
-} bent_msg_reg_t;
-
-/**
- * Message handler.
- *
- * @param userdata system's data
- * @param world the world this system belongs to
- * @param entity the matching entity the message was sent to, or an invalid
- *     handle for a @ref bent_broadcast
- * @param msg the message, cast it to the message's struct type
- *
- * @see bent_send
- * @see bent_broadcast
- */
-typedef void (*bent_msg_fn_t)(
-	void* userdata,
-	bent_world_t* world,
-	bent_t entity,
-	const void* msg
-);
-
-/**
- * An entry in a system's message handler list.
- *
- * @see BENT_MSG_HANDLERS
- */
-typedef struct {
-	/*! The message type's registration */
-	bent_msg_reg_t* msg;
-	/*! The handler */
-	bent_msg_fn_t fn;
-} bent_msg_handler_t;
 
 /**
  * System behavior flags.
@@ -1307,29 +555,356 @@ typedef struct {
 #endif
 } bent_sys_reg_t;
 
-/**
- * A system iterator.
- *
- * @see BENT_FOREACH_SYS
- */
-typedef struct {
-	/*! Name of the system */
-	const char* name;
-	/*! The registration handle */
-	bent_sys_reg_t sys;
-} bent_sys_itr_t;
+// }}}
+
+// Basic declaration macros {{{
 
 /**
- * A component type iterator.
+ * Forward-declare a component type.
  *
- * @see BENT_FOREACH_COMP
+ * This should be used in a header file.
+ * It will declare a variable of type @ref bent_comp_reg_t.
+ *
+ * @param NAME name of the component type
  */
-typedef struct {
-	/*! Name of the component type */
-	const char* name;
-	/*! The registration handle */
-	bent_comp_reg_t comp;
-} bent_comp_itr_t;
+#define BENT_DECLARE_COMP(NAME) \
+	extern bent_comp_reg_t NAME;
+
+/**
+ * Define a component type
+ *
+ * This must be followed with an initializer list for the type @ref bent_comp_def_t.
+ *
+ * @param NAME name of the component type
+ *
+ * Example:
+ *
+ * @snippet samples/bent.c BENT_DEFINE_COMP
+ *
+ * @hideinitializer
+ */
+#define BENT_DEFINE_COMP(NAME) \
+	extern bent_comp_def_t BENT__COMP_DEF_NAME(NAME); \
+	bent_comp_reg_t NAME = { .def = &BENT__COMP_DEF_NAME(NAME) }; \
+	AUTOLIST_ADD_ENTRY(bent__components, NAME, NAME) \
+	bent_comp_def_t BENT__COMP_DEF_NAME(NAME)
+
+/**
+ * Forward-declare a system.
+ *
+ * This should be used in a header file.
+ * It will declare a variable of type @ref bent_sys_reg_t.
+ *
+ * @param NAME name of the system
+ */
+#define BENT_DECLARE_SYS(NAME) \
+	extern bent_sys_reg_t NAME;
+
+/**
+ * Define a system.
+ *
+ * This must be followed with an initializer list for the type @ref bent_sys_def_t.
+ *
+ * @param NAME name of the system
+ *
+ * Example:
+ * @snippet samples/bent.c BENT_DEFINE_SYS
+ *
+ * @hideinitializer
+ */
+#define BENT_DEFINE_SYS(NAME) \
+	extern bent_sys_def_t BENT__SYS_DEF_NAME(NAME); \
+	bent_sys_reg_t NAME = { .def = &BENT__SYS_DEF_NAME(NAME) }; \
+	AUTOLIST_ADD_ENTRY(bent__systems, NAME, NAME) \
+	bent_sys_def_t BENT__SYS_DEF_NAME(NAME)
+
+/**
+ * Helper for a null-terminated component list.
+ *
+ * To be used inside a @ref bent_sys_def_t.
+ */
+#define BENT_COMP_LIST(...) (bent_comp_reg_t*[]){ __VA_ARGS__, 0 }
+
+/**
+ * Helper for a null-terminated message handler list.
+ *
+ * To be used inside a @ref bent_sys_def_t.
+ * Each entry is a `{ &message, handler }` pair, see @ref bent_msg_handler_t.
+ */
+#define BENT_MSG_HANDLERS(...) (bent_msg_handler_t[]){ __VA_ARGS__, { 0 } }
+
+// }}}
+
+// Helper macros {{{
+
+// Dual use {{{
+
+#ifndef BENT_DEFINE_COMPONENTS
+
+/**
+ * Dual use helper for a POD component.
+ *
+ * In a header file, it will forward-declare the component and define inline
+ * helpers.
+ *
+ * In a single source file, define `BENT_DEFINE_COMPONENTS` and include this
+ * header to implement the component registration.
+ *
+ * `ACCESS` selects the typed helpers the header defines:
+ *
+ * | `ACCESS` | `bent_add_<NAME>` and `bent_get_<NAME>` return            |
+ * |----------|-----------------------------------------------------------|
+ * | `RW`     | `TYPE*`                                                   |
+ * | `RO`     | `const TYPE*`                                             |
+ *
+ * `RO` is for a component that only one system may write to.
+ * The owning system defines `bent_get_mut_<NAME>` in its own source file with
+ * @ref BENT_DEFINE_COMP_MUT_GETTER, so no other unit can obtain a mutable
+ * pointer through the typed helpers.
+ * This is only a compile-time convention: @ref bent_get still returns `void*`.
+ *
+ * `SAVE` selects how the component takes part in a save, as reported by
+ * @ref bent_comp_save_mode.
+ *
+ * | `SAVE`           | Effect                                               |
+ * |------------------|------------------------------------------------------|
+ * | `UNSERIALIZABLE` | No choice is made, saving fails                      |
+ * | `TRANSIENT`      | @ref BENT_COMP_TRANSIENT                             |
+ * | `SERIALIZED`     | The host implements `bent_serialize_NAME`, see below |
+ *
+ * With `SERIALIZED`, the header declares
+ * `bool bent_serialize_NAME(bent_serialize_ctx_t* ctx, TYPE* comp)` and the
+ * defining unit wires it to @ref bent_comp_def_t::serialize.
+ * The host implements it in any source file, with external linkage, using
+ * @ref BENT_SERIALIZER as the function head.
+ *
+ * Both `ACCESS` and `SAVE` are bare tokens and are never macro-expanded.
+ *
+ * Example:
+ *
+ * @snippet samples/bent_pod/components.h BENT_POD_COMP_EX
+ *
+ * And the serialization callback, in any source file:
+ *
+ * @snippet samples/bent_pod/main.c BENT_SERIALIZER
+ *
+ * A read-only component:
+ *
+ * @snippet samples/bent_pod/components.h BENT_POD_COMP_EX_RO
+ *
+ * And in its owning system's source file:
+ *
+ * @snippet samples/bent_pod/movement.c BENT_DEFINE_COMP_MUT_GETTER
+ *
+ * @param NAME name of the component type
+ * @param TYPE type of the component's data
+ * @param ACCESS `RW` or `RO`
+ * @param SAVE `UNSERIALIZABLE`, `TRANSIENT` or `SERIALIZED`
+ *
+ * @see BENT_POD_COMP
+ */
+#define BENT_POD_COMP_EX(NAME, TYPE, ACCESS, SAVE) \
+	typedef TYPE bent__comp_type_##NAME; \
+	BENT_DECLARE_COMP(NAME) \
+	BENT__COMP_ACCESS_##ACCESS(NAME, TYPE) \
+	BENT__COMP_SAVE_DECL_##SAVE(NAME, TYPE)
+
+/**
+ * Dual use helper for tag component.
+ *
+ * In a header file, it will forward-declare the component and define inline
+ * helpers.
+ *
+ * In a single source file, define `BENT_DEFINE_COMPONENTS` and include this
+ * header to implement the component registration.
+ */
+#define BENT_TAG_COMP(NAME) \
+	BENT_DECLARE_COMP(NAME) \
+	BENT_DEFINE_TAG_COMP_ADDER(NAME)
+
+#else
+
+#define BENT_POD_COMP_EX(NAME, TYPE, ACCESS, SAVE) \
+	typedef TYPE bent__comp_type_##NAME; \
+	BENT__COMP_SAVE_DECL_##SAVE(NAME, TYPE) \
+	BENT__COMP_SAVE_DEF_##SAVE(NAME, TYPE) \
+	BENT_DEFINE_COMP(NAME) = { \
+		.size = sizeof(TYPE), \
+		BENT__COMP_SAVE_INIT_##SAVE(NAME, TYPE) \
+	};
+
+#define BENT_TAG_COMP(NAME) BENT_DEFINE_TAG_COMP(NAME)
+
+#endif
+
+/**
+ * Dual use helper for a mutable POD component that made no save choice.
+ *
+ * Same as `BENT_POD_COMP_EX(NAME, TYPE, RW, UNSERIALIZABLE)`.
+ *
+ * @param NAME name of the component type
+ * @param TYPE type of the component's data
+ *
+ * @see BENT_POD_COMP_EX
+ */
+#define BENT_POD_COMP(NAME, TYPE) BENT_POD_COMP_EX(NAME, TYPE, RW, UNSERIALIZABLE)
+
+/// Same as `BENT_POD_COMP_EX(NAME, TYPE, RW, TRANSIENT)`
+#define BENT_TRANSIENT_POD_COMP(NAME, TYPE) BENT_POD_COMP_EX(NAME, TYPE, RW, TRANSIENT)
+
+// }}}
+
+// Definition helpers {{{
+
+/**
+ * Define a component type, whose data is a POD (plain old data)
+ *
+ * Also define the add and get helpers.
+ *
+ * @param NAME name of the component type
+ * @param TYPE type of the component's data
+ *
+ * Example:
+ *
+ * @snippet samples/bent.c BENT_DEFINE_POD_COMP
+ */
+#define BENT_DEFINE_POD_COMP(NAME, TYPE) \
+	BENT_DEFINE_COMP(NAME) = { .size = sizeof(TYPE) };
+
+/**
+ * Define a transient component.
+ *
+ * This is similar to @ref BENT_DEFINE_POD_COMP but the component is never saved.
+ */
+#define BENT_DEFINE_TRANSIENT_COMP(NAME, TYPE) \
+	BENT_DEFINE_COMP(NAME) = { .size = sizeof(TYPE), .flags = BENT_COMP_TRANSIENT };
+
+/**
+ * Define a component type with zero size.
+ */
+#define BENT_DEFINE_TAG_COMP(NAME) \
+	BENT_DEFINE_COMP(NAME) = { .size = 0 };
+
+// }}}
+
+// Getter and Adder {{{
+
+/**
+ * Define a type-safe helper function to retrieve a component for writing.
+ *
+ * The helper is named `bent_get_mut_<NAME>` so it can coexist with the
+ * read-only `bent_get_<NAME>` from @ref BENT_DEFINE_COMP_CONST_GETTER.
+ *
+ * Put it in the source file of the one system allowed to write the component
+ * so that no other translation unit can obtain a mutable pointer through the
+ * typed helpers.
+ *
+ * @param NAME name of the component type
+ * @param TYPE type of the component's data
+ *
+ * @see BENT_POD_COMP_EX
+ */
+#define BENT_DEFINE_COMP_MUT_GETTER(NAME, TYPE) \
+	static inline TYPE* bent_get_mut_##NAME(bent_world_t* world, bent_t entity) { \
+		return bent_get(world, entity, NAME); \
+	}
+
+/**
+ * Define a type-safe helper function to retrieve a component.
+ *
+ * @param NAME name of the component type
+ * @param TYPE type of the component's data
+ */
+#define BENT_DEFINE_COMP_GETTER(NAME, TYPE) \
+	static inline TYPE* bent_get_##NAME(bent_world_t* world, bent_t entity) { \
+		return bent_get(world, entity, NAME); \
+	}
+
+/**
+ * Define a type-safe helper function to retrieve a component as read-only.
+ *
+ * This is the same as @ref BENT_DEFINE_COMP_GETTER but it returns a const
+ * pointer.
+ *
+ * @param NAME name of the component type
+ * @param TYPE type of the component's data
+ *
+ * @see BENT_POD_COMP_EX
+ */
+#define BENT_DEFINE_COMP_CONST_GETTER(NAME, TYPE) \
+	static inline const TYPE* bent_get_##NAME(bent_world_t* world, bent_t entity) { \
+		return bent_get(world, entity, NAME); \
+	}
+
+/**
+ * Define a type-safe helper function to add a component.
+ *
+ * @param NAME name of the component type
+ * @param TYPE type of the component's data
+ */
+#define BENT_DEFINE_COMP_ADDER(NAME, TYPE) \
+	BENT_DEFINE_COMP_ADDER_EX(NAME, TYPE, TYPE)
+
+/**
+ * Define a type-safe helper function to add a component.
+ *
+ * This also defines `NAME_arg_t` as an alias of `ARG_TYPE` so that
+ * @ref BENT_COMP can construct the argument without naming its type.
+ *
+ * @param NAME name of the component type
+ * @param COMP_TYPE type of the component's data
+ * @param ARG_TYPE type of the constructor argument
+ */
+#define BENT_DEFINE_COMP_ADDER_EX(NAME, COMP_TYPE, ARG_TYPE) \
+	typedef ARG_TYPE NAME##_arg_t; \
+	static inline COMP_TYPE* bent_add_##NAME(bent_world_t* world, bent_t entity, ARG_TYPE* arg) { \
+		return bent_add(world, entity, NAME, arg); \
+	}
+
+/**
+ * Same as @ref BENT_DEFINE_COMP_ADDER but the helper returns a `const` pointer.
+ *
+ * @param NAME name of the component type
+ * @param TYPE type of the component's data
+ *
+ * @see BENT_POD_COMP_EX
+ */
+#define BENT_DEFINE_COMP_CONST_ADDER(NAME, TYPE) \
+	BENT_DEFINE_COMP_CONST_ADDER_EX(NAME, TYPE, TYPE)
+
+/**
+ * Same as @ref BENT_DEFINE_COMP_ADDER_EX but the helper returns a `const`
+ * pointer.
+ *
+ * @param NAME name of the component type
+ * @param COMP_TYPE type of the component's data
+ * @param ARG_TYPE type of the constructor argument
+ *
+ * @see BENT_POD_COMP_EX
+ */
+#define BENT_DEFINE_COMP_CONST_ADDER_EX(NAME, COMP_TYPE, ARG_TYPE) \
+	typedef ARG_TYPE NAME##_arg_t; \
+	static inline const COMP_TYPE* bent_add_##NAME(bent_world_t* world, bent_t entity, ARG_TYPE* arg) { \
+		return bent_add(world, entity, NAME, arg); \
+	}
+
+/**
+ * Define a type-safe helper function to add a tag component (zero-sized).
+ *
+ * @param NAME name of the component type
+ */
+#define BENT_DEFINE_TAG_COMP_ADDER(NAME) \
+	static inline void bent_add_##NAME(bent_world_t* world, bent_t entity) { \
+		bent_add(world, entity, NAME, NULL); \
+	}
+
+// }}}
+
+// }}}
+
+// }}}
+
+// Basic functions {{{
 
 /**
  * Intialize an entity world.
@@ -1377,29 +952,6 @@ bent_memctx(bent_world_t* world);
  */
 BENT_API bent_t
 bent_create(bent_world_t* world);
-
-/**
- * Create an entity from a prefab.
- *
- * Systems are notified about the entity once, after every component in the
- * list is added.
- * Their @ref bent_sys_def_t::add "add" callbacks see the complete entity,
- * the same as after @ref bent_end_load, instead of one intermediate state per
- * component as a sequence of @ref bent_add would give.
- *
- * Example:
- *
- * @snippet samples/bent.c bent_create_from
- *
- * @param world the world
- * @param prefab the prefab, see @ref BENT_PREFAB
- * @return a new entity handle
- *
- * @see bent_create
- * @see bent_add_from
- */
-BENT_API bent_t
-bent_create_from(bent_world_t* world, bent_prefab_t prefab);
 
 /**
  * Destroy an existing entity
@@ -1457,23 +1009,6 @@ bent_is_active(bent_world_t* world, bent_t entity);
  */
 BENT_API void*
 bent_add(bent_world_t* world, bent_t entity, bent_comp_reg_t comp, void* arg);
-
-/**
- * Add the components of a prefab to an existing entity
- *
- * Every component is added before systems are notified, so their callbacks
- * see the entity with the whole list, not one intermediate state per
- * component.
- * Components the entity already has are left alone, the same as @ref bent_add.
- *
- * @param world the world
- * @param entity an entity handle
- * @param prefab the prefab, see @ref BENT_PREFAB
- *
- * @see bent_create_from
- */
-BENT_API void
-bent_add_from(bent_world_t* world, bent_t entity, bent_prefab_t prefab);
 
 /**
  * Remove a component from an entity
@@ -1562,6 +1097,18 @@ bent_get_sys_name(bent_world_t* world, bent_sys_reg_t sys);
 BENT_API bool
 bent_match(bent_world_t* world, bent_sys_reg_t sys, bent_t entity);
 
+/*! Check whether two entity handles are equal */
+static inline bool
+bent_equal(bent_t lhs, bent_t rhs) {
+	return lhs.index == rhs.index && lhs.gen == rhs.gen;
+}
+
+/*! Check whether a handle is invalid */
+static inline bool
+bent_is_invalid(bent_t entity) {
+	return (entity.gen & 1) == 0;
+}
+
 /**
  * Run all systems matching the update mask
  *
@@ -1589,208 +1136,6 @@ bent_match(bent_world_t* world, bent_sys_reg_t sys, bent_t entity);
 BENT_API void
 bent_run(bent_world_t* world, bent_mask_t update_mask);
 
-// Query {{{
-
-/**
- * Get or create a query.
- *
- * A query is the list of every live entity that has all of the required
- * components and none of the excluded ones.
- * The world keeps it up to date as components are added and removed and as
- * entities are created and destroyed.
- *
- * Queries are interned: the same pair of masks always returns the same handle
- * and the list behind it is shared, including with systems.
- *
- * A query holds no callback and no code pointer, only the masks, so a handle
- * stays valid across a hot reload.
- *
- * @param world the world
- * @param require null-terminated list of required components, `NULL` is an empty list
- * @param exclude null-terminated list of excluded components, `NULL` is an empty list
- * @return the query handle
- *
- * @remarks `bent_query(world, NULL, NULL)` matches every live entity.
- *     This differs from a system, where a `NULL` pair matches nothing.
- *
- * @see BENT_COMP_LIST
- * @see BENT_FOREACH_QUERY
- * @see BENT_FOREACH_MATCH
- */
-BENT_API bent_query_t
-bent_query(bent_world_t* world, bent_comp_reg_t** require, bent_comp_reg_t** exclude);
-
-/**
- * Same as @ref bent_query but from bitsets built at runtime.
- *
- * @see bent_bitset_from_comp_list
- */
-BENT_API bent_query_t
-bent_query_masks(bent_world_t* world, bent_bitset_t require, bent_bitset_t exclude);
-
-/**
- * Check whether an entity matches a query
- *
- * @param world the world
- * @param query the query
- * @param entity an entity handle
- * @return whether the entity is live and matches the query
- */
-BENT_API bool
-bent_query_match(bent_world_t* world, bent_query_t query, bent_t entity);
-
-/**
- * Call a function on every entity matching a query.
- *
- * The same rules as @ref bent_query_begin apply to the callback.
- *
- * @param world the world
- * @param query the query
- * @param fn the function to call
- * @param userdata passed to `fn`
- */
-BENT_API void
-bent_query_each(
-	bent_world_t* world,
-	bent_query_t query,
-	void (*fn)(void* userdata, bent_world_t* world, bent_t entity),
-	void* userdata
-);
-
-/**
- * Same as @ref bent_query_each with an explicit @ref bent_query_ctx_t.
- *
- * @param world the world
- * @param query the query
- * @param ctx the context, `NULL` for the world's shared one
- * @param fn the function to call
- * @param userdata passed to `fn`
- */
-BENT_API void
-bent_query_each_ex(
-	bent_world_t* world,
-	bent_query_t query,
-	bent_query_ctx_t* ctx,
-	void (*fn)(void* userdata, bent_world_t* world, bent_t entity),
-	void* userdata
-);
-
-/**
- * Create a query context.
- *
- * Only needed to iterate from several threads at once: give each thread its
- * own and pass it to @ref bent_query_begin_ex.
- *
- * @param memctx memory allocator context
- * @return the context
- *
- * @see bent_query_ctx_t
- */
-BENT_API bent_query_ctx_t*
-bent_create_query_ctx(void* memctx);
-
-/**
- * Destroy a query context.
- *
- * No iteration may be in flight on it.
- * Calling this on `NULL` is safe.
- *
- * @param ctx the context
- */
-BENT_API void
-bent_destroy_query_ctx(bent_query_ctx_t* ctx);
-
-/**
- * Begin iterating a query.
- *
- * The iterator walks a snapshot of the list taken here and checks each entity
- * against the query again before yielding it, so the body may add or remove
- * components on any entity and destroy any entity.
- * An entity that stops matching is skipped, an entity that starts matching is
- * not visited until the next iteration.
- * Iterations can be nested.
- *
- * The snapshot lives in the world's shared @ref bent_query_ctx_t, see
- * @ref bent_query_begin_ex to use another one.
- *
- * @ref bent_query_next releases the snapshot when it returns `false`.
- * To leave the loop early, call @ref bent_query_end.
- *
- * Example:
- * @snippet samples/bent.c bent_query_begin
- *
- * @param world the world
- * @param query the query
- * @return the iterator
- *
- * @see BENT_FOREACH_QUERY
- */
-BENT_API bent_query_itr_t
-bent_query_begin(bent_world_t* world, bent_query_t query);
-
-/**
- * Same as @ref bent_query_begin with an explicit @ref bent_query_ctx_t.
- *
- * @param world the world
- * @param query the query
- * @param ctx the context, `NULL` for the world's shared one
- * @return the iterator
- *
- * @see BENT_FOREACH_QUERY_EX
- */
-BENT_API bent_query_itr_t
-bent_query_begin_ex(bent_world_t* world, bent_query_t query, bent_query_ctx_t* ctx);
-
-/**
- * Advance an iterator.
- *
- * @param world the world
- * @param itr the iterator
- * @return whether @ref bent_query_itr_t::entity holds the next entity.
- *     `false` once the iteration is over.
- */
-BENT_API bool
-bent_query_next(bent_world_t* world, bent_query_itr_t* itr);
-
-/**
- * End an iteration early.
- *
- * Calling this on a finished iterator is a noop.
- *
- * @param world the world
- * @param itr the iterator
- */
-BENT_API void
-bent_query_end(bent_world_t* world, bent_query_itr_t* itr);
-
-/**
- * The query that provides a system's entity list.
- *
- * @param world the world
- * @param sys a system's registration handle
- * @return the query, or the empty query for a system that matches nothing or
- *     has @ref BENT_SYS_NO_ENTITY_LIST
- *
- * @see bent_sys_def_t::require
- * @see bent_sys_def_t::exclude
- */
-BENT_API bent_query_t
-bent_sys_query(bent_world_t* world, bent_sys_reg_t sys);
-
-// }}}
-
-/**
- * Retrieve the component mask of an entity
- *
- * @param world the world
- * @param entity the entity
- * @return The component mask
- */
-BENT_API bent_bitset_t
-bent_get_entity_mask(bent_world_t* world, bent_t entity);
-
-// Serialization support {{{
-
 /**
  * Destroy every entity, running all cleanup callbacks.
  *
@@ -1800,6 +1145,174 @@ bent_get_entity_mask(bent_world_t* world, bent_t entity);
  */
 BENT_API void
 bent_clear(bent_world_t* world);
+
+// }}}
+
+// Serialization {{{
+
+/**
+ * A system iterator.
+ *
+ * @see BENT_FOREACH_SYS
+ */
+typedef struct {
+	/*! Name of the system */
+	const char* name;
+	/*! The registration handle */
+	bent_sys_reg_t sys;
+} bent_sys_itr_t;
+
+/**
+ * A component type iterator.
+ *
+ * @see BENT_FOREACH_COMP
+ */
+typedef struct {
+	/*! Name of the component type */
+	const char* name;
+	/*! The registration handle */
+	bent_comp_reg_t comp;
+} bent_comp_itr_t;
+
+/**
+ * How a component type takes part in a save.
+ *
+ * @see bent_comp_save_mode()
+ */
+typedef enum {
+	/*! Has data but made no choice, or made contradicting ones. Saving must fail. */
+	BENT_COMP_SAVE_INVALID,
+	/*! Not in the file at all, see @ref BENT_COMP_TRANSIENT */
+	BENT_COMP_SAVE_NONE,
+	/*! A tag: the list of entities that have it */
+	BENT_COMP_SAVE_PRESENCE,
+	/*! The list of entities, each followed by whatever @ref bent_comp_def_t::serialize writes */
+	BENT_COMP_SAVE_CALLBACK,
+} bent_comp_save_t;
+
+/**
+ * Saved entity handles.
+ *
+ * Valid until the next call that creates or destroys an entity.
+ *
+ * @see bent_handles
+ * @see bent_load_handles
+ */
+typedef struct {
+	/*! Number of slots */
+	bent_index_t len;
+	/*! One generation per slot */
+	const bent_index_t* gens;
+} bent_handles_t;
+
+/**
+ * Head of the serialization callback of a component declared with
+ * @ref BENT_POD_COMP_EX.
+ *
+ * It expands to `bool bent_serialize_NAME(bent_serialize_ctx_t* ctx, TYPE* comp)`
+ * where `TYPE` is the type given to @ref BENT_POD_COMP_EX, so it can be
+ * followed by a function body or a semicolon.
+ * The parameters are named `ctx` and `comp`.
+ *
+ * Example:
+ *
+ * @snippet samples/bent_pod/main.c BENT_SERIALIZER
+ *
+ * @param NAME name of the component type
+ *
+ * @see bent_serialize_fn_t
+ */
+#define BENT_SERIALIZER(NAME) \
+	bool bent_serialize_##NAME(bent_serialize_ctx_t* ctx, bent__comp_type_##NAME* comp)
+
+/**
+ * Iterate over each component type.
+ *
+ * @param ITR name of the iterator variable of type @ref bent_comp_itr_t
+ *
+ * Example:
+ * @snippet samples/bent.c BENT_FOREACH_COMP
+ *
+ * @hideinitializer
+ */
+#define BENT_FOREACH_COMP(ITR) \
+	AUTOLIST_FOREACH(bent__itr, bent__components) \
+		for ( \
+			bent_comp_itr_t ITR = { \
+				.name = bent__itr->name, \
+				.comp = *(const bent_comp_reg_t*)bent__itr->value_addr, \
+			}; \
+			ITR.name != NULL; \
+			ITR.name = NULL \
+		)
+
+/**
+ * Iterate over each component type that appears in a save.
+ *
+ * That is every type whose bent_comp_save_mode() is at least
+ * @ref BENT_COMP_SAVE_PRESENCE, in registration order.
+ *
+ * @param ITR name of the iterator variable of type @ref bent_comp_itr_t
+ *
+ * @hideinitializer
+ */
+#define BENT_FOREACH_SAVED_COMP(ITR) \
+	BENT_FOREACH_COMP(ITR) \
+		if (bent_comp_save_mode(ITR.comp.def) < BENT_COMP_SAVE_PRESENCE) {} else
+
+/**
+ * Iterate over each system.
+ *
+ * @param ITR name of the iterator variable of type @ref bent_sys_itr_t
+ *
+ * Example:
+ * @snippet samples/bent.c BENT_FOREACH_SYS
+ *
+ * @hideinitializer
+ */
+#define BENT_FOREACH_SYS(ITR) \
+	AUTOLIST_FOREACH(bent__itr, bent__systems) \
+		for ( \
+			bent_sys_itr_t ITR = { \
+				.name = bent__itr->name, \
+				.sys = *(const bent_sys_reg_t*)bent__itr->value_addr, \
+			}; \
+			ITR.name != NULL; \
+			ITR.name = NULL \
+		)
+/**
+ * Iterate every live entity of a world, in index order.
+ *
+ * Destroying the current entity inside the loop is safe.
+ * Entities created inside the loop may or may not be visited.
+ *
+ * @param VAR name of the variable of type @ref bent_t
+ * @param WORLD the world
+ *
+ * @hideinitializer
+ */
+#define BENT_FOREACH_LIVE(VAR, WORLD) \
+	for ( \
+		bent_t VAR = bent__next_live((WORLD), 0); \
+		!bent_is_invalid(VAR); \
+		VAR = bent__next_live((WORLD), VAR.index + 1) \
+	)
+
+/**
+ * Iterate every live entity that has a component, in index order.
+ *
+ * @param VAR name of the variable of type @ref bent_t
+ * @param WORLD the world
+ * @param COMP a component's registration handle
+ *
+ * @hideinitializer
+ */
+#define BENT_FOREACH_WITH(VAR, WORLD, COMP) \
+	for ( \
+		bent_t VAR = bent__next_with((WORLD), (COMP), 0); \
+		!bent_is_invalid(VAR); \
+		VAR = bent__next_with((WORLD), (COMP), VAR.index + 1) \
+	)
 
 /**
  * The state of every entity handle, see @ref bent_handles_t.
@@ -1954,108 +1467,518 @@ bent_comp_save_mode(const bent_comp_def_t* def) {
 
 // }}}
 
-/*! Check whether two entity handles are equal */
-static inline bool
-bent_equal(bent_t lhs, bent_t rhs) {
-	return lhs.index == rhs.index && lhs.gen == rhs.gen;
-}
+// Messaging {{{
 
-/*! Check whether a handle is invalid */
-static inline bool
-bent_is_invalid(bent_t entity) {
-	return (entity.gen & 1) == 0;
-}
+/**
+ * Construct a message.
+ *
+ * Expands to a compound literal of the message's struct type, so it is
+ * followed by a brace initializer:
+ *
+ * @code{.c}
+ * collision_msg_t msg = bent_msg(collision_msg){ .a = a, .b = b };
+ * @endcode
+ *
+ * @param NAME name of the message type
+ *
+ * @see BENT_MSG
+ */
+#define bent_msg(NAME) (struct NAME)
 
-// bitset {{{
+/**
+ * Send a message to an entity.
+ *
+ * The message is delivered to every system that lists it in its
+ * @ref bent_sys_def_t::handlers "handlers" and @ref bent_match "matches" the
+ * entity, in system registration order.
+ * A stale handle delivers to nobody.
+ *
+ * Matching is evaluated right before each handler runs, so a queued message
+ * to an entity that no longer matches, or that was destroyed, is dropped.
+ * Between @ref bent_begin_load and @ref bent_end_load nothing is delivered.
+ *
+ * The last argument is either a brace initializer or a value of the
+ * message's type:
+ *
+ * @snippet samples/bent.c bent_send
+ *
+ * @param WORLD the world
+ * @param ENTITY the entity
+ * @param NAME name of the message type
+ * @param ... the message
+ *
+ * @remarks A message type is identified by the address of its registration,
+ *     which changes on a hot reload.
+ *     Do not keep a `bent_msg_reg_t*` in a system's data across one.
+ *
+ * @see BENT_MSG
+ * @see bent_msg_handler_t
+ *
+ * @hideinitializer
+ */
+#define bent_send(WORLD, ENTITY, NAME, ...) \
+	bent__send((WORLD), (ENTITY), &NAME, (struct NAME[]){ __VA_ARGS__ }, sizeof(struct NAME))
 
-/*! Clear all bits in a bitset */
-static void
-bent_bitset_clear(bent_bitset_t* bitset) {
-	memset(bitset, 0, sizeof(*bitset));
-}
+/**
+ * Broadcast a message to every system.
+ *
+ * The message addresses no entity in particular: it is delivered to every
+ * system that lists it in its @ref bent_sys_def_t::handlers "handlers", in
+ * system registration order, whatever the system matches.
+ * The handler receives an invalid entity handle.
+ *
+ * Timing is the same as @ref bent_send : immediate from ordinary code, queued
+ * from inside a callback, dropped while loading.
+ *
+ * The last argument is either a brace initializer or a value of the
+ * message's type:
+ *
+ * @snippet samples/bent.c bent_broadcast
+ *
+ * @param WORLD the world
+ * @param NAME name of the message type
+ * @param ... the message
+ *
+ * @see bent_send
+ *
+ * @hideinitializer
+ */
+#define bent_broadcast(WORLD, NAME, ...) \
+	bent__broadcast((WORLD), &NAME, (struct NAME[]){ __VA_ARGS__ }, sizeof(struct NAME))
 
-/*! Set a bit in a bitset */
-static void
-bent_bitset_set(bent_bitset_t* bitset, bent_index_t bit_index) {
-	bent_index_t num_bits_per_mask = sizeof(bent_index_t) * CHAR_BIT;
-	bent_index_t mask_index = bit_index / num_bits_per_mask;
-	bent_mask_t mask = (bent_mask_t)1 << (bit_index % num_bits_per_mask);
-	bitset->bits[mask_index] |= mask;
-}
+#ifndef BENT_DEFINE_COMPONENTS
+/**
+ * Dual use helper for a message type.
+ *
+ * This must be followed by a struct body and a semicolon:
+ *
+ * @code{.c}
+ * BENT_MSG(collision_msg) { bent_t a, b; float depth; };
+ * @endcode
+ *
+ * It defines `struct NAME`, the typedef `NAME_t` and declares the
+ * registration `NAME`, a @ref bent_msg_reg_t whose address identifies the
+ * message type.
+ *
+ * In a header file, it will forward-declare the registration.
+ *
+ * In a single source file, define `BENT_DEFINE_COMPONENTS` and include this
+ * header to implement the registration, the same way as @ref BENT_POD_COMP.
+ *
+ * @param NAME name of the message type
+ *
+ * @see bent_msg
+ * @see bent_send
+ */
+#define BENT_MSG(NAME) \
+	typedef struct NAME NAME##_t; \
+	extern bent_msg_reg_t NAME; \
+	struct NAME
 
-/*! Unset a bit in a bitset */
-static void
-bent_bitset_unset(bent_bitset_t* bitset, bent_index_t bit_index) {
-	bent_index_t num_bits_per_mask = sizeof(bent_index_t) * CHAR_BIT;
-	bent_index_t mask_index = bit_index / num_bits_per_mask;
-	bent_mask_t mask = ~((bent_mask_t)1 << (bit_index % num_bits_per_mask));
-	bitset->bits[mask_index] &= mask;
-}
+#else
 
-/*! Flip all bits in a bitset */
-static void
-bent_bitset_flip(bent_bitset_t* bitset) {
-	for (bent_index_t i = 0; i < BENT_BITSET_LEN; ++i) {
-		bitset->bits[i] = ~bitset->bits[i];
-	}
-}
+#define BENT_MSG(NAME) \
+	typedef struct NAME NAME##_t; \
+	bent_msg_reg_t NAME = { .name = #NAME }; \
+	struct NAME
 
-/*! Check whether a bit is set in a bitset */
-static bool
-bent_bitset_check(const bent_bitset_t* bitset, bent_index_t bit_index) {
-	bent_index_t num_bits_per_mask = sizeof(bent_index_t) * CHAR_BIT;
-	bent_index_t mask_index = bit_index / num_bits_per_mask;
-	bent_mask_t mask = (bent_mask_t)1 << (bit_index % num_bits_per_mask);
-	return (bitset->bits[mask_index] & mask) > 0;
-}
-
-/*! Check whether two bitsets are the same */
-static bool
-bent_bitset_equal(const bent_bitset_t* lhs, const bent_bitset_t* rhs) {
-	return memcmp(lhs->bits, rhs->bits, sizeof(lhs->bits)) == 0;
-}
-
-/*! Check whether a bitset has at least one bit of another set */
-static bool
-bent_bitset_any_match(const bent_bitset_t* subject, const bent_bitset_t* requirement) {
-	bool result = false;
-	for (bent_index_t i = 0; i < BENT_BITSET_LEN; ++i) {
-		bent_mask_t subject_mask = subject->bits[i];
-		bent_mask_t required_mask = requirement->bits[i];
-		result = result || ((subject_mask & required_mask) > 0);
-	}
-	return result;
-}
-
-/*! Check whether a bitset has all the bits of another set */
-static bool
-bent_bitset_all_match(const bent_bitset_t* subject, const bent_bitset_t* requirement) {
-	bool result = true;
-	for (bent_index_t i = 0; i < BENT_BITSET_LEN; ++i) {
-		bent_mask_t subject_mask = subject->bits[i];
-		bent_mask_t required_mask = requirement->bits[i];
-		result = result && ((subject_mask & required_mask) == required_mask);
-	}
-	return result;
-}
-
-/*! Build a bitset from a NULL-terminated list of components */
-static inline bent_bitset_t
-bent_bitset_from_comp_list(bent_comp_reg_t** comp_list) {
-	bent_bitset_t result = { 0 };
-	for (
-		bent_comp_reg_t** comp = comp_list;
-		comp != NULL && *comp != NULL;
-		++comp
-	) {
-		bent_bitset_set(&result, (*comp)->id - 1);
-	}
-	return result;
-}
+#endif
 
 // }}}
 
-// Private
+// Prefab {{{
+
+/**
+ * A component to add and the argument for its @ref bent_comp_def_t::init.
+ *
+ * Construct with @ref BENT_COMP, list with @ref BENT_PREFAB.
+ *
+ * @see bent_create_from
+ * @see bent_add_from
+ */
+typedef struct {
+	/*! The component's registration, `NULL` terminates a list */
+	bent_comp_reg_t* comp;
+	/*! Argument to pass to @ref bent_comp_def_t::init, may be `NULL` */
+	void* arg;
+} bent_prefab_entry_t;
+
+/**
+ * A prefab: a null-terminated list of @ref bent_prefab_entry_t.
+ *
+ * Construct with @ref BENT_PREFAB.
+ * Like a string, it is a pointer to the first element.
+ *
+ * @see bent_create_from
+ * @see bent_add_from
+ */
+typedef const bent_prefab_entry_t* bent_prefab_t;
+
+/**
+ * One entry of a @ref BENT_PREFAB list.
+ *
+ * The optional last argument is either a brace initializer or a value of the
+ * component's argument type, see @ref BENT_DEFINE_COMP_ADDER_EX.
+ * Without it, the component is added with a `NULL` argument, which is the
+ * only form a tag component or a component without an adder accepts.
+ *
+ * @code{.c}
+ * BENT_COMP(transform, { .x = 10, .y = 11 })
+ * BENT_COMP(health, initial_health)
+ * BENT_COMP(player)
+ * @endcode
+ *
+ * @param NAME name of the component type
+ *
+ * @see bent_prefab_entry_t
+ * @see BENT_PREFAB
+ * @see bent_create_from
+ *
+ * @hideinitializer
+ */
+#define BENT_COMP(NAME, ...) \
+	{ .comp = &NAME __VA_OPT__(, .arg = (NAME##_arg_t[]){ __VA_ARGS__ }) }
+
+/**
+ * A prefab: a null-terminated list of @ref BENT_COMP entries.
+ *
+ * At file scope, the list has static storage and can be kept around.
+ * Inside a function, it lives until the end of the enclosing block.
+ *
+ * @code{.c}
+ * bent_t ent = bent_create_from(world, BENT_PREFAB(
+ *     BENT_COMP(transform, { .x = 10, .y = 11 }),
+ *     BENT_COMP(health, { .hp = 999 }),
+ *     BENT_COMP(player)
+ * ));
+ * @endcode
+ *
+ * @see bent_create_from
+ * @see bent_add_from
+ *
+ * @hideinitializer
+ */
+#define BENT_PREFAB(...) (bent_prefab_entry_t[]){ __VA_ARGS__, { 0 } }
+
+/**
+ * Create an entity from a prefab.
+ *
+ * Systems are notified about the entity once, after every component in the
+ * list is added.
+ * Their @ref bent_sys_def_t::add "add" callbacks see the complete entity,
+ * the same as after @ref bent_end_load, instead of one intermediate state per
+ * component as a sequence of @ref bent_add would give.
+ *
+ * Example:
+ *
+ * @snippet samples/bent.c bent_create_from
+ *
+ * @param world the world
+ * @param prefab the prefab, see @ref BENT_PREFAB
+ * @return a new entity handle
+ *
+ * @see bent_create
+ * @see bent_add_from
+ */
+BENT_API bent_t
+bent_create_from(bent_world_t* world, bent_prefab_t prefab);
+
+/**
+ * Add the components of a prefab to an existing entity
+ *
+ * Every component is added before systems are notified, so their callbacks
+ * see the entity with the whole list, not one intermediate state per
+ * component.
+ * Components the entity already has are left alone, the same as @ref bent_add.
+ *
+ * @param world the world
+ * @param entity an entity handle
+ * @param prefab the prefab, see @ref BENT_PREFAB
+ *
+ * @see bent_create_from
+ */
+BENT_API void
+bent_add_from(bent_world_t* world, bent_t entity, bent_prefab_t prefab);
+
+// }}}
+
+// Query {{{
+
+/**
+ * Storage for the snapshots taken by query iterators.
+ *
+ * A context is a stack: nested iterations push and pop in order.
+ * It keeps its allocation and only grows past its high-water mark, so once
+ * warm an iteration allocates nothing.
+ * It is not safe to share between threads.
+ * Every world creates one for the calls that do not take a context.
+ *
+ * @see bent_create_query_ctx
+ * @see bent_query_begin_ex
+ */
+typedef struct bent_query_ctx_s bent_query_ctx_t;
+
+/**
+ * Query iterator, see @ref bent_query_begin.
+ */
+typedef struct {
+	/*! The current entity */
+	bent_t entity;
+	/// @cond INTERNAL
+	bent_query_t query;
+	bent_query_ctx_t* ctx;
+	bent_index_t base;
+	bent_index_t pos;
+	bent_index_t end;
+	bool done;
+	char once;
+	/// @endcond
+} bent_query_itr_t;
+
+/**
+ * Iterate the entities matching a query.
+ *
+ * See @ref bent_query_begin for what the body may do.
+ * `break` and `continue` work as usual.
+ * Do not `return` or `goto` out of the loop: the snapshot would not be
+ * released.
+ * Use @ref bent_query_begin directly when that is needed.
+ *
+ * @param VAR name of the variable of type @ref bent_t
+ * @param WORLD the world
+ * @param QUERY a @ref bent_query_t
+ *
+ * @see BENT_FOREACH_MATCH
+ *
+ * @hideinitializer
+ */
+#define BENT_FOREACH_QUERY(VAR, WORLD, QUERY) \
+	BENT_FOREACH_QUERY_EX(VAR, WORLD, NULL, QUERY)
+
+/**
+ * Same as @ref BENT_FOREACH_QUERY with an explicit @ref bent_query_ctx_t.
+ *
+ * @param VAR name of the variable of type @ref bent_t
+ * @param WORLD the world
+ * @param CTX a @ref bent_query_ctx_t, `NULL` for the world's shared one
+ * @param QUERY a @ref bent_query_t
+ *
+ * @see bent_query_begin_ex
+ *
+ * @hideinitializer
+ */
+#define BENT_FOREACH_QUERY_EX(VAR, WORLD, CTX, QUERY) \
+	for ( \
+		bent_query_itr_t bent__itr_##VAR = bent_query_begin_ex((WORLD), (QUERY), (CTX)); \
+		bent_query_next((WORLD), &bent__itr_##VAR); \
+	) \
+		for ( \
+			bent_t VAR = (bent__itr_##VAR.once = 1, bent__itr_##VAR.entity); \
+			bent__itr_##VAR.once; \
+			bent__itr_##VAR.once = 0 \
+		)
+
+/**
+ * Iterate the entities that have all of some components and none of others.
+ *
+ * Shorthand for @ref BENT_FOREACH_QUERY over @ref bent_query.
+ *
+ * @param VAR name of the variable of type @ref bent_t
+ * @param WORLD the world
+ * @param REQUIRE null-terminated list of required components, may be `NULL`
+ * @param EXCLUDE null-terminated list of excluded components, may be `NULL`
+ *
+ * Example:
+ * @snippet samples/bent.c BENT_FOREACH_MATCH
+ *
+ * @see BENT_COMP_LIST
+ *
+ * @hideinitializer
+ */
+#define BENT_FOREACH_MATCH(VAR, WORLD, REQUIRE, EXCLUDE) \
+	BENT_FOREACH_QUERY(VAR, WORLD, bent_query((WORLD), (REQUIRE), (EXCLUDE)))
+
+/**
+ * Get or create a query.
+ *
+ * A query is the list of every live entity that has all of the required
+ * components and none of the excluded ones.
+ * The world keeps it up to date as components are added and removed and as
+ * entities are created and destroyed.
+ *
+ * Queries are interned: the same pair of masks always returns the same handle
+ * and the list behind it is shared, including with systems.
+ *
+ * A query holds no callback and no code pointer, only the masks, so a handle
+ * stays valid across a hot reload.
+ *
+ * @param world the world
+ * @param require null-terminated list of required components, `NULL` is an empty list
+ * @param exclude null-terminated list of excluded components, `NULL` is an empty list
+ * @return the query handle
+ *
+ * @remarks `bent_query(world, NULL, NULL)` matches every live entity.
+ *     This differs from a system, where a `NULL` pair matches nothing.
+ *
+ * @see BENT_COMP_LIST
+ * @see BENT_FOREACH_QUERY
+ * @see BENT_FOREACH_MATCH
+ */
+BENT_API bent_query_t
+bent_query(bent_world_t* world, bent_comp_reg_t** require, bent_comp_reg_t** exclude);
+
+/**
+ * Check whether an entity matches a query
+ *
+ * @param world the world
+ * @param query the query
+ * @param entity an entity handle
+ * @return whether the entity is live and matches the query
+ */
+BENT_API bool
+bent_query_match(bent_world_t* world, bent_query_t query, bent_t entity);
+
+/**
+ * Call a function on every entity matching a query.
+ *
+ * The same rules as @ref bent_query_begin apply to the callback.
+ *
+ * @param world the world
+ * @param query the query
+ * @param fn the function to call
+ * @param userdata passed to `fn`
+ */
+BENT_API void
+bent_query_each(
+	bent_world_t* world,
+	bent_query_t query,
+	void (*fn)(void* userdata, bent_world_t* world, bent_t entity),
+	void* userdata
+);
+
+/**
+ * Same as @ref bent_query_each with an explicit @ref bent_query_ctx_t.
+ *
+ * @param world the world
+ * @param query the query
+ * @param ctx the context, `NULL` for the world's shared one
+ * @param fn the function to call
+ * @param userdata passed to `fn`
+ */
+BENT_API void
+bent_query_each_ex(
+	bent_world_t* world,
+	bent_query_t query,
+	bent_query_ctx_t* ctx,
+	void (*fn)(void* userdata, bent_world_t* world, bent_t entity),
+	void* userdata
+);
+
+/**
+ * Create a query context.
+ *
+ * Only needed to iterate from several threads at once: give each thread its
+ * own and pass it to @ref bent_query_begin_ex.
+ *
+ * @param memctx memory allocator context
+ * @return the context
+ *
+ * @see bent_query_ctx_t
+ */
+BENT_API bent_query_ctx_t*
+bent_create_query_ctx(void* memctx);
+
+/**
+ * Destroy a query context.
+ *
+ * No iteration may be in flight on it.
+ * Calling this on `NULL` is safe.
+ *
+ * @param ctx the context
+ */
+BENT_API void
+bent_destroy_query_ctx(bent_query_ctx_t* ctx);
+
+/**
+ * Begin iterating a query.
+ *
+ * The iterator walks a snapshot of the list taken here and checks each entity
+ * against the query again before yielding it, so the body may add or remove
+ * components on any entity and destroy any entity.
+ * An entity that stops matching is skipped, an entity that starts matching is
+ * not visited until the next iteration.
+ * Iterations can be nested.
+ *
+ * The snapshot lives in the world's shared @ref bent_query_ctx_t, see
+ * @ref bent_query_begin_ex to use another one.
+ *
+ * @ref bent_query_next releases the snapshot when it returns `false`.
+ * To leave the loop early, call @ref bent_query_end.
+ *
+ * Example:
+ * @snippet samples/bent.c bent_query_begin
+ *
+ * @param world the world
+ * @param query the query
+ * @return the iterator
+ *
+ * @see BENT_FOREACH_QUERY
+ */
+BENT_API bent_query_itr_t
+bent_query_begin(bent_world_t* world, bent_query_t query);
+
+/**
+ * Same as @ref bent_query_begin with an explicit @ref bent_query_ctx_t.
+ *
+ * @param world the world
+ * @param query the query
+ * @param ctx the context, `NULL` for the world's shared one
+ * @return the iterator
+ *
+ * @see BENT_FOREACH_QUERY_EX
+ */
+BENT_API bent_query_itr_t
+bent_query_begin_ex(bent_world_t* world, bent_query_t query, bent_query_ctx_t* ctx);
+
+/**
+ * Advance an iterator.
+ *
+ * @param world the world
+ * @param itr the iterator
+ * @return whether @ref bent_query_itr_t::entity holds the next entity.
+ *     `false` once the iteration is over.
+ */
+BENT_API bool
+bent_query_next(bent_world_t* world, bent_query_itr_t* itr);
+
+/**
+ * End an iteration early.
+ *
+ * Calling this on a finished iterator is a noop.
+ *
+ * @param world the world
+ * @param itr the iterator
+ */
+BENT_API void
+bent_query_end(bent_world_t* world, bent_query_itr_t* itr);
+
+/**
+ * The query that provides a system's entity list.
+ *
+ * @param world the world
+ * @param sys a system's registration handle
+ * @return the query, or the empty query for a system that matches nothing or
+ *     has @ref BENT_SYS_NO_ENTITY_LIST
+ *
+ * @see bent_sys_def_t::require
+ * @see bent_sys_def_t::exclude
+ */
+BENT_API bent_query_t
+bent_sys_query(bent_world_t* world, bent_sys_reg_t sys);
+
+// }}}
+
+// Internal {{{
 
 #ifndef DOXYGEN
 
@@ -2088,7 +2011,35 @@ bent__broadcast(
 	size_t size
 );
 
+// Access axis of BENT_POD_COMP_EX: which typed helpers the header defines
+#define BENT__COMP_ACCESS_RW(NAME, TYPE) \
+	BENT_DEFINE_COMP_ADDER(NAME, TYPE) \
+	BENT_DEFINE_COMP_GETTER(NAME, TYPE)
+#define BENT__COMP_ACCESS_RO(NAME, TYPE) \
+	BENT_DEFINE_COMP_CONST_ADDER(NAME, TYPE) \
+	BENT_DEFINE_COMP_CONST_GETTER(NAME, TYPE)
+
+// Save axis of BENT_POD_COMP_EX.
+// DECL is emitted in both modes, DEF only in the defining unit and INIT is
+// spliced into the bent_comp_def_t initializer.
+#define BENT__COMP_SAVE_DECL_UNSERIALIZABLE(NAME, TYPE)
+#define BENT__COMP_SAVE_DEF_UNSERIALIZABLE(NAME, TYPE)
+#define BENT__COMP_SAVE_INIT_UNSERIALIZABLE(NAME, TYPE)
+
+#define BENT__COMP_SAVE_DECL_TRANSIENT(NAME, TYPE)
+#define BENT__COMP_SAVE_DEF_TRANSIENT(NAME, TYPE)
+#define BENT__COMP_SAVE_INIT_TRANSIENT(NAME, TYPE) .flags = BENT_COMP_TRANSIENT,
+
+#define BENT__COMP_SAVE_DECL_SERIALIZED(NAME, TYPE) BENT_SERIALIZER(NAME);
+#define BENT__COMP_SAVE_DEF_SERIALIZED(NAME, TYPE) \
+	static bool bent__serialize_thunk_##NAME(bent_serialize_ctx_t* ctx, void* data) { \
+		return bent_serialize_##NAME(ctx, data); \
+	}
+#define BENT__COMP_SAVE_INIT_SERIALIZED(NAME, TYPE) \
+	.serialize = bent__serialize_thunk_##NAME,
+
 #endif
+// }}}
 
 #endif
 
@@ -2096,7 +2047,8 @@ bent__broadcast(
 #define BENT_IMPLEMENTATION
 #endif
 
-#ifdef BENT_IMPLEMENTATION
+#if defined(BENT_IMPLEMENTATION) && !defined(BENT_IMPLEMENTED)
+#define BENT_IMPLEMENTED
 
 #ifndef BENT_REALLOC
 #	ifdef BLIB_REALLOC
@@ -2181,6 +2133,100 @@ bent__from_bhandle(bhandle_t handle) {
 
 AUTOLIST_IMPL(bent__components)
 AUTOLIST_IMPL(bent__systems)
+
+// bitset {{{
+
+#define BENT_BITS_PER_MASK ((bent_index_t)(sizeof(bent_mask_t) * CHAR_BIT))
+#define BENT_BITSET_LEN ((BENT_MAX_NUM_COMPONENT_TYPES + BENT_BITS_PER_MASK - 1) / BENT_BITS_PER_MASK)
+
+// One bit per component type, bit N is the component whose id is N + 1
+typedef struct {
+	bent_mask_t bits[BENT_BITSET_LEN];
+} bent_bitset_t;
+
+// Clear all bits in a bitset
+static void
+bent_bitset_clear(bent_bitset_t* bitset) {
+	memset(bitset, 0, sizeof(*bitset));
+}
+
+// Set a bit in a bitset
+static void
+bent_bitset_set(bent_bitset_t* bitset, bent_index_t bit_index) {
+	bent_index_t mask_index = bit_index / BENT_BITS_PER_MASK;
+	bent_mask_t mask = (bent_mask_t)1 << (bit_index % BENT_BITS_PER_MASK);
+	bitset->bits[mask_index] |= mask;
+}
+
+// Unset a bit in a bitset
+static void
+bent_bitset_unset(bent_bitset_t* bitset, bent_index_t bit_index) {
+	bent_index_t mask_index = bit_index / BENT_BITS_PER_MASK;
+	bent_mask_t mask = ~((bent_mask_t)1 << (bit_index % BENT_BITS_PER_MASK));
+	bitset->bits[mask_index] &= mask;
+}
+
+// Flip all bits in a bitset
+static void
+bent_bitset_flip(bent_bitset_t* bitset) {
+	for (bent_index_t i = 0; i < BENT_BITSET_LEN; ++i) {
+		bitset->bits[i] = ~bitset->bits[i];
+	}
+}
+
+// Check whether a bit is set in a bitset
+static bool
+bent_bitset_check(const bent_bitset_t* bitset, bent_index_t bit_index) {
+	bent_index_t mask_index = bit_index / BENT_BITS_PER_MASK;
+	bent_mask_t mask = (bent_mask_t)1 << (bit_index % BENT_BITS_PER_MASK);
+	return (bitset->bits[mask_index] & mask) > 0;
+}
+
+// Check whether two bitsets are the same
+static bool
+bent_bitset_equal(const bent_bitset_t* lhs, const bent_bitset_t* rhs) {
+	return memcmp(lhs->bits, rhs->bits, sizeof(lhs->bits)) == 0;
+}
+
+// Check whether a bitset has at least one bit of another set
+static bool
+bent_bitset_any_match(const bent_bitset_t* subject, const bent_bitset_t* requirement) {
+	bool result = false;
+	for (bent_index_t i = 0; i < BENT_BITSET_LEN; ++i) {
+		bent_mask_t subject_mask = subject->bits[i];
+		bent_mask_t required_mask = requirement->bits[i];
+		result = result || ((subject_mask & required_mask) > 0);
+	}
+	return result;
+}
+
+// Check whether a bitset has all the bits of another set
+static bool
+bent_bitset_all_match(const bent_bitset_t* subject, const bent_bitset_t* requirement) {
+	bool result = true;
+	for (bent_index_t i = 0; i < BENT_BITSET_LEN; ++i) {
+		bent_mask_t subject_mask = subject->bits[i];
+		bent_mask_t required_mask = requirement->bits[i];
+		result = result && ((subject_mask & required_mask) == required_mask);
+	}
+	return result;
+}
+
+// Build a bitset from a NULL-terminated list of components
+static bent_bitset_t
+bent_bitset_from_comp_list(bent_comp_reg_t** comp_list) {
+	bent_bitset_t result = { 0 };
+	for (
+		bent_comp_reg_t** comp = comp_list;
+		comp != NULL && *comp != NULL;
+		++comp
+	) {
+		bent_bitset_set(&result, (*comp)->id - 1);
+	}
+	return result;
+}
+
+// }}}
 
 typedef enum {
 	// The entity appears with new_components, there is no old_components
@@ -2424,6 +2470,9 @@ bent_begin_notify(bent_world_t* world);
 
 static void
 bent_end_notify(bent_world_t* world);
+
+static bent_query_t
+bent_query_masks(bent_world_t* world, bent_bitset_t require, bent_bitset_t exclude);
 
 static bool
 bent_sys_match_impl(const bent_system_data_t* sys, const bent_bitset_t* components) {
@@ -3181,12 +3230,6 @@ bent_get_sys_name(bent_world_t* world, bent_sys_reg_t sys) {
 	return world->systems[sys.id - 1].name;
 }
 
-bent_bitset_t
-bent_get_entity_mask(bent_world_t* world, bent_t entity) {
-	const bent_entity_data_t* entity_data = bent_entity_data(world, entity);
-	return entity_data != NULL ? entity_data->visible_components : (bent_bitset_t){ 0 };
-}
-
 void
 bent_run(bent_world_t* world, bent_mask_t update_mask) {
 	bent_index_t num_systems = (bent_index_t)barray_len(world->systems);
@@ -3218,7 +3261,7 @@ bent_match(bent_world_t* world, bent_sys_reg_t reg, bent_t entity_id) {
 
 // query {{{
 
-bent_query_t
+static bent_query_t
 bent_query_masks(bent_world_t* world, bent_bitset_t require, bent_bitset_t exclude) {
 	bent_index_t num_queries = (bent_index_t)barray_len(world->queries);
 	for (bent_index_t i = 0; i < num_queries; ++i) {

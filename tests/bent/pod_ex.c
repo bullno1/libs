@@ -13,7 +13,6 @@ static int ex_link_num_serializations = 0;
 static void* ex_link_last_ctx = NULL;
 static ex_link_t* ex_link_last_comp = NULL;
 
-//! [BENT_SERIALIZER]
 // Expands to the head the header declared: `comp` is an `ex_link_t*`
 BENT_SERIALIZER(ex_link) {
 	++ex_link_num_serializations;
@@ -21,7 +20,6 @@ BENT_SERIALIZER(ex_link) {
 	ex_link_last_comp = comp;
 	return true;
 }
-//! [BENT_SERIALIZER]
 
 // A serializer for a read-only component still gets a mutable pointer: on
 // load it is the constructor

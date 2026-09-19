@@ -3,7 +3,6 @@
 
 #include "../../bent.h"
 
-//! [BENT_POD_COMP_EX]
 // In a header shared by every system
 typedef struct { int x, y; } ex_pos_t;
 typedef struct { bent_t target; } ex_link_t;
@@ -17,6 +16,5 @@ BENT_POD_COMP_EX(ex_link, ex_link_t, RW, SERIALIZED)
 
 // Const helpers, saved through bent_serialize_ex_cache
 BENT_POD_COMP_EX(ex_cache, ex_cache_t, RO, SERIALIZED)
-//! [BENT_POD_COMP_EX]
 
 #endif

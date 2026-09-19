@@ -45,12 +45,8 @@ BTEST(query, interned) {
 	bent_query_t q5 = bent_query(world, NULL, BENT_COMP_LIST(&basic_component));
 	BTEST_EXPECT(q5.id != q1.id);
 
-	// Same thing from masks
-	bent_query_t q6 = bent_query_masks(
-		world,
-		bent_bitset_from_comp_list(BENT_COMP_LIST(&basic_component)),
-		(bent_bitset_t){ 0 }
-	);
+	// An empty list is the same as NULL
+	bent_query_t q6 = bent_query(world, BENT_COMP_LIST(&basic_component), (bent_comp_reg_t*[]){ 0 });
 	BTEST_EXPECT_EQUAL("%d", q6.id, q1.id);
 
 	// The empty query
