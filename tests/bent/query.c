@@ -22,9 +22,12 @@ query_yields(bent_world_t* world, bent_query_t query, bent_t entity) {
 	return found;
 }
 
+// From ordinary code, bent_query_count must agree with an iteration
 static int
 count(bent_world_t* world, bent_query_t query) {
-	return count_query(world, query);
+	int num_entities = count_query(world, query);
+	BTEST_EXPECT_EQUAL("%d", (int)bent_query_count(world, query), num_entities);
+	return num_entities;
 }
 
 BTEST(query, interned) {

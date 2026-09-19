@@ -1839,6 +1839,26 @@ BENT_API bool
 bent_query_match(bent_world_t* world, bent_query_t query, bent_t entity);
 
 /**
+ * Number of entities matching a query
+ *
+ * Unlike @ref bent_count_with, this does not walk anything: it is the length
+ * of the list the world already keeps.
+ *
+ * @param world the world
+ * @param query the query
+ * @return the number of entities, 0 for the empty query
+ *
+ * @remarks From inside a callback, a change that is yet to be notified is not
+ *     reflected in the list.
+ *     An entity that has just stopped matching is still counted although an
+ *     iteration skips it, so this is an upper bound on what
+ *     @ref bent_query_begin would visit.
+ *     From ordinary code, it is exact.
+ */
+BENT_API bent_index_t
+bent_query_count(bent_world_t* world, bent_query_t query);
+
+/**
  * Call a function on every entity matching a query.
  *
  * The same rules as @ref bent_query_begin apply to the callback.
@@ -3313,6 +3333,13 @@ bent_query_match(bent_world_t* world, bent_query_t query, bent_t entity_id) {
 	if (entity_data == NULL) { return false; }
 
 	return bent_query_match_impl(&world->queries[query.id - 1], &entity_data->visible_components);
+}
+
+bent_index_t
+bent_query_count(bent_world_t* world, bent_query_t query) {
+	if (query.id == 0) { return 0; }
+
+	return (bent_index_t)barray_len(world->queries[query.id - 1].dense);
 }
 
 bent_query_ctx_t*
