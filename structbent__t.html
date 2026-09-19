@@ -85,7 +85,7 @@ $(function() {
 <p>Handles survive a save and load unchanged.</p>
 <p>Functions will behave in a sensible way when given a stale handle:</p>
 <ul>
-<li>(Redudnant) destruction of the entity as well as addition or removal of components become noop.</li>
+<li>(Redundant) destruction of the entity as well as addition or removal of components become noop.</li>
 <li>The destroyed entity is considered to contain no components.</li>
 <li>Data retrieval just return <code>NULL</code>.</li>
 <li>The destroyed entity will never <a class="el" href="bent_8h.html#ab3ddf58289789dd8b1127a0a7f188d0b">match</a> any system, even those without any <a class="el" href="structbent__sys__def__t.html#ac7cdf1c432817c50caf5f16af20bcbc0">requirements</a>. </li>
