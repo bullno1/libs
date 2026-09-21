@@ -799,12 +799,16 @@ typedef struct {
  * so that no other translation unit can obtain a mutable pointer through the
  * typed helpers.
  *
+ * For each component type, this can only be used in a single translation unit.
+ *
  * @param NAME name of the component type
  * @param TYPE type of the component's data
  *
  * @see BENT_POD_COMP_EX
  */
 #define BENT_DEFINE_COMP_MUT_GETTER(NAME, TYPE) \
+	extern const char* const bent__mut_getter_##NAME; \
+	const char* const bent__mut_getter_##NAME = __FILE__; \
 	static inline TYPE* bent_get_mut_##NAME(bent_world_t* world, bent_t entity) { \
 		return bent_get(world, entity, NAME); \
 	}
