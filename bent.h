@@ -1521,7 +1521,7 @@ bent_comp_save_mode(const bent_comp_def_t* def) {
  * @hideinitializer
  */
 #define bent_send(WORLD, ENTITY, NAME, ...) \
-	bent__send((WORLD), (ENTITY), &NAME, (struct NAME[]){ __VA_ARGS__ }, sizeof(struct NAME))
+	bent__send((WORLD), (ENTITY), &NAME, (struct NAME[]){ [0] = __VA_ARGS__ }, sizeof(struct NAME))
 
 /**
  * Broadcast a message to every system.
@@ -1548,7 +1548,7 @@ bent_comp_save_mode(const bent_comp_def_t* def) {
  * @hideinitializer
  */
 #define bent_broadcast(WORLD, NAME, ...) \
-	bent__broadcast((WORLD), &NAME, (struct NAME[]){ __VA_ARGS__ }, sizeof(struct NAME))
+	bent__broadcast((WORLD), &NAME, (struct NAME[]){ [0] = __VA_ARGS__ }, sizeof(struct NAME))
 
 #ifndef BENT_DEFINE_COMPONENTS
 /**
@@ -1641,7 +1641,7 @@ typedef const bent_prefab_entry_t* bent_prefab_t;
  * @hideinitializer
  */
 #define BENT_COMP(NAME, ...) \
-	{ .comp = &NAME __VA_OPT__(, .arg = (NAME##_arg_t[]){ __VA_ARGS__ }) }
+	{ .comp = &NAME __VA_OPT__(, .arg = (NAME##_arg_t[]){ [0] = __VA_ARGS__ }) }
 
 /**
  * A prefab: a null-terminated list of @ref BENT_COMP entries.
