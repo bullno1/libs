@@ -205,8 +205,17 @@ main(int argc, const char* arg[]) {
 	);
 	bent_t rat1 = bent_create_from(world, rat);
 	bent_t rat2 = bent_create_from(world, rat);
+
+	// A prefab can include another one. The first entry for a component wins,
+	// so what comes before the base overrides it and what comes after is a
+	// default.
+	bent_t big_rat = bent_create_from(world, BENT_PREFAB(
+		BENT_COMP(health, { .hp = 9 }),  // Instead of the rat's 3
+		BENT_PREFAB_BASE(rat),
+		BENT_COMP(tag)  // The rat has none, so this one is added
+	));
 	//!                                                                         [bent_create_from]
-	(void)goblin; (void)rat1; (void)rat2;
+	(void)goblin; (void)rat1; (void)rat2; (void)big_rat;
 
 	// Update the world in phases
 	bent_run(world, PHASE_UPDATE);

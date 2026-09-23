@@ -16,6 +16,7 @@ BENT_DEFINE_COMP_GETTER(hp, hp_t)
 
 BENT_TAG_COMP(hostile)
 BENT_TAG_COMP(spawner)
+BENT_TAG_COMP(armored)
 
 // A prefab kept at file scope: the list and its arguments have static storage
 static bent_prefab_t goblin = BENT_PREFAB(
@@ -255,4 +256,102 @@ BTEST(prefab, add_from) {
 	bent_destroy(world, ent);
 	BTEST_EXPECT_EQUAL("%d", 1, by_pos->num_removes);
 	BTEST_EXPECT_EQUAL("%d", 1, by_pos_hp->num_removes);
+}
+
+// Includes goblin: an override in front of it, a default behind it
+static bent_prefab_t goblin_chief = BENT_PREFAB(
+	BENT_COMP(hp, { .hp = 20 }),
+	BENT_PREFAB_BASE(goblin),
+	BENT_COMP(armored),
+	BENT_COMP(pos, { .x = -1, .y = -1 })  // The base has one: never used
+);
+
+BTEST(prefab, base_override_and_default) {
+	bent_world_t* world = fixture.world;
+	observer_t* by_pos = bent_get_sys_data(world, pos_observer);
+
+	bent_t ent = bent_create_from(world, goblin_chief);
+
+	BTEST_EXPECT_EQUAL("%d", 20, bent_get_hp(world, ent)->hp);  // Override
+	BTEST_EXPECT_EQUAL("%d", 3, bent_get_pos(world, ent)->x);   // The base's, first
+	BTEST_EXPECT(bent_has(world, ent, hostile));                 // From the base
+	BTEST_EXPECT(bent_has(world, ent, armored));                 // Default
+	// Still one notification, with everything there
+	BTEST_EXPECT_EQUAL("%d", 1, by_pos->num_adds);
+	BTEST_EXPECT(by_pos->saw_hp);
+	BTEST_EXPECT(by_pos->saw_hostile);
+	BTEST_EXPECT_EQUAL("%d", 20, by_pos->hp_seen);
+
+	// The base is read when applied: a local list can include a parameter
+	bent_prefab_t base = goblin_chief;
+	bent_t nested = bent_create_from(world, BENT_PREFAB(
+		BENT_COMP(pos, { .x = 8, .y = 8 }),
+		BENT_PREFAB_BASE(base)
+	));
+	BTEST_EXPECT_EQUAL("%d", 8, bent_get_pos(world, nested)->x);
+	BTEST_EXPECT_EQUAL("%d", 20, bent_get_hp(world, nested)->hp);
+	BTEST_EXPECT(bent_has(world, nested, armored));
+
+	// The templates are untouched
+	bent_t plain = bent_create_from(world, goblin);
+	BTEST_EXPECT_EQUAL("%d", 7, bent_get_hp(world, plain)->hp);
+	BTEST_EXPECT(!bent_has(world, plain, armored));
+}
+
+BTEST(prefab, add_from_base) {
+	bent_world_t* world = fixture.world;
+	observer_t* by_pos = bent_get_sys_data(world, pos_observer);
+	observer_t* by_pos_hp = bent_get_sys_data(world, pos_hp_observer);
+
+	bent_t ent = bent_create(world);
+	bent_add_hp(world, ent, &(hp_t){ .hp = 1 });
+
+	bent_add_from(world, ent, BENT_PREFAB(
+		BENT_COMP(pos, { .x = 5, .y = 5 }),
+		BENT_PREFAB_BASE(goblin)
+	));
+
+	// What was there is left alone, also against the base
+	BTEST_EXPECT_EQUAL("%d", 1, bent_get_hp(world, ent)->hp);
+	BTEST_EXPECT_EQUAL("%d", 5, bent_get_pos(world, ent)->x);
+	BTEST_EXPECT(bent_has(world, ent, hostile));
+	BTEST_EXPECT_EQUAL("%d", 1, by_pos->num_adds);
+	BTEST_EXPECT_EQUAL("%d", 1, by_pos_hp->num_adds);
+	BTEST_EXPECT(by_pos_hp->saw_hostile);
+}
+
+typedef struct {
+	const bent_comp_reg_t* seen[8];
+	int num_seen;
+	const bent_comp_reg_t* stop_at;
+} walk_t;
+
+static bool
+walk_visitor(const bent_prefab_entry_t* entry, void* ctx) {
+	walk_t* walk = ctx;
+	walk->seen[walk->num_seen++] = entry->comp;
+	return entry->comp != walk->stop_at;
+}
+
+BTEST(prefab, foreach) {
+	// Flat, in the order the entries apply
+	walk_t walk = { 0 };
+	BTEST_EXPECT(bent_prefab_foreach(goblin_chief, walk_visitor, &walk));
+	BTEST_EXPECT_EQUAL("%d", 6, walk.num_seen);
+	BTEST_EXPECT(walk.seen[0] == &hp);
+	BTEST_EXPECT(walk.seen[1] == &pos);
+	BTEST_EXPECT(walk.seen[2] == &hp);
+	BTEST_EXPECT(walk.seen[3] == &hostile);
+	BTEST_EXPECT(walk.seen[4] == &armored);
+	BTEST_EXPECT(walk.seen[5] == &pos);
+
+	// Stopping inside the base stops the whole walk
+	walk = (walk_t){ .stop_at = &pos };
+	BTEST_EXPECT(!bent_prefab_foreach(goblin_chief, walk_visitor, &walk));
+	BTEST_EXPECT_EQUAL("%d", 2, walk.num_seen);
+
+	// Nothing but a terminator
+	walk = (walk_t){ 0 };
+	BTEST_EXPECT(bent_prefab_foreach((bent_prefab_entry_t[]){ { 0 } }, walk_visitor, &walk));
+	BTEST_EXPECT_EQUAL("%d", 0, walk.num_seen);
 }

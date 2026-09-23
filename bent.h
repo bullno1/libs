@@ -120,6 +120,16 @@
 #endif
 
 /**
+ * How deep @ref BENT_PREFAB_BASE may nest.
+ *
+ * A prefab that includes itself, directly or through another, is caught by
+ * an assertion at this depth instead of running forever.
+ */
+#ifndef BENT_PREFAB_MAX_DEPTH
+#define BENT_PREFAB_MAX_DEPTH 16
+#endif
+
+/**
  * Type of the context passed to serialization callbacks.
  *
  * The library never touches it.
@@ -1665,6 +1675,69 @@ typedef const bent_prefab_entry_t* bent_prefab_t;
 #define BENT_PREFAB(...) (bent_prefab_entry_t[]){ __VA_ARGS__, { 0 } }
 
 /**
+ * Include another prefab at this point of a @ref BENT_PREFAB list.
+ *
+ * Entries apply in list order, the base's where it stands, and a component
+ * the entity already has is left alone (see @ref bent_add_from).
+ * Thus, the first entry for a component wins: what comes before the base
+ * overrides it, what comes after it is a default the base may already
+ * provide.
+ *
+ * @code{.c}
+ * static bent_prefab_t monster = BENT_PREFAB(
+ *     BENT_COMP(transform),
+ *     BENT_COMP(health, { .hp = 10 })
+ * );
+ * static bent_prefab_t archer = BENT_PREFAB(
+ *     BENT_COMP(health, { .hp = 7 }),  // Overrides the base
+ *     BENT_PREFAB_BASE(monster),
+ *     BENT_COMP(bow)                   // A default, unless the base has one
+ * );
+ * @endcode
+ *
+ * The base is stored by address and read when the list is applied, not when
+ * it is built, so a prefab kept at file scope can include another one, and a
+ * function can include a prefab it was given.
+ * A base entry has a `NULL` component like the terminator: read a prefab
+ * that may contain one through @ref bent_prefab_foreach, never by walking
+ * it to the first `NULL` component.
+ *
+ * @param PREFAB an lvalue of type @ref bent_prefab_t, which must outlive
+ *   the list
+ *
+ * @see bent_prefab_foreach
+ *
+ * @hideinitializer
+ */
+#define BENT_PREFAB_BASE(PREFAB) { .comp = NULL, .arg = (void*)&(PREFAB) }
+
+/**
+ * Called by @ref bent_prefab_foreach for every component entry of a prefab.
+ *
+ * @param entry the entry: never a @ref BENT_PREFAB_BASE, never the terminator
+ * @param ctx the context given to @ref bent_prefab_foreach
+ * @return whether to go on; `false` stops the walk
+ */
+typedef bool (*bent_prefab_visitor_t)(const bent_prefab_entry_t* entry, void* ctx);
+
+/**
+ * Walk the component entries of a prefab in the order they apply.
+ *
+ * Every @ref BENT_PREFAB_BASE is entered where it stands, so the visitor sees
+ * one flat list: what @ref bent_create_from would add, in that order.
+ * The first entry it sees for a component is the one that wins.
+ *
+ * @param prefab the prefab, see @ref BENT_PREFAB
+ * @param visitor called for every entry, may stop the walk
+ * @param ctx passed to the visitor
+ * @return `false` if the visitor stopped the walk, `true` otherwise
+ *
+ * @see BENT_PREFAB_BASE
+ */
+BENT_API bool
+bent_prefab_foreach(bent_prefab_t prefab, bent_prefab_visitor_t visitor, void* ctx);
+
+/**
  * Create an entity from a prefab.
  *
  * Systems are notified about the entity once, after every component in the
@@ -3081,6 +3154,47 @@ bent_create(bent_world_t* world) {
 	return entity_id;
 }
 
+static bool
+bent_prefab_foreach_impl(
+	bent_prefab_t prefab,
+	bent_prefab_visitor_t visitor,
+	void* ctx,
+	int depth
+) {
+	// A prefab that includes itself would never end
+	BENT_ASSERT(depth < BENT_PREFAB_MAX_DEPTH);
+
+	for (bent_prefab_t itr = prefab; ; ++itr) {
+		if (itr->comp != NULL) {
+			if (!visitor(itr, ctx)) { return false; }
+		} else if (itr->arg != NULL) {
+			bent_prefab_t base = *(const bent_prefab_t*)itr->arg;
+			if (!bent_prefab_foreach_impl(base, visitor, ctx, depth + 1)) { return false; }
+		} else {
+			return true;
+		}
+	}
+}
+
+bool
+bent_prefab_foreach(bent_prefab_t prefab, bent_prefab_visitor_t visitor, void* ctx) {
+	return bent_prefab_foreach_impl(prefab, visitor, ctx, 0);
+}
+
+typedef struct {
+	bent_world_t* world;
+	bent_t entity_id;
+	bent_entity_data_t* entity_data;
+} bent_prefab_add_ctx_t;
+
+// Add every entry without telling systems: the callers notify once at the end
+static bool
+bent_prefab_add_visitor(const bent_prefab_entry_t* entry, void* ctx) {
+	bent_prefab_add_ctx_t* add = ctx;
+	bent_add_impl(add->world, add->entity_id, add->entity_data, *entry->comp, entry->arg);
+	return true;
+}
+
 bent_t
 bent_create_from(bent_world_t* world, bent_prefab_t prefab) {
 	bhandle_t handle = bhandle_new(&world->handles, world->memctx);
@@ -3089,9 +3203,11 @@ bent_create_from(bent_world_t* world, bent_prefab_t prefab) {
 
 	bent_t entity_id = bent__from_bhandle(handle);
 	bent_entity_data_t* entity_data = bseg_ref(world->entities, handle.index);
-	for (bent_prefab_t itr = prefab; itr->comp != NULL; ++itr) {
-		bent_add_impl(world, entity_id, entity_data, *itr->comp, itr->arg);
-	}
+	bent_prefab_foreach(prefab, bent_prefab_add_visitor, &(bent_prefab_add_ctx_t){
+		.world = world,
+		.entity_id = entity_id,
+		.entity_data = entity_data,
+	});
 
 	bent_notify_created(world, entity_id, &entity_data->visible_components);
 	return entity_id;
@@ -3193,9 +3309,11 @@ bent_add_from(bent_world_t* world, bent_t entity_id, bent_prefab_t prefab) {
 	if (entity_data == NULL) { return; }
 
 	bent_bitset_t old_components = entity_data->live_components;
-	for (bent_prefab_t itr = prefab; itr->comp != NULL; ++itr) {
-		bent_add_impl(world, entity_id, entity_data, *itr->comp, itr->arg);
-	}
+	bent_prefab_foreach(prefab, bent_prefab_add_visitor, &(bent_prefab_add_ctx_t){
+		.world = world,
+		.entity_id = entity_id,
+		.entity_data = entity_data,
+	});
 	bent_bitset_t new_components = entity_data->live_components;
 	if (!bent_bitset_equal(&old_components, &new_components)) {
 		bent_notify_added(world, entity_id, &old_components, &new_components);
