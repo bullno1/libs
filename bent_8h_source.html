@@ -636,12 +636,12 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l01491" name="l01491"></a><span class="lineno"> 1491</span> </div>
 <div class="foldopen" id="foldopen01523" data-start="" data-end="">
 <div class="line"><a id="l01523" name="l01523"></a><span class="lineno"><a class="line" href="bent_8h.html#a50fa5fd16ac57909d2002e9d044234da"> 1523</a></span><span class="preprocessor">#define bent_send(WORLD, ENTITY, NAME, ...) \</span></div>
-<div class="line"><a id="l01524" name="l01524"></a><span class="lineno"> 1524</span><span class="preprocessor">    bent__send((WORLD), (ENTITY), &amp;NAME, (struct NAME[]){ __VA_ARGS__ }, sizeof(struct NAME))</span></div>
+<div class="line"><a id="l01524" name="l01524"></a><span class="lineno"> 1524</span><span class="preprocessor">    bent__send((WORLD), (ENTITY), &amp;NAME, (struct NAME[]){ [0] = __VA_ARGS__ }, sizeof(struct NAME))</span></div>
 </div>
 <div class="line"><a id="l01525" name="l01525"></a><span class="lineno"> 1525</span> </div>
 <div class="foldopen" id="foldopen01550" data-start="" data-end="">
 <div class="line"><a id="l01550" name="l01550"></a><span class="lineno"><a class="line" href="bent_8h.html#a4eec78820eca00aa18160f1cbf902325"> 1550</a></span><span class="preprocessor">#define bent_broadcast(WORLD, NAME, ...) \</span></div>
-<div class="line"><a id="l01551" name="l01551"></a><span class="lineno"> 1551</span><span class="preprocessor">    bent__broadcast((WORLD), &amp;NAME, (struct NAME[]){ __VA_ARGS__ }, sizeof(struct NAME))</span></div>
+<div class="line"><a id="l01551" name="l01551"></a><span class="lineno"> 1551</span><span class="preprocessor">    bent__broadcast((WORLD), &amp;NAME, (struct NAME[]){ [0] = __VA_ARGS__ }, sizeof(struct NAME))</span></div>
 </div>
 <div class="line"><a id="l01552" name="l01552"></a><span class="lineno"> 1552</span> </div>
 <div class="line"><a id="l01553" name="l01553"></a><span class="lineno"> 1553</span><span class="preprocessor">#ifndef BENT_DEFINE_COMPONENTS</span></div>
@@ -676,7 +676,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l01620" name="l01620"></a><span class="lineno"> 1620</span> </div>
 <div class="foldopen" id="foldopen01643" data-start="" data-end="">
 <div class="line"><a id="l01643" name="l01643"></a><span class="lineno"><a class="line" href="bent_8h.html#a2060a6c58db1a8632b5e26675c8676ad"> 1643</a></span><span class="preprocessor">#define BENT_COMP(NAME, ...) \</span></div>
-<div class="line"><a id="l01644" name="l01644"></a><span class="lineno"> 1644</span><span class="preprocessor">    { .comp = &amp;NAME __VA_OPT__(, .arg = (NAME##_arg_t[]){ __VA_ARGS__ }) }</span></div>
+<div class="line"><a id="l01644" name="l01644"></a><span class="lineno"> 1644</span><span class="preprocessor">    { .comp = &amp;NAME __VA_OPT__(, .arg = (NAME##_arg_t[]){ [0] = __VA_ARGS__ }) }</span></div>
 </div>
 <div class="line"><a id="l01645" name="l01645"></a><span class="lineno"> 1645</span> </div>
 <div class="line"><a id="l01665" name="l01665"></a><span class="lineno"><a class="line" href="bent_8h.html#aa67229382b5477f43c55c18c3e545687"> 1665</a></span><span class="preprocessor">#define BENT_PREFAB(...) (bent_prefab_entry_t[]){ __VA_ARGS__, { 0 } }</span></div>
