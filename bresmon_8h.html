@@ -133,9 +133,17 @@ Functions</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>File watcher designed for hot reloading of resources. </p>
-<p>Each watched file (<a class="el" href="bresmon_8h.html#af8c37dd74d1e402e299a371b90cd7b41">bresmon_watch</a>) has its own reload callback and userdata. Changes are detected with inotify on Linux and <code>ReadDirectoryChangesW</code> on Windows. Call <a class="el" href="bresmon_8h.html#a1a32c897d5122aa17ab3a56010bdba1b">bresmon_check</a> (or <a class="el" href="bresmon_8h.html#a1d70104676efd88a8162ab9b5aa7b1ca">bresmon_should_reload</a> followed by <a class="el" href="bresmon_8h.html#ad17ee9b178bd4c67d7294ef758ac3bb4">bresmon_reload</a>) periodically, e.g: once per frame, to invoke the callbacks of the files that changed.</p>
+<p>Each watched file (<a class="el" href="bresmon_8h.html#af8c37dd74d1e402e299a371b90cd7b41">bresmon_watch</a>) has its own reload callback and userdata. Changes are detected with inotify on Linux and <code>ReadDirectoryChangesW</code> on Windows.</p>
+<p>A change is only reported once the write is complete so that a callback never sees a partially written file:</p>
+<ul>
+<li>On Linux, that is when the writer closes the file or when another file is renamed over it (atomic write).</li>
+<li>Windows does not notify when a writer closes a file. A changed file is instead considered complete when it has not changed for <code>BRESMON_SETTLE_TIME_MS</code> and no writer has it open. The former also merges a multi-step write (e.g: a linker followed by post-link tools) into a single reload. A file renamed over the watched one goes through the same check.</li>
+</ul>
+<p>Deleting a watched file does not trigger a reload.</p>
+<p>Call <a class="el" href="bresmon_8h.html#a1a32c897d5122aa17ab3a56010bdba1b">bresmon_check</a> (or <a class="el" href="bresmon_8h.html#a1d70104676efd88a8162ab9b5aa7b1ca">bresmon_should_reload</a> followed by <a class="el" href="bresmon_8h.html#ad17ee9b178bd4c67d7294ef758ac3bb4">bresmon_reload</a>) periodically, e.g: once per frame, to invoke the callbacks of the files that changed.</p>
 <p>In <b>exactly one</b> source file, define <code>BRESMON_IMPLEMENTATION</code> before including <a class="el" href="bresmon_8h.html" title="File watcher designed for hot reloading of resources.">bresmon.h</a>.</p>
-<p>Optionally, define BRESMON_REALLOC(ptr, size, ctx) to override the allocator. By default, libc will be used. </p>
+<p>Optionally, define BRESMON_REALLOC(ptr, size, ctx) to override the allocator. By default, libc will be used.</p>
+<p>Optionally, define BRESMON_SETTLE_TIME_MS to change how long a file must stay unchanged before it is reloaded on Windows. By default, it is 100ms. </p>
 </div><h2 class="groupheader">Typedef Documentation</h2>
 <a id="a14c70f523ae365b1811b2628fee33aff" name="a14c70f523ae365b1811b2628fee33aff"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a14c70f523ae365b1811b2628fee33aff">&#9670;&#160;</a></span>bresmon_callback_t</h2>
