@@ -143,5 +143,63 @@ BTEST(bresmon_, unwatch) {
 	BTEST_EXPECT_EQUAL("%d", fixture.num_reloads, 0);
 }
 
+BTEST(bresmon_, no_reload_while_writing) {
+	bresmon_watch_t* watch = bresmon_watch(fixture.mon, TEST_FILE, on_reload, NULL);
+	BTEST_ASSERT(watch != NULL);
+
+	FILE* file = fopen(TEST_FILE, "wb");
+	BTEST_ASSERT(file != NULL);
+	fputs("v2", file);
+	fflush(file);
+
+	// The writer still has the file open
+	BTEST_EXPECT_EQUAL("%d", wait_for_events(500), 0);
+
+	fputs("v2", file);
+	fclose(file);
+	BTEST_EXPECT(wait_for_events(5000) > 0);
+	BTEST_EXPECT_EQUAL("%d", bresmon_reload(fixture.mon), 1);
+	BTEST_EXPECT_EQUAL("%d", fixture.num_reloads, 1);
+
+	// The earlier notifications do not cause another reload
+	BTEST_EXPECT_EQUAL("%d", wait_for_events(500), 0);
+	BTEST_EXPECT_EQUAL("%d", bresmon_reload(fixture.mon), 0);
+
+	bresmon_unwatch(watch);
+}
+
+BTEST(bresmon_, no_reload_on_delete) {
+	bresmon_watch_t* watch = bresmon_watch(fixture.mon, TEST_FILE, on_reload, NULL);
+	BTEST_ASSERT(watch != NULL);
+
+	remove(TEST_FILE);
+	BTEST_EXPECT_EQUAL("%d", wait_for_events(500), 0);
+
+	// Recreating the file does
+	write_file(TEST_FILE, "v2");
+	BTEST_EXPECT(wait_for_events(5000) > 0);
+	BTEST_EXPECT_EQUAL("%d", bresmon_reload(fixture.mon), 1);
+	BTEST_EXPECT_EQUAL("%d", fixture.num_reloads, 1);
+
+	bresmon_unwatch(watch);
+}
+
+BTEST(bresmon_, unwatch_while_writing) {
+	bresmon_watch_t* watch = bresmon_watch(fixture.mon, TEST_FILE, on_reload, NULL);
+	BTEST_ASSERT(watch != NULL);
+
+	FILE* file = fopen(TEST_FILE, "wb");
+	BTEST_ASSERT(file != NULL);
+	fputs("v2", file);
+	fflush(file);
+	BTEST_EXPECT_EQUAL("%d", wait_for_events(200), 0);
+
+	bresmon_unwatch(watch);
+	fclose(file);
+
+	BTEST_EXPECT_EQUAL("%d", wait_for_events(200), 0);
+	BTEST_EXPECT_EQUAL("%d", fixture.num_reloads, 0);
+}
+
 #define BLIB_IMPLEMENTATION
 #include "../../bresmon.h"

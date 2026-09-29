@@ -9,6 +9,21 @@
  * userdata.
  * Changes are detected with inotify on Linux and `ReadDirectoryChangesW` on
  * Windows.
+ *
+ * A change is only reported once the write is complete so that a callback
+ * never sees a partially written file:
+ *
+ * * On Linux, that is when the writer closes the file or when another file is
+ *   renamed over it (atomic write).
+ * * Windows does not notify when a writer closes a file.
+ *   A changed file is instead considered complete when it has not changed for
+ *   `BRESMON_SETTLE_TIME_MS` and no writer has it open.
+ *   The former also merges a multi-step write (e.g: a linker followed by
+ *   post-link tools) into a single reload.
+ *   A file renamed over the watched one goes through the same check.
+ *
+ * Deleting a watched file does not trigger a reload.
+ *
  * Call @ref bresmon_check (or @ref bresmon_should_reload followed by
  * @ref bresmon_reload) periodically, e.g: once per frame, to invoke the
  * callbacks of the files that changed.
@@ -17,6 +32,10 @@
  *
  * Optionally, define BRESMON_REALLOC(ptr, size, ctx) to override the allocator.
  * By default, libc will be used.
+ *
+ * Optionally, define BRESMON_SETTLE_TIME_MS to change how long a file must
+ * stay unchanged before it is reloaded on Windows.
+ * By default, it is 100ms.
  */
 
 #if defined(__linux__) && !defined(_DEFAULT_SOURCE)
@@ -266,6 +285,8 @@ struct bresmon_s {
 	HANDLE iocp;
 	// Unwatched directory monitors whose cancelled read has not completed yet
 	int num_closing_dirmons;
+	// Watches whose file changed but is not yet known to be completely written
+	int num_dirty_watches;
 #endif
 };
 
@@ -285,6 +306,12 @@ struct bresmon_watch_s {
 #if defined(__linux__)
 	char filename[];
 #elif defined(_WIN32)
+	// Set by a change notification and cleared once the write is known to be
+	// complete
+	bool dirty;
+	ULONGLONG last_change_time;
+	char* full_path;
+
 	DWORD filename_len;
 	wchar_t filename[];
 #endif
@@ -336,6 +363,13 @@ bresmon_strdup(const char* str, void* ctx) {
 
 #if defined(_WIN32)
 
+#ifndef BRESMON_SETTLE_TIME_MS
+#	define BRESMON_SETTLE_TIME_MS 100
+#endif
+
+// How often pending writes are checked for completion during a blocking wait
+#define BRESMON_WIN32_POLL_INTERVAL_MS 10
+
 // Queue an asynchronous read of the directory changes.
 // It completes through the completion port with the dirmon as its key.
 static inline void
@@ -352,6 +386,92 @@ bresmon_dirmon_read_changes(bresmon_dirmon_t* dirmon) {
 		&dirmon->overlapped,
 		NULL
 	);
+}
+
+static inline void
+bresmon_mark_dirty(bresmon_watch_t* watch) {
+	if (!watch->dirty) {
+		watch->dirty = true;
+		++watch->dirmon->root->num_dirty_watches;
+	}
+	watch->last_change_time = GetTickCount64();
+}
+
+// A change notification only signals that a file is being written to, there is
+// none for when the writer is done and closes it.
+// Moreover, a single write can notify several times.
+// Thus, a changed file is only reported once it has been quiet for a while and
+// it can be opened while denying write access to others.
+// The latter fails for as long as any writer still has the file open.
+static inline int
+bresmon_confirm_writes(bresmon_t* mon) {
+	if (mon->num_dirty_watches == 0) { return 0; }
+
+	int num_events = 0;
+	ULONGLONG now = GetTickCount64();
+
+	for (
+		bresmon_dirmon_link_t* itr = mon->dirmons.next;
+		itr != &mon->dirmons;
+		itr = itr->next
+	) {
+		bresmon_dirmon_t* dirmon = (bresmon_dirmon_t*)((char*)itr - offsetof(bresmon_dirmon_t, link));
+
+		for (
+			bresmon_watch_link_t* watch_itr = dirmon->watches.next;
+			watch_itr != &dirmon->watches;
+			watch_itr = watch_itr->next
+		) {
+			bresmon_watch_t* watch = (bresmon_watch_t*)((char*)watch_itr - offsetof(bresmon_watch_t, link));
+			if (!watch->dirty) { continue; }
+			if (now - watch->last_change_time < (ULONGLONG)(BRESMON_SETTLE_TIME_MS)) { continue; }
+
+			// The handle is closed right away since it also prevents a writer
+			// from opening the file.
+			// Read access has to be requested, otherwise, the share mode is
+			// not checked.
+			HANDLE file = CreateFileA(
+				watch->full_path,
+				GENERIC_READ,
+				FILE_SHARE_READ | FILE_SHARE_DELETE,
+				NULL,
+				OPEN_EXISTING,
+				FILE_ATTRIBUTE_NORMAL,
+				NULL
+			);
+			bool changed = true;
+			if (file != INVALID_HANDLE_VALUE) {
+				CloseHandle(file);
+			} else {
+				DWORD error = GetLastError();
+				if (
+					error == ERROR_SHARING_VIOLATION
+					// Pending deletion
+					|| error == ERROR_ACCESS_DENIED
+				) {
+					// Still in use, check again later
+					continue;
+				} else if (
+					error == ERROR_FILE_NOT_FOUND
+					|| error == ERROR_PATH_NOT_FOUND
+				) {
+					// Deleted after the change
+					changed = false;
+				}
+				// Otherwise, there is no telling, conservatively treat the
+				// file as changed.
+			}
+
+			watch->dirty = false;
+			--mon->num_dirty_watches;
+			if (changed) {
+				++watch->latest_version;
+				++num_events;
+			}
+		}
+	}
+
+	return num_events;
 }
 
 #endif
@@ -544,6 +664,7 @@ bresmon_watch(
 		watch = bresmon_malloc(
 			sizeof(bresmon_watch_t)
 			+ orignal_path_len + 1
+			+ path_buf_size
 			+ wfilename_buf_len * sizeof(wchar_t),
 			mon->memctx
 		);
@@ -552,6 +673,8 @@ bresmon_watch(
 		watch->filename_len = (int)(wfilename_buf_len - 1);
 		watch->orignal_path = (char*)watch->filename + wfilename_buf_len * sizeof(wchar_t);
 		memcpy(watch->orignal_path, original_path, orignal_path_len + 1);
+		watch->full_path = watch->orignal_path + orignal_path_len + 1;
+		memcpy(watch->full_path, full_path, path_buf_size);
 	}
 
 	bresmon_free(full_path, mon->memctx);
@@ -587,6 +710,10 @@ bresmon_unwatch(bresmon_watch_t* watch) {
 	bresmon_t* mon = watch->dirmon->root;
 	watch->link.prev->next = watch->link.next;
 	watch->link.next->prev = watch->link.prev;
+
+#if defined(_WIN32)
+	if (watch->dirty) { --mon->num_dirty_watches; }
+#endif
 
 	bresmon_dirmon_t* dirmon = watch->dirmon;
 	if (dirmon->watches.next == &dirmon->watches) {
@@ -675,21 +802,41 @@ bresmon_should_reload(bresmon_t* mon, bool wait) {
 #elif defined(_WIN32)
 	OVERLAPPED_ENTRY overlapped_entry;
 	ULONG num_entries = 0;
+	bool dequeued_any = false;
 
 	while (true) {
+		DWORD timeout = 0;
+		if (wait) {
+			if (mon->num_dirty_watches > 0) {
+				// Completion of a write has to be polled
+				timeout = BRESMON_WIN32_POLL_INTERVAL_MS;
+			} else if (!dequeued_any) {
+				// Only wait for the initial event
+				timeout = INFINITE;
+			}
+		}
+
 		BOOL dequeued = GetQueuedCompletionStatusEx(
 			mon->iocp,
 			&overlapped_entry, 1,
 			&num_entries,
-			wait ? INFINITE : 0,
+			timeout,
 			TRUE
 		);
-		wait = false;  // Only wait for the initial event
 
 		if (!dequeued || num_entries == 0) {
 			// No event
-			break;
-		} else if (overlapped_entry.lpOverlapped == NULL) {
+			num_events += bresmon_confirm_writes(mon);
+			if (wait && num_events == 0 && mon->num_dirty_watches > 0) {
+				// Keep waiting for the pending writes
+				continue;
+			} else {
+				break;
+			}
+		}
+
+		dequeued_any = true;
+		if (overlapped_entry.lpOverlapped == NULL) {
 			// Not one of ours
 			continue;
 		}
@@ -716,8 +863,7 @@ bresmon_should_reload(bresmon_t* mon, bool wait) {
 				watch_itr = watch_itr->next
 			) {
 				bresmon_watch_t* watch = (bresmon_watch_t*)((char*)watch_itr - offsetof(bresmon_watch_t, link));
-				++watch->latest_version;
-				++num_events;
+				bresmon_mark_dirty(watch);
 			}
 		} else {
 			for (
@@ -727,7 +873,13 @@ bresmon_should_reload(bresmon_t* mon, bool wait) {
 					? (FILE_NOTIFY_INFORMATION*)((char*)notification_itr + notification_itr->NextEntryOffset)
 					: NULL
 			) {
-				if (notification_itr->Action == FILE_ACTION_RENAMED_OLD_NAME) { continue; }
+				// The file is gone, there is nothing to reload
+				if (
+					notification_itr->Action == FILE_ACTION_RENAMED_OLD_NAME
+					|| notification_itr->Action == FILE_ACTION_REMOVED
+				) {
+					continue;
+				}
 
 				for (
 					bresmon_watch_link_t* watch_itr = dirmon->watches.next;
@@ -741,8 +893,7 @@ bresmon_should_reload(bresmon_t* mon, bool wait) {
 						// directory comparison in bresmon_watch
 						&& _wcsnicmp(watch->filename, notification_itr->FileName, watch->filename_len) == 0
 					) {
-						++watch->latest_version;
-						++num_events;
+						bresmon_mark_dirty(watch);
 					}
 				}
 			}
