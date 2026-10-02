@@ -952,7 +952,6 @@ WARN_LOGFILE           =
 INPUT                  = README.md \
 	barena.h \
 	mem_layout.h \
-	tlsf.h \
 	xincbin.h \
 	barray.h \
 	blog.h \
@@ -971,8 +970,6 @@ INPUT                  = README.md \
 	bent.h \
 	bsv.h \
 	bscn.h \
-	bstacktrace.h \
-	bcrash_handler.h \
 	bsfn.h \
 	barg.h \
 

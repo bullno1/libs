@@ -45,11 +45,6 @@ workspace "libs"
 
   debugdir "bin/%{cfg.buildcfg}"
 
--- Samples double as documentation snippets and smoke tests.
--- They stay separate from the test suite: bcrash_handler crashes on purpose.
-make_sample "bstacktrace"
-make_sample "bcrash_handler"
-
 -- Every directory under tests/ is a btest suite linked into a single binary
 local test_dirs = {
   "autolist",
@@ -65,10 +60,8 @@ local test_dirs = {
   "bseg",
   "bserial",
   "bspscq",
-  "bstacktrace",
   "bsv",
   "mem_layout",
-  "tlsf",
   "xincbin",
 }
 

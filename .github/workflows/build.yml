@@ -35,10 +35,7 @@ jobs:
           cd vs2022
           msbuild libs.sln /property:Configuration=Debug /property:Platform=x64
       - name: Test
-        run: |
-          bin/Debug/bstacktrace.exe
-          bin/Debug/bcrash_handler.exe
-          bin/Debug/tests.exe
+        run: bin/Debug/tests.exe
   build-linux:
     runs-on: ubuntu-latest
     steps:
@@ -50,10 +47,6 @@ jobs:
         uses: abel0b/setup-premake@v2.4
         with:
           version: "5.0.0-beta2"
-      - name: Install dependencies
-        uses: daaku/gh-action-apt-install@v4
-        with:
-          packages: libdw-dev
       - name: Generate project
         run: premake5 gmake
       - name: Build
@@ -61,7 +54,4 @@ jobs:
           cd gmake
           make config=debug
       - name: Test
-        run: |
-          bin/Debug/bstacktrace
-          bin/Debug/bcrash_handler || true
-          bin/Debug/tests
+        run: bin/Debug/tests
