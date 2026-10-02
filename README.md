@@ -11,7 +11,6 @@ Collection of miscellaneous single-header libraries.
 |[bresmon.h](bresmon.h)|File watcher|
 |[mem_layout.h](mem_layout.h)|Combine multiple mallocs of a nested struct into one|
 |[barena.h](barena.h)|Arena allocator|
-|[tlsf.h](tlsf.h)|Adaptation of [jserv/tlsf-bsd](https://github.com/jserv/tlsf-bsd)|
 |[bhash.h](bhash.h)|Type-safe hashtable|
 |[bhamt.h](bhamt.h)|Type-safe hash trie, an arena-friendly associative map|
 |[barray.h](barray.h)|Dynamic array|
@@ -28,8 +27,6 @@ Collection of miscellaneous single-header libraries.
 |[bminmax.h](bminmax.h)|Min/Max/Clamp macros using `_Generic`|
 |[blog.h](blog.h)|Logging, with short filenames|
 |[qoi.h](qoi.h)|Quite OK image encoding/decoding|
-|[bstacktrace.h](bstacktrace.h)|Portable stacktrace with source mapping|
-|[bcrash_handler.h](bcrash_handler.h)|Crash handler|
 
 The following libraries are not self-contained.
 They depend on other libraries in this repository.
