@@ -7,7 +7,7 @@
  *
  * Everyone knows [what an arena is](https://en.wikipedia.org/wiki/Nowe_Ateny#Legacy).
  *
- * Memory is obtained in chunks directly from the OS (`mmap` on Linux,
+ * Memory is obtained in chunks directly from the OS (`mmap` on Linux and Mac,
  * `VirtualAlloc` on Windows) through a @ref barena_pool_t.
  * An arena bumps a pointer through its current chunk and takes a new chunk
  * from the pool when it runs out.
@@ -394,7 +394,7 @@ barena_os_page_free(void* ptr, size_t size) {
 	free(ptr);
 }
 
-#elif defined(__linux__) || defined(__COSMOPOLITAN__) || defined(__FreeBSD__)
+#elif defined(__linux__) || defined(__COSMOPOLITAN__) || defined(__FreeBSD__) || defined(__APPLE__)
 
 #include <unistd.h>
 #include <sys/mman.h>

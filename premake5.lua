@@ -20,7 +20,9 @@ end
 workspace "libs"
   location(_ACTION)
   configurations { "Debug", "Release" }
-  architecture "x86_64"
+  -- A Mac is either x86_64 or arm64, let the compiler target the host there
+  filter { "system:not macosx" }
+    architecture "x86_64"
   filter {"system:windows", "action:vs*"}
     systemversion "10.0.26100.0"
 
@@ -65,6 +67,13 @@ local test_dirs = {
   "xincbin",
 }
 
+-- Suites that do not build on Mac yet.
+-- Remove an entry once the library is ported to have it tested there.
+local not_on_mac = {
+  bresmon = true,
+  bspscq = true, -- Needs threads.h
+}
+
 project "tests"
     kind "ConsoleApp"
     language "C"
@@ -79,10 +88,12 @@ project "tests"
       "tests/main.c",
     }
     for _, dir in ipairs(test_dirs) do
-      files {
-        "tests/"..dir.."/*.h",
-        "tests/"..dir.."/*.c",
-      }
+      if not (os.target() == "macosx" and not_on_mac[dir]) then
+        files {
+          "tests/"..dir.."/*.h",
+          "tests/"..dir.."/*.c",
+        }
+      end
     end
 
     -- Only include rc as a compilable file in Windows
