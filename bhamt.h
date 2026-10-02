@@ -32,6 +32,11 @@
  *
  * The key passed to the macros in this file must be an lvalue as its address
  * will be taken.
+ *
+ * Memory comes from `BHAMT_ALLOC(size, align, memctx)`, an arena-oriented
+ * allocator following the convention in the README: it falls back to
+ * `BLIB_ARENA_ALLOC` and then to @ref barena_memalign with `memctx` being a
+ * `barena_t*`.
  */
 
 #ifndef BHAMT_API
@@ -410,24 +415,15 @@ bhamt__do_validate(const bhamt_base_t* base, const void* root, const bhamt_spec_
 #ifdef BHAMT_IMPLEMENTATION
 
 #ifndef BHAMT_ALLOC
-#	ifdef BLIB_REALLOC
-#		define BHAMT_ALLOC(size, align, ctx) BLIB_REALLOC(NULL, size, ctx)
+#	ifdef BLIB_ARENA_ALLOC
+#		define BHAMT_ALLOC(size, align, ctx) BLIB_ARENA_ALLOC(size, align, ctx)
 #	else
-#		define BHAMT_ALLOC(size, align, ctx) bhamt__libc_alloc(size, align, ctx)
-#		define BHAMT_USE_LIBC_ALLOC
+struct barena_s;
+void*
+barena_memalign(struct barena_s* arena, size_t size, size_t alignment);
+#		define BHAMT_ALLOC(size, align, ctx) \
+			barena_memalign((struct barena_s*)(ctx), (size), (align))
 #	endif
-#endif
-
-#ifdef BHAMT_USE_LIBC_ALLOC
-#include <stdlib.h>
-
-static inline void*
-bhamt__libc_alloc(size_t size, size_t align, void* ctx) {
-	(void)align;
-	(void)ctx;
-	return malloc(size);
-}
-
 #endif
 
 #ifndef BHAMT_ASSERT
