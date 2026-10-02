@@ -55,3 +55,23 @@ jobs:
           make config=debug
       - name: Test
         run: bin/Debug/tests
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Install Premake
+        uses: abel0b/setup-premake@v2.4
+        with:
+          version: "5.0.0-beta7"
+      - name: Generate project
+        run: premake5 gmake
+      - name: Build
+        run: |
+          cd gmake
+          make config=debug
+      # premake5.lua leaves out the suites not ported to Mac yet
+      - name: Test
+        run: bin/Debug/tests

@@ -64,8 +64,8 @@
 		.value_size = sizeof(VAR_NAME), \
 	}; \
 	AUTOLIST__SECTION_BEGIN(LIST_NAME) \
-	const autolist_entry_t* const AUTOLIST__CONCAT4(LIST_NAME, _, ITEM_NAME, _info_ptr) = \
-		&AUTOLIST__CONCAT4(LIST_NAME, _, ITEM_NAME, _entry); \
+	AUTOLIST__SLOT_TYPE const AUTOLIST__CONCAT4(LIST_NAME, _, ITEM_NAME, _info_ptr) = \
+		AUTOLIST__SLOT_INIT(LIST_NAME, AUTOLIST__CONCAT4(LIST_NAME, _, ITEM_NAME, _entry)); \
 	AUTOLIST__SECTION_END(AUTOLIST__CONCAT4(LIST_NAME, _, ITEM_NAME, _info_ptr))
 
 /**
@@ -78,11 +78,15 @@
  */
 #define AUTOLIST_FOREACH(ITR, LIST_NAME) \
 	for ( \
-		const autolist_entry_t* const* autolist__itr = AUTOLIST_BEGIN(LIST_NAME); \
-		autolist__itr != AUTOLIST_END(LIST_NAME); \
+		AUTOLIST__SLOT_TYPE const* autolist__itr = AUTOLIST__SLOTS_BEGIN(LIST_NAME); \
+		autolist__itr != AUTOLIST__SLOTS_END(LIST_NAME); \
 		++autolist__itr \
 	) \
-		for (const autolist_entry_t* ITR = *autolist__itr; ITR != NULL; ITR = NULL)
+		for ( \
+			const autolist_entry_t* ITR = AUTOLIST__SLOT_ENTRY(LIST_NAME, autolist__itr); \
+			ITR != NULL; \
+			ITR = NULL \
+		)
 
 #define AUTOLIST__CONCAT3(A, B, C) AUTOLIST__CONCAT(AUTOLIST__CONCAT(A, B), C)
 #define AUTOLIST__CONCAT4(A, B, C, D) AUTOLIST__CONCAT(AUTOLIST__CONCAT(A, B), AUTOLIST__CONCAT(C, D))
@@ -97,7 +101,9 @@
 	__pragma(section(AUTOLIST__STRINGIFY(AUTOLIST__CONCAT(NAME, $data)), read)); \
 	__declspec(allocate(AUTOLIST__STRINGIFY(AUTOLIST__CONCAT(NAME, $data))))
 #elif defined(__APPLE__)
-#	define AUTOLIST__SECTION_BEGIN(NAME) __attribute__((retain, used, section("__DATA,autolist_" AUTOLIST__STRINGIFY(NAME))))
+#	define AUTOLIST__SECTION_BEGIN(NAME) \
+	extern const char AUTOLIST__TAG(NAME); \
+	__attribute__((retain, used, section("__DATA,autolist")))
 #elif defined(__unix__)
 #	define AUTOLIST__SECTION_BEGIN(NAME) __attribute__((retain, used, section("autolist_" AUTOLIST__STRINGIFY(NAME))))
 #else
@@ -125,6 +131,30 @@ typedef struct {
 	/*! Size of the registered variable */
 	size_t value_size;
 } autolist_entry_t;
+
+#if defined(__APPLE__)
+// Mach-O limits section names to 16 characters so a section per list would
+// leave almost nothing for the list name.
+// Instead, all lists share one section and every slot is tagged with the list
+// it belongs to.
+typedef struct {
+	const void* list;
+	const autolist_entry_t* entry;
+} autolist__slot_t;
+
+extern const autolist__slot_t autolist__slots_begin __asm("section$start$__DATA$autolist");
+extern const autolist__slot_t autolist__slots_end __asm("section$end$__DATA$autolist");
+
+#	define AUTOLIST__TAG(LIST_NAME) AUTOLIST__CONCAT(autolist__tag_, LIST_NAME)
+#	define AUTOLIST__SLOT_TYPE autolist__slot_t
+#	define AUTOLIST__SLOT_INIT(LIST_NAME, ENTRY) { &AUTOLIST__TAG(LIST_NAME), &ENTRY }
+#	define AUTOLIST__SLOT_ENTRY(LIST_NAME, SLOT) \
+	((SLOT)->list == &AUTOLIST__TAG(LIST_NAME) ? (SLOT)->entry : NULL)
+#else
+#	define AUTOLIST__SLOT_TYPE const autolist_entry_t*
+#	define AUTOLIST__SLOT_INIT(LIST_NAME, ENTRY) &ENTRY
+#	define AUTOLIST__SLOT_ENTRY(LIST_NAME, SLOT) (*(SLOT))
+#endif
 
 #if defined(DOXYGEN)
 /**
@@ -159,15 +189,18 @@ typedef struct {
 		extern const autolist_entry_t* const AUTOLIST__CONCAT3(autolist_, NAME, _begin) = NULL; \
 	__declspec(allocate(AUTOLIST__STRINGIFY(AUTOLIST__CONCAT(NAME, $end)))) \
 		extern const autolist_entry_t* const AUTOLIST__CONCAT3(autolist_, NAME, _end) = NULL;
+#	define AUTOLIST__SLOTS_BEGIN(NAME) (&AUTOLIST__CONCAT3(autolist_, NAME, _begin) + 1)
+#	define AUTOLIST__SLOTS_END(NAME) (&AUTOLIST__CONCAT3(autolist_, NAME, _end))
 #elif defined(__APPLE__)
 #	define AUTOLIST_DECLARE(NAME) \
-	extern const autolist_entry_t* const AUTOLIST__CONCAT(__start_, NAME) \
-	__asm("section$start$__DATA$autolist_" AUTOLIST__STRINGIFY(NAME)); \
-	extern const autolist_entry_t* const AUTOLIST__CONCAT(__stop_, NAME) \
-	__asm("section$end$__DATA$autolist_" AUTOLIST__STRINGIFY(NAME));
+	extern const char AUTOLIST__TAG(NAME);
 #	define AUTOLIST_IMPL(NAME) \
-	__attribute__((retain, used, section("__DATA,autolist_" AUTOLIST__STRINGIFY(NAME)))) \
-		const autolist_entry_t* const AUTOLIST__CONCAT3(autolist_, NAME, __dummy) = NULL;
+	extern const char AUTOLIST__TAG(NAME); \
+	const char AUTOLIST__TAG(NAME) = 0; \
+	__attribute__((retain, used, section("__DATA,autolist"))) \
+		const autolist__slot_t AUTOLIST__CONCAT3(autolist_, NAME, __dummy) = { NULL, NULL };
+#	define AUTOLIST__SLOTS_BEGIN(NAME) (&autolist__slots_begin)
+#	define AUTOLIST__SLOTS_END(NAME) (&autolist__slots_end)
 #elif defined(__unix__)
 #	define AUTOLIST_DECLARE(NAME) \
 	extern const autolist_entry_t* const AUTOLIST__CONCAT(__start_autolist_, NAME); \
@@ -175,6 +208,8 @@ typedef struct {
 #	define AUTOLIST_IMPL(NAME) \
 	__attribute__((retain, used, section("autolist_" AUTOLIST__STRINGIFY(NAME)))) \
 		const autolist_entry_t* const AUTOLIST__CONCAT3(autolist_, NAME, __dummy) = NULL;
+#	define AUTOLIST__SLOTS_BEGIN(NAME) (&AUTOLIST__CONCAT(__start_autolist_, NAME))
+#	define AUTOLIST__SLOTS_END(NAME) (&AUTOLIST__CONCAT(__stop_autolist_, NAME))
 #endif
 
 /**
@@ -189,32 +224,5 @@ typedef struct {
 #define AUTOLIST_DEFINE(NAME) \
 	AUTOLIST_DECLARE(NAME) \
 	AUTOLIST_IMPL(NAME)
-
-#if defined(DOXYGEN)
-/**
- * Pointer to the first entry pointer of a list, of type `const autolist_entry_t* const*`.
- *
- * @param NAME name of the list
- *
- * @see AUTOLIST_FOREACH
- * @hideinitializer
- */
-#	define AUTOLIST_BEGIN(NAME)
-/**
- * Pointer past the last entry pointer of a list.
- *
- * @param NAME name of the list
- *
- * @see AUTOLIST_BEGIN
- * @hideinitializer
- */
-#	define AUTOLIST_END(NAME)
-#elif defined(_MSC_VER)
-#	define AUTOLIST_BEGIN(NAME) (&AUTOLIST__CONCAT3(autolist_, NAME, _begin) + 1)
-#	define AUTOLIST_END(NAME) (&AUTOLIST__CONCAT3(autolist_, NAME, _end))
-#elif defined(__unix__) || defined(__APPLE__)
-#	define AUTOLIST_BEGIN(NAME) (&AUTOLIST__CONCAT(__start_autolist_, NAME))
-#	define AUTOLIST_END(NAME) (&AUTOLIST__CONCAT(__stop_autolist_, NAME))
-#endif
 
 #endif
