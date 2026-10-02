@@ -206,7 +206,8 @@ static bool&#160;</td><td class="memItemRight" valign="bottom"><b>bhamt_eq</b> (
 </ul>
 <p>Typical use cases include: symbol tables, scoped environments, deduplication and interning.</p>
 <p>Iteration order is unspecified and depends on hash values. For deterministic iteration (e.g: codegen), maintain a separate array of entries in insertion order and use the trie only for lookup.</p>
-<p>The key passed to the macros in this file must be an lvalue as its address will be taken. </p>
+<p>The key passed to the macros in this file must be an lvalue as its address will be taken.</p>
+<p>Memory comes from <code>BHAMT_ALLOC(size, align, memctx)</code>, an arena-oriented allocator following the convention in the README: it falls back to <code>BLIB_ARENA_ALLOC</code> and then to <a class="el" href="barena_8h.html#a71cae435a7ad6720c89ae06a5c9cdb09">barena_memalign</a> with <code>memctx</code> being a <code>barena_t*</code>. </p>
 </div><h2 class="groupheader">Macro Definition Documentation</h2>
 <a id="a6a5fcb322f5cdd169b344ddc6102a932" name="a6a5fcb322f5cdd169b344ddc6102a932"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a6a5fcb322f5cdd169b344ddc6102a932">&#9670;&#160;</a></span>bhamt_find</h2>
@@ -283,7 +284,7 @@ static bool&#160;</td><td class="memItemRight" valign="bottom"><b>bhamt_eq</b> (
 <div class="line">            NODE != NULL; \</div>
 <div class="line">            NODE = bhamt__iter_next(&amp;bhamt__s.iter) \</div>
 <div class="line">        )</div>
-<div class="ttc" id="astructbhamt__iter__s_html"><div class="ttname"><a href="structbhamt__iter__s.html">bhamt_iter_s</a></div><div class="ttdoc">Iterator state for BHAMT_FOREACH.</div><div class="ttdef"><b>Definition</b> bhamt.h:105</div></div>
+<div class="ttc" id="astructbhamt__iter__s_html"><div class="ttname"><a href="structbhamt__iter__s.html">bhamt_iter_s</a></div><div class="ttdoc">Iterator state for BHAMT_FOREACH.</div><div class="ttdef"><b>Definition</b> bhamt.h:110</div></div>
 </div><!-- fragment -->
 <p>For each helper. </p>
 <p>NODE iterates over all nodes of the table. Its <code>key</code> and <code>value</code> members may be accessed.</p>
@@ -461,7 +462,7 @@ static bool&#160;</td><td class="memItemRight" valign="bottom"><b>bhamt_eq</b> (
 <div class="line">        BHAMT__TYPECHECK_STMT((table)-&gt;root-&gt;value, VALUE); \</div>
 <div class="line">        *<a class="code hl_define" href="bhamt_8h.html#ac601f5d411a8e0617ac88a2a7dece80e">bhamt_upsert</a>(table, KEY, memctx) = (VALUE); \</div>
 <div class="line">    } <span class="keywordflow">while</span> (0)</div>
-<div class="ttc" id="abhamt_8h_html_ac601f5d411a8e0617ac88a2a7dece80e"><div class="ttname"><a href="bhamt_8h.html#ac601f5d411a8e0617ac88a2a7dece80e">bhamt_upsert</a></div><div class="ttdeci">#define bhamt_upsert(table, key, memctx)</div><div class="ttdoc">Ensure that an entry with the given key exists.</div><div class="ttdef"><b>Definition</b> bhamt.h:227</div></div>
+<div class="ttc" id="abhamt_8h_html_ac601f5d411a8e0617ac88a2a7dece80e"><div class="ttname"><a href="bhamt_8h.html#ac601f5d411a8e0617ac88a2a7dece80e">bhamt_upsert</a></div><div class="ttdeci">#define bhamt_upsert(table, key, memctx)</div><div class="ttdoc">Ensure that an entry with the given key exists.</div><div class="ttdef"><b>Definition</b> bhamt.h:232</div></div>
 </div><!-- fragment -->
 <p>Add a new entry to the table, overwriting any existing value. </p>
 
@@ -489,8 +490,8 @@ static bool&#160;</td><td class="memItemRight" valign="bottom"><b>bhamt_eq</b> (
 <div class="line">            K key; \</div>
 <div class="line">        }* root; \</div>
 <div class="line">    }</div>
-<div class="ttc" id="abhamt_8h_html_afaeae1d98c33decdcb88ceab5323752a"><div class="ttname"><a href="bhamt_8h.html#afaeae1d98c33decdcb88ceab5323752a">BHAMT_NUM_CHILDREN</a></div><div class="ttdeci">#define BHAMT_NUM_CHILDREN</div><div class="ttdoc">Number of children per node.</div><div class="ttdef"><b>Definition</b> bhamt.h:59</div></div>
-<div class="ttc" id="astructbhamt__base__s_html"><div class="ttname"><a href="structbhamt__base__s.html">bhamt_base_s</a></div><div class="ttdoc">The table implementation details.</div><div class="ttdef"><b>Definition</b> bhamt.h:87</div></div>
+<div class="ttc" id="abhamt_8h_html_afaeae1d98c33decdcb88ceab5323752a"><div class="ttname"><a href="bhamt_8h.html#afaeae1d98c33decdcb88ceab5323752a">BHAMT_NUM_CHILDREN</a></div><div class="ttdeci">#define BHAMT_NUM_CHILDREN</div><div class="ttdoc">Number of children per node.</div><div class="ttdef"><b>Definition</b> bhamt.h:64</div></div>
+<div class="ttc" id="astructbhamt__base__s_html"><div class="ttname"><a href="structbhamt__base__s.html">bhamt_base_s</a></div><div class="ttdoc">The table implementation details.</div><div class="ttdef"><b>Definition</b> bhamt.h:92</div></div>
 </div><!-- fragment -->
 <p>Helper macro to define a set type. </p>
 <dl class="params"><dt>Parameters</dt><dd>
