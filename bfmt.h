@@ -50,6 +50,8 @@
 		.options = bfmt__options(bfmt_options_t, __VA_ARGS__), \
 	})
 
+#define bfmt_precision(PRECISION) (bfmt_precision_t){ .enabled = true, .precision = PRECISION }
+
 typedef struct bfmt_ctx_s bfmt_ctx_t;
 
 typedef struct {
@@ -91,14 +93,18 @@ typedef enum {
 } bfmt_float_style_t;
 
 typedef struct {
+	bool enabled;
+	int precision;
+} bfmt_precision_t;
+
+typedef struct {
 	bfmt_alignment_t align;
 	bfmt_sign_style_t sign;
 	bool show_base;
 	bool zero_pad;
 	bool uppercase;
 	int width;
-	bool with_precision;
-	int precision;
+	bfmt_precision_t precision;
 
 	union {
 		bfmt_float_style_t float_style;
@@ -234,11 +240,11 @@ bfmt__print_ctx(bfmt_ctx_t* ctx, const bfmt__element_t* elements);
 
 #define bfmt_printf(CTX, OPTIONS, ARG) \
 	do { \
-		if (OPTIONS.width > 0 && OPTIONS.with_precision) { \
+		if (OPTIONS.width > 0 && OPTIONS.precision.enabled) { \
 			(bfmt_fmt)(ctx, fmt, OPTIONS.width, OPTIONS.precision, ARG); \
 		} else if (OPTIONS.width > 0) { \
 			(bfmt_fmt)(ctx, fmt, OPTIONS.width, ARG); \
-		} else if (OPTIONS.with_precision) { \
+		} else if (OPTIONS.precision.enabled) { \
 			(bfmt_fmt)(ctx, fmt, OPTIONS.precision, ARG); \
 		} else { \
 			(bfmt_fmt)(ctx, fmt, ARG); \
@@ -276,7 +282,7 @@ bfmt_build_fmt(char* cursor, const char* length, char specifier, bfmt_options_t 
 		*cursor++ = '*';
 	}
 
-	if (options.with_precision) {
+	if (options.precision.enabled) {
 		*cursor++ = '.';
 		*cursor++ = '*';
 	}
@@ -313,7 +319,7 @@ bfmt__format_str(bfmt_ctx_t* ctx, const void* value_ref, const void* options_ref
 	const char* value = *(const char**)value_ref;
 	bfmt_options_t options = *(bfmt_options_t*)options_ref;
 
-	if (options.with_precision || options.width > 0) {  // Fancy formatting
+	if (options.precision.enabled || options.width > 0) {  // Fancy formatting
 		char fmt[16];
 		bfmt_build_fmt(fmt, "", 's', options);
 		bfmt_printf(ctx, options, value);
