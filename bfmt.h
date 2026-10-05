@@ -11,6 +11,11 @@
 #define BFMT_API
 #endif
 
+#ifndef BFMT_USER_TYPES
+#define BFMT_USER_TYPES(X)
+// #define BFMT_USER_TYPES(X) X(TYPE, FORMATTER, OPTIONS)
+#endif
+
 #define bfmt_print(OUT, ...) \
 	bfmt__print(OUT, (bfmt__element_t[]){ bfmt__map(bfmt__to_element, __VA_ARGS__) {} })
 
@@ -22,20 +27,18 @@
 #define bfmt_register_formatter(VALUE_TYPE, FORMATTER_NAME, OPTIONS_TYPE) \
 	typedef VALUE_TYPE bfmt__formatter_value_type(FORMATTER_NAME); \
 	typedef OPTIONS_TYPE bfmt__formatter_options_type(FORMATTER_NAME); \
-	void bfmt__formatter_wrapper(FORMATTER_NAME)(bfmt_ctx_t* ctx, const void* value, const void* options) { \
-		FORMATTER_NAME(ctx, *(bfmt__formatter_value_type(FORMATTER_NAME)*)value, *(bfmt__formatter_options_type(FORMATTER_NAME)*)options); \
-   	}
+	bfmt__make_wrapper(VALUE_TYPE, FORMATTER_NAME, OPTIONS_TYPE)
 
 #define bfmt_decl_formatter(VALUE_TYPE, FORMATTER_NAME, OPTIONS_TYPE) \
-	extern bfmt_formatter(value_type, formatter_name, OPTIONS_TYPE); \
-	bfmt_register_formatter(value_type, formatter_name, OPTIONS_TYPE)
+	extern bfmt_formatter(VALUE_TYPE, FORMATTER_NAME, OPTIONS_TYPE); \
+	bfmt_register_formatter(VALUE_TYPE, FORMATTER_NAME, OPTIONS_TYPE)
 
 #define bfmt_formatter(VALUE_TYPE, NAME, OPTIONS_TYPE) \
 	void NAME(bfmt_ctx_t* ctx, VALUE_TYPE value, OPTIONS_TYPE options)
 
-#define bfmt_with(VALUE, FORMATTER, ...) \
+#define bfmt_with(FORMATTER, VALUE, ...) \
 	( \
-		(void)sizeof((__typeof__(FORMATTER((bfmt_ctx_t*)0, VALUE, bfmt__options(bfmt__formatter_options_type(FORMATTER), __VA_ARGS__)[0]))*)0), \
+		(void)sizeof((bfmt__typeof(FORMATTER((bfmt_ctx_t*)0, VALUE, bfmt__options(bfmt__formatter_options_type(FORMATTER), __VA_ARGS__)[0]))*)0), \
 		(bfmt__element_t){ \
 			.value = (bfmt__formatter_value_type(FORMATTER)[1]){ VALUE }, \
 			.formatter = bfmt__formatter_wrapper(FORMATTER), \
@@ -45,9 +48,9 @@
 
 #define bfmt(VALUE, ...) \
 	((bfmt__element_t){ \
-		.value = (bfmt__typeof(VALUE)[1]){ VALUE }, \
+		.value = (bfmt__typeof_decay(VALUE)[1]){ VALUE }, \
 		.formatter = bfmt__formatter_for(VALUE), \
-		.options = bfmt__options(bfmt_options_t, __VA_ARGS__), \
+		.options = bfmt__options(bfmt__options_for(VALUE), __VA_ARGS__), \
 	})
 
 #define bfmt_precision(PRECISION) (bfmt_precision_t){ .enabled = true, .precision = PRECISION }
@@ -69,7 +72,7 @@ typedef enum {
 } bfmt_alignment_t;
 
 typedef struct {
-	int width;
+	int min_width;
 	bfmt_alignment_t align;
 } bfmt_layout_t;
 
@@ -98,19 +101,33 @@ typedef struct {
 } bfmt_precision_t;
 
 typedef struct {
-	bfmt_alignment_t align;
+	bfmt_layout_t layout;
 	bfmt_sign_style_t sign;
+	bfmt_base_t base;
+	bfmt_precision_t precision;
 	bool show_base;
 	bool zero_pad;
 	bool uppercase;
-	int width;
-	bfmt_precision_t precision;
+} bfmt_int_options_t;
 
-	union {
-		bfmt_float_style_t float_style;
-		bfmt_base_t int_base;
-	};
-} bfmt_options_t;
+typedef struct {
+	bfmt_layout_t layout;
+	bfmt_sign_style_t sign;
+	bfmt_float_style_t style;
+	bfmt_precision_t precision;
+	bool show_base;
+	bool zero_pad;
+	bool uppercase;
+} bfmt_float_options_t;
+
+typedef struct {
+	bfmt_layout_t layout;
+	bfmt_precision_t precision;
+} bfmt_str_options_t;
+
+typedef struct {
+	bfmt_layout_t layout;
+} bfmt_simple_options_t;
 
 extern bfmt_stream_t* bfmt_stdout;
 extern bfmt_stream_t* bfmt_stderr;
@@ -143,7 +160,13 @@ bfmt_wrap_file(FILE* file);
 #define bfmt__concat(LHS, RHS) bfmt__concat2(LHS, RHS)
 #define bfmt__concat2(LHS, RHS) LHS##RHS
 
-#define bfmt__typeof(VALUE) __typeof__(0 ? (VALUE) : (VALUE))
+#if __STDC_VERSION__ >= 202311L
+#	define bfmt__typeof(EXP) typeof(EXP)
+#elif defined(__clang__) || defined(__GNUC__) || defined(_MSC_VER)
+#	define bfmt__typeof(EXP) __typeof__(EXP)
+#endif
+
+#define bfmt__typeof_decay(VALUE) bfmt__typeof(0 ? (VALUE) : (VALUE))
 
 // }}}
 
@@ -163,35 +186,59 @@ typedef struct {
 #define bfmt_fmt(ctx, ...) \
 	((void)sizeof(printf(__VA_ARGS__)), bfmt_fmt(ctx, __VA_ARGS__))
 
-#define bfmt__types(X) \
-	X(const char*, str) \
-	X(char*, str) \
-	X(char, char) \
-	X(short, short) \
-	X(unsigned short, ushort) \
-	X(int, int) \
-	X(unsigned int, uint) \
-	X(long, long) \
-	X(unsigned long, ulong) \
-	X(long long, longlong) \
-	X(unsigned long long, ulonglong) \
-	X(float, float) \
-	X(double, double) \
-	X(long double, longdouble) \
-	X(const void*, pointer) \
-	X(void*, pointer) \
-	X(bool, bool) \
-	X(bfmt__element_t, element)
+#define bfmt__builtin_value_types(X) \
+	X(char              , bfmt__format_char      , bfmt_simple_options_t) \
+	X(short             , bfmt__format_short     , bfmt_int_options_t) \
+	X(unsigned short    , bfmt__format_ushort    , bfmt_int_options_t) \
+	X(int               , bfmt__format_int       , bfmt_int_options_t) \
+	X(unsigned int      , bfmt__format_uint      , bfmt_int_options_t) \
+	X(long              , bfmt__format_long      , bfmt_int_options_t) \
+	X(unsigned long     , bfmt__format_ulong     , bfmt_int_options_t) \
+	X(long long         , bfmt__format_longlong  , bfmt_int_options_t) \
+	X(unsigned long long, bfmt__format_ulonglong , bfmt_int_options_t) \
+	X(float             , bfmt__format_float     , bfmt_float_options_t) \
+	X(double            , bfmt__format_double    , bfmt_float_options_t) \
+	X(long double       , bfmt__format_longdouble, bfmt_float_options_t) \
+	X(bool              , bfmt__format_bool      , bfmt_str_options_t) \
+	X(bfmt__element_t   , bfmt__format_element   , bfmt_no_options_t)
 
-#define bfmt__formatter_for(VALUE) _Generic(VALUE bfmt__types(bfmt__type_to_formatter))
-#define bfmt__type_to_formatter(TYPE, SUFFIX) , TYPE: &bfmt__concat(bfmt__format_, SUFFIX)
+#define bfmt__builtin_types(X) \
+	X(const char*       , bfmt__format_str       , bfmt_str_options_t) \
+	X(char*             , bfmt__format_str       , bfmt_str_options_t) \
+	X(const void*       , bfmt__format_ptr       , bfmt_simple_options_t) \
+	X(void*             , bfmt__format_ptr       , bfmt_simple_options_t) \
+	bfmt__builtin_value_types(X)
 
-#define bfmt__declare_formatter(TYPE, SUFFIX) extern bfmt__formatter_t bfmt__concat(bfmt__format_, SUFFIX);
-bfmt__types(bfmt__declare_formatter)
+#define bfmt__all_types(X) bfmt__builtin_types(X) BFMT_USER_TYPES(X)
 
-#define bfmt__formatter_value_type(formatter_name) bfmt__##formatter_name##_type_t
-#define bfmt__formatter_options_type(formatter_name) bfmt__##formatter_name##_options_t
-#define bfmt__formatter_wrapper(formatter_name) bfmt__##formatter_name##_wrapper
+#define bfmt__formatter_for(VALUE) _Generic(VALUE bfmt__all_types(bfmt__type_to_formatter))
+#define bfmt__type_to_formatter(TYPE, FORMATTER, OPTIONS) , TYPE: bfmt__formatter_wrapper(FORMATTER)
+
+#define bfmt__options_for(VALUE) bfmt__typeof(*_Generic(VALUE bfmt__all_types(bfmt__type_to_options)))
+#define bfmt__type_to_options(TYPE, FORMATTER, OPTIONS) , TYPE: (OPTIONS*)0
+
+#define bfmt__formatter_value_type(FORMATTER_NAME) bfmt__concat(bfmt__type_, FORMATTER_NAME)
+#define bfmt__formatter_options_type(FORMATTER_NAME) bfmt__concat(bfmt__options_, FORMATTER_NAME)
+#define bfmt__formatter_wrapper(FORMATTER_NAME) bfmt__concat(bfmt__wrapper_, FORMATTER_NAME)
+
+#define bfmt__declare_formatter(TYPE, FORMATTER, OPTIONS) \
+	BFMT_API void FORMATTER(bfmt_ctx_t* ctx, TYPE value, OPTIONS options); \
+	bfmt__make_wrapper(TYPE, FORMATTER, OPTIONS)
+
+#define bfmt__make_wrapper(TYPE, FORMATTER, OPTIONS) \
+	static inline void bfmt__formatter_wrapper(FORMATTER)(bfmt_ctx_t* ctx, const void* value, const void* options) { \
+		FORMATTER(ctx, *(TYPE*)value, *(OPTIONS*)options); \
+	}
+
+bfmt__builtin_value_types(bfmt__declare_formatter)
+
+BFMT_API void
+bfmt__format_str(bfmt_ctx_t* ctx, const char* value, bfmt_str_options_t options);
+bfmt__make_wrapper(const char*, bfmt__format_str, bfmt_str_options_t)
+
+BFMT_API void
+bfmt__format_ptr(bfmt_ctx_t* ctx, const void* value, bfmt_simple_options_t options);
+bfmt__make_wrapper(const void*, bfmt__format_ptr, bfmt_simple_options_t)
 
 #define bfmt__to_element(VALUE) bfmt(VALUE),
 
@@ -240,22 +287,31 @@ bfmt__print_ctx(bfmt_ctx_t* ctx, const bfmt__element_t* elements);
 
 #define bfmt_printf(CTX, OPTIONS, ARG) \
 	do { \
-		if (OPTIONS.width > 0 && OPTIONS.precision.enabled) { \
-			(bfmt_fmt)(ctx, fmt, OPTIONS.width, OPTIONS.precision, ARG); \
-		} else if (OPTIONS.width > 0) { \
-			(bfmt_fmt)(ctx, fmt, OPTIONS.width, ARG); \
+		if (OPTIONS.layout.min_width > 0 && OPTIONS.precision.enabled) { \
+			(bfmt_fmt)(ctx, fmt, OPTIONS.layout.min_width, OPTIONS.precision.precision, ARG); \
+		} else if (OPTIONS.layout.min_width > 0) { \
+			(bfmt_fmt)(ctx, fmt, OPTIONS.layout.min_width, ARG); \
 		} else if (OPTIONS.precision.enabled) { \
-			(bfmt_fmt)(ctx, fmt, OPTIONS.precision, ARG); \
+			(bfmt_fmt)(ctx, fmt, OPTIONS.precision.precision, ARG); \
 		} else { \
 			(bfmt_fmt)(ctx, fmt, ARG); \
 		} \
 	} while (0)
 
+typedef struct {
+	bfmt_layout_t layout;
+	bfmt_sign_style_t sign;
+	bfmt_precision_t precision;
+	bool show_base;
+	bool zero_pad;
+	bool uppercase;
+} bfmt_options_t;
+
 static void
 bfmt_build_fmt(char* cursor, const char* length, char specifier, bfmt_options_t options) {
 	*cursor++ = '%';
 
-	if (options.align == BFMT_ALIGN_LEFT) {
+	if (options.layout.align == BFMT_ALIGN_LEFT) {
 		*cursor++ = '-';
 	}
 
@@ -278,7 +334,7 @@ bfmt_build_fmt(char* cursor, const char* length, char specifier, bfmt_options_t 
 		*cursor++ = '0';
 	}
 
-	if (options.width > 0) {
+	if (options.layout.min_width > 0) {
 		*cursor++ = '*';
 	}
 
@@ -296,8 +352,8 @@ bfmt_build_fmt(char* cursor, const char* length, char specifier, bfmt_options_t 
 }
 
 static char
-bfmt__int_specifier(bfmt_options_t options, char decimal) {
-	switch (options.int_base) {
+bfmt__int_specifier(bfmt_int_options_t options, char decimal) {
+	switch (options.base) {
 		case BFMT_BASE_DEC: return decimal;
 		case BFMT_BASE_OCT: return 'o';
 		case BFMT_BASE_HEX: return options.uppercase ? 'X' : 'x';
@@ -305,8 +361,8 @@ bfmt__int_specifier(bfmt_options_t options, char decimal) {
 }
 
 static char
-bfmt__float_specifier(bfmt_options_t options) {
-	switch(options.float_style) {
+bfmt__float_specifier(bfmt_float_options_t options) {
+	switch(options.style) {
 		case BFMT_FLOAT_FIXED: return options.uppercase ? 'F' : 'f';
 		case BFMT_FLOAT_EXPONENT: return options.uppercase ? 'E' : 'e';
 		case BFMT_FLOAT_HEX: return options.uppercase ? 'A' : 'a';
@@ -315,56 +371,58 @@ bfmt__float_specifier(bfmt_options_t options) {
 }
 
 void
-bfmt__format_str(bfmt_ctx_t* ctx, const void* value_ref, const void* options_ref) {
-	const char* value = *(const char**)value_ref;
-	bfmt_options_t options = *(bfmt_options_t*)options_ref;
-
-	if (options.precision.enabled || options.width > 0) {  // Fancy formatting
+bfmt__format_str(bfmt_ctx_t* ctx, const char* value, bfmt_str_options_t options) {
+	if (options.precision.enabled || options.layout.min_width > 0) {  // Fancy formatting
 		char fmt[16];
-		bfmt_build_fmt(fmt, "", 's', options);
-		bfmt_printf(ctx, options, value);
+		bfmt_options_t fmt_options = {
+			.layout = options.layout,
+			.precision = options.precision,
+		};
+		bfmt_build_fmt(fmt, "", 's', fmt_options);
+		bfmt_printf(ctx, fmt_options, value);
 	} else {  // Direct write
 		bfmt_write(ctx, value, (int)strlen(value));
 	}
 }
 
 void
-bfmt__format_char(bfmt_ctx_t* ctx, const void* value_ref, const void* options_ref) {
-	char value = *(char*)value_ref;
-	bfmt_options_t options = *(bfmt_options_t*)options_ref;
-
+bfmt__format_char(bfmt_ctx_t* ctx, char value, bfmt_simple_options_t options) {
 	char fmt[16];
-	bfmt_build_fmt(fmt, "", 'c', options);
-	bfmt_printf(ctx, options, value);
+	bfmt_options_t fmt_options = {
+		.layout = options.layout,
+	};
+	bfmt_build_fmt(fmt, "", 'c', fmt_options);
+	bfmt_printf(ctx, fmt_options, value);
 }
 
 void
-bfmt__format_pointer(bfmt_ctx_t* ctx, const void* value_ref, const void* options_ref) {
-	const void* value = *(const void**)value_ref;
-	bfmt_options_t options = *(bfmt_options_t*)options_ref;
-
+bfmt__format_pointer(bfmt_ctx_t* ctx, const void* value, bfmt_simple_options_t options) {
 	char fmt[16];
-	bfmt_build_fmt(fmt, "", 'p', options);
-	bfmt_printf(ctx, options, value);
+	bfmt_options_t fmt_options = {
+		.layout = options.layout,
+	};
+	bfmt_build_fmt(fmt, "", 'p', fmt_options);
+	bfmt_printf(ctx, fmt_options, value);
 }
 
 void
-bfmt__format_bool(bfmt_ctx_t* ctx, const void* value_ref, const void* options_ref) {
-	bool value = *(bool*)value_ref;
-	bfmt_options_t options = *(bfmt_options_t*)options_ref;
-
-	char fmt[16];
-	bfmt_build_fmt(fmt, "", 's', options);
-	bfmt_printf(ctx, options, value ? "true" : "false");
+bfmt__format_bool(bfmt_ctx_t* ctx, bool value, bfmt_str_options_t options) {
+	bfmt__format_str(ctx, value ? "true" : "false", options);
 }
 
 #define bfmt__format_int_type(TYPE, SUFFIX, LENGTH, SPECIFIER) \
-	void bfmt__concat(bfmt__format_, SUFFIX)(bfmt_ctx_t* ctx, const void* value_ref, const void* options_ref) { \
-		TYPE value = *(TYPE*)value_ref; \
-		bfmt_options_t options = *(bfmt_options_t*)options_ref; \
+	void bfmt__concat(bfmt__format_, SUFFIX)(bfmt_ctx_t* ctx, TYPE value, bfmt_int_options_t options) { \
 		char fmt[16]; \
-		bfmt_build_fmt(fmt, LENGTH, bfmt__int_specifier(options, SPECIFIER), options); \
-		bfmt_printf(ctx, options, value); \
+		bfmt_options_t fmt_options = { \
+			.layout = options.layout, \
+			.sign = options.sign, \
+			.precision = options.precision, \
+			.show_base = options.show_base, \
+			.zero_pad = options.zero_pad, \
+			.uppercase = options.uppercase, \
+		}; \
+		bfmt_build_fmt(fmt, LENGTH, bfmt__int_specifier(options, SPECIFIER), fmt_options); \
+		bfmt_printf(ctx, fmt_options, value); \
 	}
 
 bfmt__format_int_type(short, short, "h", 'd')
@@ -377,12 +435,18 @@ bfmt__format_int_type(long long, longlong, "ll", 'd')
 bfmt__format_int_type(unsigned long long, ulonglong, "ll", 'u')
 
 #define bfmt__format_float_type(TYPE, SUFFIX, LENGTH) \
-	void bfmt__concat(bfmt__format_, SUFFIX)(bfmt_ctx_t* ctx, const void* value_ref, const void* options_ref) { \
-		TYPE value = *(TYPE*)value_ref; \
-		bfmt_options_t options = *(bfmt_options_t*)options_ref; \
+	void bfmt__concat(bfmt__format_, SUFFIX)(bfmt_ctx_t* ctx, TYPE value, bfmt_float_options_t options) { \
 		char fmt[16]; \
-		bfmt_build_fmt(fmt, LENGTH, bfmt__float_specifier(options), options); \
-		bfmt_printf(ctx, options, value); \
+		bfmt_options_t fmt_options = { \
+			.layout = options.layout, \
+			.sign = options.sign, \
+			.precision = options.precision, \
+			.show_base = options.show_base, \
+			.zero_pad = options.zero_pad, \
+			.uppercase = options.uppercase, \
+		}; \
+		bfmt_build_fmt(fmt, LENGTH, bfmt__float_specifier(options), fmt_options); \
+		bfmt_printf(ctx, fmt_options, value); \
 	}
 
 bfmt__format_float_type(float, float, "")
@@ -390,8 +454,8 @@ bfmt__format_float_type(double, double, "")
 bfmt__format_float_type(long double, longdouble, "L")
 
 void
-bfmt__format_element(bfmt_ctx_t* ctx, const void* value_ref, const void* options_ref) {
-	bfmt__element_t element = *(bfmt__element_t*)value_ref;
+bfmt__format_element(bfmt_ctx_t* ctx, bfmt__element_t element, bfmt_no_options_t options) {
+	(void)options;
 	element.formatter(ctx, element.value, element.options);
 }
 
@@ -478,7 +542,7 @@ bfmt_fmtv(bfmt_ctx_t* ctx, const char* fmt, va_list args) {
 }
 
 static void
-bfmt_write_file(void* userdata, const char* str, int len) {
+bfmt__write_file(void* userdata, const char* str, int len) {
 	FILE* file = userdata;
 
 	size_t bytes_left = (size_t)len;
@@ -494,18 +558,20 @@ bfmt_stream_t
 bfmt_wrap_file(FILE* file) {
 	return (bfmt_stream_t){
 		.userdata = file,
-		.write = bfmt_write_file,
+		.write = bfmt__write_file,
 	};
 }
 
 static void
 bfmt_write_stdout(void* userdata, const char* str, int len) {
-	bfmt_write_file(stdout, str, len);
+	(void)userdata;
+	bfmt__write_file(stdout, str, len);
 }
 
 static void
 bfmt_write_stderr(void* userdata, const char* str, int len) {
-	bfmt_write_file(stderr, str, len);
+	(void)userdata;
+	bfmt__write_file(stderr, str, len);
 }
 
 bfmt_stream_t* bfmt_stdout = &(bfmt_stream_t){
