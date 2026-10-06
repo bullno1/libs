@@ -6,6 +6,7 @@
 #include <stddef.h>
 #include <stdarg.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #ifndef BFMT_API
 #define BFMT_API
@@ -21,8 +22,50 @@
 
 #define bfmt_println(OUT, ...) bfmt_print(OUT, __VA_ARGS__ __VA_OPT__(,) "\n")
 
-#define bfmt_translate(OUT, LOCALE, ...) \
-	bfmt__translate(OUT, LOCALE, bfmt__map(bfmt__translate_item, __VA_ARGS__))
+#ifdef BFMT_EXTRACT
+
+/*
+	xgettext \
+		--from-code=UTF-8 \
+		--add-comments=TRANSLATORS: \
+		--flag=gettext:1:no-c-format \
+		--flag=pgettext:2:no-c-format \
+		--sort-by-file \
+		--language=C
+*/
+
+
+#define bfmt_translate(OUT, LOCALE, ...) bfmt_text(__VA_ARGS__)
+#define bfmt_ptranslate(OUT, LOCALE, CONTEXT, ...) bfmt_ptext(CONTEXT, __VA_ARGS__)
+#define bfmt_text(...) gettext(bfmt__map(bfmt__to_template_text, __VA_ARGS__))
+#define bfmt_ptext(CONTEXT, ...) pgettext(CONTEXT, bfmt__map(bfmt__to_template_text, __VA_ARGS__))
+
+#else
+
+#define bfmt_translate(OUT, LOCALE, ...) bfmt_ptranslate(OUT, LOCALE, NULL, __VA_ARGS__)
+
+#define bfmt_ptranslate(OUT, LOCALE, CONTEXT, ...) \
+	( \
+		bfmt__map(bfmt__check_arg, __VA_ARGS__) \
+		bfmt__ptranslate( \
+			OUT, \
+			LOCALE, \
+			CONTEXT, \
+			bfmt__map(bfmt__to_template_text, __VA_ARGS__), \
+			(bfmt__template_input_t[]){ bfmt__map(bfmt__to_template_input, __VA_ARGS__) {} } \
+		) \
+	)
+
+#define bfmt_text(...) bfmt_ptext(NULL, __VA_ARGS__)
+
+#define bfmt_ptext(CONTEXT, ...) (bfmt_text_t){ .context = CONTEXT, .content = bfmt__map(bfmt__to_template_text, __VA_ARGS__) }
+
+#endif
+
+#define bfmt_named(NAME, VALUE) (bfmt_named, NAME, VALUE)
+#define bfmt_plural(NAME, NUMBER, ...) (bfmt__switch, plural, NAME, NUMBER, __VA_ARGS__)
+#define bfmt_ordinal(NAME, NUMBER, ...) (bfmt__switch, selectordinal, NAME, NUMBER, __VA_ARGS__)
+#define bfmt_select(NAME, SELECTOR, ...) (bfmt__switch, select, NAME, SELECTOR, __VA_ARGS__)
 
 #define bfmt_register_formatter(VALUE_TYPE, FORMATTER_NAME, OPTIONS_TYPE) \
 	typedef VALUE_TYPE bfmt__formatter_value_type(FORMATTER_NAME); \
@@ -56,6 +99,41 @@
 #define bfmt_precision(PRECISION) (bfmt_precision_t){ .enabled = true, .precision = PRECISION }
 
 typedef struct bfmt_ctx_s bfmt_ctx_t;
+
+typedef enum {
+	BFMT_PLURAL_ZERO,
+	BFMT_PLURAL_ONE,
+	BFMT_PLURAL_TWO,
+	BFMT_PLURAL_FEW,
+	BFMT_PLURAL_MANY,
+	BFMT_PLURAL_OTHER,
+} bfmt_plural_t;
+
+typedef enum {
+	BFMT_PLURAL_CARDINAL,
+	BFMT_PLURAL_ORDINAL,
+} bfmt_plural_type_t;
+
+typedef struct {
+	uint64_t i;  /* integer digits */
+	uint64_t f;  /* visible fraction digits, as an integer */
+	uint64_t t;  /* f without trailing zeros */
+	unsigned v;  /* number of visible fraction digits */
+	unsigned w;  /* v without trailing zeros */
+} bfmt_plural_num_t;
+
+typedef bfmt_plural_t bfmt_plural_rule_t(bfmt_plural_num_t number, bfmt_plural_type_t type);
+
+typedef struct {
+	bfmt_plural_rule_t* plural_rule;
+	const char* (*translate)(void* userdata, const char* ctx, const char* key);
+	void* userdata;
+} bfmt_locale_t;
+
+typedef struct {
+	const char* content;
+	const char* context;
+} bfmt_text_t;
 
 typedef struct {
 	void (*write)(void* userdata, const char* string, int len);
@@ -144,6 +222,13 @@ bfmt_fmtv(bfmt_ctx_t* ctx, const char* fmt, va_list args);
 BFMT_API bfmt_stream_t
 bfmt_wrap_file(FILE* file);
 
+BFMT_API void
+bfmt_translate_text(
+	bfmt_stream_t* stream,
+	bfmt_locale_t* locale,
+	const bfmt_text_t* text
+);
+
 // Internal {{{
 
 // Macro helpers {{{
@@ -151,11 +236,26 @@ bfmt_wrap_file(FILE* file);
 #define bfmt__map(F, ...) __VA_OPT__(bfmt__expand(bfmt__map_helper(F, __VA_ARGS__)))
 #define bfmt__map_helper(F, ARG, ...) F(ARG) __VA_OPT__(bfmt__map_again bfmt__parens (F, __VA_ARGS__))
 #define bfmt__map_again() bfmt__map_helper
-#define bfmt__parens ()
 #define bfmt__expand(...)  bfmt__expand3(bfmt__expand3(__VA_ARGS__))
 #define bfmt__expand3(...) bfmt__expand2(bfmt__expand2(__VA_ARGS__))
 #define bfmt__expand2(...) bfmt__expand1(bfmt__expand1(__VA_ARGS__))
 #define bfmt__expand1(...) __VA_ARGS__
+
+#define bfmt__map2(F, ...) __VA_OPT__(bfmt__expand_2(bfmt__map_helper2(F, __VA_ARGS__)))
+#define bfmt__map_helper2(F, ARG, ...) F(ARG) __VA_OPT__(bfmt__map_again2 bfmt__parens (F, __VA_ARGS__))
+#define bfmt__map_again2() bfmt__map_helper2
+#define bfmt__expand_2(...)  bfmt__expand3_2(bfmt__expand3_2(__VA_ARGS__))
+#define bfmt__expand3_2(...) bfmt__expand2_2(bfmt__expand2_2(__VA_ARGS__))
+#define bfmt__expand2_2(...) bfmt__expand1_2(bfmt__expand1_2(__VA_ARGS__))
+#define bfmt__expand1_2(...) __VA_ARGS__
+
+#define bfmt__parens ()
+
+
+#define bfmt__is_paren(X) bfmt__check_paren(bfmt__probe_paren X)
+#define bfmt__probe_paren(...) ~, 1,
+#define bfmt__check_paren(...) bfmt__check_paren_n(__VA_ARGS__, 0, )
+#define bfmt__check_paren_n(X, N, ...) N
 
 #define bfmt__concat(LHS, RHS) bfmt__concat2(LHS, RHS)
 #define bfmt__concat2(LHS, RHS) LHS##RHS
@@ -250,6 +350,68 @@ bfmt__make_wrapper(const void*, bfmt__format_ptr, bfmt_simple_options_t)
 //
 // And it decays into TYPE*
 #define bfmt__options(TYPE, ...) ((TYPE[1]){ __VA_OPT__([0] = __VA_ARGS__) })
+
+// }}}
+
+// Translation {{{
+
+#define bfmt__to_template_text(X) bfmt__concat(bfmt__to_template_text_, bfmt__is_paren(X))(X)
+#define bfmt__to_template_text_0(X) X
+#define bfmt__to_template_text_1(X) bfmt__to_template_text_apply X
+#define bfmt__to_template_text_apply(HEAD, ...) \
+	bfmt__concat(bfmt__to_template_text_, HEAD)(__VA_ARGS__)
+
+#define bfmt__to_template_text_bfmt_named(NAME, VALUE) "{" #NAME "}"
+#define bfmt__to_template_text_bfmt__switch(ARG_TYPE, NAME, COUNT, ...) \
+	"{" #NAME ", " #ARG_TYPE "," bfmt__map2(bfmt__switch_case_to_template_text, __VA_ARGS__) "}"
+
+#define bfmt__switch_case_to_template_text(X) bfmt__switch_case_to_template_text2 X
+#define bfmt__switch_case_to_template_text2(CASE, TEXT) " " #CASE "{" TEXT "}"
+
+#define bfmt__to_template_input(X) bfmt__concat(bfmt__to_template_input_, bfmt__is_paren(X))(X)
+#define bfmt__to_template_input_0(X)
+#define bfmt__to_template_input_1(X) bfmt__to_template_input_apply X
+#define bfmt__to_template_input_apply(HEAD, ...) \
+	bfmt__concat(bfmt__to_template_input_, HEAD)(__VA_ARGS__)
+
+#define bfmt__to_template_input_bfmt_named(NAME, VALUE) { #NAME, bfmt(VALUE) },
+#define bfmt__to_template_input_bfmt__switch(ARG_TYPE, NAME, COUNT, ...) { #NAME, bfmt(COUNT) },
+
+#define bfmt__check_arg(X) bfmt__concat(bfmt__check_arg_, bfmt__is_paren(X))(X)
+#define bfmt__check_arg_0(X) (void)sizeof(struct { _Static_assert(bfmt__is_literal_str(X), "`" #X "` is not a literal string"); char bfmt__unused; }),
+#define bfmt__check_arg_1(X) 0,
+
+#define bfmt__is_literal_str(X) \
+	_Generic((bfmt__typeof_decay(X)){}, const char*: 1, char*: 1, default: 0)
+
+typedef struct {
+	const char* name;
+	bfmt__element_t element;
+} bfmt__template_input_t;
+
+#define bfmt__ptranslate(OUT, ELEMENTS, CONTEXT, TEMPLATE, INPUT) \
+	_Generic(OUT, \
+		bfmt_stream_t*: bfmt__ptranslate_stream, \
+		bfmt_ctx_t*: bfmt__ptranslate_ctx \
+	)(OUT, ELEMENTS, CONTEXT, TEMPLATE, INPUT)
+
+BFMT_API void
+bfmt__ptranslate_stream(
+	bfmt_stream_t* stream,
+	bfmt_locale_t* locale,
+	const char* context,
+	const char* template,
+	const bfmt__template_input_t* inputs
+);
+
+BFMT_API void
+bfmt__ptranslate_ctx(
+	bfmt_ctx_t* ctx,
+	bfmt_locale_t* locale,
+	const char* context,
+	const char* template,
+	const bfmt__template_input_t* inputs
+);
 
 // }}}
 
@@ -579,6 +741,45 @@ bfmt_stream_t* bfmt_stdout = &(bfmt_stream_t){
 bfmt_stream_t* bfmt_stderr = &(bfmt_stream_t){
 	.write = bfmt_write_stderr,
 };
+
+// }}}
+
+// Translation {{{
+
+void
+bfmt_translate_text(
+	bfmt_stream_t* stream,
+	bfmt_locale_t* locale,
+	const bfmt_text_t* text
+) {
+	bfmt__ptranslate_stream(stream, locale, text->context, text->content, (bfmt__template_input_t[1]){});
+}
+
+void
+bfmt__ptranslate_stream(
+	bfmt_stream_t* stream,
+	bfmt_locale_t* locale,
+	const char* context,
+	const char* template,
+	const bfmt__template_input_t* inputs
+) {
+	bfmt_ctx_t ctx = { .stream = stream };
+	bfmt__ptranslate_ctx(&ctx, locale, context, template, inputs);
+	if (ctx.bytes_buffered > 0) {
+		stream->write(stream->userdata, ctx.buf, ctx.bytes_buffered);
+	}
+}
+
+void
+bfmt__ptranslate_ctx(
+	bfmt_ctx_t* ctx,
+	bfmt_locale_t* locale,
+	const char* context,
+	const char* template,
+	const bfmt__template_input_t* inputs
+) {
+	// TODO: Implement
+}
 
 // }}}
 
