@@ -54,6 +54,7 @@ local test_dirs = {
   "barray",
   "bco",
   "bent",
+  "bfmt",
   "bhandle",
   "bhamt",
   "bhash",

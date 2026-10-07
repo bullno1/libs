@@ -972,6 +972,7 @@ INPUT                  = README.md \
 	bscn.h \
 	bsfn.h \
 	barg.h \
+	bfmt.h \
 
 
 # This tag can be used to specify the character encoding of the source files
@@ -2443,7 +2444,7 @@ INCLUDE_FILE_PATTERNS  =
 
 PREDEFINED             = DOXYGEN \
 	BRESMON_API BCORO_API BHASH_API BSERIAL_API BENT_API BSFN_API BSERIAL_MEM BSERIAL_STDIO \
-	BARRAY_API BLOG_API BLOG_FORMAT_ATTRIBUTE(FMT,VA)=
+	BARRAY_API BLOG_API BFMT_API BLOG_FORMAT_ATTRIBUTE(FMT,VA)=
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then this
 # tag can be used to specify a list of macro names that should be expanded. The
