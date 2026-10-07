@@ -127,6 +127,12 @@ typedef bfmt_plural_t bfmt_plural_rule_t(bfmt_plural_num_t number, bfmt_plural_t
 typedef struct {
 	bfmt_plural_rule_t* plural_rule;
 	const char* (*translate)(void* userdata, const char* ctx, const char* key);
+	// Optional. Called when `template` can not be rendered, with the byte
+	// offset of the error. `template` is what `translate` returned for
+	// (ctx, key), or `key` itself when there is no translation.
+	// A typical handler drops the mapping so that the source text is used
+	// from then on.
+	void (*report_error)(void* userdata, const char* ctx, const char* key, const char* template, int offset);
 	void* userdata;
 } bfmt_locale_t;
 
@@ -362,7 +368,7 @@ bfmt__make_wrapper(const void*, bfmt__format_ptr, bfmt_simple_options_t)
 	bfmt__concat(bfmt__to_template_text_, HEAD)(__VA_ARGS__)
 
 #define bfmt__to_template_text_bfmt_named(NAME, VALUE) "{" #NAME "}"
-#define bfmt__to_template_text_bfmt__switch(ARG_TYPE, NAME, COUNT, ...) \
+#define bfmt__to_template_text_bfmt__switch(ARG_TYPE, NAME, VALUE, ...) \
 	"{" #NAME ", " #ARG_TYPE "," bfmt__map2(bfmt__switch_case_to_template_text, __VA_ARGS__) "}"
 
 #define bfmt__switch_case_to_template_text(X) bfmt__switch_case_to_template_text2 X
@@ -374,19 +380,49 @@ bfmt__make_wrapper(const void*, bfmt__format_ptr, bfmt_simple_options_t)
 #define bfmt__to_template_input_apply(HEAD, ...) \
 	bfmt__concat(bfmt__to_template_input_, HEAD)(__VA_ARGS__)
 
-#define bfmt__to_template_input_bfmt_named(NAME, VALUE) { #NAME, bfmt(VALUE) },
-#define bfmt__to_template_input_bfmt__switch(ARG_TYPE, NAME, COUNT, ...) { #NAME, bfmt(COUNT) },
+#define bfmt__to_template_input_bfmt_named(NAME, VALUE) bfmt__template_input(#NAME, VALUE),
+#define bfmt__to_template_input_bfmt__switch(ARG_TYPE, NAME, VALUE, ...) bfmt__template_input(#NAME, VALUE),
+
+#define bfmt__template_input(NAME, VALUE) { NAME, bfmt(VALUE), bfmt__value_kind(VALUE) }
+
+// The same promoted type that `bfmt` stores the value as
+#define bfmt__value_kind(VALUE) \
+	_Generic(0 ? (VALUE) : (VALUE), \
+		const char*: BFMT__VALUE_STR, \
+		char*: BFMT__VALUE_STR, \
+		int: BFMT__VALUE_INT, \
+		unsigned int: BFMT__VALUE_UINT, \
+		long: BFMT__VALUE_LONG, \
+		unsigned long: BFMT__VALUE_ULONG, \
+		long long: BFMT__VALUE_LLONG, \
+		unsigned long long: BFMT__VALUE_ULLONG, \
+		default: BFMT__VALUE_OTHER \
+	)
 
 #define bfmt__check_arg(X) bfmt__concat(bfmt__check_arg_, bfmt__is_paren(X))(X)
 #define bfmt__check_arg_0(X) (void)sizeof(struct { _Static_assert(bfmt__is_literal_str(X), "`" #X "` is not a literal string"); char bfmt__unused; }),
-#define bfmt__check_arg_1(X) 0,
+#define bfmt__check_arg_1(X) (void)0,
 
 #define bfmt__is_literal_str(X) \
 	_Generic((bfmt__typeof_decay(X)){}, const char*: 1, char*: 1, default: 0)
 
+// Lets the renderer read plural counts and select keys out of an element
+// without formatting them first
+typedef enum {
+	BFMT__VALUE_OTHER,
+	BFMT__VALUE_STR,
+	BFMT__VALUE_INT,
+	BFMT__VALUE_UINT,
+	BFMT__VALUE_LONG,
+	BFMT__VALUE_ULONG,
+	BFMT__VALUE_LLONG,
+	BFMT__VALUE_ULLONG,
+} bfmt__value_kind_t;
+
 typedef struct {
 	const char* name;
 	bfmt__element_t element;
+	bfmt__value_kind_t kind;
 } bfmt__template_input_t;
 
 #define bfmt__ptranslate(OUT, ELEMENTS, CONTEXT, TEMPLATE, INPUT) \
@@ -443,7 +479,6 @@ bfmt__print_ctx(bfmt_ctx_t* ctx, const bfmt__element_t* elements);
 #define BFMT_IMPLEMENTED
 
 #include <string.h>
-#include <alloca.h>
 
 // Format {{{
 
@@ -519,6 +554,7 @@ bfmt__int_specifier(bfmt_int_options_t options, char decimal) {
 		case BFMT_BASE_DEC: return decimal;
 		case BFMT_BASE_OCT: return 'o';
 		case BFMT_BASE_HEX: return options.uppercase ? 'X' : 'x';
+		default: return decimal;
 	}
 }
 
@@ -529,6 +565,7 @@ bfmt__float_specifier(bfmt_float_options_t options) {
 		case BFMT_FLOAT_EXPONENT: return options.uppercase ? 'E' : 'e';
 		case BFMT_FLOAT_HEX: return options.uppercase ? 'A' : 'a';
 		case BFMT_FLOAT_GENERAL: return options.uppercase ? 'G' : 'g';
+		default: return 'f';
 	}
 }
 
@@ -558,7 +595,7 @@ bfmt__format_char(bfmt_ctx_t* ctx, char value, bfmt_simple_options_t options) {
 }
 
 void
-bfmt__format_pointer(bfmt_ctx_t* ctx, const void* value, bfmt_simple_options_t options) {
+bfmt__format_ptr(bfmt_ctx_t* ctx, const void* value, bfmt_simple_options_t options) {
 	char fmt[16];
 	bfmt_options_t fmt_options = {
 		.layout = options.layout,
@@ -770,6 +807,429 @@ bfmt__ptranslate_stream(
 	}
 }
 
+// Template renderer for the ICU MessageFormat subset produced by the macros:
+//
+//   message   = text ( '{' argument '}' text )*
+//   argument  = name
+//             | name ',' ( "plural" | "selectordinal" | "select" ) ',' cases
+//   cases     = ( selector '{' message '}' )+       ; must include `other`
+//   selector  = keyword | '=' digits                ; `=N` only for plural kinds
+//
+// Whitespace around names, types and selectors is ignored. `#` inside a plural
+// case is the number. `''` is a literal apostrophe. An apostrophe followed by
+// `{`, `}` or `#` quotes the text up to the next lone apostrophe. Unlike ICU,
+// this holds everywhere and not only inside a plural case for `#`.
+// Anything else, `offset:` included, is unsupported and is a syntax error.
+//
+// The template is rendered in a single pass with no prior validation. Cases
+// that are not selected are only skipped, so an error inside one goes
+// unnoticed until it is selected. On the first error, rendering stops, the
+// rest of the template is written out verbatim starting from the offending
+// argument and `bfmt_locale_t::report_error` is called.
+
+typedef struct {
+	bfmt_ctx_t* out;
+	bfmt_locale_t* locale;
+	const bfmt__template_input_t* inputs;
+	const char* error;  // Position of the first error, NULL if none
+	const char* resume;  // Where verbatim output starts after an error
+} bfmt__tpl_t;
+
+typedef struct {
+	char buf[64];
+	int len;
+} bfmt__tpl_capture_t;
+
+typedef enum {
+	BFMT__TPL_PLURAL,
+	BFMT__TPL_ORDINAL,
+	BFMT__TPL_SELECT,
+} bfmt__tpl_kind_t;
+
+static const char*
+bfmt__tpl_argument(bfmt__tpl_t* tpl, const char* p, const bfmt__element_t* hash);
+
+static inline bool
+bfmt__tpl_is_space(char c) {
+	return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f' || c == '\v';
+}
+
+static inline bool
+bfmt__tpl_is_digit(char c) {
+	return c >= '0' && c <= '9';
+}
+
+static inline bool
+bfmt__tpl_is_name_char(char c) {
+	return c != '\0'
+		&& c != '{' && c != '}' && c != ',' && c != '=' && c != '\'' && c != '#'
+		&& !bfmt__tpl_is_space(c);
+}
+
+// Whether the apostrophe at `p` opens quoted text
+static inline bool
+bfmt__tpl_is_quote(const char* p) {
+	return p[1] == '{' || p[1] == '}' || p[1] == '#';
+}
+
+static const char*
+bfmt__tpl_skip_space(const char* p) {
+	while (bfmt__tpl_is_space(*p)) { ++p; }
+	return p;
+}
+
+static bool
+bfmt__tpl_eq(const char* str, int len, const char* lit) {
+	return strncmp(str, lit, (size_t)len) == 0 && lit[len] == '\0';
+}
+
+// Record the first error and return the end of the template so that every
+// caller unwinds without doing further work.
+// `resume` is the start of the text that has not been rendered.
+static const char*
+bfmt__tpl_fail(bfmt__tpl_t* tpl, const char* at, const char* resume) {
+	if (tpl->error == NULL) {
+		tpl->error = at;
+		tpl->resume = resume;
+	}
+	return at + strlen(at);
+}
+
+static void
+bfmt__tpl_write(bfmt__tpl_t* tpl, const char* begin, const char* end) {
+	if (end > begin) {
+		bfmt_write(tpl->out, begin, (int)(end - begin));
+	}
+}
+
+static const bfmt__template_input_t*
+bfmt__tpl_find_input(const bfmt__tpl_t* tpl, const char* name, int len) {
+	for (const bfmt__template_input_t* itr = tpl->inputs; itr != NULL && itr->name != NULL; ++itr) {
+		if (bfmt__tpl_eq(name, len, itr->name)) { return itr; }
+	}
+	return NULL;
+}
+
+// Read a builtin integer straight out of the element
+static bool
+bfmt__tpl_read_int(const bfmt__template_input_t* input, uint64_t* magnitude, bool* negative) {
+	const void* value = input->element.value;
+	long long sint;
+	switch (input->kind) {
+		case BFMT__VALUE_INT:    sint = *(const int*)value; break;
+		case BFMT__VALUE_LONG:   sint = *(const long*)value; break;
+		case BFMT__VALUE_LLONG:  sint = *(const long long*)value; break;
+		case BFMT__VALUE_UINT:   *magnitude = *(const unsigned int*)value; return true;
+		case BFMT__VALUE_ULONG:  *magnitude = *(const unsigned long*)value; return true;
+		case BFMT__VALUE_ULLONG: *magnitude = *(const unsigned long long*)value; return true;
+		default: return false;
+	}
+
+	*negative = sint < 0;
+	*magnitude = sint < 0 ? 0 - (uint64_t)sint : (uint64_t)sint;
+	return true;
+}
+
+static void
+bfmt__tpl_capture_write(void* userdata, const char* str, int len) {
+	bfmt__tpl_capture_t* capture = userdata;
+	int space = (int)sizeof(capture->buf) - 1 - capture->len;
+	if (len > space) { len = space; }
+	memcpy(capture->buf + capture->len, str, (size_t)len);
+	capture->len += len;
+	capture->buf[capture->len] = '\0';
+}
+
+// Render an element into a buffer using its own formatter, for the values
+// that can not be read directly: non-integer plural counts and non-string
+// select keys.
+static void
+bfmt__tpl_capture(const bfmt__element_t* element, bfmt__tpl_capture_t* capture) {
+	capture->len = 0;
+	capture->buf[0] = '\0';
+	bfmt_stream_t stream = { .write = bfmt__tpl_capture_write, .userdata = capture };
+	bfmt_ctx_t ctx = { .stream = &stream };
+	element->formatter(&ctx, element->value, element->options);
+	if (ctx.bytes_buffered > 0) {
+		stream.write(stream.userdata, ctx.buf, ctx.bytes_buffered);
+	}
+}
+
+// Plural operands are defined over the visible digits: a value shown as "1.0"
+// is not the same plural case as "1".
+static void
+bfmt__tpl_parse_number(const char* str, bfmt_plural_num_t* out, bool* negative) {
+	bfmt_plural_num_t num = { 0 };
+	const char* p = str;
+	while (*p != '\0' && !bfmt__tpl_is_digit(*p)) {
+		if (*p == '-') { *negative = true; }
+		++p;
+	}
+	for (; bfmt__tpl_is_digit(*p); ++p) {
+		num.i = num.i * 10 + (uint64_t)(*p - '0');
+	}
+	if (*p == '.') {
+		for (++p; bfmt__tpl_is_digit(*p); ++p) {
+			num.f = num.f * 10 + (uint64_t)(*p - '0');
+			num.v += 1;
+		}
+	}
+	num.t = num.f;
+	num.w = num.v;
+	while (num.w > 0 && num.t % 10 == 0) {
+		num.t /= 10;
+		num.w -= 1;
+	}
+	*out = num;
+}
+
+static bool
+bfmt__tpl_category(const char* str, int len, bfmt_plural_t* category) {
+	if (bfmt__tpl_eq(str, len, "zero")) { *category = BFMT_PLURAL_ZERO; return true; }
+	if (bfmt__tpl_eq(str, len, "one"))  { *category = BFMT_PLURAL_ONE;  return true; }
+	if (bfmt__tpl_eq(str, len, "two"))  { *category = BFMT_PLURAL_TWO;  return true; }
+	if (bfmt__tpl_eq(str, len, "few"))  { *category = BFMT_PLURAL_FEW;  return true; }
+	if (bfmt__tpl_eq(str, len, "many")) { *category = BFMT_PLURAL_MANY; return true; }
+	return false;
+}
+
+// Skip message text until an unmatched '}' or the end of the template.
+// Returns a pointer to that character.
+static const char*
+bfmt__tpl_skip(const char* p) {
+	int depth = 0;
+	for (;;) {
+		switch (*p) {
+			case '\0':
+				return p;
+			case '{':
+				++depth;
+				++p;
+				break;
+			case '}':
+				if (depth == 0) { return p; }
+				--depth;
+				++p;
+				break;
+			case '\'':
+				if (p[1] == '\'') {
+					p += 2;
+				} else if (bfmt__tpl_is_quote(p)) {
+					for (++p; *p != '\0'; ++p) {
+						if (*p != '\'') { continue; }
+						++p;
+						if (*p != '\'') { break; }  // Closing apostrophe
+					}
+				} else {
+					++p;
+				}
+				break;
+			default:
+				++p;
+				break;
+		}
+	}
+}
+
+// Render message text until an unmatched '}' or the end of the template.
+// Returns a pointer to that character.
+// `hash` is what `#` stands for, NULL outside of a plural case.
+static const char*
+bfmt__tpl_message(bfmt__tpl_t* tpl, const char* p, const bfmt__element_t* hash) {
+	const char* run = p;  // Start of the pending literal run
+	for (;;) {
+		switch (*p) {
+			case '\0':
+			case '}':
+				bfmt__tpl_write(tpl, run, p);
+				return p;
+			case '\'':
+				if (p[1] == '\'') {  // '' is a literal apostrophe
+					bfmt__tpl_write(tpl, run, p + 1);
+					p += 2;
+					run = p;
+				} else if (bfmt__tpl_is_quote(p)) {
+					bfmt__tpl_write(tpl, run, p);
+					run = ++p;
+					// Quoted text runs to the next lone apostrophe, or to the
+					// end of the template if unterminated
+					for (;;) {
+						if (*p == '\0') {
+							bfmt__tpl_write(tpl, run, p);
+							return p;
+						} else if (*p == '\'' && p[1] == '\'') {
+							bfmt__tpl_write(tpl, run, p + 1);
+							p += 2;
+							run = p;
+						} else if (*p == '\'') {
+							bfmt__tpl_write(tpl, run, p);
+							run = ++p;
+							break;
+						} else {
+							++p;
+						}
+					}
+				} else {  // A lone apostrophe is literal
+					++p;
+				}
+				break;
+			case '#':
+				if (hash != NULL) {
+					bfmt__tpl_write(tpl, run, p);
+					hash->formatter(tpl->out, hash->value, hash->options);
+					run = ++p;
+				} else {
+					++p;
+				}
+				break;
+			case '{':
+				bfmt__tpl_write(tpl, run, p);
+				p = bfmt__tpl_argument(tpl, p, hash);
+				run = p;
+				break;
+			default:
+				++p;
+				break;
+		}
+	}
+}
+
+// Render an argument starting at its '{'. Returns the position after the
+// matching '}'.
+static const char*
+bfmt__tpl_argument(bfmt__tpl_t* tpl, const char* p, const bfmt__element_t* hash) {
+	const char* start = p;
+
+	p = bfmt__tpl_skip_space(p + 1);
+	const char* name = p;
+	while (bfmt__tpl_is_name_char(*p)) { ++p; }
+	int name_len = (int)(p - name);
+	if (name_len == 0) { return bfmt__tpl_fail(tpl, p, start); }
+
+	const bfmt__template_input_t* input = bfmt__tpl_find_input(tpl, name, name_len);
+	if (input == NULL) { return bfmt__tpl_fail(tpl, name, start); }
+
+	p = bfmt__tpl_skip_space(p);
+	if (*p == '}') {  // {name}
+		input->element.formatter(tpl->out, input->element.value, input->element.options);
+		return p + 1;
+	}
+	if (*p != ',') { return bfmt__tpl_fail(tpl, p, start); }
+
+	p = bfmt__tpl_skip_space(p + 1);
+	const char* type = p;
+	while (bfmt__tpl_is_name_char(*p)) { ++p; }
+	int type_len = (int)(p - type);
+	bfmt__tpl_kind_t kind;
+	if (bfmt__tpl_eq(type, type_len, "plural")) {
+		kind = BFMT__TPL_PLURAL;
+	} else if (bfmt__tpl_eq(type, type_len, "selectordinal")) {
+		kind = BFMT__TPL_ORDINAL;
+	} else if (bfmt__tpl_eq(type, type_len, "select")) {
+		kind = BFMT__TPL_SELECT;
+	} else {
+		return bfmt__tpl_fail(tpl, type, start);
+	}
+
+	p = bfmt__tpl_skip_space(p);
+	if (*p != ',') { return bfmt__tpl_fail(tpl, p, start); }
+	p = bfmt__tpl_skip_space(p + 1);
+
+	// Evaluate the selector. Integers and strings are read directly, anything
+	// else has to go through its formatter first.
+	bfmt__tpl_capture_t capture;
+	bfmt_plural_num_t num = { 0 };
+	bool negative = false;
+	bfmt_plural_t category = BFMT_PLURAL_OTHER;
+	const char* key = "";
+	int key_len = 0;
+	if (kind == BFMT__TPL_SELECT) {
+		if (input->kind == BFMT__VALUE_STR) {
+			key = *(const char* const*)input->element.value;
+			if (key == NULL) { key = ""; }
+			key_len = (int)strlen(key);
+		} else {
+			bfmt__tpl_capture(&input->element, &capture);
+			key = capture.buf;
+			key_len = capture.len;
+		}
+	} else {
+		if (!bfmt__tpl_read_int(input, &num.i, &negative)) {
+			bfmt__tpl_capture(&input->element, &capture);
+			bfmt__tpl_parse_number(capture.buf, &num, &negative);
+		}
+		if (tpl->locale != NULL && tpl->locale->plural_rule != NULL) {
+			category = tpl->locale->plural_rule(
+				num,
+				kind == BFMT__TPL_PLURAL ? BFMT_PLURAL_CARDINAL : BFMT_PLURAL_ORDINAL
+			);
+		}
+	}
+
+	// Skip over every case, remembering the bodies that match: cases may come
+	// in any order and an explicit value beats a keyword.
+	const char* explicit_body = NULL;
+	const char* keyword_body = NULL;
+	const char* other_body = NULL;
+	for (;;) {
+		p = bfmt__tpl_skip_space(p);
+		if (*p == '}') { break; }
+		if (*p == '\0') { return bfmt__tpl_fail(tpl, p, start); }
+
+		bool is_explicit = false;
+		bool is_keyword = false;
+		bool is_other = false;
+		if (*p == '=') {
+			if (kind == BFMT__TPL_SELECT) { return bfmt__tpl_fail(tpl, p, start); }
+			++p;
+			if (!bfmt__tpl_is_digit(*p)) { return bfmt__tpl_fail(tpl, p, start); }
+			uint64_t value = 0;
+			for (; bfmt__tpl_is_digit(*p); ++p) {
+				value = value * 10 + (uint64_t)(*p - '0');
+			}
+			is_explicit = !negative && num.f == 0 && num.i == value;
+		} else {
+			const char* selector = p;
+			while (bfmt__tpl_is_name_char(*p)) { ++p; }
+			int selector_len = (int)(p - selector);
+			if (selector_len == 0) { return bfmt__tpl_fail(tpl, p, start); }
+
+			is_other = bfmt__tpl_eq(selector, selector_len, "other");
+			if (is_other) {
+				// Nothing to match
+			} else if (kind == BFMT__TPL_SELECT) {
+				is_keyword = selector_len == key_len
+					&& memcmp(selector, key, (size_t)selector_len) == 0;
+			} else {
+				bfmt_plural_t selector_category;
+				is_keyword = bfmt__tpl_category(selector, selector_len, &selector_category)
+					&& selector_category == category;
+			}
+		}
+
+		p = bfmt__tpl_skip_space(p);
+		if (*p != '{') { return bfmt__tpl_fail(tpl, p, start); }
+		const char* body = p + 1;
+		p = bfmt__tpl_skip(body);
+		if (*p != '}') { return bfmt__tpl_fail(tpl, p, start); }
+		++p;
+
+		if (is_explicit && explicit_body == NULL) { explicit_body = body; }
+		if (is_keyword && keyword_body == NULL) { keyword_body = body; }
+		if (is_other && other_body == NULL) { other_body = body; }
+	}
+	if (other_body == NULL) { return bfmt__tpl_fail(tpl, p, start); }
+
+	const char* body = explicit_body != NULL ? explicit_body
+		: keyword_body != NULL ? keyword_body
+		: other_body;
+	// select keeps the enclosing '#'
+	bfmt__tpl_message(tpl, body, kind == BFMT__TPL_SELECT ? hash : &input->element);
+	if (tpl->error != NULL) { return p + strlen(p); }
+
+	return p + 1;
+}
+
 void
 bfmt__ptranslate_ctx(
 	bfmt_ctx_t* ctx,
@@ -778,13 +1238,29 @@ bfmt__ptranslate_ctx(
 	const char* template,
 	const bfmt__template_input_t* inputs
 ) {
-	// TODO: Implement
+	bfmt__tpl_t tpl = { .out = ctx, .locale = locale, .inputs = inputs };
+
+	const char* text = NULL;
+	if (locale != NULL && locale->translate != NULL) {
+		text = locale->translate(locale->userdata, context, template);
+	}
+	if (text == NULL) { text = template; }
+
+	const char* end = bfmt__tpl_message(&tpl, text, NULL);
+	if (tpl.error == NULL && *end == '}') { bfmt__tpl_fail(&tpl, end, end); }  // Stray '}'
+
+	if (tpl.error != NULL) {
+		// Make the problem visible instead of silently truncating
+		bfmt_write(ctx, tpl.resume, (int)strlen(tpl.resume));
+		if (locale != NULL && locale->report_error != NULL) {
+			locale->report_error(locale->userdata, context, template, text, (int)(tpl.error - text));
+		}
+	}
 }
 
 // }}}
 
-#endif
-
+// Configure nanoprintf
 #define NANOPRINTF_VISIBILITY_STATIC
 #define NANOPRINTF_IMPLEMENTATION
 #define NANOPRINTF_USE_FLOAT_FORMAT_SPECIFIERS 1
@@ -798,6 +1274,7 @@ bfmt__ptranslate_ctx(
 #define NANOPRINTF_USE_FIELD_WIDTH_FORMAT_SPECIFIERS 1
 #define NANOPRINTF_USE_PRECISION_FORMAT_SPECIFIERS 1
 #define NANOPRINTF_USE_WRITEBACK_FORMAT_SPECIFIERS 0
+#define NANOPRINTF_USE_ALT_FORM_FLAG 1
 
 // nanoprintf {{{
 
@@ -3174,3 +3651,5 @@ int npf_snprintf_(char * NPF_RESTRICT buffer,
 */
 
 // }}}
+
+#endif
