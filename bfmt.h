@@ -18,7 +18,7 @@
 #endif
 
 #define bfmt_print(OUT, ...) \
-	bfmt__print(OUT, (bfmt__element_t[]){ bfmt__map(bfmt__to_element, __VA_ARGS__) {} })
+	bfmt__print(OUT, (bfmt__element_t[]){ bfmt__map(bfmt__to_element, __VA_ARGS__) { 0 } })
 
 #define bfmt_println(OUT, ...) bfmt_print(OUT, __VA_ARGS__ __VA_OPT__(,) "\n")
 
@@ -52,7 +52,7 @@
 			LOCALE, \
 			CONTEXT, \
 			bfmt__map(bfmt__to_template_text, __VA_ARGS__), \
-			(bfmt__template_input_t[]){ bfmt__map(bfmt__to_template_input, __VA_ARGS__) {} } \
+			(bfmt__template_input_t[]){ bfmt__map(bfmt__to_template_input, __VA_ARGS__) { 0 } } \
 		) \
 	)
 
@@ -404,7 +404,7 @@ bfmt__make_wrapper(const void*, bfmt__format_ptr, bfmt_simple_options_t)
 #define bfmt__check_arg_1(X) (void)0,
 
 #define bfmt__is_literal_str(X) \
-	_Generic((bfmt__typeof_decay(X)){}, const char*: 1, char*: 1, default: 0)
+	_Generic((bfmt__typeof_decay(X)){ 0 }, const char*: 1, char*: 1, default: 0)
 
 // Lets the renderer read plural counts and select keys out of an element
 // without formatting them first
@@ -789,7 +789,7 @@ bfmt_translate_text(
 	bfmt_locale_t* locale,
 	const bfmt_text_t* text
 ) {
-	bfmt__ptranslate_stream(stream, locale, text->context, text->content, (bfmt__template_input_t[1]){});
+	bfmt__ptranslate_stream(stream, locale, text->context, text->content, (bfmt__template_input_t[1]){ 0 });
 }
 
 void
