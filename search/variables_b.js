@@ -9,5 +9,6 @@ var searchData=
   ['mem_6',['mem',['../structbserial__mem__out__s.html#ac0780627d1b426df74314d41c4a6e2b5',1,'bserial_mem_out_s']]],
   ['memctx_7',['memctx',['../structbhash__config__s.html#acba711c5e549436a3f74e3234c6530c9',1,'bhash_config_s']]],
   ['message_8',['message',['../structbarg__result__t.html#a4806f7dfda4984f85722608d2814d02c',1,'barg_result_t']]],
-  ['msg_9',['msg',['../structbent__msg__handler__t.html#a449d4261ffea6eaa619ac336f065280b',1,'bent_msg_handler_t']]]
+  ['min_5fwidth_9',['min_width',['../structbfmt__layout__t.html#a0c392d1ed5738e9b092fb2fb6c509ad8',1,'bfmt_layout_t']]],
+  ['msg_10',['msg',['../structbent__msg__handler__t.html#a449d4261ffea6eaa619ac336f065280b',1,'bent_msg_handler_t']]]
 ];

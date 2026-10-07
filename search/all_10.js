@@ -5,7 +5,8 @@ var searchData=
   ['reload_2',['Hot reload',['../bco_8h.html#autotoc_md4',1,'']]],
   ['remove_3',['remove',['../structbent__sys__def__t.html#a96a383366189e847ef618ce31b31ee03',1,'bent_sys_def_t']]],
   ['repeatable_4',['repeatable',['../structbarg__opt__t.html#ae49c222cc27823a14a7033ff4902cf3d',1,'barg_opt_t']]],
-  ['require_5',['require',['../structbent__sys__def__t.html#ac7cdf1c432817c50caf5f16af20bcbc0',1,'bent_sys_def_t']]],
-  ['root_6',['root',['../structbhamt__sample__t.html#a9b0baf9cc474117b7b883d416bca8a4f',1,'bhamt_sample_t']]],
-  ['run_7',['run',['../structbtest__case__t.html#a39031630b32c8d7fb6dab402ccfa3206',1,'btest_case_t']]]
+  ['report_5ferror_5',['report_error',['../structbfmt__locale__t.html#a5b747bb96d92f244b8b33ac393584ea9',1,'bfmt_locale_t']]],
+  ['require_6',['require',['../structbent__sys__def__t.html#ac7cdf1c432817c50caf5f16af20bcbc0',1,'bent_sys_def_t']]],
+  ['root_7',['root',['../structbhamt__sample__t.html#a9b0baf9cc474117b7b883d416bca8a4f',1,'bhamt_sample_t']]],
+  ['run_8',['run',['../structbtest__case__t.html#a39031630b32c8d7fb6dab402ccfa3206',1,'btest_case_t']]]
 ];

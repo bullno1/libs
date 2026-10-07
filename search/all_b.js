@@ -18,6 +18,7 @@ var searchData=
   ['message_15',['message',['../structbarg__result__t.html#a4806f7dfda4984f85722608d2814d02c',1,'barg_result_t']]],
   ['messages_16',['Messages',['../bent_8h.html#autotoc_md22',1,'']]],
   ['messaging_17',['Messaging',['../bco_8h.html#autotoc_md3',1,'']]],
-  ['motivation_18',['Motivation',['../bserial_8h.html#autotoc_md5',1,'']]],
-  ['msg_19',['msg',['../structbent__msg__handler__t.html#a449d4261ffea6eaa619ac336f065280b',1,'bent_msg_handler_t']]]
+  ['min_5fwidth_18',['min_width',['../structbfmt__layout__t.html#a0c392d1ed5738e9b092fb2fb6c509ad8',1,'bfmt_layout_t']]],
+  ['motivation_19',['Motivation',['../bserial_8h.html#autotoc_md5',1,'']]],
+  ['msg_20',['msg',['../structbent__msg__handler__t.html#a449d4261ffea6eaa619ac336f065280b',1,'bent_msg_handler_t']]]
 ];
