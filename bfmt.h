@@ -8,25 +8,153 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+/**
+ * @file
+ * Type-safe formatting and localization.
+ *
+ * Printing
+ * --------
+ *
+ * @ref bfmt_print writes its arguments one after another, picking a formatter
+ * for each from its type:
+ *
+ * @code{.c}
+ * int num_files = ...;
+ * bfmt_println(bfmt_stdout, "Copied ", num_files, " files to ", path);
+ * @endcode
+ *
+ * An argument may be wrapped in @ref bfmt to give it formatting options.
+ * Alternatively, use @ref bfmt_with to format it with a specific formatter.
+ * Types of your own are printed natively once listed in @ref BFMT_USER_TYPES.
+ *
+ * Localization
+ * ------------
+ *
+ * @ref bfmt_translate takes the same kind of arguments but tags each value with
+ * a name using one of @ref bfmt_named, @ref bfmt_plural, @ref bfmt_ordinal and
+ * @ref bfmt_select, like this:
+ *
+ * @code{.c}
+ * bfmt_translate(
+ *     bfmt_stdout, locale,
+ *     "Copied ", bfmt_plural(num_files, n, (one, "# file"), (other, "# files")),
+ *     " to ", bfmt_named(path, path)
+ * );
+ * @endcode
+ *
+ * The arguments are assembled at compile time into a template in the
+ * [ICU MessageFormat](https://unicode-org.github.io/icu/userguide/format_parse/messages/)
+ * syntax.
+ * In the above example, that would be:
+ * `Copied {num_files, plural, one{# file} other{# files}} to {path}`.
+ * That template is both the key looked up in the @ref bfmt_locale_t and the
+ * text a translator works from.
+ * A translation may reorder the arguments, add the plural categories of its
+ * language or turn a plain argument into a plural.
+ *
+ * Text without values, such as a table of menu labels, is declared with
+ * @ref bfmt_text and rendered later with @ref bfmt_translate_text.
+ *
+ * Extracting translatable text
+ * ----------------------------
+ *
+ * The templates only exist after preprocessing.
+ * With @ref BFMT_EXTRACT defined, the translation macros expand to plain
+ * `gettext` and `pgettext` calls around the template, so that `xgettext` can
+ * extract them from the preprocessor's output without any `--keyword` flag:
+ *
+ * @code{.sh}
+ * cpp -C -DBFMT_EXTRACT $(CFLAGS) foo.c > extract/foo.c
+ * xgettext --from-code=UTF-8 --add-comments=TRANSLATORS: \
+ *     --flag=gettext:1:no-c-format --flag=pgettext:2:no-c-format \
+ *     -o messages.pot extract/foo.c
+ * @endcode
+ *
+ * Template syntax
+ * ---------------
+ *
+ * The renderer understands this subset of ICU MessageFormat:
+ *
+ * - `{name}`: the value of an argument.
+ * - `{name, plural, one{...} other{...}}`: a case chosen by the cardinal
+ *   plural rule of the locale from `zero`, `one`, `two`, `few`, `many` and
+ *   `other`, or by an exact value with `=N`.
+ *   Inside a case, `#` is the number itself.
+ * - `{name, selectordinal, ...}`: the same, with the ordinal plural rule.
+ * - `{name, select, male{...} female{...} other{...}}`: a case chosen by
+ *   comparing the value as text.
+ * - `''` is a literal apostrophe.
+ *   An apostrophe quotes the text up to the next lone apostrophe when it is
+ *   followed by `{`, `}` or `#`.
+ *   Unlike ICU, this holds everywhere, not only inside a plural case for `#`.
+ *
+ * Whitespace around names, types and selectors is ignored.
+ * Every `plural`, `selectordinal` and `select` must have an `other` case.
+ * Anything else is a syntax error.
+ *
+ * Templates are rendered in a single pass with no prior validation.
+ * On the first error, rendering stops, the rest of the template is written
+ * out verbatim starting from the offending argument and
+ * @ref bfmt_locale_t::report_error is called.
+ */
+
+/*! Linkage of the API functions, e.g: `__declspec(dllexport)` */
 #ifndef BFMT_API
 #define BFMT_API
 #endif
 
+/**
+ * Types of your own that @ref bfmt_print and @ref bfmt format natively.
+ *
+ * Define it before including this header as an X-macro listing, for each
+ * type, list the type itself, the name of its formatter and its options type:
+ *
+ * @code{.c}
+ * #define BFMT_USER_TYPES(X) \
+ *     X(vec2_t, format_vec2, bfmt_no_options_t) \
+ *     X(color_t, format_color, color_options_t)
+ * #include "bfmt.h"
+ *
+ * bfmt_decl_formatter(vec2_t, format_vec2, bfmt_no_options_t)
+ * bfmt_decl_formatter(color_t, format_color, color_options_t)
+ * @endcode
+ *
+ * Every formatter listed here must also be declared with
+ * @ref bfmt_decl_formatter or @ref bfmt_register_formatter.
+ *
+ * @hideinitializer
+ */
 #ifndef BFMT_USER_TYPES
 #define BFMT_USER_TYPES(X)
-// #define BFMT_USER_TYPES(X) X(TYPE, FORMATTER, OPTIONS)
 #endif
 
 // Stream output {{{
 
+/*! Where formatted text goes */
 typedef struct {
+	/**
+	 * Called with each chunk of output.
+	 *
+	 * @param userdata @ref userdata
+	 * @param string the chunk, not NUL-terminated
+	 * @param len its length in bytes
+	 */
 	void (*write)(void* userdata, const char* string, int len);
-	void* userdata;
+	void* userdata;  /*!< Passed to @ref write */
 } bfmt_stream_t;
 
+/*! A stream writing to `stdout` */
 extern bfmt_stream_t* bfmt_stdout;
+
+/*! A stream writing to `stderr` */
 extern bfmt_stream_t* bfmt_stderr;
 
+/**
+ * Make a stream that writes to a `FILE`.
+ *
+ * The file is referenced, not owned, and must stay open for as long as the
+ * stream is in use.
+ */
 BFMT_API bfmt_stream_t
 bfmt_wrap_file(FILE* file);
 
@@ -34,92 +162,199 @@ bfmt_wrap_file(FILE* file);
 
 // Formatting {{{
 
+/**
+ * Output context handed to formatters.
+ *
+ * Opaque.
+ * A formatter writes through it with @ref bfmt_write and @ref bfmt_fmt, or
+ * passes it as the output of @ref bfmt_print and @ref bfmt_translate.
+ */
 typedef struct bfmt_ctx_s bfmt_ctx_t;
 
+/*! Options type for a formatter that takes none */
 typedef struct {
+	/// @cond INTERNAL
 	char bfmt__unused;
+	/// @endcond
 } bfmt_no_options_t;
 
+/*! Where a value sits in a field wider than itself */
 typedef enum {
-	BFMT_ALIGN_RIGHT,
-	BFMT_ALIGN_LEFT,
+	BFMT_ALIGN_RIGHT,  /*!< Padded on the left, the default */
+	BFMT_ALIGN_LEFT,   /*!< Padded on the right */
 } bfmt_alignment_t;
 
+/*! Width and alignment of a value */
 typedef struct {
-	int min_width;
-	bfmt_alignment_t align;
+	int min_width;           /*!< Pad to at least this many characters, 0 for none */
+	bfmt_alignment_t align;  /*!< Which side the padding goes */
 } bfmt_layout_t;
 
+/*! How the sign of a number is shown */
 typedef enum {
-	BFMT_SIGN_IF_NEEDED,       // " 1", "-1"
-	BFMT_SIGN_ALWAYS,          // "+1", "-1"
-	BFMT_SIGN_SPACE_IF_PLUS,   // " 1", "-1"
+	BFMT_SIGN_IF_NEEDED,       /*!< `1`, `-1`, the default */
+	BFMT_SIGN_ALWAYS,          /*!< `+1`, `-1` */
+	BFMT_SIGN_SPACE_IF_PLUS,   /*!< ` 1`, `-1` */
 } bfmt_sign_style_t;
 
+/*! Numeral base of an integer */
 typedef enum {
-	BFMT_BASE_DEC,
-	BFMT_BASE_HEX,
-	BFMT_BASE_OCT,
+	BFMT_BASE_DEC,  /*!< Decimal, the default */
+	BFMT_BASE_HEX,  /*!< Hexadecimal, lowercase unless `uppercase` is set */
+	BFMT_BASE_OCT,  /*!< Octal */
 } bfmt_base_t;
 
+/*! Notation of a floating point number, as in `printf` */
 typedef enum {
-    BFMT_FLOAT_FIXED,       // 123.456 or 1.23456e+02
-    BFMT_FLOAT_EXPONENT,    // 1.23456e+02
-    BFMT_FLOAT_GENERAL,     // 123.456
-    BFMT_FLOAT_HEX,         // 0x1.edd2f1p+6
+	BFMT_FLOAT_FIXED,     /*!< `%f`: `123.456000`, the default */
+	BFMT_FLOAT_EXPONENT,  /*!< `%e`: `1.234560e+02` */
+	BFMT_FLOAT_GENERAL,   /*!< `%g`: `123.456` */
+	BFMT_FLOAT_HEX,       /*!< `%a`: `0x1.edd2f1a9fbe77p+6` */
 } bfmt_float_style_t;
 
+/**
+ * An optional precision.
+ *
+ * Make one with @ref bfmt_precision.
+ * It means the number of fraction digits of a float, the minimum number of
+ * digits of an integer and the maximum number of characters of a string, as
+ * in `printf`.
+ */
 typedef struct {
-	bool enabled;
-	int precision;
+	bool enabled;   /*!< Whether @ref precision applies */
+	int precision;  /*!< The precision when it does */
 } bfmt_precision_t;
 
+/*! Options for integers */
 typedef struct {
-	bfmt_layout_t layout;
-	bfmt_sign_style_t sign;
-	bfmt_base_t base;
-	bfmt_precision_t precision;
-	bool show_base;
-	bool zero_pad;
-	bool uppercase;
+	bfmt_layout_t layout;        /*!< Width and alignment */
+	bfmt_sign_style_t sign;      /*!< Sign */
+	bfmt_base_t base;            /*!< Numeral base */
+	bfmt_precision_t precision;  /*!< Minimum number of digits */
+	bool show_base;              /*!< Prefix `0x` or `0` for the non-decimal bases */
+	bool zero_pad;               /*!< Pad with zeros instead of spaces */
+	bool uppercase;              /*!< Uppercase digits and prefix */
 } bfmt_int_options_t;
 
+/*! Options for floating point numbers */
 typedef struct {
-	bfmt_layout_t layout;
-	bfmt_sign_style_t sign;
-	bfmt_float_style_t style;
-	bfmt_precision_t precision;
-	bool show_base;
-	bool zero_pad;
-	bool uppercase;
+	bfmt_layout_t layout;        /*!< Width and alignment */
+	bfmt_sign_style_t sign;      /*!< Sign */
+	bfmt_float_style_t style;    /*!< Notation */
+	bfmt_precision_t precision;  /*!< Number of fraction digits */
+	bool show_base;              /*!< Always show the decimal point */
+	bool zero_pad;               /*!< Pad with zeros instead of spaces */
+	bool uppercase;              /*!< Uppercase exponent, digits and `INF`/`NAN` */
 } bfmt_float_options_t;
 
+/*! Options for strings and booleans */
 typedef struct {
-	bfmt_layout_t layout;
-	bfmt_precision_t precision;
+	bfmt_layout_t layout;        /*!< Width and alignment */
+	bfmt_precision_t precision;  /*!< Maximum number of characters */
 } bfmt_str_options_t;
 
+/*! Options for characters and pointers */
 typedef struct {
-	bfmt_layout_t layout;
+	bfmt_layout_t layout;  /*!< Width and alignment */
 } bfmt_simple_options_t;
 
+/**
+ * Print values one after another.
+ *
+ * Each argument is formatted according to its type, which can be a string,
+ * a character, a boolean, any integer or floating point type, a pointer, a
+ * type listed in @ref BFMT_USER_TYPES, or the result of @ref bfmt or
+ * @ref bfmt_with.
+ * A call takes at most 17 arguments.
+ *
+ * @param OUT a `bfmt_stream_t*` or, inside a formatter, a `bfmt_ctx_t*`
+ * @param ... the values to print
+ *
+ * @hideinitializer
+ */
 #define bfmt_print(OUT, ...) \
 	bfmt__print(OUT, (bfmt__element_t[]){ bfmt__map(bfmt__to_element, __VA_ARGS__) { 0 } })
 
+/**
+ * Same as @ref bfmt_print, followed by a newline.
+ *
+ * @hideinitializer
+ */
 #define bfmt_println(OUT, ...) bfmt_print(OUT, __VA_ARGS__ __VA_OPT__(,) "\n")
 
+/**
+ * Make a formatter usable with @ref bfmt_with and @ref BFMT_USER_TYPES.
+ *
+ * The formatter must already be declared, see @ref bfmt_formatter.
+ * @ref bfmt_decl_formatter does both at once.
+ *
+ * @param VALUE_TYPE the type the formatter prints
+ * @param FORMATTER_NAME the formatter
+ * @param OPTIONS_TYPE its options type, @ref bfmt_no_options_t if it takes none
+ *
+ * @hideinitializer
+ */
 #define bfmt_register_formatter(VALUE_TYPE, FORMATTER_NAME, OPTIONS_TYPE) \
 	typedef VALUE_TYPE bfmt__formatter_value_type(FORMATTER_NAME); \
 	typedef OPTIONS_TYPE bfmt__formatter_options_type(FORMATTER_NAME); \
 	bfmt__make_wrapper(VALUE_TYPE, FORMATTER_NAME, OPTIONS_TYPE)
 
+/**
+ * Declare and register a formatter defined elsewhere.
+ *
+ * Typically used in a header, with the definition in a source file:
+ *
+ * @code{.c}
+ * // vec2.h
+ * bfmt_decl_formatter(vec2_t, format_vec2, bfmt_no_options_t)
+ *
+ * // vec2.c
+ * bfmt_formatter(vec2_t, format_vec2, bfmt_no_options_t) {
+ *     bfmt_print(ctx, "(", value.x, ", ", value.y, ")");
+ * }
+ * @endcode
+ *
+ * @see bfmt_register_formatter
+ *
+ * @hideinitializer
+ */
 #define bfmt_decl_formatter(VALUE_TYPE, FORMATTER_NAME, OPTIONS_TYPE) \
 	extern bfmt_formatter(VALUE_TYPE, FORMATTER_NAME, OPTIONS_TYPE); \
 	bfmt_register_formatter(VALUE_TYPE, FORMATTER_NAME, OPTIONS_TYPE)
 
+/**
+ * Signature of a formatter.
+ *
+ * Expands to the function head `void NAME(bfmt_ctx_t* ctx, VALUE_TYPE value, OPTIONS_TYPE options)`,
+ * for both declaring and defining it.
+ * The body writes to `ctx` with @ref bfmt_write, @ref bfmt_fmt or
+ * @ref bfmt_print.
+ *
+ * @hideinitializer
+ */
 #define bfmt_formatter(VALUE_TYPE, NAME, OPTIONS_TYPE) \
 	void NAME(bfmt_ctx_t* ctx, VALUE_TYPE value, OPTIONS_TYPE options)
 
+/**
+ * A value printed with a specific formatter.
+ *
+ * For a formatter that is not the default of its type, or for a type that is
+ * not listed in @ref BFMT_USER_TYPES, like this:
+ *
+ * @code{.c}
+ * bfmt_print(out, bfmt_with(format_percent, ratio, { .decimals = 1 }));
+ * @endcode
+ *
+ * The result is only valid in the enclosing block and is meant to be passed
+ * straight to @ref bfmt_print, @ref bfmt_translate or @ref bfmt_named.
+ *
+ * @param FORMATTER a formatter registered with @ref bfmt_register_formatter
+ * @param VALUE the value to print
+ * @param ... the options, as an initializer list or a value of the options
+ *   type, or nothing for the defaults
+ *
+ * @hideinitializer
+ */
 #define bfmt_with(FORMATTER, VALUE, ...) \
 	( \
 		(void)sizeof((bfmt__typeof(FORMATTER((bfmt_ctx_t*)0, VALUE, bfmt__options(bfmt__formatter_options_type(FORMATTER), __VA_ARGS__)[0]))*)0), \
@@ -130,6 +365,27 @@ typedef struct {
 		} \
 	)
 
+/**
+ * A value with formatting options.
+ *
+ * The formatter is the default for the type of @p VALUE and the options are
+ * of its options type.
+ * For example, @ref bfmt_int_options_t for an integer:
+ *
+ * @code{.c}
+ * bfmt_print(out, bfmt(255, { .base = BFMT_BASE_HEX, .show_base = true }));
+ * bfmt_print(out, bfmt(name, { .layout.min_width = 20 }));
+ * @endcode
+ *
+ * The result is only valid in the enclosing block and is meant to be passed
+ * straight to @ref bfmt_print, @ref bfmt_translate or @ref bfmt_named.
+ *
+ * @param VALUE the value to print
+ * @param ... the options, as an initializer list or a value of the options
+ *   type, or nothing for the defaults
+ *
+ * @hideinitializer
+ */
 #define bfmt(VALUE, ...) \
 	((bfmt__element_t){ \
 		.value = (bfmt__typeof_decay(VALUE)[1]){ VALUE }, \
@@ -137,14 +393,42 @@ typedef struct {
 		.options = bfmt__options(bfmt__options_for(VALUE), __VA_ARGS__), \
 	})
 
+/**
+ * An enabled @ref bfmt_precision_t.
+ *
+ * @code{.c}
+ * bfmt_print(out, bfmt(3.14159, { .precision = bfmt_precision(2) }));
+ * @endcode
+ *
+ * @hideinitializer
+ */
 #define bfmt_precision(PRECISION) (bfmt_precision_t){ .enabled = true, .precision = PRECISION }
 
+/**
+ * Write raw text from a formatter.
+ *
+ * @param ctx the context the formatter was given
+ * @param str the text, which does not need to be NUL-terminated
+ * @param len its length in bytes
+ */
 BFMT_API void
 bfmt_write(bfmt_ctx_t* ctx, const char* str, int len);
 
+/**
+ * Write `printf`-style formatted text from a formatter.
+ *
+ * The format string is checked at compile time like `printf`'s.
+ * Formatting is done by an embedded `printf` implementation, so the output
+ * does not depend on the C library.
+ *
+ * @param ctx the context the formatter was given
+ * @param fmt the format string
+ * @param ... its arguments
+ */
 BFMT_API void
 bfmt_fmt(bfmt_ctx_t* ctx, const char* fmt, ...);
 
+/*! Same as @ref bfmt_fmt with a `va_list` */
 BFMT_API void
 bfmt_fmtv(bfmt_ctx_t* ctx, const char* fmt, va_list args);
 
@@ -152,59 +436,113 @@ bfmt_fmtv(bfmt_ctx_t* ctx, const char* fmt, va_list args);
 
 // Translation {{{
 
+/*! Plural category of a number, as defined by CLDR */
 typedef enum {
-	BFMT_PLURAL_ZERO,
-	BFMT_PLURAL_ONE,
-	BFMT_PLURAL_TWO,
-	BFMT_PLURAL_FEW,
-	BFMT_PLURAL_MANY,
-	BFMT_PLURAL_OTHER,
+	BFMT_PLURAL_ZERO,   /*!< `zero` */
+	BFMT_PLURAL_ONE,    /*!< `one` */
+	BFMT_PLURAL_TWO,    /*!< `two` */
+	BFMT_PLURAL_FEW,    /*!< `few` */
+	BFMT_PLURAL_MANY,   /*!< `many` */
+	BFMT_PLURAL_OTHER,  /*!< `other`, the category every language has */
 } bfmt_plural_t;
 
+/*! Which set of plural rules applies */
 typedef enum {
-	BFMT_PLURAL_CARDINAL,
-	BFMT_PLURAL_ORDINAL,
+	BFMT_PLURAL_CARDINAL,  /*!< Counting: "1 file", "2 files" */
+	BFMT_PLURAL_ORDINAL,   /*!< Ranking: "1st", "2nd" */
 } bfmt_plural_type_t;
 
+/**
+ * The operands a plural rule is written in terms of.
+ *
+ * These are the CLDR operands, derived from the number as it is displayed,
+ * so that `1.0` and `1` can fall in different categories.
+ * For an integer only @ref i is non-zero.
+ */
 typedef struct {
-	uint64_t i;  /* integer digits */
-	uint64_t f;  /* visible fraction digits, as an integer */
-	uint64_t t;  /* f without trailing zeros */
-	unsigned v;  /* number of visible fraction digits */
-	unsigned w;  /* v without trailing zeros */
+	uint64_t i;  /*!< Integer digits, as a number: 123 for 123.450 */
+	uint64_t f;  /*!< Visible fraction digits, as a number: 450 for 123.450 */
+	uint64_t t;  /*!< @ref f without trailing zeros: 45 for 123.450 */
+	unsigned v;  /*!< Number of visible fraction digits: 3 for 123.450 */
+	unsigned w;  /*!< @ref v without trailing zeros: 2 for 123.450 */
 } bfmt_plural_num_t;
 
+/**
+ * The plural rules of a language.
+ *
+ * The rules for every language are published by CLDR.
+ * A language whose ordinals never change returns @ref BFMT_PLURAL_OTHER for
+ * @ref BFMT_PLURAL_ORDINAL.
+ *
+ * @param number the number, as the operands its category is decided from
+ * @param type whether the cardinal or the ordinal rules apply
+ * @return the category of @p number under those rules
+ */
 typedef bfmt_plural_t bfmt_plural_rule_t(bfmt_plural_num_t number, bfmt_plural_type_t type);
 
+/*! A language: how to pluralize and where to find translations */
 typedef struct {
+	/*! Optional. Without it, every number is @ref BFMT_PLURAL_OTHER */
 	bfmt_plural_rule_t* plural_rule;
+
+	/**
+	 * Optional. Look up the translation of a template.
+	 *
+	 * @p ctx and @p key are string literals, so their addresses are stable
+	 * and can be used as cache keys.
+	 *
+	 * @param userdata @ref userdata
+	 * @param ctx the context given to @ref bfmt_ptranslate or @ref bfmt_ptext, NULL without one
+	 * @param key the template as written in the source
+	 * @return the translated template, or NULL to use @p key as is
+	 */
 	const char* (*translate)(void* userdata, const char* ctx, const char* key);
-	// Optional. Called when `template` can not be rendered, with the byte
-	// offset of the error. `template` is what `translate` returned for
-	// (ctx, key), or `key` itself when there is no translation.
-	// A typical handler drops the mapping so that the source text is used
-	// from then on.
+
+	/**
+	 * Optional. Called when a template can not be rendered.
+	 *
+	 * A typical handler logs the problem and drops the translation so that
+	 * the source text is used from then on.
+	 *
+	 * @param userdata @ref userdata
+	 * @param ctx the context of the text, NULL without one
+	 * @param key the template as written in the source
+	 * @param template the template that failed: what @ref translate returned
+	 *   for (@p ctx, @p key), or @p key itself when there is no translation
+	 * @param offset byte position of the error in @p template
+	 */
 	void (*report_error)(void* userdata, const char* ctx, const char* key, const char* template, int offset);
-	void* userdata;
+
+	void* userdata;  /*!< Passed to the callbacks */
 } bfmt_locale_t;
 
+/**
+ * Translatable text without values.
+ *
+ * Made with @ref bfmt_text or @ref bfmt_ptext and rendered with
+ * @ref bfmt_translate_text.
+ */
 typedef struct {
-	const char* content;
-	const char* context;
+	const char* content;  /*!< The template */
+	const char* context;  /*!< The context, or NULL */
 } bfmt_text_t;
 
+#ifdef DOXYGEN
+/**
+ * Define to make the translation macros extractable with `xgettext`.
+ *
+ * Only for a preprocessing pass that feeds `xgettext`, never for compiling.
+ * @ref bfmt_translate and @ref bfmt_text expand to `gettext(template)`,
+ * @ref bfmt_ptranslate and @ref bfmt_ptext to `pgettext(context, template)`,
+ * both of which `xgettext` recognizes by default.
+ * Any `TRANSLATORS:` comment above the call survives if the preprocessor is
+ * told to keep comments.
+ */
+#define BFMT_EXTRACT
+#undef BFMT_EXTRACT
+#endif
+
 #ifdef BFMT_EXTRACT
-
-/*
-	xgettext \
-		--from-code=UTF-8 \
-		--add-comments=TRANSLATORS: \
-		--flag=gettext:1:no-c-format \
-		--flag=pgettext:2:no-c-format \
-		--sort-by-file \
-		--language=C
-*/
-
 
 #define bfmt_translate(OUT, LOCALE, ...) bfmt_text(__VA_ARGS__)
 #define bfmt_ptranslate(OUT, LOCALE, CONTEXT, ...) bfmt_ptext(CONTEXT, __VA_ARGS__)
@@ -213,8 +551,33 @@ typedef struct {
 
 #else
 
+/**
+ * Print translated text.
+ *
+ * The arguments are string literals and named values made with
+ * @ref bfmt_named, @ref bfmt_plural, @ref bfmt_ordinal and @ref bfmt_select.
+ * Together they form the template that is looked up in @p LOCALE and
+ * rendered with the values, see the file documentation for the syntax.
+ * A string literal is copied into the template verbatim, so `{`, `}` and `#`
+ * in it have to be quoted.
+ *
+ * @param OUT a `bfmt_stream_t*` or, inside a formatter, a `bfmt_ctx_t*`
+ * @param LOCALE the @ref bfmt_locale_t to translate with, or NULL for none
+ * @param ... the text and its values
+ *
+ * @hideinitializer
+ */
 #define bfmt_translate(OUT, LOCALE, ...) bfmt_ptranslate(OUT, LOCALE, NULL, __VA_ARGS__)
 
+/**
+ * Same as @ref bfmt_translate with a context.
+ *
+ * The context tells two identical source texts apart, like "Open" the menu
+ * entry and "Open" the file state.
+ * It is a string literal and is passed to @ref bfmt_locale_t::translate.
+ *
+ * @hideinitializer
+ */
 #define bfmt_ptranslate(OUT, LOCALE, CONTEXT, ...) \
 	( \
 		bfmt__map(bfmt__check_arg, __VA_ARGS__) \
@@ -227,17 +590,108 @@ typedef struct {
 		) \
 	)
 
+/**
+ * Translatable text to render later.
+ *
+ * Takes the same arguments as @ref bfmt_translate and produces a
+ * @ref bfmt_text_t holding the template.
+ * The values of the arguments are not used, so they can be left out:
+ *
+ * @code{.c}
+ * static const bfmt_text_t labels[] = {
+ *     bfmt_text("New"),
+ *     bfmt_text("Open"),
+ * };
+ * @endcode
+ *
+ * @hideinitializer
+ */
 #define bfmt_text(...) bfmt_ptext(NULL, __VA_ARGS__)
 
+/**
+ * Same as @ref bfmt_text with a context.
+ *
+ * @see bfmt_ptranslate
+ *
+ * @hideinitializer
+ */
 #define bfmt_ptext(CONTEXT, ...) (bfmt_text_t){ .context = CONTEXT, .content = bfmt__map(bfmt__to_template_text, __VA_ARGS__) }
 
 #endif
 
+/**
+ * A named value in a translatable text.
+ *
+ * Appears in the template as `{NAME}`.
+ *
+ * @param NAME an identifier, the name the translator sees
+ * @param VALUE anything @ref bfmt_print accepts
+ *
+ * @hideinitializer
+ */
 #define bfmt_named(NAME, VALUE) (bfmt_named, NAME, VALUE)
+
+/**
+ * A number with text that depends on its plural category.
+ *
+ * @code{.c}
+ * bfmt_plural(num_files, n, (=0, "no files"), (one, "# file"), (other, "# files"))
+ * @endcode
+ *
+ * Appears in the template as `{NAME, plural, ...}`.
+ * The cases are written for English; a translation adds the categories its
+ * language needs.
+ * `#` in a case stands for the number.
+ *
+ * @param NAME an identifier, the name the translator sees
+ * @param NUMBER the number, either an integer or a value whose formatted
+ *   digits decide the category
+ * @param ... the cases as `(CATEGORY, "text")` pairs, where the category is
+ *   one of `zero`, `one`, `two`, `few`, `many`, `other` or an exact value
+ *   like `=0`; `other` is mandatory
+ *
+ * @hideinitializer
+ */
 #define bfmt_plural(NAME, NUMBER, ...) (bfmt__switch, plural, NAME, NUMBER, __VA_ARGS__)
+
+/**
+ * Same as @ref bfmt_plural with the ordinal rules.
+ *
+ * @code{.c}
+ * bfmt_ordinal(rank, n, (one, "#st"), (two, "#nd"), (few, "#rd"), (other, "#th"))
+ * @endcode
+ *
+ * Appears in the template as `{NAME, selectordinal, ...}`.
+ *
+ * @hideinitializer
+ */
 #define bfmt_ordinal(NAME, NUMBER, ...) (bfmt__switch, selectordinal, NAME, NUMBER, __VA_ARGS__)
+
+/**
+ * A value with text that depends on what it is.
+ *
+ * @code{.c}
+ * bfmt_select(gender, user->gender, (female, "her"), (male, "his"), (other, "their"))
+ * @endcode
+ *
+ * Appears in the template as `{NAME, select, ...}`.
+ * A string is compared as is, anything else by how it prints.
+ *
+ * @param NAME an identifier, the name the translator sees
+ * @param SELECTOR the value to compare
+ * @param ... the cases as `(KEY, "text")` pairs; `other` is mandatory
+ *
+ * @hideinitializer
+ */
 #define bfmt_select(NAME, SELECTOR, ...) (bfmt__switch, select, NAME, SELECTOR, __VA_ARGS__)
 
+/**
+ * Print a @ref bfmt_text_t.
+ *
+ * @param stream where to print
+ * @param locale the @ref bfmt_locale_t to translate with, or NULL for none
+ * @param text the text, made with @ref bfmt_text or @ref bfmt_ptext
+ */
 BFMT_API void
 bfmt_translate_text(
 	bfmt_stream_t* stream,
@@ -248,6 +702,8 @@ bfmt_translate_text(
 // }}}
 
 // Internal {{{
+
+/// @cond INTERNAL
 
 // Macro helpers {{{
 
@@ -478,6 +934,8 @@ BFMT_API void
 bfmt__print_ctx(bfmt_ctx_t* ctx, const bfmt__element_t* elements);
 
 // }}}
+
+/// @endcond
 
 // }}}
 

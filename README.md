@@ -26,6 +26,7 @@ Collection of miscellaneous single-header libraries.
 |[bmacro.h](bmacro.h)|Commonly used macros|
 |[bminmax.h](bminmax.h)|Min/Max/Clamp macros using `_Generic`|
 |[blog.h](blog.h)|Logging, with short filenames|
+|[bfmt.h](bfmt.h)|Type-safe formatting and localization|
 |[qoi.h](qoi.h)|Quite OK image encoding/decoding|
 
 The following libraries are not self-contained.
