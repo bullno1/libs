@@ -17,134 +17,24 @@
 // #define BFMT_USER_TYPES(X) X(TYPE, FORMATTER, OPTIONS)
 #endif
 
-#define bfmt_print(OUT, ...) \
-	bfmt__print(OUT, (bfmt__element_t[]){ bfmt__map(bfmt__to_element, __VA_ARGS__) { 0 } })
-
-#define bfmt_println(OUT, ...) bfmt_print(OUT, __VA_ARGS__ __VA_OPT__(,) "\n")
-
-#ifdef BFMT_EXTRACT
-
-/*
-	xgettext \
-		--from-code=UTF-8 \
-		--add-comments=TRANSLATORS: \
-		--flag=gettext:1:no-c-format \
-		--flag=pgettext:2:no-c-format \
-		--sort-by-file \
-		--language=C
-*/
-
-
-#define bfmt_translate(OUT, LOCALE, ...) bfmt_text(__VA_ARGS__)
-#define bfmt_ptranslate(OUT, LOCALE, CONTEXT, ...) bfmt_ptext(CONTEXT, __VA_ARGS__)
-#define bfmt_text(...) gettext(bfmt__map(bfmt__to_template_text, __VA_ARGS__))
-#define bfmt_ptext(CONTEXT, ...) pgettext(CONTEXT, bfmt__map(bfmt__to_template_text, __VA_ARGS__))
-
-#else
-
-#define bfmt_translate(OUT, LOCALE, ...) bfmt_ptranslate(OUT, LOCALE, NULL, __VA_ARGS__)
-
-#define bfmt_ptranslate(OUT, LOCALE, CONTEXT, ...) \
-	( \
-		bfmt__map(bfmt__check_arg, __VA_ARGS__) \
-		bfmt__ptranslate( \
-			OUT, \
-			LOCALE, \
-			CONTEXT, \
-			bfmt__map(bfmt__to_template_text, __VA_ARGS__), \
-			(bfmt__template_input_t[]){ bfmt__map(bfmt__to_template_input, __VA_ARGS__) { 0 } } \
-		) \
-	)
-
-#define bfmt_text(...) bfmt_ptext(NULL, __VA_ARGS__)
-
-#define bfmt_ptext(CONTEXT, ...) (bfmt_text_t){ .context = CONTEXT, .content = bfmt__map(bfmt__to_template_text, __VA_ARGS__) }
-
-#endif
-
-#define bfmt_named(NAME, VALUE) (bfmt_named, NAME, VALUE)
-#define bfmt_plural(NAME, NUMBER, ...) (bfmt__switch, plural, NAME, NUMBER, __VA_ARGS__)
-#define bfmt_ordinal(NAME, NUMBER, ...) (bfmt__switch, selectordinal, NAME, NUMBER, __VA_ARGS__)
-#define bfmt_select(NAME, SELECTOR, ...) (bfmt__switch, select, NAME, SELECTOR, __VA_ARGS__)
-
-#define bfmt_register_formatter(VALUE_TYPE, FORMATTER_NAME, OPTIONS_TYPE) \
-	typedef VALUE_TYPE bfmt__formatter_value_type(FORMATTER_NAME); \
-	typedef OPTIONS_TYPE bfmt__formatter_options_type(FORMATTER_NAME); \
-	bfmt__make_wrapper(VALUE_TYPE, FORMATTER_NAME, OPTIONS_TYPE)
-
-#define bfmt_decl_formatter(VALUE_TYPE, FORMATTER_NAME, OPTIONS_TYPE) \
-	extern bfmt_formatter(VALUE_TYPE, FORMATTER_NAME, OPTIONS_TYPE); \
-	bfmt_register_formatter(VALUE_TYPE, FORMATTER_NAME, OPTIONS_TYPE)
-
-#define bfmt_formatter(VALUE_TYPE, NAME, OPTIONS_TYPE) \
-	void NAME(bfmt_ctx_t* ctx, VALUE_TYPE value, OPTIONS_TYPE options)
-
-#define bfmt_with(FORMATTER, VALUE, ...) \
-	( \
-		(void)sizeof((bfmt__typeof(FORMATTER((bfmt_ctx_t*)0, VALUE, bfmt__options(bfmt__formatter_options_type(FORMATTER), __VA_ARGS__)[0]))*)0), \
-		(bfmt__element_t){ \
-			.value = (bfmt__formatter_value_type(FORMATTER)[1]){ VALUE }, \
-			.formatter = bfmt__formatter_wrapper(FORMATTER), \
-			.options = bfmt__options(bfmt__formatter_options_type(FORMATTER), __VA_ARGS__), \
-		} \
-	)
-
-#define bfmt(VALUE, ...) \
-	((bfmt__element_t){ \
-		.value = (bfmt__typeof_decay(VALUE)[1]){ VALUE }, \
-		.formatter = bfmt__formatter_for(VALUE), \
-		.options = bfmt__options(bfmt__options_for(VALUE), __VA_ARGS__), \
-	})
-
-#define bfmt_precision(PRECISION) (bfmt_precision_t){ .enabled = true, .precision = PRECISION }
-
-typedef struct bfmt_ctx_s bfmt_ctx_t;
-
-typedef enum {
-	BFMT_PLURAL_ZERO,
-	BFMT_PLURAL_ONE,
-	BFMT_PLURAL_TWO,
-	BFMT_PLURAL_FEW,
-	BFMT_PLURAL_MANY,
-	BFMT_PLURAL_OTHER,
-} bfmt_plural_t;
-
-typedef enum {
-	BFMT_PLURAL_CARDINAL,
-	BFMT_PLURAL_ORDINAL,
-} bfmt_plural_type_t;
-
-typedef struct {
-	uint64_t i;  /* integer digits */
-	uint64_t f;  /* visible fraction digits, as an integer */
-	uint64_t t;  /* f without trailing zeros */
-	unsigned v;  /* number of visible fraction digits */
-	unsigned w;  /* v without trailing zeros */
-} bfmt_plural_num_t;
-
-typedef bfmt_plural_t bfmt_plural_rule_t(bfmt_plural_num_t number, bfmt_plural_type_t type);
-
-typedef struct {
-	bfmt_plural_rule_t* plural_rule;
-	const char* (*translate)(void* userdata, const char* ctx, const char* key);
-	// Optional. Called when `template` can not be rendered, with the byte
-	// offset of the error. `template` is what `translate` returned for
-	// (ctx, key), or `key` itself when there is no translation.
-	// A typical handler drops the mapping so that the source text is used
-	// from then on.
-	void (*report_error)(void* userdata, const char* ctx, const char* key, const char* template, int offset);
-	void* userdata;
-} bfmt_locale_t;
-
-typedef struct {
-	const char* content;
-	const char* context;
-} bfmt_text_t;
+// Stream output {{{
 
 typedef struct {
 	void (*write)(void* userdata, const char* string, int len);
 	void* userdata;
 } bfmt_stream_t;
+
+extern bfmt_stream_t* bfmt_stdout;
+extern bfmt_stream_t* bfmt_stderr;
+
+BFMT_API bfmt_stream_t
+bfmt_wrap_file(FILE* file);
+
+// }}}
+
+// Formatting {{{
+
+typedef struct bfmt_ctx_s bfmt_ctx_t;
 
 typedef struct {
 	char bfmt__unused;
@@ -213,8 +103,41 @@ typedef struct {
 	bfmt_layout_t layout;
 } bfmt_simple_options_t;
 
-extern bfmt_stream_t* bfmt_stdout;
-extern bfmt_stream_t* bfmt_stderr;
+#define bfmt_print(OUT, ...) \
+	bfmt__print(OUT, (bfmt__element_t[]){ bfmt__map(bfmt__to_element, __VA_ARGS__) { 0 } })
+
+#define bfmt_println(OUT, ...) bfmt_print(OUT, __VA_ARGS__ __VA_OPT__(,) "\n")
+
+#define bfmt_register_formatter(VALUE_TYPE, FORMATTER_NAME, OPTIONS_TYPE) \
+	typedef VALUE_TYPE bfmt__formatter_value_type(FORMATTER_NAME); \
+	typedef OPTIONS_TYPE bfmt__formatter_options_type(FORMATTER_NAME); \
+	bfmt__make_wrapper(VALUE_TYPE, FORMATTER_NAME, OPTIONS_TYPE)
+
+#define bfmt_decl_formatter(VALUE_TYPE, FORMATTER_NAME, OPTIONS_TYPE) \
+	extern bfmt_formatter(VALUE_TYPE, FORMATTER_NAME, OPTIONS_TYPE); \
+	bfmt_register_formatter(VALUE_TYPE, FORMATTER_NAME, OPTIONS_TYPE)
+
+#define bfmt_formatter(VALUE_TYPE, NAME, OPTIONS_TYPE) \
+	void NAME(bfmt_ctx_t* ctx, VALUE_TYPE value, OPTIONS_TYPE options)
+
+#define bfmt_with(FORMATTER, VALUE, ...) \
+	( \
+		(void)sizeof((bfmt__typeof(FORMATTER((bfmt_ctx_t*)0, VALUE, bfmt__options(bfmt__formatter_options_type(FORMATTER), __VA_ARGS__)[0]))*)0), \
+		(bfmt__element_t){ \
+			.value = (bfmt__formatter_value_type(FORMATTER)[1]){ VALUE }, \
+			.formatter = bfmt__formatter_wrapper(FORMATTER), \
+			.options = bfmt__options(bfmt__formatter_options_type(FORMATTER), __VA_ARGS__), \
+		} \
+	)
+
+#define bfmt(VALUE, ...) \
+	((bfmt__element_t){ \
+		.value = (bfmt__typeof_decay(VALUE)[1]){ VALUE }, \
+		.formatter = bfmt__formatter_for(VALUE), \
+		.options = bfmt__options(bfmt__options_for(VALUE), __VA_ARGS__), \
+	})
+
+#define bfmt_precision(PRECISION) (bfmt_precision_t){ .enabled = true, .precision = PRECISION }
 
 BFMT_API void
 bfmt_write(bfmt_ctx_t* ctx, const char* str, int len);
@@ -225,8 +148,95 @@ bfmt_fmt(bfmt_ctx_t* ctx, const char* fmt, ...);
 BFMT_API void
 bfmt_fmtv(bfmt_ctx_t* ctx, const char* fmt, va_list args);
 
-BFMT_API bfmt_stream_t
-bfmt_wrap_file(FILE* file);
+// }}}
+
+// Translation {{{
+
+typedef enum {
+	BFMT_PLURAL_ZERO,
+	BFMT_PLURAL_ONE,
+	BFMT_PLURAL_TWO,
+	BFMT_PLURAL_FEW,
+	BFMT_PLURAL_MANY,
+	BFMT_PLURAL_OTHER,
+} bfmt_plural_t;
+
+typedef enum {
+	BFMT_PLURAL_CARDINAL,
+	BFMT_PLURAL_ORDINAL,
+} bfmt_plural_type_t;
+
+typedef struct {
+	uint64_t i;  /* integer digits */
+	uint64_t f;  /* visible fraction digits, as an integer */
+	uint64_t t;  /* f without trailing zeros */
+	unsigned v;  /* number of visible fraction digits */
+	unsigned w;  /* v without trailing zeros */
+} bfmt_plural_num_t;
+
+typedef bfmt_plural_t bfmt_plural_rule_t(bfmt_plural_num_t number, bfmt_plural_type_t type);
+
+typedef struct {
+	bfmt_plural_rule_t* plural_rule;
+	const char* (*translate)(void* userdata, const char* ctx, const char* key);
+	// Optional. Called when `template` can not be rendered, with the byte
+	// offset of the error. `template` is what `translate` returned for
+	// (ctx, key), or `key` itself when there is no translation.
+	// A typical handler drops the mapping so that the source text is used
+	// from then on.
+	void (*report_error)(void* userdata, const char* ctx, const char* key, const char* template, int offset);
+	void* userdata;
+} bfmt_locale_t;
+
+typedef struct {
+	const char* content;
+	const char* context;
+} bfmt_text_t;
+
+#ifdef BFMT_EXTRACT
+
+/*
+	xgettext \
+		--from-code=UTF-8 \
+		--add-comments=TRANSLATORS: \
+		--flag=gettext:1:no-c-format \
+		--flag=pgettext:2:no-c-format \
+		--sort-by-file \
+		--language=C
+*/
+
+
+#define bfmt_translate(OUT, LOCALE, ...) bfmt_text(__VA_ARGS__)
+#define bfmt_ptranslate(OUT, LOCALE, CONTEXT, ...) bfmt_ptext(CONTEXT, __VA_ARGS__)
+#define bfmt_text(...) gettext(bfmt__map(bfmt__to_template_text, __VA_ARGS__))
+#define bfmt_ptext(CONTEXT, ...) pgettext(CONTEXT, bfmt__map(bfmt__to_template_text, __VA_ARGS__))
+
+#else
+
+#define bfmt_translate(OUT, LOCALE, ...) bfmt_ptranslate(OUT, LOCALE, NULL, __VA_ARGS__)
+
+#define bfmt_ptranslate(OUT, LOCALE, CONTEXT, ...) \
+	( \
+		bfmt__map(bfmt__check_arg, __VA_ARGS__) \
+		bfmt__ptranslate( \
+			OUT, \
+			LOCALE, \
+			CONTEXT, \
+			bfmt__map(bfmt__to_template_text, __VA_ARGS__), \
+			(bfmt__template_input_t[]){ bfmt__map(bfmt__to_template_input, __VA_ARGS__) { 0 } } \
+		) \
+	)
+
+#define bfmt_text(...) bfmt_ptext(NULL, __VA_ARGS__)
+
+#define bfmt_ptext(CONTEXT, ...) (bfmt_text_t){ .context = CONTEXT, .content = bfmt__map(bfmt__to_template_text, __VA_ARGS__) }
+
+#endif
+
+#define bfmt_named(NAME, VALUE) (bfmt_named, NAME, VALUE)
+#define bfmt_plural(NAME, NUMBER, ...) (bfmt__switch, plural, NAME, NUMBER, __VA_ARGS__)
+#define bfmt_ordinal(NAME, NUMBER, ...) (bfmt__switch, selectordinal, NAME, NUMBER, __VA_ARGS__)
+#define bfmt_select(NAME, SELECTOR, ...) (bfmt__switch, select, NAME, SELECTOR, __VA_ARGS__)
 
 BFMT_API void
 bfmt_translate_text(
@@ -234,6 +244,8 @@ bfmt_translate_text(
 	bfmt_locale_t* locale,
 	const bfmt_text_t* text
 );
+
+// }}}
 
 // Internal {{{
 
