@@ -39,8 +39,7 @@
  *
  * ## Threading
  *
- * Logging is safe from any thread: each thread formats into its own
- * thread-local buffer.
+ * Logging is safe from any thread.
  * Configuration is not: call @ref blog_init, add loggers and set their levels
  * once, in the main thread, before other threads start logging.
  * A logger is called on whichever thread logs the message, possibly several
@@ -75,12 +74,6 @@
 #else
 #	define BLOG_FORMAT_ATTRIBUTE(FMT, VA)
 #	define BLOG_FORMAT_CHECK(...) (void)(sizeof(printf(__VA_ARGS__)))
-#endif
-
-#if defined(_MSC_VER)
-#	define BLOG_THREAD_LOCAL __declspec(thread)
-#else
-#	define BLOG_THREAD_LOCAL _Thread_local
 #endif
 /// @endcond
 
@@ -271,6 +264,38 @@ BLOG_API void
 blog_set_min_log_level(blog_logger_id_t logger, blog_level_t min_level);
 
 /**
+ * @brief Whether any logger accepts messages at the given level.
+ *
+ * Safe to call from any thread.
+ */
+BLOG_API bool
+blog_is_enabled(blog_level_t level);
+
+/**
+ * @brief Log an already formatted message.
+ *
+ * The message is passed to the loggers as is.
+ * It only has to stay valid for the duration of the call.
+ *
+ * Safe to call from any thread.
+ *
+ * @param level Severity.
+ * @param file Source file, typically `__FILE__`.
+ *   It is shortened as configured by @ref blog_init.
+ * @param line Line in the source file.
+ * @param msg The message, which does not need to be NUL-terminated.
+ * @param len Its length in bytes.
+ */
+BLOG_API void
+blog_write_raw(
+	blog_level_t level,
+	const char* file,
+	int line,
+	const char* msg,
+	int len
+);
+
+/**
  * @brief Log a message, `vprintf` style.
  *
  * Safe to call from any thread.
@@ -355,9 +380,6 @@ static struct {
 	blog_options_t options;
 	int prefix_len;
 } blog_state = { 0 };
-
-// One buffer per thread so that concurrent writes don't garble each other
-static BLOG_THREAD_LOCAL char blog_line_buf[BLOG_LINE_BUF_SIZE];
 
 static void
 blog_file_write(
@@ -448,13 +470,23 @@ blog_set_min_log_level(blog_logger_id_t logger, blog_level_t min_level) {
 	}
 }
 
+bool
+blog_is_enabled(blog_level_t level) {
+	for (int i = 0; i < blog_state.num_loggers; ++i) {
+		if (level >= blog_state.loggers[i].min_level) {
+			return true;
+		}
+	}
+	return false;
+}
+
 void
-blog_vwrite(
+blog_write_raw(
 	blog_level_t level,
 	const char* filename,
 	int line,
-	const char* fmt,
-	va_list args
+	const char* msg,
+	int len
 ) {
 	filename = filename != NULL ? filename : "<unknown>";
 	int filename_len = (int)strlen(filename);
@@ -478,32 +510,39 @@ blog_vwrite(
 		.line = line,
 		.level = level,
 	};
+	blog_str_t msg_str = {
+		.len = len,
+		.data = msg,
+	};
 
-	int msg_len = -1;
 	for (int i = 0; i < blog_state.num_loggers; ++i) {
 		blog_logger_t* logger = &blog_state.loggers[i];
 		if (level >= logger->min_level) {
-			// Delay formatting until it's actually needed
-			if (msg_len < 0) {
-				msg_len = vsnprintf(
-					blog_line_buf, sizeof(blog_line_buf),
-					fmt, args
-				);
-				if (msg_len < 0) {
-					msg_len = 0;
-				} else if (msg_len >= (int)sizeof(blog_line_buf)) {
-					msg_len = sizeof(blog_line_buf) - 1;
-				}
-				blog_line_buf[msg_len] = '\0';
-			}
-
-			blog_str_t msg = {
-				.len = msg_len,
-				.data = blog_line_buf
-			};
-			logger->fn(&ctx, msg, logger->userdata);
+			logger->fn(&ctx, msg_str, logger->userdata);
 		}
 	}
+}
+
+void
+blog_vwrite(
+	blog_level_t level,
+	const char* filename,
+	int line,
+	const char* fmt,
+	va_list args
+) {
+	if (!blog_is_enabled(level)) { return; }
+
+	char line_buf[BLOG_LINE_BUF_SIZE];
+	int msg_len = vsnprintf(line_buf, sizeof(line_buf), fmt, args);
+	if (msg_len < 0) {
+		msg_len = 0;
+	} else if (msg_len >= (int)sizeof(line_buf)) {
+		msg_len = sizeof(line_buf) - 1;
+	}
+	line_buf[msg_len] = '\0';
+
+	blog_write_raw(level, filename, line, line_buf, msg_len);
 }
 
 #ifdef __ANDROID__

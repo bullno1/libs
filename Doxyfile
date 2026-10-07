@@ -973,6 +973,7 @@ INPUT                  = README.md \
 	bsfn.h \
 	barg.h \
 	bfmt.h \
+	bfmt_log.h \
 
 
 # This tag can be used to specify the character encoding of the source files

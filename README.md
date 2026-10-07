@@ -36,6 +36,7 @@ They depend on other libraries in this repository.
 |-------|-----------|
 |[btest.h](btest.h)|Unit testing framework with automatic test registration|
 |[bent.h](bent.h)|Hot reload aware entity component system|
+|[bfmt_log.h](bfmt_log.h)|Logging with the formatting of bfmt.h through blog.h|
 
 Examples for each library live in the corresponding `tests/<name>/` directory.
 

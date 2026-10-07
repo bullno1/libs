@@ -55,6 +55,7 @@ local test_dirs = {
   "bco",
   "bent",
   "bfmt",
+  "bfmt_log",
   "bhandle",
   "bhamt",
   "bhash",
