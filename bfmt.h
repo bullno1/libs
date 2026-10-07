@@ -730,7 +730,7 @@ bfmt_putc(int c, void* userdata) {
 		ctx->bytes_buffered = 0;
 	}
 
-	ctx->buf[ctx->bytes_buffered++] = c;
+	ctx->buf[ctx->bytes_buffered++] = (char)c;
 }
 
 void
