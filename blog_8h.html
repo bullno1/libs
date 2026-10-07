@@ -193,6 +193,12 @@ Functions</h2></td></tr>
 <tr class="memitem:a40498daa118e38f9953f344559be099e" id="r_a40498daa118e38f9953f344559be099e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="blog_8h.html#a40498daa118e38f9953f344559be099e">blog_set_min_log_level</a> (<a class="el" href="blog_8h.html#a3098ef0e1fac47a0075642db53d5da17">blog_logger_id_t</a> logger, <a class="el" href="blog_8h.html#a873621186a42e3376aad93fb3ef55ddd">blog_level_t</a> min_level)</td></tr>
 <tr class="memdesc:a40498daa118e38f9953f344559be099e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Change the minimum level of a logger.  <br /></td></tr>
 <tr class="separator:a40498daa118e38f9953f344559be099e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a78be3bf6d0df1938bf539e7e0dbbfc54" id="r_a78be3bf6d0df1938bf539e7e0dbbfc54"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="blog_8h.html#a78be3bf6d0df1938bf539e7e0dbbfc54">blog_is_enabled</a> (<a class="el" href="blog_8h.html#a873621186a42e3376aad93fb3ef55ddd">blog_level_t</a> level)</td></tr>
+<tr class="memdesc:a78be3bf6d0df1938bf539e7e0dbbfc54"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether any logger accepts messages at the given level.  <br /></td></tr>
+<tr class="separator:a78be3bf6d0df1938bf539e7e0dbbfc54"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0cd3679e13a89a460531165a3f91b83b" id="r_a0cd3679e13a89a460531165a3f91b83b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="blog_8h.html#a0cd3679e13a89a460531165a3f91b83b">blog_write_raw</a> (<a class="el" href="blog_8h.html#a873621186a42e3376aad93fb3ef55ddd">blog_level_t</a> level, const char *file, int line, const char *msg, int len)</td></tr>
+<tr class="memdesc:a0cd3679e13a89a460531165a3f91b83b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Log an already formatted message.  <br /></td></tr>
+<tr class="separator:a0cd3679e13a89a460531165a3f91b83b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9e87fe9ded33f2c16f90dae14457c005" id="r_a9e87fe9ded33f2c16f90dae14457c005"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="blog_8h.html#a9e87fe9ded33f2c16f90dae14457c005">blog_vwrite</a> (<a class="el" href="blog_8h.html#a873621186a42e3376aad93fb3ef55ddd">blog_level_t</a> level, const char *file, int line, const char *fmt, va_list args)</td></tr>
 <tr class="memdesc:a9e87fe9ded33f2c16f90dae14457c005"><td class="mdescLeft">&#160;</td><td class="mdescRight">Log a message, <code>vprintf</code> style.  <br /></td></tr>
 <tr class="separator:a9e87fe9ded33f2c16f90dae14457c005"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -216,15 +222,15 @@ Functions</h2></td></tr>
 <div class="line">});</div>
 <div class="line"><a class="code hl_define" href="blog_8h.html#a74c42d2c73d7f345c9dbf6130b4944c8">BLOG_INFO</a>(<span class="stringliteral">&quot;Hello %s&quot;</span>, <span class="stringliteral">&quot;world&quot;</span>);  <span class="comment">// [INFO ][src/main.c:12]: Hello world</span></div>
 <div class="ttc" id="ablog_8h_html_a503f903b72cff9477ae0436f69bf4a35"><div class="ttname"><a href="blog_8h.html#a503f903b72cff9477ae0436f69bf4a35">blog_init</a></div><div class="ttdeci">void blog_init(const blog_options_t *options)</div><div class="ttdoc">Initialize the library.</div></div>
-<div class="ttc" id="ablog_8h_html_a74c42d2c73d7f345c9dbf6130b4944c8"><div class="ttname"><a href="blog_8h.html#a74c42d2c73d7f345c9dbf6130b4944c8">BLOG_INFO</a></div><div class="ttdeci">#define BLOG_INFO(...)</div><div class="ttdoc">Log at BLOG_LEVEL_INFO.</div><div class="ttdef"><b>Definition</b> blog.h:105</div></div>
+<div class="ttc" id="ablog_8h_html_a74c42d2c73d7f345c9dbf6130b4944c8"><div class="ttname"><a href="blog_8h.html#a74c42d2c73d7f345c9dbf6130b4944c8">BLOG_INFO</a></div><div class="ttdeci">#define BLOG_INFO(...)</div><div class="ttdoc">Log at BLOG_LEVEL_INFO.</div><div class="ttdef"><b>Definition</b> blog.h:98</div></div>
 <div class="ttc" id="ablog_8h_html_a75c838d169444818707d5347645f07ce"><div class="ttname"><a href="blog_8h.html#a75c838d169444818707d5347645f07ce">blog_add_file_logger</a></div><div class="ttdeci">blog_logger_id_t blog_add_file_logger(blog_level_t min_level, const blog_file_logger_options_t *options)</div><div class="ttdoc">Add a logger writing one line per message to a FILE*.</div></div>
-<div class="ttc" id="ablog_8h_html_a873621186a42e3376aad93fb3ef55ddda0226e25b955596185d696a62c5e8b34e"><div class="ttname"><a href="blog_8h.html#a873621186a42e3376aad93fb3ef55ddda0226e25b955596185d696a62c5e8b34e">BLOG_LEVEL_INFO</a></div><div class="ttdeci">@ BLOG_LEVEL_INFO</div><div class="ttdoc">Normal operation.</div><div class="ttdef"><b>Definition</b> blog.h:130</div></div>
-<div class="ttc" id="astructblog__file__logger__options__t_html"><div class="ttname"><a href="structblog__file__logger__options__t.html">blog_file_logger_options_t</a></div><div class="ttdoc">Options for blog_add_file_logger.</div><div class="ttdef"><b>Definition</b> blog.h:189</div></div>
-<div class="ttc" id="astructblog__options__t_html"><div class="ttname"><a href="structblog__options__t.html">blog_options_t</a></div><div class="ttdoc">Options for blog_init.</div><div class="ttdef"><b>Definition</b> blog.h:168</div></div>
+<div class="ttc" id="ablog_8h_html_a873621186a42e3376aad93fb3ef55ddda0226e25b955596185d696a62c5e8b34e"><div class="ttname"><a href="blog_8h.html#a873621186a42e3376aad93fb3ef55ddda0226e25b955596185d696a62c5e8b34e">BLOG_LEVEL_INFO</a></div><div class="ttdeci">@ BLOG_LEVEL_INFO</div><div class="ttdoc">Normal operation.</div><div class="ttdef"><b>Definition</b> blog.h:123</div></div>
+<div class="ttc" id="astructblog__file__logger__options__t_html"><div class="ttname"><a href="structblog__file__logger__options__t.html">blog_file_logger_options_t</a></div><div class="ttdoc">Options for blog_add_file_logger.</div><div class="ttdef"><b>Definition</b> blog.h:182</div></div>
+<div class="ttc" id="astructblog__options__t_html"><div class="ttname"><a href="structblog__options__t.html">blog_options_t</a></div><div class="ttdoc">Options for blog_init.</div><div class="ttdef"><b>Definition</b> blog.h:161</div></div>
 </div><!-- fragment --><p>Messages longer than <a class="el" href="blog_8h.html#a0403d3f19785e49c1b58d5196cea7f66">BLOG_LINE_BUF_SIZE</a> are truncated.</p>
 <h2><a class="anchor" id="autotoc_md2"></a>
 Threading</h2>
-<p>Logging is safe from any thread: each thread formats into its own thread-local buffer. Configuration is not: call <a class="el" href="blog_8h.html#a503f903b72cff9477ae0436f69bf4a35">blog_init</a>, add loggers and set their levels once, in the main thread, before other threads start logging. A logger is called on whichever thread logs the message, possibly several at once, so a custom logger must bring its own synchronization. The built-in loggers are thread-safe.</p>
+<p>Logging is safe from any thread. Configuration is not: call <a class="el" href="blog_8h.html#a503f903b72cff9477ae0436f69bf4a35">blog_init</a>, add loggers and set their levels once, in the main thread, before other threads start logging. A logger is called on whichever thread logs the message, possibly several at once, so a custom logger must bring its own synchronization. The built-in loggers are thread-safe.</p>
 <p>In <b>exactly one</b> source file, define <code>BLOG_IMPLEMENTATION</code> before including <a class="el" href="blog_8h.html" title="Logging, with short filenames.">blog.h</a>. </p>
 </div><h2 class="groupheader">Macro Definition Documentation</h2>
 <a id="ae417f2d9b5630be80456bcde003fb0d4" name="ae417f2d9b5630be80456bcde003fb0d4"></a>
@@ -241,8 +247,8 @@ Threading</h2>
 
 <p>printf format specifier for a <a class="el" href="structblog__str__t.html">blog_str_t</a>. </p>
 <div class="fragment"><div class="line"><a class="code hl_define" href="blog_8h.html#a74c42d2c73d7f345c9dbf6130b4944c8">BLOG_INFO</a>(<span class="stringliteral">&quot;Message: &quot;</span> <a class="code hl_define" href="blog_8h.html#ae417f2d9b5630be80456bcde003fb0d4">BLOG_STR_FMT</a>, <a class="code hl_define" href="blog_8h.html#a7120ffc6964518e4cec47c46ab08f571">BLOG_STR_FMT_ARGS</a>(msg));</div>
-<div class="ttc" id="ablog_8h_html_a7120ffc6964518e4cec47c46ab08f571"><div class="ttname"><a href="blog_8h.html#a7120ffc6964518e4cec47c46ab08f571">BLOG_STR_FMT_ARGS</a></div><div class="ttdeci">#define BLOG_STR_FMT_ARGS(X)</div><div class="ttdoc">printf arguments for a blog_str_t, to go with BLOG_STR_FMT</div><div class="ttdef"><b>Definition</b> blog.h:124</div></div>
-<div class="ttc" id="ablog_8h_html_ae417f2d9b5630be80456bcde003fb0d4"><div class="ttname"><a href="blog_8h.html#ae417f2d9b5630be80456bcde003fb0d4">BLOG_STR_FMT</a></div><div class="ttdeci">#define BLOG_STR_FMT</div><div class="ttdoc">printf format specifier for a blog_str_t.</div><div class="ttdef"><b>Definition</b> blog.h:122</div></div>
+<div class="ttc" id="ablog_8h_html_a7120ffc6964518e4cec47c46ab08f571"><div class="ttname"><a href="blog_8h.html#a7120ffc6964518e4cec47c46ab08f571">BLOG_STR_FMT_ARGS</a></div><div class="ttdeci">#define BLOG_STR_FMT_ARGS(X)</div><div class="ttdoc">printf arguments for a blog_str_t, to go with BLOG_STR_FMT</div><div class="ttdef"><b>Definition</b> blog.h:117</div></div>
+<div class="ttc" id="ablog_8h_html_ae417f2d9b5630be80456bcde003fb0d4"><div class="ttname"><a href="blog_8h.html#ae417f2d9b5630be80456bcde003fb0d4">BLOG_STR_FMT</a></div><div class="ttdeci">#define BLOG_STR_FMT</div><div class="ttdoc">printf format specifier for a blog_str_t.</div><div class="ttdef"><b>Definition</b> blog.h:115</div></div>
 </div><!-- fragment --><dl class="section see"><dt>See also</dt><dd><a class="el" href="blog_8h.html#a7120ffc6964518e4cec47c46ab08f571" title="printf arguments for a blog_str_t, to go with BLOG_STR_FMT">BLOG_STR_FMT_ARGS</a> </dd></dl>
 
 </div>
@@ -494,6 +500,27 @@ Threading</h2>
 
 </div>
 </div>
+<a id="a78be3bf6d0df1938bf539e7e0dbbfc54" name="a78be3bf6d0df1938bf539e7e0dbbfc54"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a78be3bf6d0df1938bf539e7e0dbbfc54">&#9670;&#160;</a></span>blog_is_enabled()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool blog_is_enabled </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="blog_8h.html#a873621186a42e3376aad93fb3ef55ddd">blog_level_t</a>&#160;</td>
+          <td class="paramname"><em>level</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Whether any logger accepts messages at the given level. </p>
+<p>Safe to call from any thread. </p>
+
+</div>
+</div>
 <a id="a40498daa118e38f9953f344559be099e" name="a40498daa118e38f9953f344559be099e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a40498daa118e38f9953f344559be099e">&#9670;&#160;</a></span>blog_set_min_log_level()</h2>
 
@@ -639,6 +666,66 @@ Threading</h2>
 <p>Log a message, <code>printf</code> style. </p>
 <p><a class="el" href="blog_8h.html#a1f9947bf97cfc3824295b1e499ed2a5d">BLOG_WRITE</a> and the level-specific macros fill in <code>file</code> and <code>line</code>.</p>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="blog_8h.html#a9e87fe9ded33f2c16f90dae14457c005" title="Log a message, vprintf style.">blog_vwrite</a> </dd></dl>
+
+</div>
+</div>
+<a id="a0cd3679e13a89a460531165a3f91b83b" name="a0cd3679e13a89a460531165a3f91b83b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0cd3679e13a89a460531165a3f91b83b">&#9670;&#160;</a></span>blog_write_raw()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void blog_write_raw </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="blog_8h.html#a873621186a42e3376aad93fb3ef55ddd">blog_level_t</a>&#160;</td>
+          <td class="paramname"><em>level</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>file</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>line</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>msg</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>len</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Log an already formatted message. </p>
+<p>The message is passed to the loggers as is. It only has to stay valid for the duration of the call.</p>
+<p>Safe to call from any thread.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">level</td><td>Severity. </td></tr>
+    <tr><td class="paramname">file</td><td>Source file, typically <code>__FILE__</code>. It is shortened as configured by <a class="el" href="blog_8h.html#a503f903b72cff9477ae0436f69bf4a35">blog_init</a>. </td></tr>
+    <tr><td class="paramname">line</td><td>Line in the source file. </td></tr>
+    <tr><td class="paramname">msg</td><td>The message, which does not need to be NUL-terminated. </td></tr>
+    <tr><td class="paramname">len</td><td>Its length in bytes. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
