@@ -1220,6 +1220,15 @@ typedef struct {
 } bent_handles_t;
 
 /**
+ * The data type of a component declared with @ref BENT_POD_COMP_EX.
+ *
+ * @param NAME name of the component type
+ *
+ * @see BENT_SERIALIZER
+ */
+#define BENT_COMP_TYPE(NAME) bent__comp_type_##NAME
+
+/**
  * Head of the serialization callback of a component declared with
  * @ref BENT_POD_COMP_EX.
  *
@@ -1235,9 +1244,10 @@ typedef struct {
  * @param NAME name of the component type
  *
  * @see bent_serialize_fn_t
+ * @see BENT_COMP_TYPE
  */
 #define BENT_SERIALIZER(NAME) \
-	bool bent_serialize_##NAME(bent_serialize_ctx_t* ctx, bent__comp_type_##NAME* comp)
+	bool bent_serialize_##NAME(bent_serialize_ctx_t* ctx, BENT_COMP_TYPE(NAME)* comp)
 
 /**
  * Iterate over each component type.
