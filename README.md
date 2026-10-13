@@ -37,6 +37,7 @@ They depend on other libraries in this repository.
 |[btest.h](btest.h)|Unit testing framework with automatic test registration|
 |[bent.h](bent.h)|Hot reload aware entity component system|
 |[bfmt_log.h](bfmt_log.h)|Logging with the formatting of bfmt.h through blog.h|
+|[bfmt_cldr.h](bfmt_cldr.h)|The plural rules of every language for bfmt.h, generated from CLDR|
 
 Examples for each library live in the corresponding `tests/<name>/` directory.
 
