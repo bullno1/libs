@@ -74,7 +74,7 @@ var searchData=
   ['bent_5flog_71',['BENT_LOG',['../bent_8h.html#a0ec1fc2642dedc334657a156fa59d8ad',1,'bent.h']]],
   ['bent_5fmask_5ftype_72',['BENT_MASK_TYPE',['../bent_8h.html#a0af5904b704c31d55fb23cecaab05f9a',1,'bent.h']]],
   ['bent_5fmax_5fnum_5fcomponent_5ftypes_73',['BENT_MAX_NUM_COMPONENT_TYPES',['../bent_8h.html#a158769c3d5cb4905b5489418fe4c3bbb',1,'bent.h']]],
-  ['bent_5fmsg_74',['bent_msg',['../bent_8h.html#ab841f7db828a64a16aa7aed8a635b787',1,'BENT_MSG:&#160;bent.h'],['../bent_8h.html#aef71d1b268610c2fe0cf20ddf57b5eea',1,'bent_msg:&#160;bent.h']]],
+  ['bent_5fmsg_74',['bent_msg',['../bent_8h.html#aef71d1b268610c2fe0cf20ddf57b5eea',1,'bent_msg:&#160;bent.h'],['../bent_8h.html#ab841f7db828a64a16aa7aed8a635b787',1,'BENT_MSG:&#160;bent.h']]],
   ['bent_5fmsg_5fhandlers_75',['BENT_MSG_HANDLERS',['../bent_8h.html#ace6229b585dd520b4a0dc86f68cdd2f1',1,'bent.h']]],
   ['bent_5fpod_5fcomp_76',['BENT_POD_COMP',['../bent_8h.html#abdb5b3b4e979a5288abdb44e95235e10',1,'bent.h']]],
   ['bent_5fpod_5fcomp_5fex_77',['BENT_POD_COMP_EX',['../bent_8h.html#a37cd158d8543a44d551ddc3bd5ad52fc',1,'bent.h']]],
