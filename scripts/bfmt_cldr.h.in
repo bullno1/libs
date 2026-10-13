@@ -1,0 +1,102 @@
+#ifndef BFMT_CLDR_H
+#define BFMT_CLDR_H
+
+// Generated from CLDR ${CLDR_VERSION} (cldr-json ${CLDR_REF}) by `scripts/bfmt_cldr.py`
+// out of `scripts/bfmt_cldr.h.in`.
+// Do not edit; change the template or rerun the script for a newer CLDR.
+
+/**
+ * @file
+ * The plural rules of every language, from CLDR.
+ *
+ * @code{.c}
+ * bfmt_locale_t locale = { .plural_rule = bfmt_cldr_plural_rule("pl") };
+ * @endcode
+ *
+ * In **exactly one** source file, define `BFMT_CLDR_IMPLEMENTATION` before
+ * including bfmt_cldr.h.
+ */
+
+#include "bfmt.h"
+
+/**
+ * The plural rule of a language.
+ *
+ * @param language the language as specified by gettext or BCP 47: `en`,
+ *   `pt_BR`, `pt-PT`, `sr@latin` or `de_DE.UTF-8`.
+ *   The search is case-insensitive. A charset or modifier is ignored.
+ *   A region or script CLDR does not distinguish falls back to the language
+ *   alone.
+ * @return the rules, or NULL for a language CLDR has none for
+ */
+BFMT_API bfmt_plural_rule_t*
+bfmt_cldr_plural_rule(const char* language);
+
+#endif
+
+#if defined(BLIB_IMPLEMENTATION) && !defined(BFMT_CLDR_IMPLEMENTATION)
+#define BFMT_CLDR_IMPLEMENTATION
+#endif
+
+#if defined(BFMT_CLDR_IMPLEMENTATION) && !defined(BFMT_CLDR_IMPLEMENTED)
+#define BFMT_CLDR_IMPLEMENTED
+
+#include <string.h>
+
+// Rules {{{
+
+${RULES}
+// }}}
+
+// Lookup {{{
+
+typedef struct {
+	const char* tag;
+	bfmt_plural_rule_t* rule;
+} bfmt_cldr__entry_t;
+
+// Sorted by tag, lowercase
+static const bfmt_cldr__entry_t bfmt_cldr__table[] = {
+${TABLE}
+};
+
+static bfmt_plural_rule_t*
+bfmt_cldr__find(const char* tag) {
+	int lo = 0;
+	int hi = (int)(sizeof(bfmt_cldr__table) / sizeof(bfmt_cldr__table[0])) - 1;
+	while (lo <= hi) {
+		int mid = lo + (hi - lo) / 2;
+		int cmp = strcmp(tag, bfmt_cldr__table[mid].tag);
+		if (cmp == 0) { return bfmt_cldr__table[mid].rule; }
+		if (cmp < 0) { hi = mid - 1; } else { lo = mid + 1; }
+	}
+	return NULL;
+}
+
+bfmt_plural_rule_t*
+bfmt_cldr_plural_rule(const char* language) {
+	// Lowercase, `_` as `-`, without a charset or modifier
+	char tag[32];
+	int len = 0;
+	for (const char* itr = language; *itr != '\0' && *itr != '.' && *itr != '@'; ++itr) {
+		if (len >= (int)sizeof(tag) - 1) { break; }
+		char c = *itr;
+		if (c == '_') { c = '-'; }
+		else if (c >= 'A' && c <= 'Z') { c = (char)(c - 'A' + 'a'); }
+		tag[len++] = c;
+	}
+
+	// The whole tag first, then without its last subtag, down to the language
+	while (len > 0) {
+		tag[len] = '\0';
+		bfmt_plural_rule_t* rule = bfmt_cldr__find(tag);
+		if (rule != NULL) { return rule; }
+		while (len > 0 && tag[len - 1] != '-') { --len; }
+		if (len > 0) { --len; }
+	}
+	return NULL;
+}
+
+// }}}
+
+#endif

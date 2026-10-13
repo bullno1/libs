@@ -974,6 +974,7 @@ INPUT                  = README.md \
 	barg.h \
 	bfmt.h \
 	bfmt_log.h \
+	bfmt_cldr.h \
 
 
 # This tag can be used to specify the character encoding of the source files
