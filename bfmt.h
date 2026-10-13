@@ -52,8 +52,9 @@
  * A translation may reorder the arguments, add the plural categories of its
  * language or turn a plain argument into a plural.
  *
- * Text without values, such as a table of menu labels, is declared with
- * @ref bfmt_text and rendered later with @ref bfmt_translate_text.
+ * Text to render later, such as a table of menu labels, is declared with
+ * @ref bfmt_text and rendered with @ref bfmt_translate_text.
+ * For values, use @ref bfmt_unbound as a stand in.
  *
  * Extracting translatable text
  * ----------------------------
@@ -387,7 +388,7 @@ typedef struct {
  * @hideinitializer
  */
 #define bfmt(VALUE, ...) \
-	((bfmt__element_t){ \
+	(bfmt__assert_bound(VALUE), (bfmt__element_t){ \
 		.value = (bfmt__typeof_decay(VALUE)[1]){ VALUE }, \
 		.formatter = bfmt__formatter_for(VALUE), \
 		.options = bfmt__options(bfmt__options_for(VALUE), __VA_ARGS__), \
@@ -517,7 +518,7 @@ typedef struct {
 } bfmt_locale_t;
 
 /**
- * Translatable text without values.
+ * Translatable text to render later.
  *
  * Made with @ref bfmt_text or @ref bfmt_ptext and rendered with
  * @ref bfmt_translate_text.
@@ -595,13 +596,25 @@ typedef struct {
  *
  * Takes the same arguments as @ref bfmt_translate and produces a
  * @ref bfmt_text_t holding the template.
- * The values of the arguments are not used, so they can be left out:
+ * The template is a constant expression, so the text can be static:
  *
  * @code{.c}
  * static const bfmt_text_t labels[] = {
  *     bfmt_text("New"),
  *     bfmt_text("Open"),
  * };
+ * @endcode
+ *
+ * The values should use @ref bfmt_unbound as a placeholder.
+ * They are substitued in @ref bfmt_translate_text:
+ *
+ * @code{.c}
+ * static const bfmt_text_t copied = bfmt_text(
+ *     "Copied ", bfmt_plural(num_files, bfmt_unbound, (one, "# file"), (other, "# files")),
+ *     " to ", bfmt_named(path, bfmt_unbound)
+ * );
+ *
+ * bfmt_translate_text(bfmt_stdout, locale, &copied, bfmt_named(num_files, n), bfmt_named(path, path));
  * @endcode
  *
  * @hideinitializer
@@ -615,7 +628,7 @@ typedef struct {
  *
  * @hideinitializer
  */
-#define bfmt_ptext(CONTEXT, ...) (bfmt_text_t){ .context = CONTEXT, .content = bfmt__map(bfmt__to_template_text, __VA_ARGS__) }
+#define bfmt_ptext(CONTEXT, ...) { .context = CONTEXT, .content = bfmt__map(bfmt__to_template_text, __VA_ARGS__) }
 
 #endif
 
@@ -630,6 +643,15 @@ typedef struct {
  * @hideinitializer
  */
 #define bfmt_named(NAME, VALUE) (bfmt_named, NAME, VALUE)
+
+/**
+ * A value that is supplied later.
+ *
+ * The value is bound by name in @ref bfmt_translate_text.
+ *
+ * @hideinitializer
+ */
+#define bfmt_unbound ((bfmt__unbound_t){ 0 })
 
 /**
  * A number with text that depends on its plural category.
@@ -688,16 +710,33 @@ typedef struct {
 /**
  * Print a @ref bfmt_text_t.
  *
- * @param stream where to print
- * @param locale the @ref bfmt_locale_t to translate with, or NULL for none
- * @param text the text, made with @ref bfmt_text or @ref bfmt_ptext
+ * The placeholders specified as @ref bfmt_unbound are bound here by name with
+ * @ref bfmt_named:
+ *
+ * @code{.c}
+ * bfmt_translate_text(bfmt_stdout, locale, &copied, bfmt_named(path, path), bfmt_named(num_files, n));
+ * @endcode
+ *
+ * A name the template uses that is not bound is reported through
+ * @ref bfmt_locale_t::report_error when rendering.
+ *
+ * @param OUT a `bfmt_stream_t*` or, inside a formatter, a `bfmt_ctx_t*`
+ * @param LOCALE the @ref bfmt_locale_t to translate with, or NULL for none
+ * @param TEXT a `const bfmt_text_t*` made with @ref bfmt_text or @ref bfmt_ptext
+ * @param ... the values, each one a @ref bfmt_named
+ *
+ * @hideinitializer
  */
-BFMT_API void
-bfmt_translate_text(
-	bfmt_stream_t* stream,
-	bfmt_locale_t* locale,
-	const bfmt_text_t* text
-);
+#define bfmt_translate_text(OUT, LOCALE, TEXT, ...) \
+	( \
+		bfmt__map(bfmt__check_binding, __VA_ARGS__) \
+		bfmt__translate_text( \
+			OUT, \
+			LOCALE, \
+			TEXT, \
+			(bfmt__template_input_t[]){ bfmt__map(bfmt__to_template_input, __VA_ARGS__) { 0 } } \
+		) \
+	)
 
 // }}}
 
@@ -776,11 +815,23 @@ typedef struct {
 	X(bool              , bfmt__format_bool      , bfmt_str_options_t) \
 	X(bfmt__element_t   , bfmt__format_element   , bfmt_no_options_t)
 
+typedef struct { char bfmt__unused; } bfmt__unbound_t;
+
+#define bfmt__assert_bound(VALUE) \
+	(void)sizeof(struct { \
+		_Static_assert( \
+			_Generic((VALUE), bfmt__unbound_t: 0, default: 1), \
+			"bfmt_unbound is only valid in bfmt_text; bind the value with bfmt_translate_text" \
+		); \
+		char bfmt__unused; \
+	})
+
 #define bfmt__builtin_types(X) \
 	X(const char*       , bfmt__format_str       , bfmt_str_options_t) \
 	X(char*             , bfmt__format_str       , bfmt_str_options_t) \
 	X(const void*       , bfmt__format_ptr       , bfmt_simple_options_t) \
 	X(void*             , bfmt__format_ptr       , bfmt_simple_options_t) \
+	X(bfmt__unbound_t   , bfmt__format_unbound   , bfmt_simple_options_t) \
 	bfmt__builtin_value_types(X)
 
 #define bfmt__all_types(X) bfmt__builtin_types(X) BFMT_USER_TYPES(X)
@@ -813,6 +864,14 @@ bfmt__make_wrapper(const char*, bfmt__format_str, bfmt_str_options_t)
 BFMT_API void
 bfmt__format_ptr(bfmt_ctx_t* ctx, const void* value, bfmt_simple_options_t options);
 bfmt__make_wrapper(const void*, bfmt__format_ptr, bfmt_simple_options_t)
+
+// Placeholder so the compiler is happy
+// This should never be reached
+static inline void
+bfmt__format_unbound(bfmt_ctx_t* ctx, bfmt__unbound_t value, bfmt_simple_options_t options) {
+	(void)ctx; (void)value; (void)options;
+}
+bfmt__make_wrapper(bfmt__unbound_t, bfmt__format_unbound, bfmt_simple_options_t)
 
 #define bfmt__to_element(VALUE) bfmt(VALUE),
 
@@ -871,6 +930,10 @@ bfmt__make_wrapper(const void*, bfmt__format_ptr, bfmt_simple_options_t)
 #define bfmt__check_arg_0(X) (void)sizeof(struct { _Static_assert(bfmt__is_literal_str(X), "`" #X "` is not a literal string"); char bfmt__unused; }),
 #define bfmt__check_arg_1(X) (void)0,
 
+#define bfmt__check_binding(X) bfmt__concat(bfmt__check_binding_, bfmt__is_paren(X))(X)
+#define bfmt__check_binding_0(X) (void)sizeof(struct { _Static_assert(0, "`" #X "` is not a binding, write bfmt_named(name, value)"); char bfmt__unused; }),
+#define bfmt__check_binding_1(X) (void)0,
+
 #define bfmt__is_literal_str(X) \
 	_Generic((bfmt__typeof_decay(X)){ 0 }, const char*: 1, char*: 1, default: 0)
 
@@ -914,6 +977,28 @@ bfmt__ptranslate_ctx(
 	bfmt_locale_t* locale,
 	const char* context,
 	const char* template,
+	const bfmt__template_input_t* inputs
+);
+
+#define bfmt__translate_text(OUT, LOCALE, TEXT, INPUTS) \
+	_Generic(OUT, \
+		bfmt_stream_t*: bfmt__translate_text_stream, \
+		bfmt_ctx_t*: bfmt__translate_text_ctx \
+	)(OUT, LOCALE, TEXT, INPUTS)
+
+BFMT_API void
+bfmt__translate_text_stream(
+	bfmt_stream_t* stream,
+	bfmt_locale_t* locale,
+	const bfmt_text_t* text,
+	const bfmt__template_input_t* inputs
+);
+
+BFMT_API void
+bfmt__translate_text_ctx(
+	bfmt_ctx_t* ctx,
+	bfmt_locale_t* locale,
+	const bfmt_text_t* text,
 	const bfmt__template_input_t* inputs
 );
 
@@ -1254,12 +1339,23 @@ bfmt_stream_t* bfmt_stderr = &(bfmt_stream_t){
 // Translation {{{
 
 void
-bfmt_translate_text(
+bfmt__translate_text_stream(
 	bfmt_stream_t* stream,
 	bfmt_locale_t* locale,
-	const bfmt_text_t* text
+	const bfmt_text_t* text,
+	const bfmt__template_input_t* inputs
 ) {
-	bfmt__ptranslate_stream(stream, locale, text->context, text->content, (bfmt__template_input_t[1]){ 0 });
+	bfmt__ptranslate_stream(stream, locale, text->context, text->content, inputs);
+}
+
+void
+bfmt__translate_text_ctx(
+	bfmt_ctx_t* ctx,
+	bfmt_locale_t* locale,
+	const bfmt_text_t* text,
+	const bfmt__template_input_t* inputs
+) {
+	bfmt__ptranslate_ctx(ctx, locale, text->context, text->content, inputs);
 }
 
 void

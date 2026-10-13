@@ -119,6 +119,21 @@ bfmt_formatter(int, bfmt_test_format_file_count, bfmt_no_options_t) {
 	bfmt_translate(ctx, &english, bfmt_plural(n, value, (one, "# file"), (other, "# files")));
 }
 
+// Declared once with placeholders, rendered many times with values
+static const bfmt_text_t copied_text = bfmt_text(
+	"Copied ", bfmt_plural(num_files, bfmt_unbound, (one, "# file"), (other, "# files")),
+	" to ", bfmt_named(path, bfmt_unbound)
+);
+
+// The same count, through a static text
+bfmt_decl_formatter(int, bfmt_test_format_file_count_text, bfmt_no_options_t)
+
+bfmt_formatter(int, bfmt_test_format_file_count_text, bfmt_no_options_t) {
+	(void)options;
+	static const bfmt_text_t text = bfmt_text(bfmt_plural(n, bfmt_unbound, (one, "# file"), (other, "# files")));
+	bfmt_translate_text(ctx, &english, &text, bfmt_named(n, value));
+}
+
 // Source text {{{
 
 BTEST(translate_suite, plain_text) {
@@ -254,7 +269,7 @@ BTEST(translate_suite, static_text) {
 	BTEST_EXPECT(plain.context == NULL);
 	EXPECT_STR(plain.content, "Save");
 
-	bfmt_text_t with_context = bfmt_ptext("menu", "Open ", bfmt_named(file, 0));
+	bfmt_text_t with_context = bfmt_ptext("menu", "Open ", bfmt_named(file, bfmt_unbound));
 	EXPECT_STR(with_context.context, "menu");
 	EXPECT_STR(with_context.content, "Open {file}");
 
@@ -269,6 +284,62 @@ BTEST(translate_suite, static_text) {
 	EXPECT_OUTPUT("Otwórz");
 	EXPECT_STR(lookup.ctx, "menu");
 	EXPECT_STR(lookup.key, "Open");
+
+	lookup.translation = NULL;
+	bfmt_translate_text(OUT, &english, &with_context, bfmt_named(file, "a.txt"));
+	EXPECT_OUTPUT("Open a.txt");
+	EXPECT_STR(lookup.ctx, "menu");
+	EXPECT_STR(lookup.key, "Open {file}");
+	EXPECT_NO_ERROR();
+}
+
+BTEST(translate_suite, static_text_with_values) {
+	// The placeholders leave no trace in the key
+	EXPECT_STR(copied_text.content, "Copied {num_files, plural, one{# file} other{# files}} to {path}");
+
+	bfmt_translate_text(OUT, &english, &copied_text, bfmt_named(num_files, 1), bfmt_named(path, "/tmp"));
+	EXPECT_OUTPUT("Copied 1 file to /tmp");
+	EXPECT_STR(lookup.key, copied_text.content);
+
+	// Bound by name, so in any order, and a plural is bound like any value
+	bfmt_translate_text(OUT, &english, &copied_text, bfmt_named(path, "/tmp"), bfmt_named(num_files, 3));
+	EXPECT_OUTPUT("Copied 3 files to /tmp");
+
+	// A translation may still reorder and repluralize
+	lookup.translation = "Do {path} skopiowano {num_files, plural, one{# plik} few{# pliki} many{# plików} other{# pliku}}";
+	bfmt_translate_text(OUT, &polish, &copied_text, bfmt_named(num_files, 2), bfmt_named(path, "/tmp"));
+	EXPECT_OUTPUT("Do /tmp skopiowano 2 pliki");
+	EXPECT_NO_ERROR();
+}
+
+BTEST(translate_suite, static_text_bindings) {
+	bfmt_text_t text = bfmt_text("Hello ", bfmt_named(user, bfmt_unbound));
+
+	// A binding the template does not use is ignored
+	bfmt_translate_text(OUT, &english, &text, bfmt_named(user, "bull"), bfmt_named(extra, 1));
+	EXPECT_OUTPUT("Hello bull");
+	EXPECT_NO_ERROR();
+
+	// A name left unbound is an error when rendering
+	bfmt_translate_text(OUT, &english, &text, bfmt_named(usr, "bull"));
+	EXPECT_ERROR("Hello {user}", 7);
+
+	// Values take options and are evaluated once, as in bfmt_translate
+	int counter = 1;
+	bfmt_translate_text(OUT, &english, &text, bfmt_named(user, bfmt(counter++, { .layout.min_width = 3 })));
+	EXPECT_OUTPUT("Hello   1");
+	BTEST_EXPECT_EQUAL("%d", counter, 2);
+}
+
+BTEST(translate_suite, static_text_inside_a_formatter) {
+	bfmt_print(OUT, "Copied ", bfmt_with(bfmt_test_format_file_count_text, 1));
+	EXPECT_OUTPUT("Copied 1 file");
+
+	// A static text may bind a value that is itself a nested translation
+	static const bfmt_text_t text = bfmt_text("Copied ", bfmt_named(what, bfmt_unbound));
+	bfmt_translate_text(OUT, &english, &text, bfmt_named(what, bfmt_with(bfmt_test_format_file_count_text, 2)));
+	EXPECT_OUTPUT("Copied 2 files");
+	EXPECT_NO_ERROR();
 }
 
 BTEST(translate_suite, translation_reorders_inputs) {
