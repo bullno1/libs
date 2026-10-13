@@ -124,7 +124,7 @@ Classes</h2></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A language: how to pluralize and where to find translations.  <a href="structbfmt__locale__t.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structbfmt__text__t.html">bfmt_text_t</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Translatable text without values.  <a href="structbfmt__text__t.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Translatable text to render later.  <a href="structbfmt__text__t.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
@@ -175,6 +175,9 @@ Macros</h2></td></tr>
 <tr class="memitem:aa9e611cb25ef5a00483bc0a34d426231" id="r_aa9e611cb25ef5a00483bc0a34d426231"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bfmt_8h.html#aa9e611cb25ef5a00483bc0a34d426231">bfmt_named</a>(NAME,  VALUE)</td></tr>
 <tr class="memdesc:aa9e611cb25ef5a00483bc0a34d426231"><td class="mdescLeft">&#160;</td><td class="mdescRight">A named value in a translatable text.  <br /></td></tr>
 <tr class="separator:aa9e611cb25ef5a00483bc0a34d426231"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2b851b96930e0ab17e8ca70feb81752b" id="r_a2b851b96930e0ab17e8ca70feb81752b"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bfmt_8h.html#a2b851b96930e0ab17e8ca70feb81752b">bfmt_unbound</a></td></tr>
+<tr class="memdesc:a2b851b96930e0ab17e8ca70feb81752b"><td class="mdescLeft">&#160;</td><td class="mdescRight">A value that is supplied later.  <br /></td></tr>
+<tr class="separator:a2b851b96930e0ab17e8ca70feb81752b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a27104b487d365a9c26a3ec3e41f95965" id="r_a27104b487d365a9c26a3ec3e41f95965"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bfmt_8h.html#a27104b487d365a9c26a3ec3e41f95965">bfmt_plural</a>(NAME,  NUMBER, ...)</td></tr>
 <tr class="memdesc:a27104b487d365a9c26a3ec3e41f95965"><td class="mdescLeft">&#160;</td><td class="mdescRight">A number with text that depends on its plural category.  <br /></td></tr>
 <tr class="separator:a27104b487d365a9c26a3ec3e41f95965"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -184,6 +187,9 @@ Macros</h2></td></tr>
 <tr class="memitem:a916da5cff034e49178017fce0e7eb91f" id="r_a916da5cff034e49178017fce0e7eb91f"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bfmt_8h.html#a916da5cff034e49178017fce0e7eb91f">bfmt_select</a>(NAME,  SELECTOR, ...)</td></tr>
 <tr class="memdesc:a916da5cff034e49178017fce0e7eb91f"><td class="mdescLeft">&#160;</td><td class="mdescRight">A value with text that depends on what it is.  <br /></td></tr>
 <tr class="separator:a916da5cff034e49178017fce0e7eb91f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad44e3b6ce4e35bb99bf5825c9db0c9b4" id="r_ad44e3b6ce4e35bb99bf5825c9db0c9b4"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bfmt_8h.html#ad44e3b6ce4e35bb99bf5825c9db0c9b4">bfmt_translate_text</a>(OUT,  LOCALE,  TEXT, ...)</td></tr>
+<tr class="memdesc:ad44e3b6ce4e35bb99bf5825c9db0c9b4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Print a <a class="el" href="structbfmt__text__t.html">bfmt_text_t</a>.  <br /></td></tr>
+<tr class="separator:ad44e3b6ce4e35bb99bf5825c9db0c9b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
 Typedefs</h2></td></tr>
@@ -253,9 +259,6 @@ Functions</h2></td></tr>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>bfmt_fmtv</b> (<a class="el" href="bfmt_8h.html#a0711ed1e478a3fee1e4d7ca43eadb02b">bfmt_ctx_t</a> *ctx, const char *fmt, va_list args)</td></tr>
 <tr class="memdesc:a2e1be1ec28223afab46fd9867ba9b08b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Same as <a class="el" href="bfmt_8h.html#a0e7e34ad7e7254bb5209bb5755eb288a">bfmt_fmt</a> with a <code>va_list</code> <br /></td></tr>
 <tr class="separator:a2e1be1ec28223afab46fd9867ba9b08b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a90bdc6574f01bb681613fadfaa8f0ee3" id="r_a90bdc6574f01bb681613fadfaa8f0ee3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bfmt_8h.html#a90bdc6574f01bb681613fadfaa8f0ee3">bfmt_translate_text</a> (<a class="el" href="structbfmt__stream__t.html">bfmt_stream_t</a> *stream, <a class="el" href="structbfmt__locale__t.html">bfmt_locale_t</a> *locale, const <a class="el" href="structbfmt__text__t.html">bfmt_text_t</a> *text)</td></tr>
-<tr class="memdesc:a90bdc6574f01bb681613fadfaa8f0ee3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Print a <a class="el" href="structbfmt__text__t.html">bfmt_text_t</a>.  <br /></td></tr>
-<tr class="separator:a90bdc6574f01bb681613fadfaa8f0ee3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
@@ -276,7 +279,7 @@ Printing</h2>
 <div class="fragment"><div class="line"><span class="keywordtype">int</span> num_files = ...;</div>
 <div class="line"><a class="code hl_define" href="bfmt_8h.html#ad59e898a1017ac9d139a50232351e7b7">bfmt_println</a>(<a class="code hl_variable" href="bfmt_8h.html#a9b83478d4762ea5f06c0a3b96a6ef76a">bfmt_stdout</a>, <span class="stringliteral">&quot;Copied &quot;</span>, num_files, <span class="stringliteral">&quot; files to &quot;</span>, path);</div>
 <div class="ttc" id="abfmt_8h_html_a9b83478d4762ea5f06c0a3b96a6ef76a"><div class="ttname"><a href="bfmt_8h.html#a9b83478d4762ea5f06c0a3b96a6ef76a">bfmt_stdout</a></div><div class="ttdeci">bfmt_stream_t * bfmt_stdout</div><div class="ttdoc">A stream writing to stdout</div></div>
-<div class="ttc" id="abfmt_8h_html_ad59e898a1017ac9d139a50232351e7b7"><div class="ttname"><a href="bfmt_8h.html#ad59e898a1017ac9d139a50232351e7b7">bfmt_println</a></div><div class="ttdeci">#define bfmt_println(OUT,...)</div><div class="ttdoc">Same as bfmt_print, followed by a newline.</div><div class="ttdef"><b>Definition</b> bfmt.h:283</div></div>
+<div class="ttc" id="abfmt_8h_html_ad59e898a1017ac9d139a50232351e7b7"><div class="ttname"><a href="bfmt_8h.html#ad59e898a1017ac9d139a50232351e7b7">bfmt_println</a></div><div class="ttdeci">#define bfmt_println(OUT,...)</div><div class="ttdoc">Same as bfmt_print, followed by a newline.</div><div class="ttdef"><b>Definition</b> bfmt.h:284</div></div>
 </div><!-- fragment --><p>An argument may be wrapped in <a class="el" href="bfmt_8h.html#a845dd51beb7e85c228e9ea0309f8c141">bfmt</a> to give it formatting options. Alternatively, use <a class="el" href="bfmt_8h.html#aebfcf3015c840e7ab77cc266d6c19d43">bfmt_with</a> to format it with a specific formatter. Types of your own are printed natively once listed in <a class="el" href="bfmt_8h.html#ad31c33ed756d37d4c125e8a997204d19">BFMT_USER_TYPES</a>.</p>
 <h2><a class="anchor" id="autotoc_md24"></a>
 Localization</h2>
@@ -286,11 +289,11 @@ Localization</h2>
 <div class="line">    <span class="stringliteral">&quot;Copied &quot;</span>, <a class="code hl_define" href="bfmt_8h.html#a27104b487d365a9c26a3ec3e41f95965">bfmt_plural</a>(num_files, n, (one, <span class="stringliteral">&quot;# file&quot;</span>), (other, <span class="stringliteral">&quot;# files&quot;</span>)),</div>
 <div class="line">    <span class="stringliteral">&quot; to &quot;</span>, <a class="code hl_define" href="bfmt_8h.html#aa9e611cb25ef5a00483bc0a34d426231">bfmt_named</a>(path, path)</div>
 <div class="line">);</div>
-<div class="ttc" id="abfmt_8h_html_a27104b487d365a9c26a3ec3e41f95965"><div class="ttname"><a href="bfmt_8h.html#a27104b487d365a9c26a3ec3e41f95965">bfmt_plural</a></div><div class="ttdeci">#define bfmt_plural(NAME, NUMBER,...)</div><div class="ttdoc">A number with text that depends on its plural category.</div><div class="ttdef"><b>Definition</b> bfmt.h:655</div></div>
-<div class="ttc" id="abfmt_8h_html_a7b7fba3a2cdc07c7e2ccb0774518811b"><div class="ttname"><a href="bfmt_8h.html#a7b7fba3a2cdc07c7e2ccb0774518811b">bfmt_translate</a></div><div class="ttdeci">#define bfmt_translate(OUT, LOCALE,...)</div><div class="ttdoc">Print translated text.</div><div class="ttdef"><b>Definition</b> bfmt.h:570</div></div>
-<div class="ttc" id="abfmt_8h_html_aa9e611cb25ef5a00483bc0a34d426231"><div class="ttname"><a href="bfmt_8h.html#aa9e611cb25ef5a00483bc0a34d426231">bfmt_named</a></div><div class="ttdeci">#define bfmt_named(NAME, VALUE)</div><div class="ttdoc">A named value in a translatable text.</div><div class="ttdef"><b>Definition</b> bfmt.h:632</div></div>
+<div class="ttc" id="abfmt_8h_html_a27104b487d365a9c26a3ec3e41f95965"><div class="ttname"><a href="bfmt_8h.html#a27104b487d365a9c26a3ec3e41f95965">bfmt_plural</a></div><div class="ttdeci">#define bfmt_plural(NAME, NUMBER,...)</div><div class="ttdoc">A number with text that depends on its plural category.</div><div class="ttdef"><b>Definition</b> bfmt.h:677</div></div>
+<div class="ttc" id="abfmt_8h_html_a7b7fba3a2cdc07c7e2ccb0774518811b"><div class="ttname"><a href="bfmt_8h.html#a7b7fba3a2cdc07c7e2ccb0774518811b">bfmt_translate</a></div><div class="ttdeci">#define bfmt_translate(OUT, LOCALE,...)</div><div class="ttdoc">Print translated text.</div><div class="ttdef"><b>Definition</b> bfmt.h:571</div></div>
+<div class="ttc" id="abfmt_8h_html_aa9e611cb25ef5a00483bc0a34d426231"><div class="ttname"><a href="bfmt_8h.html#aa9e611cb25ef5a00483bc0a34d426231">bfmt_named</a></div><div class="ttdeci">#define bfmt_named(NAME, VALUE)</div><div class="ttdoc">A named value in a translatable text.</div><div class="ttdef"><b>Definition</b> bfmt.h:645</div></div>
 </div><!-- fragment --><p>The arguments are assembled at compile time into a template in the <a href="https://unicode-org.github.io/icu/userguide/format_parse/messages/">ICU MessageFormat</a> syntax. In the above example, that would be: <code>Copied {num_files, plural, one{# file} other{# files}} to {path}</code>. That template is both the key looked up in the <a class="el" href="structbfmt__locale__t.html">bfmt_locale_t</a> and the text a translator works from. A translation may reorder the arguments, add the plural categories of its language or turn a plain argument into a plural.</p>
-<p>Text without values, such as a table of menu labels, is declared with <a class="el" href="bfmt_8h.html#a7da97cbf09b96da0ee6cc17f2fd8b58b">bfmt_text</a> and rendered later with <a class="el" href="bfmt_8h.html#a90bdc6574f01bb681613fadfaa8f0ee3">bfmt_translate_text</a>.</p>
+<p>Text to render later, such as a table of menu labels, is declared with <a class="el" href="bfmt_8h.html#a7da97cbf09b96da0ee6cc17f2fd8b58b">bfmt_text</a> and rendered with <a class="el" href="bfmt_8h.html#ad44e3b6ce4e35bb99bf5825c9db0c9b4">bfmt_translate_text</a>. For values, use <a class="el" href="bfmt_8h.html#a2b851b96930e0ab17e8ca70feb81752b">bfmt_unbound</a> as a stand in.</p>
 <h2><a class="anchor" id="autotoc_md25"></a>
 Extracting translatable text</h2>
 <p>The templates only exist after preprocessing. With <a class="el" href="bfmt_8h.html#a803aa0a31bd657e01d7b1ce1736f4035">BFMT_EXTRACT</a> defined, the translation macros expand to plain <code>gettext</code> and <code>pgettext</code> calls around the template, so that <code>xgettext</code> can extract them from the preprocessor's output without any <code>--keyword</code> flag:</p>
@@ -341,9 +344,9 @@ Template syntax</h2>
 <p>The formatter is the default for the type of <code>VALUE</code> and the options are of its options type. For example, <a class="el" href="structbfmt__int__options__t.html">bfmt_int_options_t</a> for an integer:</p>
 <div class="fragment"><div class="line"><a class="code hl_define" href="bfmt_8h.html#a4a80a86156e81d60c66cafd0360df893">bfmt_print</a>(out, <a class="code hl_define" href="bfmt_8h.html#a845dd51beb7e85c228e9ea0309f8c141">bfmt</a>(255, { .base = <a class="code hl_enumvalue" href="bfmt_8h.html#af8ed8d3d83de3fdbda6ba309669e01c1a5fb8720fa978fb1a76668bfb877662aa">BFMT_BASE_HEX</a>, .show_base = <span class="keyword">true</span> }));</div>
 <div class="line"><a class="code hl_define" href="bfmt_8h.html#a4a80a86156e81d60c66cafd0360df893">bfmt_print</a>(out, <a class="code hl_define" href="bfmt_8h.html#a845dd51beb7e85c228e9ea0309f8c141">bfmt</a>(name, { .layout.min_width = 20 }));</div>
-<div class="ttc" id="abfmt_8h_html_a4a80a86156e81d60c66cafd0360df893"><div class="ttname"><a href="bfmt_8h.html#a4a80a86156e81d60c66cafd0360df893">bfmt_print</a></div><div class="ttdeci">#define bfmt_print(OUT,...)</div><div class="ttdoc">Print values one after another.</div><div class="ttdef"><b>Definition</b> bfmt.h:275</div></div>
-<div class="ttc" id="abfmt_8h_html_a845dd51beb7e85c228e9ea0309f8c141"><div class="ttname"><a href="bfmt_8h.html#a845dd51beb7e85c228e9ea0309f8c141">bfmt</a></div><div class="ttdeci">#define bfmt(VALUE,...)</div><div class="ttdoc">A value with formatting options.</div><div class="ttdef"><b>Definition</b> bfmt.h:389</div></div>
-<div class="ttc" id="abfmt_8h_html_af8ed8d3d83de3fdbda6ba309669e01c1a5fb8720fa978fb1a76668bfb877662aa"><div class="ttname"><a href="bfmt_8h.html#af8ed8d3d83de3fdbda6ba309669e01c1a5fb8720fa978fb1a76668bfb877662aa">BFMT_BASE_HEX</a></div><div class="ttdeci">@ BFMT_BASE_HEX</div><div class="ttdoc">Hexadecimal, lowercase unless uppercase is set.</div><div class="ttdef"><b>Definition</b> bfmt.h:203</div></div>
+<div class="ttc" id="abfmt_8h_html_a4a80a86156e81d60c66cafd0360df893"><div class="ttname"><a href="bfmt_8h.html#a4a80a86156e81d60c66cafd0360df893">bfmt_print</a></div><div class="ttdeci">#define bfmt_print(OUT,...)</div><div class="ttdoc">Print values one after another.</div><div class="ttdef"><b>Definition</b> bfmt.h:276</div></div>
+<div class="ttc" id="abfmt_8h_html_a845dd51beb7e85c228e9ea0309f8c141"><div class="ttname"><a href="bfmt_8h.html#a845dd51beb7e85c228e9ea0309f8c141">bfmt</a></div><div class="ttdeci">#define bfmt(VALUE,...)</div><div class="ttdoc">A value with formatting options.</div><div class="ttdef"><b>Definition</b> bfmt.h:390</div></div>
+<div class="ttc" id="abfmt_8h_html_af8ed8d3d83de3fdbda6ba309669e01c1a5fb8720fa978fb1a76668bfb877662aa"><div class="ttname"><a href="bfmt_8h.html#af8ed8d3d83de3fdbda6ba309669e01c1a5fb8720fa978fb1a76668bfb877662aa">BFMT_BASE_HEX</a></div><div class="ttdeci">@ BFMT_BASE_HEX</div><div class="ttdoc">Hexadecimal, lowercase unless uppercase is set.</div><div class="ttdef"><b>Definition</b> bfmt.h:204</div></div>
 </div><!-- fragment --><p>The result is only valid in the enclosing block and is meant to be passed straight to <a class="el" href="bfmt_8h.html#a4a80a86156e81d60c66cafd0360df893">bfmt_print</a>, <a class="el" href="bfmt_8h.html#a7b7fba3a2cdc07c7e2ccb0774518811b">bfmt_translate</a> or <a class="el" href="bfmt_8h.html#aa9e611cb25ef5a00483bc0a34d426231">bfmt_named</a>.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -396,9 +399,9 @@ Template syntax</h2>
 <div class="line"><a class="code hl_define" href="bfmt_8h.html#a2b42749bfb866e22d8ec26ae0c82c53e">bfmt_formatter</a>(vec2_t, format_vec2, <a class="code hl_struct" href="structbfmt__no__options__t.html">bfmt_no_options_t</a>) {</div>
 <div class="line">    <a class="code hl_define" href="bfmt_8h.html#a4a80a86156e81d60c66cafd0360df893">bfmt_print</a>(ctx, <span class="stringliteral">&quot;(&quot;</span>, value.x, <span class="stringliteral">&quot;, &quot;</span>, value.y, <span class="stringliteral">&quot;)&quot;</span>);</div>
 <div class="line">}</div>
-<div class="ttc" id="abfmt_8h_html_a17bb113c41739ba4823ac3a858df5384"><div class="ttname"><a href="bfmt_8h.html#a17bb113c41739ba4823ac3a858df5384">bfmt_decl_formatter</a></div><div class="ttdeci">#define bfmt_decl_formatter(VALUE_TYPE, FORMATTER_NAME, OPTIONS_TYPE)</div><div class="ttdoc">Declare and register a formatter defined elsewhere.</div><div class="ttdef"><b>Definition</b> bfmt.h:321</div></div>
-<div class="ttc" id="abfmt_8h_html_a2b42749bfb866e22d8ec26ae0c82c53e"><div class="ttname"><a href="bfmt_8h.html#a2b42749bfb866e22d8ec26ae0c82c53e">bfmt_formatter</a></div><div class="ttdeci">#define bfmt_formatter(VALUE_TYPE, NAME, OPTIONS_TYPE)</div><div class="ttdoc">Signature of a formatter.</div><div class="ttdef"><b>Definition</b> bfmt.h:335</div></div>
-<div class="ttc" id="astructbfmt__no__options__t_html"><div class="ttname"><a href="structbfmt__no__options__t.html">bfmt_no_options_t</a></div><div class="ttdoc">Options type for a formatter that takes none.</div><div class="ttdef"><b>Definition</b> bfmt.h:175</div></div>
+<div class="ttc" id="abfmt_8h_html_a17bb113c41739ba4823ac3a858df5384"><div class="ttname"><a href="bfmt_8h.html#a17bb113c41739ba4823ac3a858df5384">bfmt_decl_formatter</a></div><div class="ttdeci">#define bfmt_decl_formatter(VALUE_TYPE, FORMATTER_NAME, OPTIONS_TYPE)</div><div class="ttdoc">Declare and register a formatter defined elsewhere.</div><div class="ttdef"><b>Definition</b> bfmt.h:322</div></div>
+<div class="ttc" id="abfmt_8h_html_a2b42749bfb866e22d8ec26ae0c82c53e"><div class="ttname"><a href="bfmt_8h.html#a2b42749bfb866e22d8ec26ae0c82c53e">bfmt_formatter</a></div><div class="ttdeci">#define bfmt_formatter(VALUE_TYPE, NAME, OPTIONS_TYPE)</div><div class="ttdoc">Signature of a formatter.</div><div class="ttdef"><b>Definition</b> bfmt.h:336</div></div>
+<div class="ttc" id="astructbfmt__no__options__t_html"><div class="ttname"><a href="structbfmt__no__options__t.html">bfmt_no_options_t</a></div><div class="ttdoc">Options type for a formatter that takes none.</div><div class="ttdef"><b>Definition</b> bfmt.h:176</div></div>
 </div><!-- fragment --><dl class="section see"><dt>See also</dt><dd><a class="el" href="bfmt_8h.html#a1659a83a735f97040cac2f30e0c68d19" title="Make a formatter usable with bfmt_with and BFMT_USER_TYPES.">bfmt_register_formatter</a> </dd></dl>
 
 </div>
@@ -529,7 +532,7 @@ Template syntax</h2>
 
 <p>Same as <a class="el" href="bfmt_8h.html#a27104b487d365a9c26a3ec3e41f95965">bfmt_plural</a> with the ordinal rules. </p>
 <div class="fragment"><div class="line"><a class="code hl_define" href="bfmt_8h.html#a30adfdcfd7471cec6ccb5e3cfb14bfa2">bfmt_ordinal</a>(rank, n, (one, <span class="stringliteral">&quot;#st&quot;</span>), (two, <span class="stringliteral">&quot;#nd&quot;</span>), (few, <span class="stringliteral">&quot;#rd&quot;</span>), (other, <span class="stringliteral">&quot;#th&quot;</span>))</div>
-<div class="ttc" id="abfmt_8h_html_a30adfdcfd7471cec6ccb5e3cfb14bfa2"><div class="ttname"><a href="bfmt_8h.html#a30adfdcfd7471cec6ccb5e3cfb14bfa2">bfmt_ordinal</a></div><div class="ttdeci">#define bfmt_ordinal(NAME, NUMBER,...)</div><div class="ttdoc">Same as bfmt_plural with the ordinal rules.</div><div class="ttdef"><b>Definition</b> bfmt.h:668</div></div>
+<div class="ttc" id="abfmt_8h_html_a30adfdcfd7471cec6ccb5e3cfb14bfa2"><div class="ttname"><a href="bfmt_8h.html#a30adfdcfd7471cec6ccb5e3cfb14bfa2">bfmt_ordinal</a></div><div class="ttdeci">#define bfmt_ordinal(NAME, NUMBER,...)</div><div class="ttdoc">Same as bfmt_plural with the ordinal rules.</div><div class="ttdef"><b>Definition</b> bfmt.h:690</div></div>
 </div><!-- fragment --><p>Appears in the template as <code>{NAME, selectordinal, ...}</code>. </p>
 
 </div>
@@ -598,7 +601,7 @@ Template syntax</h2>
 
 <p>An enabled <a class="el" href="structbfmt__precision__t.html">bfmt_precision_t</a>. </p>
 <div class="fragment"><div class="line"><a class="code hl_define" href="bfmt_8h.html#a4a80a86156e81d60c66cafd0360df893">bfmt_print</a>(out, <a class="code hl_define" href="bfmt_8h.html#a845dd51beb7e85c228e9ea0309f8c141">bfmt</a>(3.14159, { .precision = <a class="code hl_define" href="bfmt_8h.html#a4aca2ada79e197ddf402032fb9e87047">bfmt_precision</a>(2) }));</div>
-<div class="ttc" id="abfmt_8h_html_a4aca2ada79e197ddf402032fb9e87047"><div class="ttname"><a href="bfmt_8h.html#a4aca2ada79e197ddf402032fb9e87047">bfmt_precision</a></div><div class="ttdeci">#define bfmt_precision(PRECISION)</div><div class="ttdoc">An enabled bfmt_precision_t.</div><div class="ttdef"><b>Definition</b> bfmt.h:405</div></div>
+<div class="ttc" id="abfmt_8h_html_a4aca2ada79e197ddf402032fb9e87047"><div class="ttname"><a href="bfmt_8h.html#a4aca2ada79e197ddf402032fb9e87047">bfmt_precision</a></div><div class="ttdeci">#define bfmt_precision(PRECISION)</div><div class="ttdoc">An enabled bfmt_precision_t.</div><div class="ttdef"><b>Definition</b> bfmt.h:406</div></div>
 </div><!-- fragment --> 
 </div>
 </div>
@@ -793,7 +796,7 @@ Template syntax</h2>
 
 <p>A value with text that depends on what it is. </p>
 <div class="fragment"><div class="line"><a class="code hl_define" href="bfmt_8h.html#a916da5cff034e49178017fce0e7eb91f">bfmt_select</a>(gender, user-&gt;gender, (female, <span class="stringliteral">&quot;her&quot;</span>), (male, <span class="stringliteral">&quot;his&quot;</span>), (other, <span class="stringliteral">&quot;their&quot;</span>))</div>
-<div class="ttc" id="abfmt_8h_html_a916da5cff034e49178017fce0e7eb91f"><div class="ttname"><a href="bfmt_8h.html#a916da5cff034e49178017fce0e7eb91f">bfmt_select</a></div><div class="ttdeci">#define bfmt_select(NAME, SELECTOR,...)</div><div class="ttdoc">A value with text that depends on what it is.</div><div class="ttdef"><b>Definition</b> bfmt.h:686</div></div>
+<div class="ttc" id="abfmt_8h_html_a916da5cff034e49178017fce0e7eb91f"><div class="ttname"><a href="bfmt_8h.html#a916da5cff034e49178017fce0e7eb91f">bfmt_select</a></div><div class="ttdeci">#define bfmt_select(NAME, SELECTOR,...)</div><div class="ttdoc">A value with text that depends on what it is.</div><div class="ttdef"><b>Definition</b> bfmt.h:708</div></div>
 </div><!-- fragment --><p>Appears in the template as <code>{NAME, select, ...}</code>. A string is compared as is, anything else by how it prints.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -823,13 +826,22 @@ Template syntax</h2>
 </div><div class="memdoc">
 
 <p>Translatable text to render later. </p>
-<p>Takes the same arguments as <a class="el" href="bfmt_8h.html#a7b7fba3a2cdc07c7e2ccb0774518811b">bfmt_translate</a> and produces a <a class="el" href="structbfmt__text__t.html">bfmt_text_t</a> holding the template. The values of the arguments are not used, so they can be left out:</p>
+<p>Takes the same arguments as <a class="el" href="bfmt_8h.html#a7b7fba3a2cdc07c7e2ccb0774518811b">bfmt_translate</a> and produces a <a class="el" href="structbfmt__text__t.html">bfmt_text_t</a> holding the template. The template is a constant expression, so the text can be static:</p>
 <div class="fragment"><div class="line"><span class="keyword">static</span> <span class="keyword">const</span> <a class="code hl_struct" href="structbfmt__text__t.html">bfmt_text_t</a> labels[] = {</div>
 <div class="line">    <a class="code hl_define" href="bfmt_8h.html#a7da97cbf09b96da0ee6cc17f2fd8b58b">bfmt_text</a>(<span class="stringliteral">&quot;New&quot;</span>),</div>
 <div class="line">    <a class="code hl_define" href="bfmt_8h.html#a7da97cbf09b96da0ee6cc17f2fd8b58b">bfmt_text</a>(<span class="stringliteral">&quot;Open&quot;</span>),</div>
 <div class="line">};</div>
-<div class="ttc" id="abfmt_8h_html_a7da97cbf09b96da0ee6cc17f2fd8b58b"><div class="ttname"><a href="bfmt_8h.html#a7da97cbf09b96da0ee6cc17f2fd8b58b">bfmt_text</a></div><div class="ttdeci">#define bfmt_text(...)</div><div class="ttdoc">Translatable text to render later.</div><div class="ttdef"><b>Definition</b> bfmt.h:609</div></div>
-<div class="ttc" id="astructbfmt__text__t_html"><div class="ttname"><a href="structbfmt__text__t.html">bfmt_text_t</a></div><div class="ttdoc">Translatable text without values.</div><div class="ttdef"><b>Definition</b> bfmt.h:525</div></div>
+<div class="ttc" id="abfmt_8h_html_a7da97cbf09b96da0ee6cc17f2fd8b58b"><div class="ttname"><a href="bfmt_8h.html#a7da97cbf09b96da0ee6cc17f2fd8b58b">bfmt_text</a></div><div class="ttdeci">#define bfmt_text(...)</div><div class="ttdoc">Translatable text to render later.</div><div class="ttdef"><b>Definition</b> bfmt.h:622</div></div>
+<div class="ttc" id="astructbfmt__text__t_html"><div class="ttname"><a href="structbfmt__text__t.html">bfmt_text_t</a></div><div class="ttdoc">Translatable text to render later.</div><div class="ttdef"><b>Definition</b> bfmt.h:526</div></div>
+</div><!-- fragment --><p>The values should use <a class="el" href="bfmt_8h.html#a2b851b96930e0ab17e8ca70feb81752b">bfmt_unbound</a> as a placeholder. They are substitued in bfmt_translate_text:</p>
+<div class="fragment"><div class="line"><span class="keyword">static</span> <span class="keyword">const</span> <a class="code hl_struct" href="structbfmt__text__t.html">bfmt_text_t</a> copied = <a class="code hl_define" href="bfmt_8h.html#a7da97cbf09b96da0ee6cc17f2fd8b58b">bfmt_text</a>(</div>
+<div class="line">    <span class="stringliteral">&quot;Copied &quot;</span>, <a class="code hl_define" href="bfmt_8h.html#a27104b487d365a9c26a3ec3e41f95965">bfmt_plural</a>(num_files, <a class="code hl_define" href="bfmt_8h.html#a2b851b96930e0ab17e8ca70feb81752b">bfmt_unbound</a>, (one, <span class="stringliteral">&quot;# file&quot;</span>), (other, <span class="stringliteral">&quot;# files&quot;</span>)),</div>
+<div class="line">    <span class="stringliteral">&quot; to &quot;</span>, <a class="code hl_define" href="bfmt_8h.html#aa9e611cb25ef5a00483bc0a34d426231">bfmt_named</a>(path, <a class="code hl_define" href="bfmt_8h.html#a2b851b96930e0ab17e8ca70feb81752b">bfmt_unbound</a>)</div>
+<div class="line">);</div>
+<div class="line"> </div>
+<div class="line"><a class="code hl_define" href="bfmt_8h.html#ad44e3b6ce4e35bb99bf5825c9db0c9b4">bfmt_translate_text</a>(<a class="code hl_variable" href="bfmt_8h.html#a9b83478d4762ea5f06c0a3b96a6ef76a">bfmt_stdout</a>, locale, &amp;copied, <a class="code hl_define" href="bfmt_8h.html#aa9e611cb25ef5a00483bc0a34d426231">bfmt_named</a>(num_files, n), <a class="code hl_define" href="bfmt_8h.html#aa9e611cb25ef5a00483bc0a34d426231">bfmt_named</a>(path, path));</div>
+<div class="ttc" id="abfmt_8h_html_a2b851b96930e0ab17e8ca70feb81752b"><div class="ttname"><a href="bfmt_8h.html#a2b851b96930e0ab17e8ca70feb81752b">bfmt_unbound</a></div><div class="ttdeci">#define bfmt_unbound</div><div class="ttdoc">A value that is supplied later.</div><div class="ttdef"><b>Definition</b> bfmt.h:654</div></div>
+<div class="ttc" id="abfmt_8h_html_ad44e3b6ce4e35bb99bf5825c9db0c9b4"><div class="ttname"><a href="bfmt_8h.html#ad44e3b6ce4e35bb99bf5825c9db0c9b4">bfmt_translate_text</a></div><div class="ttdeci">#define bfmt_translate_text(OUT, LOCALE, TEXT,...)</div><div class="ttdoc">Print a bfmt_text_t.</div><div class="ttdef"><b>Definition</b> bfmt.h:730</div></div>
 </div><!-- fragment --> 
 </div>
 </div>
@@ -875,6 +887,77 @@ Template syntax</h2>
   </table>
   </dd>
 </dl>
+
+</div>
+</div>
+<a id="ad44e3b6ce4e35bb99bf5825c9db0c9b4" name="ad44e3b6ce4e35bb99bf5825c9db0c9b4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad44e3b6ce4e35bb99bf5825c9db0c9b4">&#9670;&#160;</a></span>bfmt_translate_text</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define bfmt_translate_text</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">OUT, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">LOCALE, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">TEXT, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>...</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Print a <a class="el" href="structbfmt__text__t.html">bfmt_text_t</a>. </p>
+<p>The placeholders specified as <a class="el" href="bfmt_8h.html#a2b851b96930e0ab17e8ca70feb81752b">bfmt_unbound</a> are bound here by name with bfmt_named:</p>
+<div class="fragment"><div class="line"><a class="code hl_define" href="bfmt_8h.html#ad44e3b6ce4e35bb99bf5825c9db0c9b4">bfmt_translate_text</a>(<a class="code hl_variable" href="bfmt_8h.html#a9b83478d4762ea5f06c0a3b96a6ef76a">bfmt_stdout</a>, locale, &amp;copied, <a class="code hl_define" href="bfmt_8h.html#aa9e611cb25ef5a00483bc0a34d426231">bfmt_named</a>(path, path), <a class="code hl_define" href="bfmt_8h.html#aa9e611cb25ef5a00483bc0a34d426231">bfmt_named</a>(num_files, n));</div>
+</div><!-- fragment --><p>A name the template uses that is not bound is reported through <a class="el" href="structbfmt__locale__t.html#a5b747bb96d92f244b8b33ac393584ea9">bfmt_locale_t::report_error</a> when rendering.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">OUT</td><td>a <code>bfmt_stream_t*</code> or, inside a formatter, a <code>bfmt_ctx_t*</code> </td></tr>
+    <tr><td class="paramname">LOCALE</td><td>the <a class="el" href="structbfmt__locale__t.html">bfmt_locale_t</a> to translate with, or NULL for none </td></tr>
+    <tr><td class="paramname">TEXT</td><td>a <code>const bfmt_text_t*</code> made with <a class="el" href="bfmt_8h.html#a7da97cbf09b96da0ee6cc17f2fd8b58b">bfmt_text</a> or <a class="el" href="bfmt_8h.html#a9c3fd390b806c9022b935c480da87554">bfmt_ptext</a> </td></tr>
+    <tr><td class="paramname">...</td><td>the values, each one a <a class="el" href="bfmt_8h.html#aa9e611cb25ef5a00483bc0a34d426231">bfmt_named</a> </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a2b851b96930e0ab17e8ca70feb81752b" name="a2b851b96930e0ab17e8ca70feb81752b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2b851b96930e0ab17e8ca70feb81752b">&#9670;&#160;</a></span>bfmt_unbound</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define bfmt_unbound</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>A value that is supplied later. </p>
+<p>The value is bound by name in <a class="el" href="bfmt_8h.html#ad44e3b6ce4e35bb99bf5825c9db0c9b4">bfmt_translate_text</a>. </p>
 
 </div>
 </div>
@@ -944,7 +1027,7 @@ Template syntax</h2>
 <p>A value printed with a specific formatter. </p>
 <p>For a formatter that is not the default of its type, or for a type that is not listed in <a class="el" href="bfmt_8h.html#ad31c33ed756d37d4c125e8a997204d19">BFMT_USER_TYPES</a>, like this:</p>
 <div class="fragment"><div class="line"><a class="code hl_define" href="bfmt_8h.html#a4a80a86156e81d60c66cafd0360df893">bfmt_print</a>(out, <a class="code hl_define" href="bfmt_8h.html#aebfcf3015c840e7ab77cc266d6c19d43">bfmt_with</a>(format_percent, ratio, { .decimals = 1 }));</div>
-<div class="ttc" id="abfmt_8h_html_aebfcf3015c840e7ab77cc266d6c19d43"><div class="ttname"><a href="bfmt_8h.html#aebfcf3015c840e7ab77cc266d6c19d43">bfmt_with</a></div><div class="ttdeci">#define bfmt_with(FORMATTER, VALUE,...)</div><div class="ttdoc">A value printed with a specific formatter.</div><div class="ttdef"><b>Definition</b> bfmt.h:358</div></div>
+<div class="ttc" id="abfmt_8h_html_aebfcf3015c840e7ab77cc266d6c19d43"><div class="ttname"><a href="bfmt_8h.html#aebfcf3015c840e7ab77cc266d6c19d43">bfmt_with</a></div><div class="ttdeci">#define bfmt_with(FORMATTER, VALUE,...)</div><div class="ttdoc">A value printed with a specific formatter.</div><div class="ttdef"><b>Definition</b> bfmt.h:359</div></div>
 </div><!-- fragment --><p>The result is only valid in the enclosing block and is meant to be passed straight to <a class="el" href="bfmt_8h.html#a4a80a86156e81d60c66cafd0360df893">bfmt_print</a>, <a class="el" href="bfmt_8h.html#a7b7fba3a2cdc07c7e2ccb0774518811b">bfmt_translate</a> or <a class="el" href="bfmt_8h.html#aa9e611cb25ef5a00483bc0a34d426231">bfmt_named</a>.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -1189,50 +1272,6 @@ Template syntax</h2>
     <tr><td class="paramname">ctx</td><td>the context the formatter was given </td></tr>
     <tr><td class="paramname">fmt</td><td>the format string </td></tr>
     <tr><td class="paramname">...</td><td>its arguments </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="a90bdc6574f01bb681613fadfaa8f0ee3" name="a90bdc6574f01bb681613fadfaa8f0ee3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a90bdc6574f01bb681613fadfaa8f0ee3">&#9670;&#160;</a></span>bfmt_translate_text()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void bfmt_translate_text </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="structbfmt__stream__t.html">bfmt_stream_t</a> *&#160;</td>
-          <td class="paramname"><em>stream</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structbfmt__locale__t.html">bfmt_locale_t</a> *&#160;</td>
-          <td class="paramname"><em>locale</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="structbfmt__text__t.html">bfmt_text_t</a> *&#160;</td>
-          <td class="paramname"><em>text</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Print a <a class="el" href="structbfmt__text__t.html">bfmt_text_t</a>. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">stream</td><td>where to print </td></tr>
-    <tr><td class="paramname">locale</td><td>the <a class="el" href="structbfmt__locale__t.html">bfmt_locale_t</a> to translate with, or NULL for none </td></tr>
-    <tr><td class="paramname">text</td><td>the text, made with <a class="el" href="bfmt_8h.html#a7da97cbf09b96da0ee6cc17f2fd8b58b">bfmt_text</a> or <a class="el" href="bfmt_8h.html#a9c3fd390b806c9022b935c480da87554">bfmt_ptext</a> </td></tr>
   </table>
   </dd>
 </dl>
