@@ -781,6 +781,21 @@ typedef struct {
 
 #define bfmt__typeof_decay(VALUE) bfmt__typeof(0 ? (VALUE) : (VALUE))
 
+// A _Static_assert as an expression.
+// Using `_Static_assert` inside a `sizeof(struct { ... })` is only acceptable
+// in newer compilers.
+// Otherwise, we have to fallback to an array with negative size.
+//
+// However, _Static_assert gives much better compiler error message so it should
+// be used whenever possible
+#if (defined(__clang__) && __clang_major__ < 21) \
+	|| (defined(_MSC_VER) && !defined(__clang__) && _MSC_VER < 1939)
+#	define bfmt__static_assert(COND, MSG) (void)sizeof(char[(COND) ? 1 : -1])
+#else
+#	define bfmt__static_assert(COND, MSG) \
+	(void)sizeof(struct { _Static_assert(COND, MSG); char bfmt__unused; })
+#endif
+
 // }}}
 
 // Format {{{
@@ -818,13 +833,10 @@ typedef struct {
 typedef struct { char bfmt__unused; } bfmt__unbound_t;
 
 #define bfmt__assert_bound(VALUE) \
-	(void)sizeof(struct { \
-		_Static_assert( \
-			_Generic((VALUE), bfmt__unbound_t: 0, default: 1), \
-			"bfmt_unbound is only valid in bfmt_text; bind the value with bfmt_translate_text" \
-		); \
-		char bfmt__unused; \
-	})
+	bfmt__static_assert( \
+		_Generic((VALUE), bfmt__unbound_t: 0, default: 1), \
+		"bfmt_unbound is only valid in bfmt_text; bind the value with bfmt_translate_text" \
+	)
 
 #define bfmt__builtin_types(X) \
 	X(const char*       , bfmt__format_str       , bfmt_str_options_t) \
@@ -927,11 +939,11 @@ bfmt__make_wrapper(bfmt__unbound_t, bfmt__format_unbound, bfmt_simple_options_t)
 	)
 
 #define bfmt__check_arg(X) bfmt__concat(bfmt__check_arg_, bfmt__is_paren(X))(X)
-#define bfmt__check_arg_0(X) (void)sizeof(struct { _Static_assert(bfmt__is_literal_str(X), "`" #X "` is not a literal string"); char bfmt__unused; }),
+#define bfmt__check_arg_0(X) bfmt__static_assert(bfmt__is_literal_str(X), "`" #X "` is not a literal string"),
 #define bfmt__check_arg_1(X) (void)0,
 
 #define bfmt__check_binding(X) bfmt__concat(bfmt__check_binding_, bfmt__is_paren(X))(X)
-#define bfmt__check_binding_0(X) (void)sizeof(struct { _Static_assert(0, "`" #X "` is not a binding, write bfmt_named(name, value)"); char bfmt__unused; }),
+#define bfmt__check_binding_0(X) bfmt__static_assert(0, "`" #X "` is not a binding, write bfmt_named(name, value)"),
 #define bfmt__check_binding_1(X) (void)0,
 
 #define bfmt__is_literal_str(X) \
