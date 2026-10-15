@@ -783,14 +783,10 @@ typedef struct {
 
 // A _Static_assert as an expression.
 // Using `_Static_assert` inside a `sizeof(struct { ... })` is only acceptable
-// in newer compilers.
-// Otherwise, we have to fallback to an array with negative size.
-//
-// However, _Static_assert gives much better compiler error message so it should
-// be used whenever possible
-#if (defined(__clang__) && __clang_major__ < 21) \
-	|| (defined(_MSC_VER) && !defined(__clang__) && _MSC_VER < 1939)
-#	define bfmt__static_assert(COND, MSG) (void)sizeof(char[(COND) ? 1 : -1])
+// in newer compilers: clang before 21 treats a compound literal in there as
+// file scope so we use a statement expression instead.
+#if defined(__clang__) && __clang_major__ < 21
+#	define bfmt__static_assert(COND, MSG) __extension__ ({ _Static_assert(COND, MSG); (void)0; })
 #else
 #	define bfmt__static_assert(COND, MSG) \
 	(void)sizeof(struct { _Static_assert(COND, MSG); char bfmt__unused; })
