@@ -1400,6 +1400,8 @@ struct bserial_ctx_s {
 	// schema id + 1. Sized like schema_index.
 	int32_t* schema_site_index;
 	const char** schema_site_keys;
+	// The schema with no field, id + 1, since it has no key address to cache by
+	int32_t empty_schema;
 
 	bserial_scope_t* scope_first;
 	bserial_scope_t* scope;
@@ -2145,7 +2147,10 @@ bserial_cache_schema_site(
 	const bserial_record_mapping_t* keys,
 	uint64_t num_keys
 ) {
-	if (num_keys == 0) { return; }
+	if (num_keys == 0) {
+		ctx->empty_schema = (int32_t)(schema - ctx->schemas) + 1;
+		return;
+	}
 
 	for (uint64_t i = 0; i < num_keys; ++i) {
 		schema->site_keys[i] = keys[i].symbol;
@@ -2172,7 +2177,13 @@ bserial_write_schema(
 	// Fast path: the call site is recognized by the addresses of its keys.
 	// The address of the first key picks a cache slot, the rest are verified.
 	int32_t site_slot = 0;
-	if (num_keys > 0) {
+	if (num_keys == 0) {
+		if (ctx->empty_schema != 0) {
+			BSERIAL_CHECK_STATUS(bserial_write_schema_ref(ctx, ctx->empty_schema - 1));
+			*out = &ctx->schemas[ctx->empty_schema - 1];
+			return BSERIAL_OK;
+		}
+	} else {
 		uint64_t site_hash = (uint64_t)(uintptr_t)keys[0].symbol * 0x9e3779b97f4a7c15ull;
 		site_slot = (int32_t)(site_hash >> (64 - ctx->schema_exp));
 		int32_t index = ctx->schema_site_index[site_slot];
