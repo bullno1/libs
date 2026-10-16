@@ -307,3 +307,35 @@ BTEST(schema, call_sites) {
 		}
 	}
 }
+
+static bserial_status_t
+serialize_empty(bserial_ctx_t* ctx) {
+	BSERIAL_RECORD(ctx) {}
+	return bserial_status(ctx);
+}
+
+static bserial_status_t
+serialize_empty_other_site(bserial_ctx_t* ctx) {
+	BSERIAL_RECORD(ctx) {}
+	return bserial_status(ctx);
+}
+
+BTEST(schema, empty_record) {
+	bserial_ctx_t* ctx = common_fixture.out_ctx;
+
+	// [RECORD_DEF][0] once, then [RECORD_REF][id] from every site
+	BTEST_ASSERT(serialize_empty(ctx) == BSERIAL_OK);
+	BTEST_ASSERT(serialize_empty_other_site(ctx) == BSERIAL_OK);
+	BTEST_ASSERT(serialize_empty(ctx) == BSERIAL_OK);
+	BTEST_ASSERT(common_fixture.mem_out.len == 2 * 3);
+	// Both are two bytes, so tell them apart by the marker (RECORD_DEF 10, RECORD_REF 11)
+	const uint8_t* bytes = (const uint8_t*)common_fixture.mem_out.mem;
+	BTEST_ASSERT(bytes[0] == 10);
+	BTEST_ASSERT(bytes[2] == 11);
+	BTEST_ASSERT(bytes[4] == 11);
+
+	ctx = common_fixture_make_in_ctx();
+	for (int i = 0; i < 3; ++i) {
+		BTEST_ASSERT(serialize_empty(ctx) == BSERIAL_OK);
+	}
+}
