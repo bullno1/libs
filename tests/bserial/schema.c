@@ -329,7 +329,7 @@ BTEST(schema, empty_record) {
 	BTEST_ASSERT(serialize_empty(ctx) == BSERIAL_OK);
 	BTEST_ASSERT(common_fixture.mem_out.len == 2 * 3);
 	// Both are two bytes, so tell them apart by the marker (RECORD_DEF 10, RECORD_REF 11)
-	const uint8_t* bytes = common_fixture.mem_out.mem;
+	const uint8_t* bytes = (const uint8_t*)common_fixture.mem_out.mem;
 	BTEST_ASSERT(bytes[0] == 10);
 	BTEST_ASSERT(bytes[2] == 11);
 	BTEST_ASSERT(bytes[4] == 11);
