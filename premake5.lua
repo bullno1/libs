@@ -65,6 +65,7 @@ local test_dirs = {
   "bserial",
   "bspscq",
   "bsv",
+  "bwal",
   "mem_layout",
   "xincbin",
 }
