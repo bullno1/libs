@@ -355,3 +355,33 @@ BTEST(prefab, foreach) {
 	BTEST_EXPECT(bent_prefab_foreach((bent_prefab_entry_t[]){ { 0 } }, walk_visitor, &walk));
 	BTEST_EXPECT_EQUAL("%d", 0, walk.num_seen);
 }
+
+BTEST(prefab, find) {
+	const bent_prefab_entry_t* entry = bent_prefab_find(goblin, hp);
+	BTEST_ASSERT(entry != NULL);
+	BTEST_EXPECT(entry->comp == &hp);
+	BTEST_EXPECT_EQUAL("%d", 7, ((const hp_t*)entry->arg)->hp);
+
+	entry = bent_prefab_find(goblin, hostile);
+	BTEST_ASSERT(entry != NULL);
+	BTEST_EXPECT(entry->comp == &hostile);
+	BTEST_EXPECT(entry->arg == NULL);
+
+	BTEST_EXPECT(bent_prefab_find(goblin, armored) == NULL);
+	BTEST_EXPECT(bent_prefab_find((bent_prefab_entry_t[]){ { 0 } }, hp) == NULL);
+	BTEST_EXPECT(bent_prefab_find(NULL, hp) == NULL);
+}
+
+BTEST(prefab, find_through_base) {
+	const bent_prefab_entry_t* entry = bent_prefab_find(goblin_chief, hp);
+	BTEST_ASSERT(entry != NULL);
+	BTEST_EXPECT_EQUAL("%d", 20, ((const hp_t*)entry->arg)->hp);
+
+	entry = bent_prefab_find(goblin_chief, pos);
+	BTEST_ASSERT(entry != NULL);
+	BTEST_EXPECT_EQUAL("%d", 3, ((const pos_t*)entry->arg)->x);
+
+	BTEST_EXPECT(bent_prefab_find(goblin_chief, hostile) != NULL);
+	BTEST_EXPECT(bent_prefab_find(goblin_chief, armored) != NULL);
+	BTEST_EXPECT(bent_prefab_find(goblin_chief, spawner) == NULL);
+}
