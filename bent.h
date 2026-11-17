@@ -1748,6 +1748,12 @@ BENT_API bool
 bent_prefab_foreach(bent_prefab_t prefab, bent_prefab_visitor_t visitor, void* ctx);
 
 /**
+ * Find the first prefab entry with the given component
+ */
+BENT_API const bent_prefab_entry_t*
+bent_prefab_find(bent_prefab_t prefab, bent_comp_reg_t comp);
+
+/**
  * Create an entity from a prefab.
  *
  * Systems are notified about the entity once, after every component in the
@@ -3189,6 +3195,29 @@ bent_prefab_foreach_impl(
 bool
 bent_prefab_foreach(bent_prefab_t prefab, bent_prefab_visitor_t visitor, void* ctx) {
 	return bent_prefab_foreach_impl(prefab, visitor, ctx, 0);
+}
+
+typedef struct {
+	const bent_comp_def_t* def;
+	const bent_prefab_entry_t* found;
+} bent_prefab_find_ctx_t;
+
+static bool
+bent_prefab_find_visitor(const bent_prefab_entry_t* entry, void* ctx) {
+	bent_prefab_find_ctx_t* find = ctx;
+	if (entry->comp->def != find->def) { return true; }
+
+	find->found = entry;
+	return false;
+}
+
+const bent_prefab_entry_t*
+bent_prefab_find(bent_prefab_t prefab, bent_comp_reg_t comp) {
+	if (prefab == NULL) { return NULL; }
+
+	bent_prefab_find_ctx_t find = { .def = comp.def };
+	bent_prefab_foreach(prefab, bent_prefab_find_visitor, &find);
+	return find.found;
 }
 
 typedef struct {
