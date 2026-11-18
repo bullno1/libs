@@ -716,7 +716,59 @@ typedef struct {
 #define BENT_POD_COMP_EX(NAME, TYPE, ACCESS, SAVE) \
 	typedef TYPE bent__comp_type_##NAME; \
 	BENT_DECLARE_COMP(NAME) \
-	BENT__COMP_ACCESS_##ACCESS(NAME, TYPE) \
+	BENT__COMP_ACCESS_##ACCESS(NAME, TYPE, TYPE) \
+	BENT__COMP_SAVE_DECL_##SAVE(NAME, TYPE)
+
+/**
+ * Dual use helper for a component with a custom initializer.
+ *
+ * This is similar to @ref BENT_POD_COMP_EX but a custom initializer is required.
+ *
+ * In a header file, it will forward-declare the component and define inline
+ * helpers.
+ *
+ * In a single source file, define `BENT_DEFINE_COMPONENTS` and include this
+ * header to implement the component registration.
+ *
+ * To implement the initializer, use @ref BENT_INITIALIZER as the function head.
+ *
+ * Example:
+ *
+ * @code{.c}
+ * // In a header file
+ * typedef struct { int current, max; } health_t;
+ *
+ * BENT_CUSTOM_COMP_EX(health, health_t, health_t, RO, TRANSIENT)
+ *
+ * // In any source file
+ * BENT_INITIALIZER(health) {
+ *     *comp = (health_t){ 0 };
+ *     if (arg != NULL) {
+ *         // In the argument, `current` is an offset from `max`
+ *         comp->max = arg->max;
+ *         comp->current = arg->max + arg->current;
+ *     }
+ * }
+ *
+ * // Starts at 10 out of 10
+ * bent_add_health(world, entity, &(health_t){ .max = 10 });
+ * @endcode
+ *
+ * @param NAME name of the component type
+ * @param TYPE type of the component's data
+ * @param ARG_TYPE type of the initializer's argument
+ * @param ACCESS `RW` or `RO`
+ * @param SAVE `UNSERIALIZABLE`, `TRANSIENT` or `SERIALIZED`
+ *
+ * @see BENT_CUSTOM_COMP
+ * @see BENT_TRANSIENT_CUSTOM_COMP
+ * @see BENT_INITIALIZER
+ */
+#define BENT_CUSTOM_COMP_EX(NAME, TYPE, ARG_TYPE, ACCESS, SAVE) \
+	typedef TYPE bent__comp_type_##NAME; \
+	BENT_DECLARE_COMP(NAME) \
+	BENT__COMP_ACCESS_##ACCESS(NAME, TYPE, ARG_TYPE) \
+	BENT_INITIALIZER(NAME); \
 	BENT__COMP_SAVE_DECL_##SAVE(NAME, TYPE)
 
 /**
@@ -743,6 +795,22 @@ typedef struct {
 		BENT__COMP_SAVE_INIT_##SAVE(NAME, TYPE) \
 	};
 
+#define BENT_CUSTOM_COMP_EX(NAME, TYPE, ARG_TYPE, ACCESS, SAVE) \
+	typedef TYPE bent__comp_type_##NAME; \
+	BENT_DECLARE_COMP(NAME) \
+	BENT__COMP_ACCESS_##ACCESS(NAME, TYPE, ARG_TYPE) \
+	BENT_INITIALIZER(NAME); \
+	static void bent__init_thunk_##NAME(void* comp, void* arg) { \
+		bent_init_##NAME(comp, arg); \
+	} \
+	BENT__COMP_SAVE_DECL_##SAVE(NAME, TYPE) \
+	BENT__COMP_SAVE_DEF_##SAVE(NAME, TYPE) \
+	BENT_DEFINE_COMP(NAME) = { \
+		.size = sizeof(TYPE), \
+		.init = bent__init_thunk_##NAME, \
+		BENT__COMP_SAVE_INIT_##SAVE(NAME, TYPE) \
+	};
+
 #define BENT_TAG_COMP(NAME) BENT_DEFINE_TAG_COMP(NAME)
 
 #endif
@@ -761,6 +829,25 @@ typedef struct {
 
 /// Same as `BENT_POD_COMP_EX(NAME, TYPE, RW, TRANSIENT)`
 #define BENT_TRANSIENT_POD_COMP(NAME, TYPE) BENT_POD_COMP_EX(NAME, TYPE, RW, TRANSIENT)
+
+/**
+ * Dual use helper for a mutable component with a custom initializer that
+ * made no save choice.
+ *
+ * Same as `BENT_CUSTOM_COMP_EX(NAME, TYPE, ARG_TYPE, RW, UNSERIALIZABLE)`.
+ *
+ * @param NAME name of the component type
+ * @param TYPE type of the component's data
+ * @param ARG_TYPE type of the initializer's argument
+ *
+ * @see BENT_CUSTOM_COMP_EX
+ */
+#define BENT_CUSTOM_COMP(NAME, TYPE, ARG_TYPE) \
+	BENT_CUSTOM_COMP_EX(NAME, TYPE, ARG_TYPE, RW, UNSERIALIZABLE)
+
+/// Same as `BENT_CUSTOM_COMP_EX(NAME, TYPE, ARG_TYPE, RW, TRANSIENT)`
+#define BENT_TRANSIENT_CUSTOM_COMP(NAME, TYPE, ARG_TYPE) \
+	BENT_CUSTOM_COMP_EX(NAME, TYPE, ARG_TYPE, RW, TRANSIENT)
 
 // }}}
 
@@ -1233,9 +1320,7 @@ typedef struct {
  * @ref BENT_POD_COMP_EX.
  *
  * It expands to `bool bent_serialize_NAME(bent_serialize_ctx_t* ctx, TYPE* comp)`
- * where `TYPE` is the type given to @ref BENT_POD_COMP_EX, so it can be
- * followed by a function body or a semicolon.
- * The parameters are named `ctx` and `comp`.
+ * where `TYPE` is the type given to @ref BENT_POD_COMP_EX.
  *
  * Example:
  *
@@ -1248,6 +1333,38 @@ typedef struct {
  */
 #define BENT_SERIALIZER(NAME) \
 	bool bent_serialize_##NAME(bent_serialize_ctx_t* ctx, BENT_COMP_TYPE(NAME)* comp)
+
+/**
+ * Head of the initialization callback of a component declared with
+ * @ref BENT_CUSTOM_COMP_EX.
+ *
+ * It expands to `void bent_init_NAME(TYPE* comp, const ARG_TYPE* arg)`
+ * where `TYPE` and `ARG_TYPE` are the types given to
+ * @ref BENT_CUSTOM_COMP_EX.
+ *
+ * `comp` is storage that may have been used before and is not zeroed.
+ *
+ * `arg` is what was given to @ref bent_add, as is, so it can be `NULL`.
+ *
+ * Example:
+ *
+ * @code{.c}
+ * BENT_INITIALIZER(health) {
+ *     *comp = (health_t){ 0 };
+ *     if (arg != NULL) {
+ *         comp->max = arg->max;
+ *         comp->current = arg->max + arg->current;
+ *     }
+ * }
+ * @endcode
+ *
+ * @param NAME name of the component type
+ *
+ * @see bent_comp_def_t::init
+ * @see BENT_COMP_TYPE
+ */
+#define BENT_INITIALIZER(NAME) \
+	void bent_init_##NAME(BENT_COMP_TYPE(NAME)* comp, const NAME##_arg_t* arg)
 
 /**
  * Iterate over each component type.
@@ -2125,11 +2242,11 @@ bent__broadcast(
 );
 
 // Access axis of BENT_POD_COMP_EX: which typed helpers the header defines
-#define BENT__COMP_ACCESS_RW(NAME, TYPE) \
-	BENT_DEFINE_COMP_ADDER(NAME, TYPE) \
+#define BENT__COMP_ACCESS_RW(NAME, TYPE, ARG_TYPE) \
+	BENT_DEFINE_COMP_ADDER_EX(NAME, TYPE, ARG_TYPE) \
 	BENT_DEFINE_COMP_GETTER(NAME, TYPE)
-#define BENT__COMP_ACCESS_RO(NAME, TYPE) \
-	BENT_DEFINE_COMP_CONST_ADDER(NAME, TYPE) \
+#define BENT__COMP_ACCESS_RO(NAME, TYPE, ARG_TYPE) \
+	BENT_DEFINE_COMP_CONST_ADDER_EX(NAME, TYPE, ARG_TYPE) \
 	BENT_DEFINE_COMP_CONST_GETTER(NAME, TYPE)
 
 // Save axis of BENT_POD_COMP_EX.
