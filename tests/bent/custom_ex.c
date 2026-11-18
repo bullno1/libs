@@ -45,6 +45,10 @@ BTEST(custom_ex, axes) {
 		_Generic((cx_counter_arg_t*)0, cx_counter_arg_t*: 1, default: 0),
 		"The argument type must be aliased for BENT_COMP"
 	);
+
+	cx_counter_t* counter = bent_add_cx_counter(world, ent, &(cx_counter_arg_t){ .start = 1 });
+	BTEST_EXPECT_EQUAL("%d", counter->value, 1);
+	BTEST_EXPECT_EQUAL("%p", (void*)counter, (void*)bent_get_cx_counter(world, ent));
 }
 
 BTEST(custom_ex, initializer_runs_on_add) {
