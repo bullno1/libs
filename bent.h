@@ -312,10 +312,11 @@ typedef struct {
 	 * * If `arg` is `NULL`, the component's data will be zero-ed.
 	 * * If `arg` is not `NULL`, `arg` will be `memcpy`-ed into the component.
 	 *
-	 * @param comp the component data.
+	 * @param world the world for this component
+	 * @param comp the component data
 	 * @param arg the argument passed to @ref bent_add
 	 */
-	void (*init)(void* comp, void* arg);
+	void (*init)(bent_world_t* world, void* comp, void* arg);
 
 	/**
 	 * Optional initialization callback for this component.
@@ -324,7 +325,7 @@ typedef struct {
 	 * Take note that the component's storage memory is owned by the library and
 	 * it can be recycled.
 	 */
-	void (*cleanup)(void* comp);
+	void (*cleanup)(bent_world_t* world, void* comp);
 
 	/**
 	 * Component behaviour flags.
@@ -800,8 +801,8 @@ typedef struct {
 	BENT_DECLARE_COMP(NAME) \
 	BENT__COMP_ACCESS_##ACCESS(NAME, TYPE, ARG_TYPE) \
 	BENT_INITIALIZER(NAME); \
-	static void bent__init_thunk_##NAME(void* comp, void* arg) { \
-		bent_init_##NAME(comp, arg); \
+	static void bent__init_thunk_##NAME(bent_world_t* world, void* comp, void* arg) { \
+		bent_init_##NAME(world, comp, arg); \
 	} \
 	BENT__COMP_SAVE_DECL_##SAVE(NAME, TYPE) \
 	BENT__COMP_SAVE_DEF_##SAVE(NAME, TYPE) \
@@ -1338,7 +1339,7 @@ typedef struct {
  * Head of the initialization callback of a component declared with
  * @ref BENT_CUSTOM_COMP_EX.
  *
- * It expands to `void bent_init_NAME(TYPE* comp, const ARG_TYPE* arg)`
+ * It expands to `void bent_init_NAME(bent_world_t* world, TYPE* comp, const ARG_TYPE* arg)`
  * where `TYPE` and `ARG_TYPE` are the types given to
  * @ref BENT_CUSTOM_COMP_EX.
  *
@@ -1364,7 +1365,7 @@ typedef struct {
  * @see BENT_COMP_TYPE
  */
 #define BENT_INITIALIZER(NAME) \
-	void bent_init_##NAME(BENT_COMP_TYPE(NAME)* comp, const NAME##_arg_t* arg)
+	void bent_init_##NAME(bent_world_t* world, BENT_COMP_TYPE(NAME)* comp, const NAME##_arg_t* arg)
 
 /**
  * Iterate over each component type.
@@ -2904,7 +2905,7 @@ bent_finish_removal(bent_world_t* world, bent_t entity_id, bent_index_t comp_ind
 
 	bent_component_data_t* comp_data = &world->components[comp_index];
 	if (comp_data->def->cleanup) {
-		comp_data->def->cleanup(bent_comp_instance(comp_data, entity_id.index));
+		comp_data->def->cleanup(world, bent_comp_instance(comp_data, entity_id.index));
 	}
 	bent_bitset_unset(&entity_data->visible_components, comp_index);
 }
@@ -3123,7 +3124,7 @@ bent_destroy_immediately(bent_world_t* world, bent_t entity_id) {
 			&&
 			comp->def->cleanup
 		) {
-			comp->def->cleanup(bent_comp_instance(comp, entity_id.index));
+			comp->def->cleanup(world, bent_comp_instance(comp, entity_id.index));
 		}
 	}
 
@@ -3430,7 +3431,7 @@ bent_add_impl(
 		comp_data, entity_id.index, world->memctx
 	);
 	if (comp_data->def->init) {
-		comp_data->def->init(instance, arg);
+		comp_data->def->init(world, instance, arg);
 	} else if (instance != NULL) {
 		if (arg == NULL) {
 			memset(instance, 0, comp_data->def->size);

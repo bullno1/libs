@@ -3,6 +3,10 @@
 
 BENT_INITIALIZER(cx_gauge) {
 	_Static_assert(
+		_Generic(world, bent_world_t*: 1, default: 0),
+		"world must be the world the component is added to"
+	);
+	_Static_assert(
 		_Generic(comp, cx_gauge_t*: 1, default: 0),
 		"comp must be the component's own type"
 	);
@@ -22,6 +26,7 @@ BENT_INITIALIZER(cx_counter) {
 		_Generic(arg, const cx_counter_arg_t*: 1, default: 0),
 		"arg must be a const pointer to the argument type"
 	);
+	(void)world;
 	comp->value = arg != NULL ? arg->start : -1;
 	comp->num_inits = 1;
 }

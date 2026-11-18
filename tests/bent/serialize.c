@@ -65,14 +65,14 @@ static int num_cache_inits = 0;
 static int num_cache_cleanups = 0;
 
 static void
-cache_init(void* data, void* arg) {
-	(void)data; (void)arg;
+cache_init(bent_world_t* world, void* data, void* arg) {
+	(void)world; (void)data; (void)arg;
 	++num_cache_inits;
 }
 
 static void
-cache_cleanup(void* data) {
-	(void)data;
+cache_cleanup(bent_world_t* world, void* data) {
+	(void)world; (void)data;
 	++num_cache_cleanups;
 }
 
