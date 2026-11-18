@@ -160,12 +160,18 @@ Macros</h2></td></tr>
 <tr class="memdesc:ace6229b585dd520b4a0dc86f68cdd2f1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Helper for a null-terminated message handler list.  <br /></td></tr>
 <tr class="memitem:a37cd158d8543a44d551ddc3bd5ad52fc" id="r_a37cd158d8543a44d551ddc3bd5ad52fc"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a37cd158d8543a44d551ddc3bd5ad52fc">BENT_POD_COMP_EX</a>(NAME,  TYPE,  ACCESS,  SAVE)</td></tr>
 <tr class="memdesc:a37cd158d8543a44d551ddc3bd5ad52fc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Dual use helper for a POD component.  <br /></td></tr>
+<tr class="memitem:ad36eb32c9391b20f6147be301f95dfc2" id="r_ad36eb32c9391b20f6147be301f95dfc2"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad36eb32c9391b20f6147be301f95dfc2">BENT_CUSTOM_COMP_EX</a>(NAME,  TYPE,  ARG_TYPE,  ACCESS,  SAVE)</td></tr>
+<tr class="memdesc:ad36eb32c9391b20f6147be301f95dfc2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Dual use helper for a component with a custom initializer.  <br /></td></tr>
 <tr class="memitem:a25c5eeab3af70d289b75098aad8a7249" id="r_a25c5eeab3af70d289b75098aad8a7249"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a25c5eeab3af70d289b75098aad8a7249">BENT_TAG_COMP</a>(NAME)</td></tr>
 <tr class="memdesc:a25c5eeab3af70d289b75098aad8a7249"><td class="mdescLeft">&#160;</td><td class="mdescRight">Dual use helper for tag component.  <br /></td></tr>
 <tr class="memitem:abdb5b3b4e979a5288abdb44e95235e10" id="r_abdb5b3b4e979a5288abdb44e95235e10"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abdb5b3b4e979a5288abdb44e95235e10">BENT_POD_COMP</a>(NAME,  TYPE)</td></tr>
 <tr class="memdesc:abdb5b3b4e979a5288abdb44e95235e10"><td class="mdescLeft">&#160;</td><td class="mdescRight">Dual use helper for a mutable POD component that made no save choice.  <br /></td></tr>
 <tr class="memitem:a0ab9877ce2f1f5aac7ce5f035c6fe02b" id="r_a0ab9877ce2f1f5aac7ce5f035c6fe02b"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0ab9877ce2f1f5aac7ce5f035c6fe02b">BENT_TRANSIENT_POD_COMP</a>(NAME,  TYPE)</td></tr>
 <tr class="memdesc:a0ab9877ce2f1f5aac7ce5f035c6fe02b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Same as <span class="tt"><a class="el" href="#a37cd158d8543a44d551ddc3bd5ad52fc" title="Dual use helper for a POD component.">BENT_POD_COMP_EX(NAME, TYPE, RW, TRANSIENT)</a></span>.  <br /></td></tr>
+<tr class="memitem:acbb66861c3173ebd4a6a0811b0596340" id="r_acbb66861c3173ebd4a6a0811b0596340"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acbb66861c3173ebd4a6a0811b0596340">BENT_CUSTOM_COMP</a>(NAME,  TYPE,  ARG_TYPE)</td></tr>
+<tr class="memdesc:acbb66861c3173ebd4a6a0811b0596340"><td class="mdescLeft">&#160;</td><td class="mdescRight">Dual use helper for a mutable component with a custom initializer that made no save choice.  <br /></td></tr>
+<tr class="memitem:a54d17cac73d8357e4e48f7405bd710fa" id="r_a54d17cac73d8357e4e48f7405bd710fa"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a54d17cac73d8357e4e48f7405bd710fa">BENT_TRANSIENT_CUSTOM_COMP</a>(NAME,  TYPE,  ARG_TYPE)</td></tr>
+<tr class="memdesc:a54d17cac73d8357e4e48f7405bd710fa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Same as <span class="tt"><a class="el" href="#ad36eb32c9391b20f6147be301f95dfc2" title="Dual use helper for a component with a custom initializer.">BENT_CUSTOM_COMP_EX(NAME, TYPE, ARG_TYPE, RW, TRANSIENT)</a></span>.  <br /></td></tr>
 <tr class="memitem:aa0fbb0c469d4fe38d754d8ce99bef7dc" id="r_aa0fbb0c469d4fe38d754d8ce99bef7dc"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa0fbb0c469d4fe38d754d8ce99bef7dc">BENT_DEFINE_POD_COMP</a>(NAME,  TYPE)</td></tr>
 <tr class="memdesc:aa0fbb0c469d4fe38d754d8ce99bef7dc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Define a component type, whose data is a POD (plain old data).  <br /></td></tr>
 <tr class="memitem:a1a2692bcbd8ffee32e558d24d779eae6" id="r_a1a2692bcbd8ffee32e558d24d779eae6"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1a2692bcbd8ffee32e558d24d779eae6">BENT_DEFINE_TRANSIENT_COMP</a>(NAME,  TYPE)</td></tr>
@@ -192,6 +198,8 @@ Macros</h2></td></tr>
 <tr class="memdesc:a7233da1b0bb495fdaa2dafcb6740ee15"><td class="mdescLeft">&#160;</td><td class="mdescRight">The data type of a component declared with <a class="el" href="#a37cd158d8543a44d551ddc3bd5ad52fc">BENT_POD_COMP_EX</a>.  <br /></td></tr>
 <tr class="memitem:a6db5baddab4bfdaf2c43eb5490f0f7eb" id="r_a6db5baddab4bfdaf2c43eb5490f0f7eb"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6db5baddab4bfdaf2c43eb5490f0f7eb">BENT_SERIALIZER</a>(NAME)</td></tr>
 <tr class="memdesc:a6db5baddab4bfdaf2c43eb5490f0f7eb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Head of the serialization callback of a component declared with <a class="el" href="#a37cd158d8543a44d551ddc3bd5ad52fc">BENT_POD_COMP_EX</a>.  <br /></td></tr>
+<tr class="memitem:acd71c48a0a919d65cbcc5d4c36753419" id="r_acd71c48a0a919d65cbcc5d4c36753419"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acd71c48a0a919d65cbcc5d4c36753419">BENT_INITIALIZER</a>(NAME)</td></tr>
+<tr class="memdesc:acd71c48a0a919d65cbcc5d4c36753419"><td class="mdescLeft">&#160;</td><td class="mdescRight">Head of the initialization callback of a component declared with <a class="el" href="#ad36eb32c9391b20f6147be301f95dfc2">BENT_CUSTOM_COMP_EX</a>.  <br /></td></tr>
 <tr class="memitem:ac3182b22b3afdb8f20dd38f0b3bd5026" id="r_ac3182b22b3afdb8f20dd38f0b3bd5026"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac3182b22b3afdb8f20dd38f0b3bd5026">BENT_FOREACH_COMP</a>(ITR)</td></tr>
 <tr class="memdesc:ac3182b22b3afdb8f20dd38f0b3bd5026"><td class="mdescLeft">&#160;</td><td class="mdescRight">Iterate over each component type.  <br /></td></tr>
 <tr class="memitem:a911d5a8b963352b83ffa922275521983" id="r_a911d5a8b963352b83ffa922275521983"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a911d5a8b963352b83ffa922275521983">BENT_FOREACH_SAVED_COMP</a>(ITR)</td></tr>
@@ -499,7 +507,7 @@ Messages</h2>
 <div class="fragment"><div class="line"><a class="code hl_define" href="#a2060a6c58db1a8632b5e26675c8676ad">BENT_COMP</a>(transform, { .x = 10, .y = 11 })</div>
 <div class="line"><a class="code hl_define" href="#a2060a6c58db1a8632b5e26675c8676ad">BENT_COMP</a>(health, initial_health)</div>
 <div class="line"><a class="code hl_define" href="#a2060a6c58db1a8632b5e26675c8676ad">BENT_COMP</a>(player)</div>
-<div class="ttc" id="abent_8h_html_a2060a6c58db1a8632b5e26675c8676ad"><div class="ttname"><a href="#a2060a6c58db1a8632b5e26675c8676ad">BENT_COMP</a></div><div class="ttdeci">#define BENT_COMP(NAME,...)</div><div class="ttdoc">One entry of a BENT_PREFAB list.</div><div class="ttdef"><b>Definition</b> bent.h:1663</div></div>
+<div class="ttc" id="abent_8h_html_a2060a6c58db1a8632b5e26675c8676ad"><div class="ttname"><a href="#a2060a6c58db1a8632b5e26675c8676ad">BENT_COMP</a></div><div class="ttdeci">#define BENT_COMP(NAME,...)</div><div class="ttdoc">One entry of a BENT_PREFAB list.</div><div class="ttdef"><b>Definition</b> bent.h:1780</div></div>
 </div><!-- fragment --><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">NAME</td><td>name of the component type</td></tr>
@@ -560,6 +568,127 @@ Messages</h2>
   </dd>
 </dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="#a6db5baddab4bfdaf2c43eb5490f0f7eb" title="Head of the serialization callback of a component declared with BENT_POD_COMP_EX.">BENT_SERIALIZER</a> </dd></dl>
+
+</div>
+</div>
+<a id="acbb66861c3173ebd4a6a0811b0596340" name="acbb66861c3173ebd4a6a0811b0596340"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acbb66861c3173ebd4a6a0811b0596340">&#9670;&#160;</a></span>BENT_CUSTOM_COMP</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define BENT_CUSTOM_COMP</td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>NAME</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>TYPE</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>ARG_TYPE</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<b>Value:</b><div class="fragment"><div class="line">    <a class="code hl_define" href="#ad36eb32c9391b20f6147be301f95dfc2">BENT_CUSTOM_COMP_EX</a>(NAME, TYPE, ARG_TYPE, RW, UNSERIALIZABLE)</div>
+<div class="ttc" id="abent_8h_html_ad36eb32c9391b20f6147be301f95dfc2"><div class="ttname"><a href="#ad36eb32c9391b20f6147be301f95dfc2">BENT_CUSTOM_COMP_EX</a></div><div class="ttdeci">#define BENT_CUSTOM_COMP_EX(NAME, TYPE, ARG_TYPE, ACCESS, SAVE)</div><div class="ttdoc">Dual use helper for a component with a custom initializer.</div><div class="ttdef"><b>Definition</b> bent.h:767</div></div>
+</div><!-- fragment -->
+<p>Dual use helper for a mutable component with a custom initializer that made no save choice. </p>
+<p>Same as <span class="tt"><a class="el" href="#ad36eb32c9391b20f6147be301f95dfc2" title="Dual use helper for a component with a custom initializer.">BENT_CUSTOM_COMP_EX(NAME, TYPE, ARG_TYPE, RW, UNSERIALIZABLE)</a></span>.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">NAME</td><td>name of the component type </td></tr>
+    <tr><td class="paramname">TYPE</td><td>type of the component's data </td></tr>
+    <tr><td class="paramname">ARG_TYPE</td><td>type of the initializer's argument</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="#ad36eb32c9391b20f6147be301f95dfc2" title="Dual use helper for a component with a custom initializer.">BENT_CUSTOM_COMP_EX</a> </dd></dl>
+
+</div>
+</div>
+<a id="ad36eb32c9391b20f6147be301f95dfc2" name="ad36eb32c9391b20f6147be301f95dfc2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad36eb32c9391b20f6147be301f95dfc2">&#9670;&#160;</a></span>BENT_CUSTOM_COMP_EX</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define BENT_CUSTOM_COMP_EX</td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>NAME</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>TYPE</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>ARG_TYPE</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>ACCESS</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>SAVE</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<b>Value:</b><div class="fragment"><div class="line">    <span class="keyword">typedef</span> TYPE bent__comp_type_##NAME; \</div>
+<div class="line">    BENT_DECLARE_COMP(NAME) \</div>
+<div class="line">    BENT__COMP_ACCESS_##ACCESS(NAME, TYPE, ARG_TYPE) \</div>
+<div class="line">    BENT_INITIALIZER(NAME); \</div>
+<div class="line">    BENT__COMP_SAVE_DECL_##SAVE(NAME, TYPE)</div>
+</div><!-- fragment -->
+<p>Dual use helper for a component with a custom initializer. </p>
+<p>This is similar to <a class="el" href="#a37cd158d8543a44d551ddc3bd5ad52fc">BENT_POD_COMP_EX</a> but a custom initializer is required.</p>
+<p>In a header file, it will forward-declare the component and define inline helpers.</p>
+<p>In a single source file, define <span class="tt">BENT_DEFINE_COMPONENTS</span> and include this header to implement the component registration.</p>
+<p>To implement the initializer, use <a class="el" href="#acd71c48a0a919d65cbcc5d4c36753419">BENT_INITIALIZER</a> as the function head.</p>
+<p>Example:</p>
+<div class="fragment"><div class="line"><span class="comment">// In a header file</span></div>
+<div class="line"><span class="keyword">typedef</span> <span class="keyword">struct </span>{ <span class="keywordtype">int</span> current, max; } health_t;</div>
+<div class="line"> </div>
+<div class="line"><a class="code hl_define" href="#ad36eb32c9391b20f6147be301f95dfc2">BENT_CUSTOM_COMP_EX</a>(health, health_t, health_t, RO, TRANSIENT)</div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// In any source file</span></div>
+<div class="line"><a class="code hl_define" href="#acd71c48a0a919d65cbcc5d4c36753419">BENT_INITIALIZER</a>(health) {</div>
+<div class="line">    *comp = (health_t){ 0 };</div>
+<div class="line">    <span class="keywordflow">if</span> (arg != NULL) {</div>
+<div class="line">        <span class="comment">// In the argument, `current` is an offset from `max`</span></div>
+<div class="line">        comp-&gt;max = arg-&gt;max;</div>
+<div class="line">        comp-&gt;current = arg-&gt;max + arg-&gt;current;</div>
+<div class="line">    }</div>
+<div class="line">}</div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// Starts at 10 out of 10</span></div>
+<div class="line">bent_add_health(world, entity, &amp;(health_t){ .max = 10 });</div>
+<div class="ttc" id="abent_8h_html_acd71c48a0a919d65cbcc5d4c36753419"><div class="ttname"><a href="#acd71c48a0a919d65cbcc5d4c36753419">BENT_INITIALIZER</a></div><div class="ttdeci">#define BENT_INITIALIZER(NAME)</div><div class="ttdoc">Head of the initialization callback of a component declared with BENT_CUSTOM_COMP_EX.</div><div class="ttdef"><b>Definition</b> bent.h:1366</div></div>
+</div><!-- fragment --><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">NAME</td><td>name of the component type </td></tr>
+    <tr><td class="paramname">TYPE</td><td>type of the component's data </td></tr>
+    <tr><td class="paramname">ARG_TYPE</td><td>type of the initializer's argument </td></tr>
+    <tr><td class="paramname">ACCESS</td><td><span class="tt">RW</span> or <span class="tt">RO</span> </td></tr>
+    <tr><td class="paramname">SAVE</td><td><span class="tt">UNSERIALIZABLE</span>, <span class="tt">TRANSIENT</span> or <span class="tt">SERIALIZED</span></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="#acbb66861c3173ebd4a6a0811b0596340" title="Dual use helper for a mutable component with a custom initializer that made no save choice.">BENT_CUSTOM_COMP</a> </dd>
+<dd>
+<a class="el" href="#a54d17cac73d8357e4e48f7405bd710fa" title="Same as BENT_CUSTOM_COMP_EX(NAME, TYPE, ARG_TYPE, RW, TRANSIENT).">BENT_TRANSIENT_CUSTOM_COMP</a> </dd>
+<dd>
+<a class="el" href="#acd71c48a0a919d65cbcc5d4c36753419" title="Head of the initialization callback of a component declared with BENT_CUSTOM_COMP_EX.">BENT_INITIALIZER</a> </dd></dl>
 
 </div>
 </div>
@@ -675,7 +804,7 @@ Messages</h2>
       </table>
 </div><div class="memdoc">
 <b>Value:</b><div class="fragment"><div class="line">    <a class="code hl_define" href="#adb10c223b0d7ad47dc7831ae78f5e730">BENT_DEFINE_COMP_ADDER_EX</a>(NAME, TYPE, TYPE)</div>
-<div class="ttc" id="abent_8h_html_adb10c223b0d7ad47dc7831ae78f5e730"><div class="ttname"><a href="#adb10c223b0d7ad47dc7831ae78f5e730">BENT_DEFINE_COMP_ADDER_EX</a></div><div class="ttdeci">#define BENT_DEFINE_COMP_ADDER_EX(NAME, COMP_TYPE, ARG_TYPE)</div><div class="ttdoc">Define a type-safe helper function to add a component.</div><div class="ttdef"><b>Definition</b> bent.h:872</div></div>
+<div class="ttc" id="abent_8h_html_adb10c223b0d7ad47dc7831ae78f5e730"><div class="ttname"><a href="#adb10c223b0d7ad47dc7831ae78f5e730">BENT_DEFINE_COMP_ADDER_EX</a></div><div class="ttdeci">#define BENT_DEFINE_COMP_ADDER_EX(NAME, COMP_TYPE, ARG_TYPE)</div><div class="ttdoc">Define a type-safe helper function to add a component.</div><div class="ttdef"><b>Definition</b> bent.h:959</div></div>
 </div><!-- fragment -->
 <p>Define a type-safe helper function to add a component. </p>
 <dl class="params"><dt>Parameters</dt><dd>
@@ -751,7 +880,7 @@ Messages</h2>
       </table>
 </div><div class="memdoc">
 <b>Value:</b><div class="fragment"><div class="line">    <a class="code hl_define" href="#ac589e12019530c853077700008e258fd">BENT_DEFINE_COMP_CONST_ADDER_EX</a>(NAME, TYPE, TYPE)</div>
-<div class="ttc" id="abent_8h_html_ac589e12019530c853077700008e258fd"><div class="ttname"><a href="#ac589e12019530c853077700008e258fd">BENT_DEFINE_COMP_CONST_ADDER_EX</a></div><div class="ttdeci">#define BENT_DEFINE_COMP_CONST_ADDER_EX(NAME, COMP_TYPE, ARG_TYPE)</div><div class="ttdoc">Same as BENT_DEFINE_COMP_ADDER_EX but the helper returns a const pointer.</div><div class="ttdef"><b>Definition</b> bent.h:899</div></div>
+<div class="ttc" id="abent_8h_html_ac589e12019530c853077700008e258fd"><div class="ttname"><a href="#ac589e12019530c853077700008e258fd">BENT_DEFINE_COMP_CONST_ADDER_EX</a></div><div class="ttdeci">#define BENT_DEFINE_COMP_CONST_ADDER_EX(NAME, COMP_TYPE, ARG_TYPE)</div><div class="ttdoc">Same as BENT_DEFINE_COMP_ADDER_EX but the helper returns a const pointer.</div><div class="ttdef"><b>Definition</b> bent.h:986</div></div>
 </div><!-- fragment -->
 <p>Same as <a class="el" href="#aaad7f5c492729aa092db284c06b76543">BENT_DEFINE_COMP_ADDER</a> but the helper returns a <span class="tt">const</span> pointer. </p>
 <dl class="params"><dt>Parameters</dt><dd>
@@ -1386,6 +1515,47 @@ Messages</h2>
 
 </div>
 </div>
+<a id="acd71c48a0a919d65cbcc5d4c36753419" name="acd71c48a0a919d65cbcc5d4c36753419"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acd71c48a0a919d65cbcc5d4c36753419">&#9670;&#160;</a></span>BENT_INITIALIZER</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define BENT_INITIALIZER</td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>NAME</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<b>Value:</b><div class="fragment"><div class="line">    <span class="keywordtype">void</span> bent_init_##NAME(<a class="code hl_define" href="#a7233da1b0bb495fdaa2dafcb6740ee15">BENT_COMP_TYPE</a>(NAME)* comp, <span class="keyword">const</span> NAME##_arg_t* arg)</div>
+<div class="ttc" id="abent_8h_html_a7233da1b0bb495fdaa2dafcb6740ee15"><div class="ttname"><a href="#a7233da1b0bb495fdaa2dafcb6740ee15">BENT_COMP_TYPE</a></div><div class="ttdeci">#define BENT_COMP_TYPE(NAME)</div><div class="ttdoc">The data type of a component declared with BENT_POD_COMP_EX.</div><div class="ttdef"><b>Definition</b> bent.h:1316</div></div>
+</div><!-- fragment -->
+<p>Head of the initialization callback of a component declared with <a class="el" href="#ad36eb32c9391b20f6147be301f95dfc2">BENT_CUSTOM_COMP_EX</a>. </p>
+<p>It expands to <span class="tt">void bent_init_NAME(TYPE* comp, const ARG_TYPE* arg)</span> where <span class="tt">TYPE</span> and <span class="tt">ARG_TYPE</span> are the types given to <a class="el" href="#ad36eb32c9391b20f6147be301f95dfc2">BENT_CUSTOM_COMP_EX</a>.</p>
+<p><span class="tt">comp</span> is storage that may have been used before and is not zeroed.</p>
+<p><span class="tt">arg</span> is what was given to <a class="el" href="#ae75bedb5a72a29c14e2b3d5b054ce3c7">bent_add</a>, as is, so it can be <span class="tt">NULL</span>.</p>
+<p>Example:</p>
+<div class="fragment"><div class="line"><a class="code hl_define" href="#acd71c48a0a919d65cbcc5d4c36753419">BENT_INITIALIZER</a>(health) {</div>
+<div class="line">    *comp = (health_t){ 0 };</div>
+<div class="line">    <span class="keywordflow">if</span> (arg != NULL) {</div>
+<div class="line">        comp-&gt;max = arg-&gt;max;</div>
+<div class="line">        comp-&gt;current = arg-&gt;max + arg-&gt;current;</div>
+<div class="line">    }</div>
+<div class="line">}</div>
+</div><!-- fragment --><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">NAME</td><td>name of the component type</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="structbent__comp__def__t.html#a0f997e981c9be9484a9dfadf613bab14" title="Optional initialization callback for this component.">bent_comp_def_t::init</a> </dd>
+<dd>
+<a class="el" href="#a7233da1b0bb495fdaa2dafcb6740ee15" title="The data type of a component declared with BENT_POD_COMP_EX.">BENT_COMP_TYPE</a> </dd></dl>
+
+</div>
+</div>
 <a id="a158769c3d5cb4905b5489418fe4c3bbb" name="a158769c3d5cb4905b5489418fe4c3bbb"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a158769c3d5cb4905b5489418fe4c3bbb">&#9670;&#160;</a></span>BENT_MAX_NUM_COMPONENT_TYPES</h2>
 
@@ -1425,7 +1595,7 @@ Messages</h2>
 <p>Dual use helper for a message type. </p>
 <p>This must be followed by a struct body and a semicolon:</p>
 <div class="fragment"><div class="line"><a class="code hl_define" href="#ab841f7db828a64a16aa7aed8a635b787">BENT_MSG</a>(collision_msg) { <a class="code hl_struct" href="structbent__t.html">bent_t</a> a, b; <span class="keywordtype">float</span> depth; };</div>
-<div class="ttc" id="abent_8h_html_ab841f7db828a64a16aa7aed8a635b787"><div class="ttname"><a href="#ab841f7db828a64a16aa7aed8a635b787">BENT_MSG</a></div><div class="ttdeci">#define BENT_MSG(NAME)</div><div class="ttdoc">Dual use helper for a message type.</div><div class="ttdef"><b>Definition</b> bent.h:1597</div></div>
+<div class="ttc" id="abent_8h_html_ab841f7db828a64a16aa7aed8a635b787"><div class="ttname"><a href="#ab841f7db828a64a16aa7aed8a635b787">BENT_MSG</a></div><div class="ttdeci">#define BENT_MSG(NAME)</div><div class="ttdoc">Dual use helper for a message type.</div><div class="ttdef"><b>Definition</b> bent.h:1714</div></div>
 </div><!-- fragment --><p>It defines <span class="tt">struct NAME</span>, the typedef <span class="tt">NAME_t</span> and declares the registration <span class="tt">NAME</span>, a <a class="el" href="structbent__msg__reg__t.html">bent_msg_reg_t</a> whose address identifies the message type.</p>
 <p>In a header file, it will forward-declare the registration.</p>
 <p>In a single source file, define <span class="tt">BENT_DEFINE_COMPONENTS</span> and include this header to implement the registration, the same way as <a class="el" href="#abdb5b3b4e979a5288abdb44e95235e10">BENT_POD_COMP</a>.</p>
@@ -1460,7 +1630,7 @@ Messages</h2>
 <p>Construct a message. </p>
 <p>Expands to a compound literal of the message's struct type, so it is followed by a brace initializer:</p>
 <div class="fragment"><div class="line">collision_msg_t msg = <a class="code hl_define" href="#aef71d1b268610c2fe0cf20ddf57b5eea">bent_msg</a>(collision_msg){ .a = a, .b = b };</div>
-<div class="ttc" id="abent_8h_html_aef71d1b268610c2fe0cf20ddf57b5eea"><div class="ttname"><a href="#aef71d1b268610c2fe0cf20ddf57b5eea">bent_msg</a></div><div class="ttdeci">#define bent_msg(NAME)</div><div class="ttdoc">Construct a message.</div><div class="ttdef"><b>Definition</b> bent.h:1510</div></div>
+<div class="ttc" id="abent_8h_html_aef71d1b268610c2fe0cf20ddf57b5eea"><div class="ttname"><a href="#aef71d1b268610c2fe0cf20ddf57b5eea">bent_msg</a></div><div class="ttdeci">#define bent_msg(NAME)</div><div class="ttdoc">Construct a message.</div><div class="ttdef"><b>Definition</b> bent.h:1627</div></div>
 </div><!-- fragment --><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">NAME</td><td>name of the message type</td></tr>
@@ -1557,7 +1727,7 @@ Messages</h2>
 </div><div class="memdoc">
 <b>Value:</b><div class="fragment"><div class="line">    <span class="keyword">typedef</span> TYPE bent__comp_type_##NAME; \</div>
 <div class="line">    BENT_DECLARE_COMP(NAME) \</div>
-<div class="line">    BENT__COMP_ACCESS_##ACCESS(NAME, TYPE) \</div>
+<div class="line">    BENT__COMP_ACCESS_##ACCESS(NAME, TYPE, TYPE) \</div>
 <div class="line">    BENT__COMP_SAVE_DECL_##SAVE(NAME, TYPE)</div>
 </div><!-- fragment -->
 <p>Dual use helper for a POD component. </p>
@@ -1669,7 +1839,7 @@ Messages</h2>
 <div class="line">    <a class="code hl_define" href="#a2060a6c58db1a8632b5e26675c8676ad">BENT_COMP</a>(player)</div>
 <div class="line">));</div>
 <div class="ttc" id="abent_8h_html_a6e8e8671ad41b1472f53bfff8cffaf07"><div class="ttname"><a href="#a6e8e8671ad41b1472f53bfff8cffaf07">bent_create_from</a></div><div class="ttdeci">bent_t bent_create_from(bent_world_t *world, bent_prefab_t prefab)</div><div class="ttdoc">Create an entity from a prefab.</div></div>
-<div class="ttc" id="abent_8h_html_aa67229382b5477f43c55c18c3e545687"><div class="ttname"><a href="#aa67229382b5477f43c55c18c3e545687">BENT_PREFAB</a></div><div class="ttdeci">#define BENT_PREFAB(...)</div><div class="ttdoc">A prefab: a null-terminated list of BENT_COMP entries.</div><div class="ttdef"><b>Definition</b> bent.h:1685</div></div>
+<div class="ttc" id="abent_8h_html_aa67229382b5477f43c55c18c3e545687"><div class="ttname"><a href="#aa67229382b5477f43c55c18c3e545687">BENT_PREFAB</a></div><div class="ttdeci">#define BENT_PREFAB(...)</div><div class="ttdoc">A prefab: a null-terminated list of BENT_COMP entries.</div><div class="ttdef"><b>Definition</b> bent.h:1802</div></div>
 </div><!-- fragment --><dl class="section see"><dt>See also</dt><dd><a class="el" href="#a6e8e8671ad41b1472f53bfff8cffaf07" title="Create an entity from a prefab.">bent_create_from</a> </dd>
 <dd>
 <a class="el" href="#a8c55deceacc58c2a2a6148574a2fcb08" title="Add the components of a prefab to an existing entity.">bent_add_from</a> </dd></dl>
@@ -1702,8 +1872,8 @@ Messages</h2>
 <div class="line">    <a class="code hl_define" href="#a675e11906302028e0663a77f7feb41a0">BENT_PREFAB_BASE</a>(monster),</div>
 <div class="line">    <a class="code hl_define" href="#a2060a6c58db1a8632b5e26675c8676ad">BENT_COMP</a>(bow)                   <span class="comment">// A default, unless the base has one</span></div>
 <div class="line">);</div>
-<div class="ttc" id="abent_8h_html_a3cbfd862128c0cf2392415619764f0d1"><div class="ttname"><a href="#a3cbfd862128c0cf2392415619764f0d1">bent_prefab_t</a></div><div class="ttdeci">const bent_prefab_entry_t * bent_prefab_t</div><div class="ttdoc">A prefab: a null-terminated list of bent_prefab_entry_t.</div><div class="ttdef"><b>Definition</b> bent.h:1639</div></div>
-<div class="ttc" id="abent_8h_html_a675e11906302028e0663a77f7feb41a0"><div class="ttname"><a href="#a675e11906302028e0663a77f7feb41a0">BENT_PREFAB_BASE</a></div><div class="ttdeci">#define BENT_PREFAB_BASE(PREFAB)</div><div class="ttdoc">Include another prefab at this point of a BENT_PREFAB list.</div><div class="ttdef"><b>Definition</b> bent.h:1722</div></div>
+<div class="ttc" id="abent_8h_html_a3cbfd862128c0cf2392415619764f0d1"><div class="ttname"><a href="#a3cbfd862128c0cf2392415619764f0d1">bent_prefab_t</a></div><div class="ttdeci">const bent_prefab_entry_t * bent_prefab_t</div><div class="ttdoc">A prefab: a null-terminated list of bent_prefab_entry_t.</div><div class="ttdef"><b>Definition</b> bent.h:1756</div></div>
+<div class="ttc" id="abent_8h_html_a675e11906302028e0663a77f7feb41a0"><div class="ttname"><a href="#a675e11906302028e0663a77f7feb41a0">BENT_PREFAB_BASE</a></div><div class="ttdeci">#define BENT_PREFAB_BASE(PREFAB)</div><div class="ttdoc">Include another prefab at this point of a BENT_PREFAB list.</div><div class="ttdef"><b>Definition</b> bent.h:1839</div></div>
 </div><!-- fragment --><p>The base is stored by address and read when the list is applied, not when it is built, so a prefab kept at file scope can include another one, and a function can include a prefab it was given. A base entry has a <span class="tt">NULL</span> component like the terminator: read a prefab that may contain one through <a class="el" href="#ac68f6eae14eb0ca2bd84eda045e8f23b">bent_prefab_foreach</a>, never by walking it to the first <span class="tt">NULL</span> component.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -1821,11 +1991,10 @@ Messages</h2>
       </table>
 </div><div class="memdoc">
 <b>Value:</b><div class="fragment"><div class="line">    <span class="keywordtype">bool</span> bent_serialize_##NAME(<a class="code hl_typedef" href="#ad4854a10e0593e302021a4e399d96e4b">bent_serialize_ctx_t</a>* ctx, <a class="code hl_define" href="#a7233da1b0bb495fdaa2dafcb6740ee15">BENT_COMP_TYPE</a>(NAME)* comp)</div>
-<div class="ttc" id="abent_8h_html_a7233da1b0bb495fdaa2dafcb6740ee15"><div class="ttname"><a href="#a7233da1b0bb495fdaa2dafcb6740ee15">BENT_COMP_TYPE</a></div><div class="ttdeci">#define BENT_COMP_TYPE(NAME)</div><div class="ttdoc">The data type of a component declared with BENT_POD_COMP_EX.</div><div class="ttdef"><b>Definition</b> bent.h:1229</div></div>
 <div class="ttc" id="abent_8h_html_ad4854a10e0593e302021a4e399d96e4b"><div class="ttname"><a href="#ad4854a10e0593e302021a4e399d96e4b">bent_serialize_ctx_t</a></div><div class="ttdeci">BENT_SERIALIZE_CTX bent_serialize_ctx_t</div><div class="ttdoc">Serialization context, see BENT_SERIALIZE_CTX.</div><div class="ttdef"><b>Definition</b> bent.h:192</div></div>
 </div><!-- fragment -->
 <p>Head of the serialization callback of a component declared with <a class="el" href="#a37cd158d8543a44d551ddc3bd5ad52fc">BENT_POD_COMP_EX</a>. </p>
-<p>It expands to <span class="tt">bool bent_serialize_NAME(bent_serialize_ctx_t* ctx, TYPE* comp)</span> where <span class="tt">TYPE</span> is the type given to <a class="el" href="#a37cd158d8543a44d551ddc3bd5ad52fc">BENT_POD_COMP_EX</a>, so it can be followed by a function body or a semicolon. The parameters are named <span class="tt">ctx</span> and <span class="tt">comp</span>.</p>
+<p>It expands to <span class="tt">bool bent_serialize_NAME(bent_serialize_ctx_t* ctx, TYPE* comp)</span> where <span class="tt">TYPE</span> is the type given to <a class="el" href="#a37cd158d8543a44d551ddc3bd5ad52fc">BENT_POD_COMP_EX</a>.</p>
 <p>Example:</p>
 <div class="fragment"><div class="line"><span class="comment">// Expands to the head that components.h declared:</span></div>
 <div class="line"><span class="comment">// `bool bent_serialize_target(bent_serialize_ctx_t* ctx, target_t* comp)`.</span></div>
@@ -1874,6 +2043,35 @@ Messages</h2>
 <p>Dual use helper for tag component. </p>
 <p>In a header file, it will forward-declare the component and define inline helpers.</p>
 <p>In a single source file, define <span class="tt">BENT_DEFINE_COMPONENTS</span> and include this header to implement the component registration. </p>
+
+</div>
+</div>
+<a id="a54d17cac73d8357e4e48f7405bd710fa" name="a54d17cac73d8357e4e48f7405bd710fa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a54d17cac73d8357e4e48f7405bd710fa">&#9670;&#160;</a></span>BENT_TRANSIENT_CUSTOM_COMP</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define BENT_TRANSIENT_CUSTOM_COMP</td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>NAME</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>TYPE</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>ARG_TYPE</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<b>Value:</b><div class="fragment"><div class="line">    <a class="code hl_define" href="#ad36eb32c9391b20f6147be301f95dfc2">BENT_CUSTOM_COMP_EX</a>(NAME, TYPE, ARG_TYPE, RW, TRANSIENT)</div>
+</div><!-- fragment -->
+<p>Same as <span class="tt"><a class="el" href="#ad36eb32c9391b20f6147be301f95dfc2" title="Dual use helper for a component with a custom initializer.">BENT_CUSTOM_COMP_EX(NAME, TYPE, ARG_TYPE, RW, TRANSIENT)</a></span>. </p>
 
 </div>
 </div>
