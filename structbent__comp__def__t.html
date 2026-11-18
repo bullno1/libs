@@ -88,10 +88,10 @@ $(function() {
 Public Attributes</h2></td></tr>
 <tr class="memitem:a7eb491f6b49353bcc3104e3954be7e2a" id="r_a7eb491f6b49353bcc3104e3954be7e2a"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7eb491f6b49353bcc3104e3954be7e2a">size</a></td></tr>
 <tr class="memdesc:a7eb491f6b49353bcc3104e3954be7e2a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Size of the data for this component.  <br /></td></tr>
-<tr class="memitem:a0f997e981c9be9484a9dfadf613bab14" id="r_a0f997e981c9be9484a9dfadf613bab14"><td class="memItemLeft" align="right" valign="top">void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0f997e981c9be9484a9dfadf613bab14">init</a> )(void *comp, void *arg)</td></tr>
-<tr class="memdesc:a0f997e981c9be9484a9dfadf613bab14"><td class="mdescLeft">&#160;</td><td class="mdescRight">Optional initialization callback for this component.  <br /></td></tr>
-<tr class="memitem:a758860f6b892547a709d24914d9a0a7f" id="r_a758860f6b892547a709d24914d9a0a7f"><td class="memItemLeft" align="right" valign="top">void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a758860f6b892547a709d24914d9a0a7f">cleanup</a> )(void *comp)</td></tr>
-<tr class="memdesc:a758860f6b892547a709d24914d9a0a7f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Optional initialization callback for this component.  <br /></td></tr>
+<tr class="memitem:ac3f9667ea5e104569342d61ffc8810ac" id="r_ac3f9667ea5e104569342d61ffc8810ac"><td class="memItemLeft" align="right" valign="top">void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac3f9667ea5e104569342d61ffc8810ac">init</a> )(<a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *world, void *comp, void *arg)</td></tr>
+<tr class="memdesc:ac3f9667ea5e104569342d61ffc8810ac"><td class="mdescLeft">&#160;</td><td class="mdescRight">Optional initialization callback for this component.  <br /></td></tr>
+<tr class="memitem:a3d9b1a94cbf168155c4c600f304cea75" id="r_a3d9b1a94cbf168155c4c600f304cea75"><td class="memItemLeft" align="right" valign="top">void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3d9b1a94cbf168155c4c600f304cea75">cleanup</a> )(<a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *world, void *comp)</td></tr>
+<tr class="memdesc:a3d9b1a94cbf168155c4c600f304cea75"><td class="mdescLeft">&#160;</td><td class="mdescRight">Optional initialization callback for this component.  <br /></td></tr>
 <tr class="memitem:ad73b794e83ae9364e22f0fcccb2e1cfb" id="r_ad73b794e83ae9364e22f0fcccb2e1cfb"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad73b794e83ae9364e22f0fcccb2e1cfb">flags</a></td></tr>
 <tr class="memdesc:ad73b794e83ae9364e22f0fcccb2e1cfb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Component behaviour flags.  <br /></td></tr>
 <tr class="memitem:a5ad1bb30b1ee1cc43d8538a43fc5234f" id="r_a5ad1bb30b1ee1cc43d8538a43fc5234f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="bent_8h.html#a4b8437eaa533ce84ee9c09707c3f6016">bent_serialize_fn_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5ad1bb30b1ee1cc43d8538a43fc5234f">serialize</a></td></tr>
@@ -101,14 +101,14 @@ Public Attributes</h2></td></tr>
 <div class="textblock"><p>Component type definition. </p>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="bent_8h.html#aa4bae8da5ba5cddef82a407950cff5be" title="Define a component type.">BENT_DEFINE_COMP</a> </dd></dl>
 </div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
-<a id="a758860f6b892547a709d24914d9a0a7f" name="a758860f6b892547a709d24914d9a0a7f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a758860f6b892547a709d24914d9a0a7f">&#9670;&#160;</a></span>cleanup</h2>
+<a id="a3d9b1a94cbf168155c4c600f304cea75" name="a3d9b1a94cbf168155c4c600f304cea75"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3d9b1a94cbf168155c4c600f304cea75">&#9670;&#160;</a></span>cleanup</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void(* bent_comp_def_t::cleanup) (void *comp)</td>
+          <td class="memname">void(* bent_comp_def_t::cleanup) (<a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *world, void *comp)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -135,14 +135,14 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a0f997e981c9be9484a9dfadf613bab14" name="a0f997e981c9be9484a9dfadf613bab14"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0f997e981c9be9484a9dfadf613bab14">&#9670;&#160;</a></span>init</h2>
+<a id="ac3f9667ea5e104569342d61ffc8810ac" name="ac3f9667ea5e104569342d61ffc8810ac"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac3f9667ea5e104569342d61ffc8810ac">&#9670;&#160;</a></span>init</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void(* bent_comp_def_t::init) (void *comp, void *arg)</td>
+          <td class="memname">void(* bent_comp_def_t::init) (<a class="el" href="bent_8h.html#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *world, void *comp, void *arg)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -155,7 +155,8 @@ Public Attributes</h2></td></tr>
 </ul>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">comp</td><td>the component data. </td></tr>
+    <tr><td class="paramname">world</td><td>the world for this component </td></tr>
+    <tr><td class="paramname">comp</td><td>the component data </td></tr>
     <tr><td class="paramname">arg</td><td>the argument passed to <a class="el" href="bent_8h.html#ae75bedb5a72a29c14e2b3d5b054ce3c7">bent_add</a> </td></tr>
   </table>
   </dd>

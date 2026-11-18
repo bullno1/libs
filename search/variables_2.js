@@ -1,7 +1,7 @@
 var searchData=
 [
   ['chunk_5fsize_0',['chunk_size',['../structbarena__pool__s.html#aa8fab7daefd254953958354fd3259945',1,'barena_pool_s']]],
-  ['cleanup_1',['cleanup',['../structbent__comp__def__t.html#a758860f6b892547a709d24914d9a0a7f',1,'bent_comp_def_t::cleanup'],['../structbent__sys__def__t.html#a84d6c4ac65c314eafb0890cce9a4d937',1,'bent_sys_def_t::cleanup']]],
+  ['cleanup_1',['cleanup',['../structbent__comp__def__t.html#a3d9b1a94cbf168155c4c600f304cea75',1,'bent_comp_def_t::cleanup'],['../structbent__sys__def__t.html#a84d6c4ac65c314eafb0890cce9a4d937',1,'bent_sys_def_t::cleanup']]],
   ['cleanup_5fper_5fsuite_2',['cleanup_per_suite',['../structbtest__suite__t.html#a8b692230e4b09792a478f624acd62d88',1,'btest_suite_t']]],
   ['cleanup_5fper_5ftest_3',['cleanup_per_test',['../structbtest__suite__t.html#a363d7bcb62e327c42a9c5f4ce6d9d57a',1,'btest_suite_t']]],
   ['column_4',['column',['../structbscn__pos__t.html#ae612ab0d39afb9d77440a6ea30602d18',1,'bscn_pos_t']]],
