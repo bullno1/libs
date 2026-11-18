@@ -12,7 +12,8 @@ typedef struct { int value; } tracked_t;
 static int num_tracked_cleanups;
 
 static void
-tracked_cleanup(void* data) {
+tracked_cleanup(bent_world_t* world, void* data) {
+	(void)world;
 	++num_tracked_cleanups;
 	((tracked_t*)data)->value = POISON;
 }

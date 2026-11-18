@@ -106,22 +106,26 @@ typedef struct component_with_callback_init_s component_with_callback_init_t;
 
 typedef struct {
 	component_with_callback_init_t* init_arg;
+	bent_world_t* init_world;
 } component_with_callback_t;
 
 struct component_with_callback_init_s {
 	int value;
+	bent_world_t* cleanup_world;
 };
 
 static void
-component_with_callback_init(void* data_, void* arg) {
+component_with_callback_init(bent_world_t* world, void* data_, void* arg) {
 	component_with_callback_t* data = data_;
+	data->init_world = world;
 	data->init_arg = arg;
 	data->init_arg->value = 1;
 }
 
 static void
-component_with_callback_cleanup(void* data_) {
+component_with_callback_cleanup(bent_world_t* world, void* data_) {
 	component_with_callback_t* data = data_;
+	data->init_arg->cleanup_world = world;
 	data->init_arg->value = 2;
 }
 
@@ -141,11 +145,14 @@ BTEST(component, callback) {
 	component_with_callback_init_t arg = { .value = 3 };
 	component_with_callback_t* comp = bent_add_component_with_callback(world, ent, &arg);
 	BTEST_EXPECT_EQUAL("%p", (void*)comp->init_arg, (void*)&arg);
+	BTEST_EXPECT_EQUAL("%p", (void*)comp->init_world, (void*)world);
 	BTEST_EXPECT_EQUAL("%d", arg.value, 1);
 
 	// Remove should invoke the callback
 	bent_remove(world, ent, component_with_callback);
 	BTEST_EXPECT_EQUAL("%d", arg.value, 2);
+	BTEST_EXPECT_EQUAL("%p", (void*)arg.cleanup_world, (void*)world);
+	arg.cleanup_world = NULL;
 
 	// Add again to init again
 	bent_add_component_with_callback(world, ent, &arg);
@@ -154,6 +161,7 @@ BTEST(component, callback) {
 	// Destroy should invoke the callback
 	bent_destroy(world, ent);
 	BTEST_EXPECT_EQUAL("%d", arg.value, 2);
+	BTEST_EXPECT_EQUAL("%p", (void*)arg.cleanup_world, (void*)world);
 }
 
 BTEST(component, stable_pointers) {
