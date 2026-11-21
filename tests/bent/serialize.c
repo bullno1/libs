@@ -244,6 +244,49 @@ BTEST(serialize, iterate) {
 	BTEST_EXPECT_EQUAL("%d", num_live, 0);
 }
 
+BTEST(serialize, saved_entities) {
+	bent_world_t* world = fixture.world;
+
+	bent_t empty = bent_create(world);
+	bent_t transient_only = bent_create(world);
+	bent_add(world, transient_only, cache, NULL);
+	bent_t tagged = bent_create(world);
+	bent_add(world, tagged, marker, NULL);
+	bent_t destroyed = bent_create(world);
+	bent_add(world, destroyed, marker, NULL);
+	bent_destroy(world, destroyed);
+	bent_t mixed = bent_create(world);
+	bent_add(world, mixed, cache, NULL);
+	bent_add(world, mixed, link, NULL);
+
+	BTEST_EXPECT(!bent_has_saved_comp(world, empty));
+	BTEST_EXPECT(!bent_has_saved_comp(world, transient_only));
+	BTEST_EXPECT(bent_has_saved_comp(world, tagged));
+	BTEST_EXPECT(!bent_has_saved_comp(world, destroyed));
+	BTEST_EXPECT(bent_has_saved_comp(world, mixed));
+	BTEST_EXPECT(!bent_has_saved_comp(world, (bent_t){ 0 }));
+
+	bent_t saved[2] = { 0 };
+	int num_saved = 0;
+	BENT_FOREACH_SAVED(entity, world) {
+		BTEST_ASSERT(num_saved < 2);
+		saved[num_saved++] = entity;
+	}
+	BTEST_EXPECT_EQUAL("%d", num_saved, 2);
+	BTEST_EXPECT(bent_equal(saved[0], tagged));
+	BTEST_EXPECT(bent_equal(saved[1], mixed));
+	BTEST_EXPECT_EQUAL("%d", (int)bent_count_saved(world), 2);
+
+	bent_remove(world, tagged, marker);
+	bent_remove(world, mixed, link);
+	BTEST_EXPECT(!bent_has_saved_comp(world, tagged));
+	BTEST_EXPECT(!bent_has_saved_comp(world, mixed));
+	BTEST_EXPECT_EQUAL("%d", (int)bent_count_saved(world), 0);
+	num_saved = 0;
+	BENT_FOREACH_SAVED(entity, world) { (void)entity; ++num_saved; }
+	BTEST_EXPECT_EQUAL("%d", num_saved, 0);
+}
+
 BTEST(serialize, clear) {
 	bent_world_t* world = fixture.world;
 	num_cache_cleanups = 0;
