@@ -210,6 +210,7 @@ Macros</h2></td></tr>
 <tr class="memdesc:a25589a58bb341c5e0b1fd00f2a63dcd1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Iterate every live entity of a world, in index order.  <br /></td></tr>
 <tr class="memitem:a270f2a12cae591d4f7a30984d2e701ef" id="r_a270f2a12cae591d4f7a30984d2e701ef"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a270f2a12cae591d4f7a30984d2e701ef">BENT_FOREACH_WITH</a>(VAR,  WORLD,  COMP)</td></tr>
 <tr class="memdesc:a270f2a12cae591d4f7a30984d2e701ef"><td class="mdescLeft">&#160;</td><td class="mdescRight">Iterate every live entity that has a component, in index order.  <br /></td></tr>
+<tr class="memitem:aafd4541a92d153f8aea8c216dd5691f5" id="r_aafd4541a92d153f8aea8c216dd5691f5"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aafd4541a92d153f8aea8c216dd5691f5">BENT_FOREACH_SAVED</a>(VAR,  WORLD)</td></tr>
 <tr class="memitem:aef71d1b268610c2fe0cf20ddf57b5eea" id="r_aef71d1b268610c2fe0cf20ddf57b5eea"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aef71d1b268610c2fe0cf20ddf57b5eea">bent_msg</a>(NAME)</td></tr>
 <tr class="memdesc:aef71d1b268610c2fe0cf20ddf57b5eea"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct a message.  <br /></td></tr>
 <tr class="memitem:a50fa5fd16ac57909d2002e9d044234da" id="r_a50fa5fd16ac57909d2002e9d044234da"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a50fa5fd16ac57909d2002e9d044234da">bent_send</a>(WORLD,  ENTITY,  NAME, ...)</td></tr>
@@ -329,6 +330,10 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>bent_load_handles_end
 <tr class="memdesc:a54006e6cbafa9db6e3f68c5bef8c2e6f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add a component to an entity without initializing it.  <br /></td></tr>
 <tr class="memitem:ac010650cb8ba9967fb0d63fef15e1a04" id="r_ac010650cb8ba9967fb0d63fef15e1a04"><td class="memItemLeft" align="right" valign="top"><a class="el" href="#aef1f57c00a98e4078b680c9b384bdf54">bent_index_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac010650cb8ba9967fb0d63fef15e1a04">bent_count_with</a> (<a class="el" href="#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *world, <a class="el" href="structbent__comp__reg__t.html">bent_comp_reg_t</a> comp)</td></tr>
 <tr class="memdesc:ac010650cb8ba9967fb0d63fef15e1a04"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of live entities that have a component.  <br /></td></tr>
+<tr class="memitem:a7bd05a8c077876c3dc22d3ec2e2638eb" id="r_a7bd05a8c077876c3dc22d3ec2e2638eb"><td class="memItemLeft" align="right" valign="top"><a id="a7bd05a8c077876c3dc22d3ec2e2638eb" name="a7bd05a8c077876c3dc22d3ec2e2638eb"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>bent_has_saved_comp</b> (<a class="el" href="#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *world, <a class="el" href="structbent__t.html">bent_t</a> entity)</td></tr>
+<tr class="memitem:a77224d7f9e72d442d2c5ebbad4cef1e9" id="r_a77224d7f9e72d442d2c5ebbad4cef1e9"><td class="memItemLeft" align="right" valign="top"><a id="a77224d7f9e72d442d2c5ebbad4cef1e9" name="a77224d7f9e72d442d2c5ebbad4cef1e9"></a>
+<a class="el" href="#aef1f57c00a98e4078b680c9b384bdf54">bent_index_t</a>&#160;</td><td class="memItemRight" valign="bottom"><b>bent_count_saved</b> (<a class="el" href="#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a> *world)</td></tr>
 <tr class="memitem:a64a48f0879d3d272f56782777994fc06" id="r_a64a48f0879d3d272f56782777994fc06"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structbent__comp__reg__t.html">bent_comp_reg_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a64a48f0879d3d272f56782777994fc06">bent_find_comp</a> (const char *name)</td></tr>
 <tr class="memdesc:a64a48f0879d3d272f56782777994fc06"><td class="mdescLeft">&#160;</td><td class="mdescRight">Find a component type by its registered name.  <br /></td></tr>
 <tr class="memitem:ab2fb12b7df2e99611ab2e59c773614eb" id="r_ab2fb12b7df2e99611ab2e59c773614eb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structbent__sys__reg__t.html">bent_sys_reg_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab2fb12b7df2e99611ab2e59c773614eb">bent_find_sys</a> (const char *name)</td></tr>
@@ -507,7 +512,7 @@ Messages</h2>
 <div class="fragment"><div class="line"><a class="code hl_define" href="#a2060a6c58db1a8632b5e26675c8676ad">BENT_COMP</a>(transform, { .x = 10, .y = 11 })</div>
 <div class="line"><a class="code hl_define" href="#a2060a6c58db1a8632b5e26675c8676ad">BENT_COMP</a>(health, initial_health)</div>
 <div class="line"><a class="code hl_define" href="#a2060a6c58db1a8632b5e26675c8676ad">BENT_COMP</a>(player)</div>
-<div class="ttc" id="abent_8h_html_a2060a6c58db1a8632b5e26675c8676ad"><div class="ttname"><a href="#a2060a6c58db1a8632b5e26675c8676ad">BENT_COMP</a></div><div class="ttdeci">#define BENT_COMP(NAME,...)</div><div class="ttdoc">One entry of a BENT_PREFAB list.</div><div class="ttdef"><b>Definition</b> bent.h:1781</div></div>
+<div class="ttc" id="abent_8h_html_a2060a6c58db1a8632b5e26675c8676ad"><div class="ttname"><a href="#a2060a6c58db1a8632b5e26675c8676ad">BENT_COMP</a></div><div class="ttdeci">#define BENT_COMP(NAME,...)</div><div class="ttdoc">One entry of a BENT_PREFAB list.</div><div class="ttdef"><b>Definition</b> bent.h:1794</div></div>
 </div><!-- fragment --><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">NAME</td><td>name of the component type</td></tr>
@@ -1422,6 +1427,33 @@ Messages</h2>
 
 </div>
 </div>
+<a id="aafd4541a92d153f8aea8c216dd5691f5" name="aafd4541a92d153f8aea8c216dd5691f5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aafd4541a92d153f8aea8c216dd5691f5">&#9670;&#160;</a></span>BENT_FOREACH_SAVED</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define BENT_FOREACH_SAVED</td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>VAR</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>WORLD</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<b>Value:</b><div class="fragment"><div class="line">    <span class="keywordflow">for</span> ( \</div>
+<div class="line">        <a class="code hl_struct" href="structbent__t.html">bent_t</a> VAR = bent__next_saved((WORLD), 0); \</div>
+<div class="line">        !<a class="code hl_function" href="#a15f6eadedd8071b6174f6c4bc6e15eda">bent_is_invalid</a>(VAR); \</div>
+<div class="line">        VAR = bent__next_saved((WORLD), VAR.index + 1) \</div>
+<div class="line">    )</div>
+<div class="ttc" id="abent_8h_html_a15f6eadedd8071b6174f6c4bc6e15eda"><div class="ttname"><a href="#a15f6eadedd8071b6174f6c4bc6e15eda">bent_is_invalid</a></div><div class="ttdeci">static bool bent_is_invalid(bent_t entity)</div><div class="ttdoc">Check whether a handle is invalid.</div><div class="ttdef"><b>Definition</b> bent.h:1210</div></div>
+</div><!-- fragment -->
+</div>
+</div>
 <a id="a911d5a8b963352b83ffa922275521983" name="a911d5a8b963352b83ffa922275521983"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a911d5a8b963352b83ffa922275521983">&#9670;&#160;</a></span>BENT_FOREACH_SAVED_COMP</h2>
 
@@ -1595,7 +1627,7 @@ Messages</h2>
 <p>Dual use helper for a message type. </p>
 <p>This must be followed by a struct body and a semicolon:</p>
 <div class="fragment"><div class="line"><a class="code hl_define" href="#ab841f7db828a64a16aa7aed8a635b787">BENT_MSG</a>(collision_msg) { <a class="code hl_struct" href="structbent__t.html">bent_t</a> a, b; <span class="keywordtype">float</span> depth; };</div>
-<div class="ttc" id="abent_8h_html_ab841f7db828a64a16aa7aed8a635b787"><div class="ttname"><a href="#ab841f7db828a64a16aa7aed8a635b787">BENT_MSG</a></div><div class="ttdeci">#define BENT_MSG(NAME)</div><div class="ttdoc">Dual use helper for a message type.</div><div class="ttdef"><b>Definition</b> bent.h:1715</div></div>
+<div class="ttc" id="abent_8h_html_ab841f7db828a64a16aa7aed8a635b787"><div class="ttname"><a href="#ab841f7db828a64a16aa7aed8a635b787">BENT_MSG</a></div><div class="ttdeci">#define BENT_MSG(NAME)</div><div class="ttdoc">Dual use helper for a message type.</div><div class="ttdef"><b>Definition</b> bent.h:1728</div></div>
 </div><!-- fragment --><p>It defines <span class="tt">struct NAME</span>, the typedef <span class="tt">NAME_t</span> and declares the registration <span class="tt">NAME</span>, a <a class="el" href="structbent__msg__reg__t.html">bent_msg_reg_t</a> whose address identifies the message type.</p>
 <p>In a header file, it will forward-declare the registration.</p>
 <p>In a single source file, define <span class="tt">BENT_DEFINE_COMPONENTS</span> and include this header to implement the registration, the same way as <a class="el" href="#abdb5b3b4e979a5288abdb44e95235e10">BENT_POD_COMP</a>.</p>
@@ -1630,7 +1662,7 @@ Messages</h2>
 <p>Construct a message. </p>
 <p>Expands to a compound literal of the message's struct type, so it is followed by a brace initializer:</p>
 <div class="fragment"><div class="line">collision_msg_t msg = <a class="code hl_define" href="#aef71d1b268610c2fe0cf20ddf57b5eea">bent_msg</a>(collision_msg){ .a = a, .b = b };</div>
-<div class="ttc" id="abent_8h_html_aef71d1b268610c2fe0cf20ddf57b5eea"><div class="ttname"><a href="#aef71d1b268610c2fe0cf20ddf57b5eea">bent_msg</a></div><div class="ttdeci">#define bent_msg(NAME)</div><div class="ttdoc">Construct a message.</div><div class="ttdef"><b>Definition</b> bent.h:1628</div></div>
+<div class="ttc" id="abent_8h_html_aef71d1b268610c2fe0cf20ddf57b5eea"><div class="ttname"><a href="#aef71d1b268610c2fe0cf20ddf57b5eea">bent_msg</a></div><div class="ttdeci">#define bent_msg(NAME)</div><div class="ttdoc">Construct a message.</div><div class="ttdef"><b>Definition</b> bent.h:1641</div></div>
 </div><!-- fragment --><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">NAME</td><td>name of the message type</td></tr>
@@ -1839,7 +1871,7 @@ Messages</h2>
 <div class="line">    <a class="code hl_define" href="#a2060a6c58db1a8632b5e26675c8676ad">BENT_COMP</a>(player)</div>
 <div class="line">));</div>
 <div class="ttc" id="abent_8h_html_a6e8e8671ad41b1472f53bfff8cffaf07"><div class="ttname"><a href="#a6e8e8671ad41b1472f53bfff8cffaf07">bent_create_from</a></div><div class="ttdeci">bent_t bent_create_from(bent_world_t *world, bent_prefab_t prefab)</div><div class="ttdoc">Create an entity from a prefab.</div></div>
-<div class="ttc" id="abent_8h_html_aa67229382b5477f43c55c18c3e545687"><div class="ttname"><a href="#aa67229382b5477f43c55c18c3e545687">BENT_PREFAB</a></div><div class="ttdeci">#define BENT_PREFAB(...)</div><div class="ttdoc">A prefab: a null-terminated list of BENT_COMP entries.</div><div class="ttdef"><b>Definition</b> bent.h:1803</div></div>
+<div class="ttc" id="abent_8h_html_aa67229382b5477f43c55c18c3e545687"><div class="ttname"><a href="#aa67229382b5477f43c55c18c3e545687">BENT_PREFAB</a></div><div class="ttdeci">#define BENT_PREFAB(...)</div><div class="ttdoc">A prefab: a null-terminated list of BENT_COMP entries.</div><div class="ttdef"><b>Definition</b> bent.h:1816</div></div>
 </div><!-- fragment --><dl class="section see"><dt>See also</dt><dd><a class="el" href="#a6e8e8671ad41b1472f53bfff8cffaf07" title="Create an entity from a prefab.">bent_create_from</a> </dd>
 <dd>
 <a class="el" href="#a8c55deceacc58c2a2a6148574a2fcb08" title="Add the components of a prefab to an existing entity.">bent_add_from</a> </dd></dl>
@@ -1872,8 +1904,8 @@ Messages</h2>
 <div class="line">    <a class="code hl_define" href="#a675e11906302028e0663a77f7feb41a0">BENT_PREFAB_BASE</a>(monster),</div>
 <div class="line">    <a class="code hl_define" href="#a2060a6c58db1a8632b5e26675c8676ad">BENT_COMP</a>(bow)                   <span class="comment">// A default, unless the base has one</span></div>
 <div class="line">);</div>
-<div class="ttc" id="abent_8h_html_a3cbfd862128c0cf2392415619764f0d1"><div class="ttname"><a href="#a3cbfd862128c0cf2392415619764f0d1">bent_prefab_t</a></div><div class="ttdeci">const bent_prefab_entry_t * bent_prefab_t</div><div class="ttdoc">A prefab: a null-terminated list of bent_prefab_entry_t.</div><div class="ttdef"><b>Definition</b> bent.h:1757</div></div>
-<div class="ttc" id="abent_8h_html_a675e11906302028e0663a77f7feb41a0"><div class="ttname"><a href="#a675e11906302028e0663a77f7feb41a0">BENT_PREFAB_BASE</a></div><div class="ttdeci">#define BENT_PREFAB_BASE(PREFAB)</div><div class="ttdoc">Include another prefab at this point of a BENT_PREFAB list.</div><div class="ttdef"><b>Definition</b> bent.h:1840</div></div>
+<div class="ttc" id="abent_8h_html_a3cbfd862128c0cf2392415619764f0d1"><div class="ttname"><a href="#a3cbfd862128c0cf2392415619764f0d1">bent_prefab_t</a></div><div class="ttdeci">const bent_prefab_entry_t * bent_prefab_t</div><div class="ttdoc">A prefab: a null-terminated list of bent_prefab_entry_t.</div><div class="ttdef"><b>Definition</b> bent.h:1770</div></div>
+<div class="ttc" id="abent_8h_html_a675e11906302028e0663a77f7feb41a0"><div class="ttname"><a href="#a675e11906302028e0663a77f7feb41a0">BENT_PREFAB_BASE</a></div><div class="ttdeci">#define BENT_PREFAB_BASE(PREFAB)</div><div class="ttdoc">Include another prefab at this point of a BENT_PREFAB list.</div><div class="ttdef"><b>Definition</b> bent.h:1853</div></div>
 </div><!-- fragment --><p>The base is stored by address and read when the list is applied, not when it is built, so a prefab kept at file scope can include another one, and a function can include a prefab it was given. A base entry has a <span class="tt">NULL</span> component like the terminator: read a prefab that may contain one through <a class="el" href="#ac68f6eae14eb0ca2bd84eda045e8f23b">bent_prefab_foreach</a>, never by walking it to the first <span class="tt">NULL</span> component.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
