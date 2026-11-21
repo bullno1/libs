@@ -52,6 +52,7 @@ local test_dirs = {
   "autolist",
   "barena",
   "barray",
+  "bastar",
   "bco",
   "bent",
   "bfmt",
