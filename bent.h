@@ -1456,6 +1456,13 @@ typedef struct {
 		VAR = bent__next_with((WORLD), (COMP), VAR.index + 1) \
 	)
 
+#define BENT_FOREACH_SAVED(VAR, WORLD) \
+	for ( \
+		bent_t VAR = bent__next_saved((WORLD), 0); \
+		!bent_is_invalid(VAR); \
+		VAR = bent__next_saved((WORLD), VAR.index + 1) \
+	)
+
 /**
  * The state of every entity handle, see @ref bent_handles_t.
  *
@@ -1569,6 +1576,12 @@ bent_restore(bent_world_t* world, bent_t entity, bent_comp_reg_t comp);
  */
 BENT_API bent_index_t
 bent_count_with(bent_world_t* world, bent_comp_reg_t comp);
+
+BENT_API bool
+bent_has_saved_comp(bent_world_t* world, bent_t entity);
+
+BENT_API bent_index_t
+bent_count_saved(bent_world_t* world);
 
 /**
  * Find a component type by its registered name.
@@ -2225,6 +2238,9 @@ bent__next_live(bent_world_t* world, bent_index_t from);
 BENT_API bent_t
 bent__next_with(bent_world_t* world, bent_comp_reg_t comp, bent_index_t from);
 
+BENT_API bent_t
+bent__next_saved(bent_world_t* world, bent_index_t from);
+
 BENT_API void
 bent__send(
 	bent_world_t* world,
@@ -2559,6 +2575,7 @@ struct bent_world_s {
 	barray(bent_t) destroy_queue;
 	bent_component_data_t components[BENT_MAX_NUM_COMPONENT_TYPES];
 	bent_index_t num_components;
+	bent_bitset_t saved_components;
 };
 
 static char*
@@ -3143,6 +3160,7 @@ bent_init(bent_world_t** world_ptr, void* memctx) {
 		};
 	}
 
+	bent_bitset_clear(&world->saved_components);
 	AUTOLIST_FOREACH(itr, bent__components) {
 		bent_comp_reg_t* reg = itr->value_addr;
 #ifndef BENT_NO_RELOAD
@@ -3171,6 +3189,9 @@ bent_init(bent_world_t** world_ptr, void* memctx) {
 			&world->components[reg->id - 1],
 			itr->name, reg->def
 		);
+		if (bent_comp_save_mode(reg->def) >= BENT_COMP_SAVE_PRESENCE) {
+			bent_bitset_set(&world->saved_components, reg->id - 1);
+		}
 	}
 
 	// Count the number of systems first
@@ -3857,6 +3878,24 @@ bent_count_with(bent_world_t* world, bent_comp_reg_t reg) {
 	return count;
 }
 
+bool
+bent_has_saved_comp(bent_world_t* world, bent_t entity_id) {
+	const bent_entity_data_t* entity_data = bent_entity_data(world, entity_id);
+	if (entity_data == NULL) { return false; }
+
+	return bent_bitset_any_match(&entity_data->visible_components, &world->saved_components);
+}
+
+bent_index_t
+bent_count_saved(bent_world_t* world) {
+	bent_index_t count = 0;
+	BHANDLE_FOREACH(handle, &world->handles) {
+		const bent_entity_data_t* entity_data = bseg_ref(world->entities, handle.index);
+		if (bent_bitset_any_match(&entity_data->visible_components, &world->saved_components)) { ++count; }
+	}
+	return count;
+}
+
 bent_comp_reg_t
 bent_find_comp(const char* name) {
 	AUTOLIST_FOREACH(itr, bent__components) {
@@ -3902,6 +3941,21 @@ bent__next_with(bent_world_t* world, bent_comp_reg_t reg, bent_index_t from) {
 	) {
 		const bent_entity_data_t* entity_data = bseg_ref(world->entities, handle.index);
 		if (bent_bitset_check(&entity_data->visible_components, comp_index)) {
+			return bent__from_bhandle(handle);
+		}
+	}
+	return (bent_t){ 0 };
+}
+
+bent_t
+bent__next_saved(bent_world_t* world, bent_index_t from) {
+	for (
+		bhandle_t handle = bhandle__next_live(&world->handles, from);
+		!bhandle_is_null(handle);
+		handle = bhandle__next_live(&world->handles, handle.index + 1)
+	) {
+		const bent_entity_data_t* entity_data = bseg_ref(world->entities, handle.index);
+		if (bent_bitset_any_match(&entity_data->visible_components, &world->saved_components)) {
 			return bent__from_bhandle(handle);
 		}
 	}
