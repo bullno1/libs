@@ -512,7 +512,7 @@ Messages</h2>
 <div class="fragment"><div class="line"><a class="code hl_define" href="#a2060a6c58db1a8632b5e26675c8676ad">BENT_COMP</a>(transform, { .x = 10, .y = 11 })</div>
 <div class="line"><a class="code hl_define" href="#a2060a6c58db1a8632b5e26675c8676ad">BENT_COMP</a>(health, initial_health)</div>
 <div class="line"><a class="code hl_define" href="#a2060a6c58db1a8632b5e26675c8676ad">BENT_COMP</a>(player)</div>
-<div class="ttc" id="abent_8h_html_a2060a6c58db1a8632b5e26675c8676ad"><div class="ttname"><a href="#a2060a6c58db1a8632b5e26675c8676ad">BENT_COMP</a></div><div class="ttdeci">#define BENT_COMP(NAME,...)</div><div class="ttdoc">One entry of a BENT_PREFAB list.</div><div class="ttdef"><b>Definition</b> bent.h:1794</div></div>
+<div class="ttc" id="abent_8h_html_a2060a6c58db1a8632b5e26675c8676ad"><div class="ttname"><a href="#a2060a6c58db1a8632b5e26675c8676ad">BENT_COMP</a></div><div class="ttdeci">#define BENT_COMP(NAME,...)</div><div class="ttdoc">One entry of a BENT_PREFAB list.</div><div class="ttdef"><b>Definition</b> bent.h:1796</div></div>
 </div><!-- fragment --><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">NAME</td><td>name of the component type</td></tr>
@@ -678,7 +678,7 @@ Messages</h2>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Starts at 10 out of 10</span></div>
 <div class="line">bent_add_health(world, entity, &amp;(health_t){ .max = 10 });</div>
-<div class="ttc" id="abent_8h_html_acd71c48a0a919d65cbcc5d4c36753419"><div class="ttname"><a href="#acd71c48a0a919d65cbcc5d4c36753419">BENT_INITIALIZER</a></div><div class="ttdeci">#define BENT_INITIALIZER(NAME)</div><div class="ttdoc">Head of the initialization callback of a component declared with BENT_CUSTOM_COMP_EX.</div><div class="ttdef"><b>Definition</b> bent.h:1367</div></div>
+<div class="ttc" id="abent_8h_html_acd71c48a0a919d65cbcc5d4c36753419"><div class="ttname"><a href="#acd71c48a0a919d65cbcc5d4c36753419">BENT_INITIALIZER</a></div><div class="ttdeci">#define BENT_INITIALIZER(NAME)</div><div class="ttdoc">Head of the initialization callback of a component declared with BENT_CUSTOM_COMP_EX.</div><div class="ttdef"><b>Definition</b> bent.h:1369</div></div>
 </div><!-- fragment --><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">NAME</td><td>name of the component type </td></tr>
@@ -809,7 +809,7 @@ Messages</h2>
       </table>
 </div><div class="memdoc">
 <b>Value:</b><div class="fragment"><div class="line">    <a class="code hl_define" href="#adb10c223b0d7ad47dc7831ae78f5e730">BENT_DEFINE_COMP_ADDER_EX</a>(NAME, TYPE, TYPE)</div>
-<div class="ttc" id="abent_8h_html_adb10c223b0d7ad47dc7831ae78f5e730"><div class="ttname"><a href="#adb10c223b0d7ad47dc7831ae78f5e730">BENT_DEFINE_COMP_ADDER_EX</a></div><div class="ttdeci">#define BENT_DEFINE_COMP_ADDER_EX(NAME, COMP_TYPE, ARG_TYPE)</div><div class="ttdoc">Define a type-safe helper function to add a component.</div><div class="ttdef"><b>Definition</b> bent.h:960</div></div>
+<div class="ttc" id="abent_8h_html_adb10c223b0d7ad47dc7831ae78f5e730"><div class="ttname"><a href="#adb10c223b0d7ad47dc7831ae78f5e730">BENT_DEFINE_COMP_ADDER_EX</a></div><div class="ttdeci">#define BENT_DEFINE_COMP_ADDER_EX(NAME, COMP_TYPE, ARG_TYPE)</div><div class="ttdoc">Define a type-safe helper function to add a component.</div><div class="ttdef"><b>Definition</b> bent.h:962</div></div>
 </div><!-- fragment -->
 <p>Define a type-safe helper function to add a component. </p>
 <dl class="params"><dt>Parameters</dt><dd>
@@ -885,7 +885,7 @@ Messages</h2>
       </table>
 </div><div class="memdoc">
 <b>Value:</b><div class="fragment"><div class="line">    <a class="code hl_define" href="#ac589e12019530c853077700008e258fd">BENT_DEFINE_COMP_CONST_ADDER_EX</a>(NAME, TYPE, TYPE)</div>
-<div class="ttc" id="abent_8h_html_ac589e12019530c853077700008e258fd"><div class="ttname"><a href="#ac589e12019530c853077700008e258fd">BENT_DEFINE_COMP_CONST_ADDER_EX</a></div><div class="ttdeci">#define BENT_DEFINE_COMP_CONST_ADDER_EX(NAME, COMP_TYPE, ARG_TYPE)</div><div class="ttdoc">Same as BENT_DEFINE_COMP_ADDER_EX but the helper returns a const pointer.</div><div class="ttdef"><b>Definition</b> bent.h:987</div></div>
+<div class="ttc" id="abent_8h_html_ac589e12019530c853077700008e258fd"><div class="ttname"><a href="#ac589e12019530c853077700008e258fd">BENT_DEFINE_COMP_CONST_ADDER_EX</a></div><div class="ttdeci">#define BENT_DEFINE_COMP_CONST_ADDER_EX(NAME, COMP_TYPE, ARG_TYPE)</div><div class="ttdoc">Same as BENT_DEFINE_COMP_ADDER_EX but the helper returns a const pointer.</div><div class="ttdef"><b>Definition</b> bent.h:989</div></div>
 </div><!-- fragment -->
 <p>Same as <a class="el" href="#aaad7f5c492729aa092db284c06b76543">BENT_DEFINE_COMP_ADDER</a> but the helper returns a <span class="tt">const</span> pointer. </p>
 <dl class="params"><dt>Parameters</dt><dd>
@@ -1450,7 +1450,7 @@ Messages</h2>
 <div class="line">        !<a class="code hl_function" href="#a15f6eadedd8071b6174f6c4bc6e15eda">bent_is_invalid</a>(VAR); \</div>
 <div class="line">        VAR = bent__next_saved((WORLD), VAR.index + 1) \</div>
 <div class="line">    )</div>
-<div class="ttc" id="abent_8h_html_a15f6eadedd8071b6174f6c4bc6e15eda"><div class="ttname"><a href="#a15f6eadedd8071b6174f6c4bc6e15eda">bent_is_invalid</a></div><div class="ttdeci">static bool bent_is_invalid(bent_t entity)</div><div class="ttdoc">Check whether a handle is invalid.</div><div class="ttdef"><b>Definition</b> bent.h:1210</div></div>
+<div class="ttc" id="abent_8h_html_a15f6eadedd8071b6174f6c4bc6e15eda"><div class="ttname"><a href="#a15f6eadedd8071b6174f6c4bc6e15eda">bent_is_invalid</a></div><div class="ttdeci">static bool bent_is_invalid(bent_t entity)</div><div class="ttdoc">Check whether a handle is invalid.</div><div class="ttdef"><b>Definition</b> bent.h:1212</div></div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -1562,7 +1562,7 @@ Messages</h2>
       </table>
 </div><div class="memdoc">
 <b>Value:</b><div class="fragment"><div class="line">    <span class="keywordtype">void</span> bent_init_##NAME(<a class="code hl_typedef" href="#ad25dcf8369af5e341d68f2a85083f584">bent_world_t</a>* world, <a class="code hl_define" href="#a7233da1b0bb495fdaa2dafcb6740ee15">BENT_COMP_TYPE</a>(NAME)* comp, <span class="keyword">const</span> NAME##_arg_t* arg)</div>
-<div class="ttc" id="abent_8h_html_a7233da1b0bb495fdaa2dafcb6740ee15"><div class="ttname"><a href="#a7233da1b0bb495fdaa2dafcb6740ee15">BENT_COMP_TYPE</a></div><div class="ttdeci">#define BENT_COMP_TYPE(NAME)</div><div class="ttdoc">The data type of a component declared with BENT_POD_COMP_EX.</div><div class="ttdef"><b>Definition</b> bent.h:1317</div></div>
+<div class="ttc" id="abent_8h_html_a7233da1b0bb495fdaa2dafcb6740ee15"><div class="ttname"><a href="#a7233da1b0bb495fdaa2dafcb6740ee15">BENT_COMP_TYPE</a></div><div class="ttdeci">#define BENT_COMP_TYPE(NAME)</div><div class="ttdoc">The data type of a component declared with BENT_POD_COMP_EX.</div><div class="ttdef"><b>Definition</b> bent.h:1319</div></div>
 </div><!-- fragment -->
 <p>Head of the initialization callback of a component declared with <a class="el" href="#ad36eb32c9391b20f6147be301f95dfc2">BENT_CUSTOM_COMP_EX</a>. </p>
 <p>It expands to <span class="tt">void bent_init_NAME(bent_world_t* world, TYPE* comp, const ARG_TYPE* arg)</span> where <span class="tt">TYPE</span> and <span class="tt">ARG_TYPE</span> are the types given to <a class="el" href="#ad36eb32c9391b20f6147be301f95dfc2">BENT_CUSTOM_COMP_EX</a>.</p>
@@ -1627,7 +1627,7 @@ Messages</h2>
 <p>Dual use helper for a message type. </p>
 <p>This must be followed by a struct body and a semicolon:</p>
 <div class="fragment"><div class="line"><a class="code hl_define" href="#ab841f7db828a64a16aa7aed8a635b787">BENT_MSG</a>(collision_msg) { <a class="code hl_struct" href="structbent__t.html">bent_t</a> a, b; <span class="keywordtype">float</span> depth; };</div>
-<div class="ttc" id="abent_8h_html_ab841f7db828a64a16aa7aed8a635b787"><div class="ttname"><a href="#ab841f7db828a64a16aa7aed8a635b787">BENT_MSG</a></div><div class="ttdeci">#define BENT_MSG(NAME)</div><div class="ttdoc">Dual use helper for a message type.</div><div class="ttdef"><b>Definition</b> bent.h:1728</div></div>
+<div class="ttc" id="abent_8h_html_ab841f7db828a64a16aa7aed8a635b787"><div class="ttname"><a href="#ab841f7db828a64a16aa7aed8a635b787">BENT_MSG</a></div><div class="ttdeci">#define BENT_MSG(NAME)</div><div class="ttdoc">Dual use helper for a message type.</div><div class="ttdef"><b>Definition</b> bent.h:1730</div></div>
 </div><!-- fragment --><p>It defines <span class="tt">struct NAME</span>, the typedef <span class="tt">NAME_t</span> and declares the registration <span class="tt">NAME</span>, a <a class="el" href="structbent__msg__reg__t.html">bent_msg_reg_t</a> whose address identifies the message type.</p>
 <p>In a header file, it will forward-declare the registration.</p>
 <p>In a single source file, define <span class="tt">BENT_DEFINE_COMPONENTS</span> and include this header to implement the registration, the same way as <a class="el" href="#abdb5b3b4e979a5288abdb44e95235e10">BENT_POD_COMP</a>.</p>
@@ -1662,7 +1662,7 @@ Messages</h2>
 <p>Construct a message. </p>
 <p>Expands to a compound literal of the message's struct type, so it is followed by a brace initializer:</p>
 <div class="fragment"><div class="line">collision_msg_t msg = <a class="code hl_define" href="#aef71d1b268610c2fe0cf20ddf57b5eea">bent_msg</a>(collision_msg){ .a = a, .b = b };</div>
-<div class="ttc" id="abent_8h_html_aef71d1b268610c2fe0cf20ddf57b5eea"><div class="ttname"><a href="#aef71d1b268610c2fe0cf20ddf57b5eea">bent_msg</a></div><div class="ttdeci">#define bent_msg(NAME)</div><div class="ttdoc">Construct a message.</div><div class="ttdef"><b>Definition</b> bent.h:1641</div></div>
+<div class="ttc" id="abent_8h_html_aef71d1b268610c2fe0cf20ddf57b5eea"><div class="ttname"><a href="#aef71d1b268610c2fe0cf20ddf57b5eea">bent_msg</a></div><div class="ttdeci">#define bent_msg(NAME)</div><div class="ttdoc">Construct a message.</div><div class="ttdef"><b>Definition</b> bent.h:1643</div></div>
 </div><!-- fragment --><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">NAME</td><td>name of the message type</td></tr>
@@ -1871,7 +1871,7 @@ Messages</h2>
 <div class="line">    <a class="code hl_define" href="#a2060a6c58db1a8632b5e26675c8676ad">BENT_COMP</a>(player)</div>
 <div class="line">));</div>
 <div class="ttc" id="abent_8h_html_a6e8e8671ad41b1472f53bfff8cffaf07"><div class="ttname"><a href="#a6e8e8671ad41b1472f53bfff8cffaf07">bent_create_from</a></div><div class="ttdeci">bent_t bent_create_from(bent_world_t *world, bent_prefab_t prefab)</div><div class="ttdoc">Create an entity from a prefab.</div></div>
-<div class="ttc" id="abent_8h_html_aa67229382b5477f43c55c18c3e545687"><div class="ttname"><a href="#aa67229382b5477f43c55c18c3e545687">BENT_PREFAB</a></div><div class="ttdeci">#define BENT_PREFAB(...)</div><div class="ttdoc">A prefab: a null-terminated list of BENT_COMP entries.</div><div class="ttdef"><b>Definition</b> bent.h:1816</div></div>
+<div class="ttc" id="abent_8h_html_aa67229382b5477f43c55c18c3e545687"><div class="ttname"><a href="#aa67229382b5477f43c55c18c3e545687">BENT_PREFAB</a></div><div class="ttdeci">#define BENT_PREFAB(...)</div><div class="ttdoc">A prefab: a null-terminated list of BENT_COMP entries.</div><div class="ttdef"><b>Definition</b> bent.h:1818</div></div>
 </div><!-- fragment --><dl class="section see"><dt>See also</dt><dd><a class="el" href="#a6e8e8671ad41b1472f53bfff8cffaf07" title="Create an entity from a prefab.">bent_create_from</a> </dd>
 <dd>
 <a class="el" href="#a8c55deceacc58c2a2a6148574a2fcb08" title="Add the components of a prefab to an existing entity.">bent_add_from</a> </dd></dl>
@@ -1904,8 +1904,8 @@ Messages</h2>
 <div class="line">    <a class="code hl_define" href="#a675e11906302028e0663a77f7feb41a0">BENT_PREFAB_BASE</a>(monster),</div>
 <div class="line">    <a class="code hl_define" href="#a2060a6c58db1a8632b5e26675c8676ad">BENT_COMP</a>(bow)                   <span class="comment">// A default, unless the base has one</span></div>
 <div class="line">);</div>
-<div class="ttc" id="abent_8h_html_a3cbfd862128c0cf2392415619764f0d1"><div class="ttname"><a href="#a3cbfd862128c0cf2392415619764f0d1">bent_prefab_t</a></div><div class="ttdeci">const bent_prefab_entry_t * bent_prefab_t</div><div class="ttdoc">A prefab: a null-terminated list of bent_prefab_entry_t.</div><div class="ttdef"><b>Definition</b> bent.h:1770</div></div>
-<div class="ttc" id="abent_8h_html_a675e11906302028e0663a77f7feb41a0"><div class="ttname"><a href="#a675e11906302028e0663a77f7feb41a0">BENT_PREFAB_BASE</a></div><div class="ttdeci">#define BENT_PREFAB_BASE(PREFAB)</div><div class="ttdoc">Include another prefab at this point of a BENT_PREFAB list.</div><div class="ttdef"><b>Definition</b> bent.h:1853</div></div>
+<div class="ttc" id="abent_8h_html_a3cbfd862128c0cf2392415619764f0d1"><div class="ttname"><a href="#a3cbfd862128c0cf2392415619764f0d1">bent_prefab_t</a></div><div class="ttdeci">const bent_prefab_entry_t * bent_prefab_t</div><div class="ttdoc">A prefab: a null-terminated list of bent_prefab_entry_t.</div><div class="ttdef"><b>Definition</b> bent.h:1772</div></div>
+<div class="ttc" id="abent_8h_html_a675e11906302028e0663a77f7feb41a0"><div class="ttname"><a href="#a675e11906302028e0663a77f7feb41a0">BENT_PREFAB_BASE</a></div><div class="ttdeci">#define BENT_PREFAB_BASE(PREFAB)</div><div class="ttdoc">Include another prefab at this point of a BENT_PREFAB list.</div><div class="ttdef"><b>Definition</b> bent.h:1855</div></div>
 </div><!-- fragment --><p>The base is stored by address and read when the list is applied, not when it is built, so a prefab kept at file scope can include another one, and a function can include a prefab it was given. A base entry has a <span class="tt">NULL</span> component like the terminator: read a prefab that may contain one through <a class="el" href="#ac68f6eae14eb0ca2bd84eda045e8f23b">bent_prefab_foreach</a>, never by walking it to the first <span class="tt">NULL</span> component.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
