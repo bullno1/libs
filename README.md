@@ -20,6 +20,7 @@ Collection of miscellaneous single-header libraries.
 |[bserial.h](bserial.h)|Binary serialization|
 |[bsv.h](bsv.h)|Binary serialization with explicit versioning|
 |[bwal.h](bwal.h)|Write-ahead log over two alternating files|
+|[bastar.h](bastar.h)|A* path finding|
 |[bspscq.h](bspscq.h)|Single producer single consumer queue|
 |[barg.h](barg.h)|Command line argument parser|
 |[bscn.h](bscn.h)|Text scanner for hand-written parsers|
