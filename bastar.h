@@ -20,9 +20,9 @@
  *
  * A search is described by a @ref bastar_query_t:
  *
- * * `expand` reports every edge leaving a node with @ref bastar_edge.
+ * * `expand` reports every edge leaving a node with @ref bastar_report_edge.
  * * `heuristic` estimates the remaining cost from a node to the goal.
- * * `is_goal` tells whether a node ends the search.
+ * * `is_goal` checks whether a node ends the search.
  *
  * The path is the cheapest one when `heuristic` never overestimates.
  *
@@ -48,7 +48,7 @@
  *     for (int i = 0; i < 4; ++i) {
  *         int nx = x + dirs[i][0], ny = y + dirs[i][1];
  *         if (grid_is_walkable(query->grid, nx, ny)) {
- *             bastar_edge(astar, grid_node(nx, ny), 1.f);
+ *             bastar_report_edge(astar, grid_node(nx, ny), 1.f);
  *         }
  *     }
  * }
@@ -106,7 +106,7 @@ typedef struct bastar_s bastar_t;
 // Callbacks {{{
 
 /**
- * Report every edge leaving @p node by calling @ref bastar_edge on @p astar.
+ * Report every edge leaving @p node by calling @ref bastar_report_edge on @p astar.
  *
  * A node with no edge to report is a dead end.
  */
@@ -233,7 +233,7 @@ bastar_find(bastar_t* astar, const bastar_query_t* query, void* memctx);
  * Valid inside @ref bastar_expand_fn_t only, on the @ref bastar_t it was given.
  */
 BASTAR_API void
-bastar_edge(bastar_t* astar, bastar_node_t neighbor, bastar_cost_t cost);
+bastar_report_edge(bastar_t* astar, bastar_node_t neighbor, bastar_cost_t cost);
 
 // }}}
 
@@ -584,9 +584,9 @@ bastar_find(bastar_t* astar, const bastar_query_t* query, void* memctx) {
 }
 
 void
-bastar_edge(bastar_t* astar, bastar_node_t neighbor, bastar_cost_t cost) {
+bastar_report_edge(bastar_t* astar, bastar_node_t neighbor, bastar_cost_t cost) {
 	bastar_record_t* from = astar->current;
-	BASTAR_ASSERT(from != NULL, "bastar_edge called outside of expand");
+	BASTAR_ASSERT(from != NULL, "bastar_report_edge called outside of expand");
 
 	// Gave up on an earlier edge of this node
 	if (astar->status != BASTAR_RUNNING) { return; }

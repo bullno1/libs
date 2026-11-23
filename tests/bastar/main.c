@@ -127,7 +127,7 @@ grid_expand(void* userdata, bastar_t* astar, bastar_node_t node) {
 		int x = grid_x(node) + dirs[i][0];
 		int y = grid_y(node) + dirs[i][1];
 		if (grid_is_walkable(grid, x, y)) {
-			bastar_edge(astar, grid_node(x, y), 1.f);
+			bastar_report_edge(astar, grid_node(x, y), 1.f);
 		}
 	}
 }
@@ -658,9 +658,9 @@ graph_expand(void* userdata, bastar_t* astar, bastar_node_t node) {
 		float cost = graph->costs[from][to];
 		if (cost == GRAPH_NO_EDGE) { continue; }
 		for (int i = graph->num_duplicates; i > 0; --i) {
-			bastar_edge(astar, graph_node(to), cost + (float)i);
+			bastar_report_edge(astar, graph_node(to), cost + (float)i);
 		}
-		bastar_edge(astar, graph_node(to), cost);
+		bastar_report_edge(astar, graph_node(to), cost);
 	}
 }
 
@@ -827,7 +827,7 @@ fan_expand(void* userdata, bastar_t* astar, bastar_node_t node) {
 	(void)userdata;
 	if (node != 0) { return; }
 	for (uint64_t i = FAN_SIZE; i > 0; --i) {
-		bastar_edge(astar, i, (float)i);
+		bastar_report_edge(astar, i, (float)i);
 	}
 }
 
@@ -864,8 +864,8 @@ BTEST(pathfinding, wide_fan) {
 static void
 chain_expand(void* userdata, bastar_t* astar, bastar_node_t node) {
 	(void)userdata;
-	bastar_edge(astar, 0, 1.f);
-	if (node + 1 < CHAIN_SIZE) { bastar_edge(astar, node + 1, 1.f); }
+	bastar_report_edge(astar, 0, 1.f);
+	if (node + 1 < CHAIN_SIZE) { bastar_report_edge(astar, node + 1, 1.f); }
 }
 
 BTEST(pathfinding, long_chain) {
