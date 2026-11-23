@@ -56,6 +56,16 @@
  * @ref bfmt_text and rendered with @ref bfmt_translate_text.
  * For values, use @ref bfmt_unbound as a stand in.
  *
+ * Templating without localization
+ * -------------------------------
+ *
+ * The same syntax can be used to render a runtime template:
+ *
+ * @code{.c}
+ * const char* format = "[{level}] {msg}";
+ * bfmt_template(bfmt_stdout, format, bfmt_named(level, level), bfmt_named(msg, msg));
+ * @endcode
+ *
  * Extracting translatable text
  * ----------------------------
  *
@@ -734,6 +744,37 @@ typedef struct {
 			OUT, \
 			LOCALE, \
 			TEXT, \
+			(bfmt__template_input_t[]){ bfmt__map(bfmt__to_template_input, __VA_ARGS__) { 0 } } \
+		) \
+	)
+
+/**
+ * Render a template with a runtime string.
+ *
+ * @code{.c}
+ * bfmt_template(bfmt_stdout, "Hello {user}", bfmt_named(user, name));
+ * @endcode
+ *
+ * An error in the template, including a name that is not bound, stops
+ * rendering and writes the rest of the template out verbatim.
+ * There is no reporting, so validate untrusted templates by
+ * rendering them through @ref bfmt_translate_text with a locale that has
+ * @ref bfmt_locale_t::report_error.
+ *
+ * @param OUT a `bfmt_stream_t*` or, inside a formatter, a `bfmt_ctx_t*`
+ * @param TEMPLATE the template, a `const char*`
+ * @param ... the values, each one a @ref bfmt_named
+ *
+ * @hideinitializer
+ */
+#define bfmt_template(OUT, TEMPLATE, ...) \
+	( \
+		bfmt__map(bfmt__check_binding, __VA_ARGS__) \
+		bfmt__ptranslate( \
+			OUT, \
+			(bfmt_locale_t*)NULL, \
+			(const char*)NULL, \
+			TEMPLATE, \
 			(bfmt__template_input_t[]){ bfmt__map(bfmt__to_template_input, __VA_ARGS__) { 0 } } \
 		) \
 	)

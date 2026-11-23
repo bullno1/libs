@@ -746,3 +746,91 @@ BTEST(translate_suite, locale_can_drop_a_broken_translation) {
 }
 
 // }}}
+
+// Run time templates {{{
+
+// A template may come from anywhere, here from a non-constant buffer
+static const char*
+runtime_template(char* buf, size_t size, const char* text) {
+	snprintf(buf, size, "%s", text);
+	return buf;
+}
+
+BTEST(translate_suite, template) {
+	char buf[128];
+	const char* format = runtime_template(buf, sizeof(buf), "[{level}] {msg}");
+
+	bfmt_template(OUT, format, bfmt_named(level, "INFO"), bfmt_named(msg, "started"));
+	EXPECT_OUTPUT("[INFO] started");
+
+	// Bindings are matched by name, not by position
+	bfmt_template(OUT, format, bfmt_named(msg, "stopped"), bfmt_named(level, "WARN"));
+	EXPECT_OUTPUT("[WARN] stopped");
+
+	// No bindings at all
+	bfmt_template(OUT, "plain");
+	EXPECT_OUTPUT("plain");
+
+	// Nothing was looked up or reported: there is no locale
+	BTEST_EXPECT_EQUAL("%d", lookup.num_lookups, 0);
+	EXPECT_NO_ERROR();
+}
+
+BTEST(translate_suite, template_cases) {
+	// Without a plural rule every number is `other`, exact cases still match
+	const char* format = "{n, plural, =0{none} one{# file} other{# files}}";
+	bfmt_template(OUT, format, bfmt_named(n, 0));
+	EXPECT_OUTPUT("none");
+	bfmt_template(OUT, format, bfmt_named(n, 1));
+	EXPECT_OUTPUT("1 files");
+	bfmt_template(OUT, format, bfmt_named(n, 2));
+	EXPECT_OUTPUT("2 files");
+
+	// select compares the value as text
+	bfmt_template(OUT, "{mode, select, fast{quick} other{slow}}", bfmt_named(mode, "fast"));
+	EXPECT_OUTPUT("quick");
+
+	// Quoting works as in a translation
+	bfmt_template(OUT, "'{'{n}'}' it''s", bfmt_named(n, 7));
+	EXPECT_OUTPUT("{7} it's");
+}
+
+BTEST(translate_suite, template_errors_are_visible) {
+	// An unbound name stops rendering and the rest is written out verbatim
+	bfmt_template(OUT, "Hello {user}!", bfmt_named(usr, "bull"));
+	EXPECT_OUTPUT("Hello {user}!");
+
+	// So is a syntax error
+	bfmt_template(OUT, "value: {n", bfmt_named(n, 1));
+	EXPECT_OUTPUT("value: {n");
+
+	// Nobody is told
+	EXPECT_NO_ERROR();
+}
+
+BTEST(translate_suite, template_values) {
+	// Values take options and are evaluated once
+	int counter = 1;
+	bfmt_template(OUT, "<{n}>", bfmt_named(n, bfmt(counter++, { .layout.min_width = 3 })));
+	EXPECT_OUTPUT("<  1>");
+	BTEST_EXPECT_EQUAL("%d", counter, 2);
+
+	// A value may be a nested translation
+	bfmt_template(OUT, "Copied {what}", bfmt_named(what, bfmt_with(bfmt_test_format_file_count, 2)));
+	EXPECT_OUTPUT("Copied 2 files");
+}
+
+// A formatter renders a run time template into its context
+bfmt_decl_formatter(int, bfmt_test_format_bracketed, bfmt_no_options_t)
+
+bfmt_formatter(int, bfmt_test_format_bracketed, bfmt_no_options_t) {
+	(void)options;
+	bfmt_template(ctx, "[{n}]", bfmt_named(n, value));
+}
+
+BTEST(translate_suite, template_inside_a_formatter) {
+	bfmt_print(OUT, "got ", bfmt_with(bfmt_test_format_bracketed, 4));
+	EXPECT_OUTPUT("got [4]");
+}
+
+// }}}
