@@ -16,6 +16,6 @@ var searchData=
   ['style_13',['style',['../structbfmt__float__options__t.html#a29816e1118a6e56f1b2d9f0dc1d20565',1,'bfmt_float_options_t']]],
   ['suite_14',['suite',['../structbtest__case__t.html#a82b35ef984121ba3602a6616b615f8bf',1,'btest_case_t']]],
   ['summary_15',['summary',['../structbarg__opt__t.html#acc1d8647862b3cbf140c7773a807f3a9',1,'barg_opt_t::summary'],['../structbarg__t.html#a6697e200906f04e6f53c2721753021f6',1,'barg_t::summary']]],
-  ['syntax_16',['Template syntax',['../bfmt_8h.html#autotoc_md26',1,'']]],
+  ['syntax_16',['Template syntax',['../bfmt_8h.html#autotoc_md27',1,'']]],
   ['sys_17',['sys',['../structbent__sys__itr__t.html#aa15cd245ba92bf2b1c7a7d9d888e484d',1,'bent_sys_itr_t']]]
 ];

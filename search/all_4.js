@@ -9,5 +9,5 @@ var searchData=
   ['eq_6',['eq',['../structbhash__config__s.html#ada2d1ceb4412c6bca8dc99864c48b627',1,'bhash_config_s']]],
   ['error_20handling_7',['Error handling',['../bserial_8h.html#autotoc_md8',1,'']]],
   ['exclude_8',['exclude',['../structbent__sys__def__t.html#a8ac4995a75939ff1de8d93d2f16bab87',1,'bent_sys_def_t']]],
-  ['extracting_20translatable_20text_9',['Extracting translatable text',['../bfmt_8h.html#autotoc_md25',1,'']]]
+  ['extracting_20translatable_20text_9',['Extracting translatable text',['../bfmt_8h.html#autotoc_md26',1,'']]]
 ];
