@@ -146,6 +146,8 @@ Macros</h2></td></tr>
 <tr class="memdesc:a06625dcae87fbf16664551b2532f1f0d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Spawn a subcoroutine from within a coroutine and transfer control to it.  <br /></td></tr>
 <tr class="memitem:a412914c595592a8bfd073ac97379ec4b" id="r_a412914c595592a8bfd073ac97379ec4b"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a412914c595592a8bfd073ac97379ec4b">bco_call_result</a>(VAR,  NAME, ...)</td></tr>
 <tr class="memdesc:a412914c595592a8bfd073ac97379ec4b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Call a subcoroutine and take the value it returns.  <br /></td></tr>
+<tr class="memitem:ac9dc213ec1cefd9462cb02ddc4f11a33" id="r_ac9dc213ec1cefd9462cb02ddc4f11a33"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac9dc213ec1cefd9462cb02ddc4f11a33">bco_wait_until</a>(COND)</td></tr>
+<tr class="memdesc:ac9dc213ec1cefd9462cb02ddc4f11a33"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wait for a condition to become true.  <br /></td></tr>
 <tr class="memitem:abe1a1b9715da4d39caabc85b243dde34" id="r_abe1a1b9715da4d39caabc85b243dde34"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abe1a1b9715da4d39caabc85b243dde34">bco_join</a>(CORO)</td></tr>
 <tr class="memdesc:abe1a1b9715da4d39caabc85b243dde34"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wait for another coroutine to finish.  <br /></td></tr>
 <tr class="memitem:a6761d943e8c1594f8335525d36942f26" id="r_a6761d943e8c1594f8335525d36942f26"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6761d943e8c1594f8335525d36942f26">bco_recv</a>(TYPE,  VAR)</td></tr>
@@ -1017,6 +1019,31 @@ Hot reload</h2>
 <div class="line">        <span class="keywordtype">void</span>* scratch_buffer;</div>
 <div class="line">    )</div>
 </div><!-- fragment --><dl class="section see"><dt>See also</dt><dd><a class="el" href="#acd5a413669eacaf6151e74a5dc101b18" title="Access a coroutine variable.">bco_var</a> </dd></dl>
+
+</div>
+</div>
+<a id="ac9dc213ec1cefd9462cb02ddc4f11a33" name="ac9dc213ec1cefd9462cb02ddc4f11a33"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac9dc213ec1cefd9462cb02ddc4f11a33">&#9670;&#160;</a></span>bco_wait_until</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define bco_wait_until</td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>COND</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Wait for a condition to become true. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">CORO</td><td>the condition to wait for It will be re-evaluated every time the coroutine is resumed </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
