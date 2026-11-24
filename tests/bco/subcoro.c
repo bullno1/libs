@@ -207,3 +207,33 @@ BTEST(subcoro, join_waits_for_an_independent_coroutine) {
 	);
 	BTEST_EXPECT_EQUAL("%d", bco_status(coro_b()), BCO_TERMINATED);
 }
+
+bco_static(void, subcoro_waiter, int unused) {
+	bco_begin
+	trace("waiter:start");
+	bco_wait_until(bco_status(coro_b()) == BCO_TERMINATED);
+	trace("waiter:done");
+	bco_end
+}
+
+BTEST(subcoro, wait_until_does_not_resume_the_other_coroutine) {
+	bco_spawn(coro_b(), subcoro_leaf, 9, 2);
+	bco_spawn(coro_a(), subcoro_waiter, 0);
+
+	bco_resume(coro_a());
+	bco_resume(coro_a());
+	BCO_EXPECT_TRACE("waiter:start");
+	BTEST_EXPECT_EQUAL("%d", bco_status(coro_a()), BCO_SUSPENDED);
+	BTEST_EXPECT_EQUAL("%d", bco_status(coro_b()), BCO_SUSPENDED);
+
+	bco_resume(coro_b());
+	bco_resume(coro_a());
+	BCO_EXPECT_TRACE("waiter:start leaf9:enter:0 leaf9:0");
+	BTEST_EXPECT_EQUAL("%d", bco_status(coro_a()), BCO_SUSPENDED);
+
+	drive(coro_b());
+	BTEST_EXPECT_EQUAL("%d", bco_resume(coro_a()), BCO_TERMINATED);
+	BCO_EXPECT_TRACE(
+		"waiter:start leaf9:enter:0 leaf9:0 leaf9:1 leaf9:cleanup waiter:done"
+	);
+}

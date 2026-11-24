@@ -287,3 +287,30 @@ BTEST(relocate, join_is_relocatable) {
 	drive(coro_a());
 	BCO_EXPECT_TRACE("joiner:start leaf1:enter leaf1:line leaf1:cleanup joiner:done");
 }
+
+bco_static(void, waiter_v1, int n) {
+	bco_yield_points(WAIT_OTHER)
+	bco_begin
+	trace("waiter:start");
+	bco_at(WAIT_OTHER) bco_wait_until(bco_status(coro_b()) == BCO_TERMINATED);
+	trace("waiter:done");
+	bco_end
+}
+
+static void run_waiter_v1(bco_t* coro, void* args) { waiter_v1(coro, args); }
+
+BTEST(relocate, wait_until_is_relocatable) {
+	leaf_build = run_leaf_v1;
+	bco_spawn(coro_b(), leaf, 0);
+	worker_build = run_waiter_v1;
+	bco_spawn(coro_a(), worker, 0);
+
+	bco_resume(coro_a());
+	BTEST_EXPECT(bco_reloadable(coro_a(), NULL));
+	BTEST_EXPECT(bco_reload_begin(coro_a()));
+	BTEST_EXPECT(bco_reload_end(coro_a()));
+
+	drive(coro_b());
+	drive(coro_a());
+	BCO_EXPECT_TRACE("waiter:start leaf1:enter leaf1:line leaf1:cleanup waiter:done");
+}
