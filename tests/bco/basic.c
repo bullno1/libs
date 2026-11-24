@@ -63,6 +63,38 @@ BTEST(basic, resume_after_termination_is_a_noop) {
 	BCO_EXPECT_TRACE("0 done");
 }
 
+static int basic_gate;
+
+bco_static(void, basic_gated, int unused) {
+	bco_begin
+	trace("before");
+	bco_wait_until(basic_gate > 0);
+	trace("after");
+	bco_end
+}
+
+BTEST(basic, wait_until_yields_while_the_condition_is_false) {
+	basic_gate = 0;
+	bco_spawn(coro_a(), basic_gated, 0);
+
+	bco_resume(coro_a());
+	bco_resume(coro_a());
+	BTEST_EXPECT_EQUAL("%d", bco_status(coro_a()), BCO_SUSPENDED);
+	BCO_EXPECT_TRACE("before");
+
+	basic_gate = 1;
+	BTEST_EXPECT_EQUAL("%d", bco_resume(coro_a()), BCO_TERMINATED);
+	BCO_EXPECT_TRACE("before after");
+}
+
+BTEST(basic, wait_until_does_not_yield_when_the_condition_holds) {
+	basic_gate = 1;
+	bco_spawn(coro_a(), basic_gated, 0);
+
+	BTEST_EXPECT_EQUAL("%d", bco_resume(coro_a()), BCO_TERMINATED);
+	BCO_EXPECT_TRACE("before after");
+}
+
 // An empty body still has to reach the cleanup section and terminate
 bco_static(void, basic_empty, int unused) {
 	bco_begin

@@ -489,6 +489,20 @@
 	} while (0)
 
 /**
+ * Wait for a condition to become true
+ *
+ * @param CORO the condition to wait for
+ *   It will be re-evaluated every time the coroutine is resumed
+ *
+ * @hideinitializer
+ */
+#define bco_wait_until(COND) \
+	do { \
+		_Static_assert(bco__begin_declared == 1 && bco__end_declared == 0, "bco_wait_until can only be used *between* bco_begin and bco_end"); \
+		while (!(COND)) { bco_yield(); } \
+	} while (0)
+
+/**
  * Wait for another coroutine to finish
  *
  * @param CORO the coroutine to wait for
@@ -498,7 +512,7 @@
 #define bco_join(CORO) \
 	do { \
 		_Static_assert(bco__begin_declared == 1 && bco__end_declared == 0, "bco_join can only be used *between* bco_begin and bco_end"); \
-		while (bco_resume(CORO) != BCO_TERMINATED) { bco_yield(); } \
+		bco_wait_until(bco_resume(CORO) == BCO_TERMINATED); \
 	} while (0)
 
 /**
